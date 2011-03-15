@@ -1,0 +1,49 @@
+makro
+# this is an example makro
+
+gp start legend 1.1,1;page size 600, 400;title "THIS example init Plot will self destucted in 10 seconds\n to change initialisation look at makros/initdatr.example";subtitle " create your own initdatr";xaxis label "\xt\f{} / ns";yaxis  label "S(q,\xt\f{}) / S(q,0)"
+
+echo " initialisation  is done in makros/initdatr"
+echo  " its a normal makro like this"
+
+#change to main datreat path
+datreat
+
+# a simple test in directory test
+cd test
+in h00
+sel 1 5 9 15
+dac
+ac hohdiff
+chgthpar hohdiff 1 amplitu  par 0.6      scale 1
+chgthpar hohdiff 1 u_quadra par 0.4      scale 1
+chgthpar hohdiff 1 self_dif par 40       scale 1
+chgthpar hohdiff 1 tau0_dif par 0.01     scale 1
+chgthpar hohdiff 1 a_rot    par 1       scale 1
+fit
+gp
+sleep 1
+echo 10
+sleep 1
+echo 9
+sleep 1
+echo 8
+sleep 1
+echo 7
+sleep 1
+echo 6
+sleep 1
+echo 5
+sleep 1
+echo 4
+sleep 1
+echo 3
+sleep 1
+echo 2
+sleep 1
+echo 1
+echo exit
+
+gp cm exit
+
+echo   "another example is testmac"

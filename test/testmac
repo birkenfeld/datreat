@@ -1,0 +1,110 @@
+makro
+c del evrything
+purge all
+dac
+
+c input a file
+in b___0000
+c select some data
+sel 3 4 
+#plot them in xmgrace
+gp 
+c activate theory and change parameters
+ac strexpo
+chgthpar strexpo 1 amplitu par 1       scale 1
+chgthpar strexpo 1 tau     par 3.4      scale 1
+chgthpar strexpo 1 beta    par 1        scale 0
+chgthpar strexpo 1 qexp    par 1        scale 0
+c fit it now
+fit
+c copy result to file to reuse it if neccessary with "acl"
+cp lastth lastth_strexpoiiii 
+c or doit in this way to use parameter substitution in makros
+slastth newname
+c plot it with grace    
+c options     fp = write fit parameters
+c             jp  = joint parameters of all data
+c move text in grace with CTRL-m
+gp 
+#####################something completly different###########################################
+sleep 1
+c select other data
+sel
+sel 1 6  7 8  
+c plot it with offset to different graph in same window
+gp  so 10 
+gp cm autoscale
+gp cm redraw
+
+gp cm legend 0.2, 0.85
+gp cm legend char size 0.3
+gp cm title "NSE data"
+sleep 1
+purge all
+########new data#####################################
+c only to demonstrate path new dataset
+in ../test/h00
+sel 1 5 9 16
+# plot to new new graph with number 1
+gp gr 1
+c direct comands to grace 
+gp cm with g1
+gp cm title "IN5 data"
+gp cm ARRANGE(1, 3, 0.15, 0.15, 0.15, ON, OFF, ON)
+gp cm page size 600,400
+gp cm legend 0.6, 0.8
+gp cm redraw
+# deactivate old theories 
+dac
+#new theory only in specified range if q is availible in data
+ac hohdiff
+chgthpar hohdiff 1 amplitu  par 0.6      scale 1
+chgthpar hohdiff 1 u_quadra par 0.4      scale 1
+chgthpar hohdiff 1 self_dif par 40       scale 1
+chgthpar hohdiff 1 tau0_dif par 0.01     scale 1
+chgthpar hohdiff 1 a_rot    par 1       scale 1
+c fit it now
+# show list of theories
+al
+fit 
+# plot it incl the fit
+gp gr 1 fp
+gp cm world xmin -0.2
+gp cm world xmax 0.2
+
+sleep 1
+purge all
+dac
+in n_5564
+in n_5577
+in n_5568
+in n_5580
+sel 1 2 3 4
+
+gp gr 2
+gp cm with g1
+gp cm subtitle "a smal test of possibilities  y=A\S-0.5\x\Sabcg\f{}\N\stest\Nsdf"
+gp cm SUBTITLE COLOR "blue"
+gp cm redraw
+gp cm with g2 
+gp cm title "SANS"
+gp cm xaxes scale Normal
+gp cm yaxes scale Logarithmic
+gp cm autoscale
+gp cm legend 1.1, 0.8
+gp cm legend char size 0.6
+gp cm redraw
+
+
+gp cm saveall "testmac.agr"
+
+msg To open testmac.agr use xmgrace     
+msg  I will sleep for 15 seconds
+
+sleep 5
+gp cm exit
+
+purge all
+dac
+
+

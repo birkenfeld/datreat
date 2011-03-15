@@ -1,0 +1,48 @@
+###########
+theosf=`grep "^ *[Ff][Uu][Nn][Cc][Tt][Ii][Oo][nN] .*( *x *, *pa *\(,[^,]*\)\{5\})" *.f *.f90|sed 's#.*[Ff][Uu][Nn][Cc][Tt][Ii][Oo][nN] \(.*\)( *x.*#\1#'`
+theos_new=`grep "^ *[Ff][Uu][Nn][Cc][Tt][Ii][Oo][nN] .*( *x *, *pa *\(,[^,]*\)\{8\})" *.f *.f90 | sed 's#.*[Ff][Uu][Nn][Cc][Tt][Ii][Oo][nN] \(.*\)( *x.*#\1#'`
+
+######################################
+echo "! ---following is created by make_sum_up_include which is called from Makefile----"
+# write suming up include
+i=0
+echo "  "
+zeile="        goto("
+for theo in $theosf $theos_new
+do
+	i=` expr $i + 1`;
+	if [ `echo "$zeile" | wc -c` -gt 100 ] ; then
+		echo "$zeile"'&' ;
+		zeile="     &";
+	fi
+	zeile="$zeile$i,";
+done
+
+echo "   $zeile" |sed 's#,$#) , ith#'
+
+
+i=0
+for theo in $theosf 
+do
+	i=` expr $i + 1`
+	echo "$i        continue"
+	echo "           if(imu) then"
+	echo "              sum=sum*$theo(x ,thparx(:,it),dum,dum,idum,mbuf,1)"
+	echo "           else"
+	echo "               sum=sum+$theo(x ,thparx(:,it),dum,dum,idum,mbuf,1)"
+	echo "           endif"
+	echo "           goto 250"
+done;
+for theo in $theos_new
+do
+	i=` expr $i + 1`
+	echo "$i        continue"
+	echo "           if(imu) then"
+	echo "              sum=sum*$theo(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)"
+	echo "           else"
+	echo "               sum=sum+$theo(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)"
+	echo "           endif"
+	echo "           goto 250"
+done;
+echo "250          continue"
+#echo "10032       continue"

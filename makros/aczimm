@@ -1,0 +1,10 @@
+makro
+c Activate Zimm theory only
+dac
+ac zimm
+chgthpar zimm intensit par 1      scale 0
+chgthpar zimm eta_solv par 0.8e-3 scale 0.1e-3
+chgthpar zimm epsilon  par 0      scale 0     
+chgthpar zimm temp     par 0      scale 0     
+chgthpar zimm com_diff par 0      scale 0     
+

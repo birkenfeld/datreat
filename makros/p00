@@ -1,0 +1,3 @@
+makro
+c Plot small
+p0 frlux 4 frluy 4 framx 22 framy 22 legsize 0.25 txsize 0.5 font 1

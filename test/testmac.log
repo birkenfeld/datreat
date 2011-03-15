@@ -1,0 +1,1360 @@
+/Users/jheinen/ndatreat/test
+ subroutine erset not needed in this version...
+ Signal with iflag0=          -1
+ Signal:           2   redefined, ret=           0
+
+ =======================================================
+ =   datreat05_2     Version: 31.10.06                 =
+ =   -----------     -----------------                 =
+ =   new changed to fortran 90 format                  =
+ =   gplot ?  shows help for plotting in xmgrace       =
+ =          or simply try "gp  "          :-)          =
+ =   for new theories put them in src/theos and        =
+ =                              recompile with "make"  =
+ =   this is version with only gpl routines            =
+ =      compile with "make"   help with "make ?"       =
+ =                                                     =
+ =    22.11.2005  NEWS NEW  NEW  NEW                   =
+ =    #non datreat commands used as shell commands     =
+ =         try ls, or pwd ; cd changes working dir     =
+ =    # path shows default data,save and macr path     =
+ =    # use  _?? to redo last command starting with ?? =
+ =    # input accepts long filenames including the path=
+ =    #       save,msave accept this too=
+ =        see datreat/doc for NEW dokumentation        =
+ =     try> cd test;testmac                            =
+ =     initdatr  is an initialisation makro at startup =
+ =                                                     =
+ =     #NEW input routine accepts nearly everything     =
+ =                                                     =
+ =                changed by R.Biehl and O.Holderer    =
+ =              in collaboration with M.Monkenbusch    =
+ =======================================================
+
+ this is a makro ...
+ go on with it ...
+ ! 
+ ! gp start legend 1.1,1;page size 600, 400;xaxis label "\xt\f{} / ns";yaxis  label "S(q,\xt\f{}) / S(q,0)"
+ evaluate: 1.1,1 to    1.10000000000000     
+ setting grace startupoptions
+ ! 
+ ! 
+ ! 
+ end of data 
+  command input back to keybord
+  #-###->
+  #-->
+ > cd test
+  #-->
+ > testmac
+ this is a makro ...
+ go on with it ...
+ ! c del evrything
+ ! purge all
+ purging all ...
+ nbuf is now            0
+ selections are removed
+ ! dac
+  theory activation stack counter set to zero
+ ! 
+ ! c input a file
+ ! in b___0000
+ opening: >./b___0000<
+ parget: invalid argument
+ evaluate: Feb+22 to    1.10000000000000     
+ parget: invalid argument
+ evaluate: 01:36:01 to    1.10000000000000     
+ parget: invalid argument
+ evaluate: Sqt/Sq to    2003.00000000000     
+ parget: invalid argument
+ evaluate: tau/ns to    2003.00000000000     
+ 1:lx  14 para  15 Comment: PEOGEL Sat Feb+22 01:36:01 2003
+ parget: invalid argument
+ evaluate: 01:36:01 to    22.0000000000000     
+ parget: invalid argument
+ evaluate: Sqt/Sq to    2003.00000000000     
+ parget: invalid argument
+ evaluate: tau/ns to    2003.00000000000     
+ parget: invalid argument
+ evaluate: 01:36:01 to    22.0000000000000     
+ 2:lx  14 para  15 Comment: PEOGEL Sat Feb 22 01:36:01 2003
+ parget: invalid argument
+ evaluate: Sqt/Sq to    2003.00000000000     
+ parget: invalid argument
+ evaluate: tau/ns to    2003.00000000000     
+ parget: invalid argument
+ evaluate: 01:36:01 to    22.0000000000000     
+ 3:lx  14 para  15 Comment: PEOGEL Sat Feb 22 01:36:01 2003
+ parget: invalid argument
+ evaluate: Sqt/Sq to    2003.00000000000     
+ parget: invalid argument
+ evaluate: tau/ns to    2003.00000000000     
+ 4:lx  14 para  15 Comment: PEOGEL Sat Feb 22 01:36:01 2003
+ parget: invalid argument
+ evaluate: 01:36:01 to    22.0000000000000     
+ parget: invalid argument
+ evaluate: Sqt/Sq to    2003.00000000000     
+ parget: invalid argument
+ evaluate: tau/ns to    2003.00000000000     
+ 5:lx  14 para  15 Comment: PEOGEL Sat Feb 22 01:36:01 2003
+ parget: invalid argument
+ evaluate: 01:36:01 to    22.0000000000000     
+ parget: invalid argument
+ evaluate: Sqt/Sq to    2003.00000000000     
+ parget: invalid argument
+ evaluate: tau/ns to    2003.00000000000     
+ 6:lx  14 para  15 Comment: PEOGEL Sat Feb 22 01:36:01 2003
+ parget: invalid argument
+ evaluate: 2%+1%PROT+ to   0.191062920000000     
+ appended comments found and ignored
+ ! c select some data
+ ! sel 3 4
+ select adress              3
+ select adress              4
+ selected items:     2
+ scan-address:  numor:      fit-address:
+        3      2891004            0
+        4      2891005            0
+ ! #plot them in xmgrace
+ ! gp
+   gplot help,h,? for helptext
+ >>>updateall
+ open grace
+      Ctrl - d   to delete text/objects in xmgrace 
+      Ctrl - m   to move   text/objects
+      Ctrl - l   to move   legend    
+ >>>legend 1.1,1;page size 600, 400;xaxis label "\xt\f{} / ns";yaxis  label "S(q,\xt\f{}) / S(q,0)"
+ legend 1.1,1;page size 600, 400;xaxis label "\xt\f{} / ns";yaxis  label "S(q,\xt\f{}) / S(q,0)"
+ >>>default symbol size 0.500000
+ >>>AUTOSCALE ONREAD XYAXES
+ >>>g0.s0    on
+ >>>kill g0.s0
+ >>>g0.s0    type xydy
+ >>>g0.s0    point   0.9681E-01 ,   0.9300E+00
+ >>>g0.s0.y1[0]=  0.5613E-01
+ >>>g0.s0    point   0.1968E+00 ,   0.9472E+00
+ >>>g0.s0.y1[1]=  0.5582E-01
+ >>>g0.s0    point   0.4966E+00 ,   0.9884E+00
+ >>>g0.s0.y1[2]=  0.5325E-01
+ >>>g0.s0    point   0.9965E+00 ,   0.1035E+01
+ >>>g0.s0.y1[3]=  0.5630E-01
+ >>>g0.s0    point   0.1997E+01 ,   0.9486E+00
+ >>>g0.s0.y1[4]=  0.5246E-01
+ >>>g0.s0    point   0.2997E+01 ,   0.9258E+00
+ >>>g0.s0.y1[5]=  0.5244E-01
+ >>>g0.s0    point   0.3997E+01 ,   0.9364E+00
+ >>>g0.s0.y1[6]=  0.5287E-01
+ >>>g0.s0    point   0.5996E+01 ,   0.9000E+00
+ >>>g0.s0.y1[7]=  0.5195E-01
+ >>>g0.s0    point   0.7997E+01 ,   0.9457E+00
+ >>>g0.s0.y1[8]=  0.5200E-01
+ >>>g0.s0    point   0.9997E+01 ,   0.8335E+00
+ >>>g0.s0.y1[9]=  0.5001E-01
+ >>>g0.s0    point   0.1300E+02 ,   0.8888E+00
+ >>>g0.s0.y1[10]=  0.5236E-01
+ >>>g0.s0    point   0.1600E+02 ,   0.1020E+01
+ >>>g0.s0.y1[11]=  0.6455E-01
+ >>>g0.s0    point   0.1900E+02 ,   0.8639E+00
+ >>>g0.s0.y1[12]=  0.7026E-01
+ >>>g0.s0    point   0.2200E+02 ,   0.1014E+01
+ >>>g0.s0.y1[13]=  0.9024E-01
+ >>>g0.s0    symbol        2
+ >>>g0.s0    line type 0
+ >>>g0.s0    line color        2
+ >>>g0.s0    symbol color        2
+ >>>g0.s0    symbol fill color        2
+ >>>g0.s0    errorbar color        2
+ >>>g0.s0    symbol fill pattern 1
+ >>>g0.s0    errorbar size 0.3
+ >>>g0.s0    errorbar on
+ >>>g0.s0   comment " q=0.20860E-01\n trans_fa=0.93238E+00\n volf_bgr=0.99000E+00\n temp=0.31965E+03\n ref=0.28850E+04\n bgr=0.29240E+04\n keep_pha=0.10000E+01\n zero_pof=0.00000E+00\n fit_pha=0.10000E+01\n window=0.40000E+01\n windowpo=0.80000E+01\n ud_strat=0.00000E+00\n w_fitpha=0.00000E+00\n chisqlim=0.15000E+02\n raterrli=0.20000E+01\n"
+ >>>g0.s0   legend "comment PEOGEL Sat Feb 22 01:36:01 2003\n q=0.20860E-01\n"
+ >>>redraw
+ >>>g0.s1    on
+ >>>kill g0.s1
+ >>>g0.s1    type xydy
+ >>>g0.s1    point   0.9681E-01 ,   0.9418E+00
+ >>>g0.s1.y1[0]=  0.2956E-01
+ >>>g0.s1    point   0.1968E+00 ,   0.9467E+00
+ >>>g0.s1.y1[1]=  0.2772E-01
+ >>>g0.s1    point   0.4966E+00 ,   0.1021E+01
+ >>>g0.s1.y1[2]=  0.2866E-01
+ >>>g0.s1    point   0.9965E+00 ,   0.9722E+00
+ >>>g0.s1.y1[3]=  0.2711E-01
+ >>>g0.s1    point   0.1997E+01 ,   0.9408E+00
+ >>>g0.s1.y1[4]=  0.2659E-01
+ >>>g0.s1    point   0.2997E+01 ,   0.9160E+00
+ >>>g0.s1.y1[5]=  0.2648E-01
+ >>>g0.s1    point   0.3997E+01 ,   0.8760E+00
+ >>>g0.s1.y1[6]=  0.2563E-01
+ >>>g0.s1    point   0.5996E+01 ,   0.9483E+00
+ >>>g0.s1.y1[7]=  0.2847E-01
+ >>>g0.s1    point   0.7997E+01 ,   0.8909E+00
+ >>>g0.s1.y1[8]=  0.2761E-01
+ >>>g0.s1    point   0.9997E+01 ,   0.8658E+00
+ >>>g0.s1.y1[9]=  0.2776E-01
+ >>>g0.s1    point   0.1300E+02 ,   0.8051E+00
+ >>>g0.s1.y1[10]=  0.2897E-01
+ >>>g0.s1    point   0.1600E+02 ,   0.8028E+00
+ >>>g0.s1.y1[11]=  0.3143E-01
+ >>>g0.s1    point   0.1900E+02 ,   0.8368E+00
+ >>>g0.s1.y1[12]=  0.3756E-01
+ >>>g0.s1    point   0.2200E+02 ,   0.8925E+00
+ >>>g0.s1.y1[13]=  0.4677E-01
+ >>>g0.s1    symbol        3
+ >>>g0.s1    line type 0
+ >>>g0.s1    line color        3
+ >>>g0.s1    symbol color        3
+ >>>g0.s1    symbol fill color        3
+ >>>g0.s1    errorbar color        3
+ >>>g0.s1    symbol fill pattern 0
+ >>>g0.s1    errorbar size 0.3
+ >>>g0.s1    errorbar on
+ >>>g0.s1   comment " q=0.30453E-01\n trans_fa=0.93238E+00\n volf_bgr=0.99000E+00\n temp=0.31965E+03\n ref=0.28850E+04\n bgr=0.29240E+04\n keep_pha=0.10000E+01\n zero_pof=0.00000E+00\n fit_pha=0.10000E+01\n window=0.40000E+01\n windowpo=0.80000E+01\n ud_strat=0.00000E+00\n w_fitpha=0.00000E+00\n chisqlim=0.15000E+02\n raterrli=0.20000E+01\n"
+ >>>g0.s1   legend "comment PEOGEL Sat Feb 22 01:36:01 2003\n q=0.30453E-01\n"
+ >>>redraw
+ >>>redraw
+ >>>updateall
+ ! c activate theory and change parameters
+ ! ac strexpo
+ strexpo  is the            1 -th  activated entry
+  ***** activated theories *****
+ current parametersetting:
+ theory   strexpo                                                                         
+      amplitu    0.0000E+00  0.0E+00  0.00E+00
+      tau        0.0000E+00  0.0E+00  0.00E+00
+      beta       0.0000E+00  0.0E+00  0.00E+00
+      qexp       0.0000E+00  0.0E+00  0.00E+00
+ end
+ ! chgthpar strexpo 1 amplitu par 1       scale 1
+change parameter amplitu  of th(  1):strexpo  to  0.100000E+01
+change scale of  amplitu  of th(  1):strexpo  to  0.100000E+01
+ ! chgthpar strexpo 1 tau     par 3.4      scale 1
+change parameter tau      of th(  1):strexpo  to  0.340000E+01
+change scale of  tau      of th(  1):strexpo  to  0.100000E+01
+ ! chgthpar strexpo 1 beta    par 1        scale 0
+change parameter beta     of th(  1):strexpo  to  0.100000E+01
+change scale of  beta     of th(  1):strexpo  to  0.000000E+00
+ ! chgthpar strexpo 1 qexp    par 1        scale 0
+change parameter qexp     of th(  1):strexpo  to  0.100000E+01
+change scale of  qexp     of th(  1):strexpo  to  0.000000E+00
+ ! c fit it now
+ ! fit
+  startparameters : 
+  ***** activated theories *****
+ current parametersetting:
+ theory   strexpo                                                                         
+      amplitu    0.1000E+01  0.1E+01  0.00E+00
+      tau        0.3400E+01  0.1E+01  0.00E+00
+      beta       0.1000E+01  0.0E+00  0.00E+00
+      qexp       0.1000E+01  0.0E+00  0.00E+00
+ end
+    1: ssq=  0.5887E+03  0.1000E+01  0.3400E+01
+  no. of sample points m =           28
+ IMSL routine u4lsf called,
+ not used with minpack...
+  so weit, so gut  *****
+    2: ssq=  0.5887E+03  0.1000E+01  0.3400E+01
+    3: ssq=  0.5887E+03  0.1000E+01  0.3400E+01
+    4: ssq=  0.5887E+03  0.1000E+01  0.3402E+01
+    5: ssq=  0.5233E+03  0.1958E+01  0.6837E+01
+    6: ssq=  0.5233E+03  0.1959E+01  0.6837E+01
+    7: ssq=  0.5232E+03  0.1958E+01  0.6840E+01
+    8: ssq=  0.5333E+03  0.6724E+00  0.1386E+02
+    9: ssq=  0.5084E+03  0.1460E+01  0.9744E+01
+   10: ssq=  0.5084E+03  0.1461E+01  0.9744E+01
+   11: ssq=  0.5084E+03  0.1460E+01  0.9748E+01
+   12: ssq=  0.4805E+03  0.1285E+01  0.1564E+02
+   13: ssq=  0.4805E+03  0.1285E+01  0.1564E+02
+   14: ssq=  0.4805E+03  0.1285E+01  0.1565E+02
+   15: ssq=  0.4396E+03  0.1165E+01  0.2745E+02
+   16: ssq=  0.4396E+03  0.1166E+01  0.2745E+02
+   17: ssq=  0.4396E+03  0.1165E+01  0.2746E+02
+   18: ssq=  0.3777E+03  0.1117E+01  0.5106E+02
+   19: ssq=  0.3777E+03  0.1118E+01  0.5106E+02
+   20: ssq=  0.3776E+03  0.1117E+01  0.5108E+02
+   21: ssq=  0.2921E+03  0.1098E+01  0.9828E+02
+   22: ssq=  0.2920E+03  0.1098E+01  0.9828E+02
+   23: ssq=  0.2920E+03  0.1098E+01  0.9832E+02
+   24: ssq=  0.1902E+03  0.1074E+01  0.1927E+03
+   25: ssq=  0.1902E+03  0.1075E+01  0.1927E+03
+   26: ssq=  0.1902E+03  0.1074E+01  0.1928E+03
+   27: ssq=  0.9441E+02  0.1042E+01  0.3816E+03
+   28: ssq=  0.9435E+02  0.1043E+01  0.3816E+03
+   29: ssq=  0.9436E+02  0.1042E+01  0.3818E+03
+   30: ssq=  0.3518E+02  0.9959E+00  0.7594E+03
+   31: ssq=  0.3513E+02  0.9963E+00  0.7594E+03
+   32: ssq=  0.3516E+02  0.9959E+00  0.7597E+03
+   33: ssq=  0.1127E+02  0.9533E+00  0.1515E+04
+   34: ssq=  0.1123E+02  0.9538E+00  0.1515E+04
+   35: ssq=  0.1126E+02  0.9533E+00  0.1516E+04
+   36: ssq=  0.3504E+01  0.9492E+00  0.2750E+04
+   37: ssq=  0.3484E+01  0.9496E+00  0.2750E+04
+   38: ssq=  0.3501E+01  0.9492E+00  0.2751E+04
+   39: ssq=  0.1935E+01  0.9512E+00  0.4182E+04
+   40: ssq=  0.1929E+01  0.9516E+00  0.4182E+04
+   41: ssq=  0.1935E+01  0.9512E+00  0.4184E+04
+   42: ssq=  0.1759E+01  0.9510E+00  0.5218E+04
+   43: ssq=  0.1758E+01  0.9514E+00  0.5218E+04
+   44: ssq=  0.1759E+01  0.9510E+00  0.5221E+04
+   45: ssq=  0.1751E+01  0.9507E+00  0.5560E+04
+   46: ssq=  0.1751E+01  0.9511E+00  0.5560E+04
+   47: ssq=  0.1751E+01  0.9507E+00  0.5563E+04
+   48: ssq=  0.1751E+01  0.9506E+00  0.5598E+04
+   49: ssq=  0.1751E+01  0.9510E+00  0.5598E+04
+   50: ssq=  0.1751E+01  0.9506E+00  0.5600E+04
+   51: ssq=  0.1751E+01  0.9505E+00  0.5603E+04
+   52: ssq=  0.1751E+01  0.9510E+00  0.5598E+04
+   53: ssq=  0.1751E+01  0.9506E+00  0.5600E+04
+  und nu???
+  **-1- : ftol reached           *****
+ icode =            0
+ no. of func calls .....     50
+ est. no. of sig. dig. . ******
+ no of iterations ...... 125353
+
+ error determination...
+ error for strexpo (amplitu ) = +-   9.8563069E-03
+ error for strexpo (tau     ) = +-    1091.521    
+   54: ssq=  0.1751E+01  0.9506E+00  0.5598E+04
+  ******* final parameters ********
+  ***** activated theories *****
+ current parametersetting:
+ theory   strexpo                                                                         
+      amplitu    0.9506E+00  0.1E+01  0.99E-02
+      tau        0.5598E+04  0.1E+01  0.11E+04
+      beta       0.1000E+01  0.0E+00  0.00E+00
+      qexp       0.1000E+01  0.0E+00  0.00E+00
+ end
+ ! c copy result to file to reuse it if neccessary with "acl"
+ ! cp lastth lastth_strexpoiiii
+ ! c or doit in this way to use parameter substitution in makros
+ ! slastth newname
+ this is a makro ...
+ go on with it ...
+ ! 
+ ! cp lastth testsave_savename_
+ end of data 
+  #-###->
+ ! c plot it with grace
+ ! c options     fp = write fit parameters
+ ! c             jp  = joint parameters of all data
+ ! c move text in grace with CTRL-m
+ ! gp
+   gplot help,h,? for helptext
+ >>>updateall
+ >>>default symbol size 0.500000
+ >>>AUTOSCALE ONREAD XYAXES
+ >>>g0.s0    on
+ >>>kill g0.s0
+ >>>g0.s0    type xydy
+ >>>g0.s0    point   0.9681E-01 ,   0.9300E+00
+ >>>g0.s0.y1[0]=  0.5613E-01
+ >>>g0.s0    point   0.1968E+00 ,   0.9472E+00
+ >>>g0.s0.y1[1]=  0.5582E-01
+ >>>g0.s0    point   0.4966E+00 ,   0.9884E+00
+ >>>g0.s0.y1[2]=  0.5325E-01
+ >>>g0.s0    point   0.9965E+00 ,   0.1035E+01
+ >>>g0.s0.y1[3]=  0.5630E-01
+ >>>g0.s0    point   0.1997E+01 ,   0.9486E+00
+ >>>g0.s0.y1[4]=  0.5246E-01
+ >>>g0.s0    point   0.2997E+01 ,   0.9258E+00
+ >>>g0.s0.y1[5]=  0.5244E-01
+ >>>g0.s0    point   0.3997E+01 ,   0.9364E+00
+ >>>g0.s0.y1[6]=  0.5287E-01
+ >>>g0.s0    point   0.5996E+01 ,   0.9000E+00
+ >>>g0.s0.y1[7]=  0.5195E-01
+ >>>g0.s0    point   0.7997E+01 ,   0.9457E+00
+ >>>g0.s0.y1[8]=  0.5200E-01
+ >>>g0.s0    point   0.9997E+01 ,   0.8335E+00
+ >>>g0.s0.y1[9]=  0.5001E-01
+ >>>g0.s0    point   0.1300E+02 ,   0.8888E+00
+ >>>g0.s0.y1[10]=  0.5236E-01
+ >>>g0.s0    point   0.1600E+02 ,   0.1020E+01
+ >>>g0.s0.y1[11]=  0.6455E-01
+ >>>g0.s0    point   0.1900E+02 ,   0.8639E+00
+ >>>g0.s0.y1[12]=  0.7026E-01
+ >>>g0.s0    point   0.2200E+02 ,   0.1014E+01
+ >>>g0.s0.y1[13]=  0.9024E-01
+ >>>g0.s0    symbol        2
+ >>>g0.s0    line type 0
+ >>>g0.s0    line color        2
+ >>>g0.s0    symbol color        2
+ >>>g0.s0    symbol fill color        2
+ >>>g0.s0    errorbar color        2
+ >>>g0.s0    symbol fill pattern 1
+ >>>g0.s0    errorbar size 0.3
+ >>>g0.s0    errorbar on
+ >>>g0.s0   comment " q=0.20860E-01\n trans_fa=0.93238E+00\n volf_bgr=0.99000E+00\n temp=0.31965E+03\n ref=0.28850E+04\n bgr=0.29240E+04\n keep_pha=0.10000E+01\n zero_pof=0.00000E+00\n fit_pha=0.10000E+01\n window=0.40000E+01\n windowpo=0.80000E+01\n ud_strat=0.00000E+00\n w_fitpha=0.00000E+00\n chisqlim=0.15000E+02\n raterrli=0.20000E+01\n x1=0.00000E+00\n x2=0.00000E+00\n"
+ >>>g0.s0   legend "comment PEOGEL Sat Feb 22 01:36:01 2003\n q=0.20860E-01\n"
+ >>>g0.s1    on
+ >>>kill g0.s1
+ >>>g0.s1    type xy
+ >>>g0.s1 point   0.9681E-01 ,   0.9498E+00
+ >>>g0.s1 point   0.1968E+00 ,   0.9490E+00
+ >>>g0.s1 point   0.4966E+00 ,   0.9465E+00
+ >>>g0.s1 point   0.9965E+00 ,   0.9425E+00
+ >>>g0.s1 point   0.1997E+01 ,   0.9344E+00
+ >>>g0.s1 point   0.2997E+01 ,   0.9265E+00
+ >>>g0.s1 point   0.3997E+01 ,   0.9186E+00
+ >>>g0.s1 point   0.5996E+01 ,   0.9030E+00
+ >>>g0.s1 point   0.7997E+01 ,   0.8876E+00
+ >>>g0.s1 point   0.9997E+01 ,   0.8726E+00
+ >>>g0.s1 point   0.1300E+02 ,   0.8504E+00
+ >>>g0.s1 point   0.1600E+02 ,   0.8289E+00
+ >>>g0.s1 point   0.1900E+02 ,   0.8078E+00
+ >>>g0.s1 point   0.2200E+02 ,   0.7874E+00
+ >>>g0.s1    symbol 0
+ >>>g0.s1    line type 1
+ >>>g0.s1    line color        2
+ >>>g0.s1    symbol color        2
+ >>>g0.s1    symbol fill color        2
+ >>>g0.s1    errorbar off
+ >>>g0.s1   comment " q=0.20860E-01\n trans_fa=0.93238E+00\n volf_bgr=0.99000E+00\n temp=0.31965E+03\n ref=0.28850E+04\n bgr=0.29240E+04\n keep_pha=0.10000E+01\n zero_pof=0.00000E+00\n fit_pha=0.10000E+01\n window=0.40000E+01\n windowpo=0.80000E+01\n ud_strat=0.00000E+00\n w_fitpha=0.00000E+00\n chisqlim=0.15000E+02\n raterrli=0.20000E+01\n x1=0.00000E+00\n x2=0.00000E+00\n st1ampli=0.95056E+00\n est1ampl=0.98563E-02\n st1tau=0.55979E+04\n est1tau=0.10915E+04\n st1beta=0.10000E+01\n est1beta=0.00000E+00\n st1qexp=0.10000E+01\n est1qexp=0.00000E+00\n ssq=0.17510E+01\n"
+ >>>g0.s1   legend " q=0.20860E-01\n"
+ >>>redraw
+ >>>g0.s2    on
+ >>>kill g0.s2
+ >>>g0.s2    type xydy
+ >>>g0.s2    point   0.9681E-01 ,   0.9418E+00
+ >>>g0.s2.y1[0]=  0.2956E-01
+ >>>g0.s2    point   0.1968E+00 ,   0.9467E+00
+ >>>g0.s2.y1[1]=  0.2772E-01
+ >>>g0.s2    point   0.4966E+00 ,   0.1021E+01
+ >>>g0.s2.y1[2]=  0.2866E-01
+ >>>g0.s2    point   0.9965E+00 ,   0.9722E+00
+ >>>g0.s2.y1[3]=  0.2711E-01
+ >>>g0.s2    point   0.1997E+01 ,   0.9408E+00
+ >>>g0.s2.y1[4]=  0.2659E-01
+ >>>g0.s2    point   0.2997E+01 ,   0.9160E+00
+ >>>g0.s2.y1[5]=  0.2648E-01
+ >>>g0.s2    point   0.3997E+01 ,   0.8760E+00
+ >>>g0.s2.y1[6]=  0.2563E-01
+ >>>g0.s2    point   0.5996E+01 ,   0.9483E+00
+ >>>g0.s2.y1[7]=  0.2847E-01
+ >>>g0.s2    point   0.7997E+01 ,   0.8909E+00
+ >>>g0.s2.y1[8]=  0.2761E-01
+ >>>g0.s2    point   0.9997E+01 ,   0.8658E+00
+ >>>g0.s2.y1[9]=  0.2776E-01
+ >>>g0.s2    point   0.1300E+02 ,   0.8051E+00
+ >>>g0.s2.y1[10]=  0.2897E-01
+ >>>g0.s2    point   0.1600E+02 ,   0.8028E+00
+ >>>g0.s2.y1[11]=  0.3143E-01
+ >>>g0.s2    point   0.1900E+02 ,   0.8368E+00
+ >>>g0.s2.y1[12]=  0.3756E-01
+ >>>g0.s2    point   0.2200E+02 ,   0.8925E+00
+ >>>g0.s2.y1[13]=  0.4677E-01
+ >>>g0.s2    symbol        4
+ >>>g0.s2    line type 0
+ >>>g0.s2    line color        4
+ >>>g0.s2    symbol color        4
+ >>>g0.s2    symbol fill color        4
+ >>>g0.s2    errorbar color        4
+ >>>g0.s2    symbol fill pattern 1
+ >>>g0.s2    errorbar size 0.3
+ >>>g0.s2    errorbar on
+ >>>g0.s2   comment " q=0.30453E-01\n trans_fa=0.93238E+00\n volf_bgr=0.99000E+00\n temp=0.31965E+03\n ref=0.28850E+04\n bgr=0.29240E+04\n keep_pha=0.10000E+01\n zero_pof=0.00000E+00\n fit_pha=0.10000E+01\n window=0.40000E+01\n windowpo=0.80000E+01\n ud_strat=0.00000E+00\n w_fitpha=0.00000E+00\n chisqlim=0.15000E+02\n raterrli=0.20000E+01\n x1=0.00000E+00\n x2=0.00000E+00\n"
+ >>>g0.s2   legend "comment PEOGEL Sat Feb 22 01:36:01 2003\n q=0.30453E-01\n"
+ >>>g0.s3    on
+ >>>kill g0.s3
+ >>>g0.s3    type xy
+ >>>g0.s3 point   0.9681E-01 ,   0.9500E+00
+ >>>g0.s3 point   0.1968E+00 ,   0.9495E+00
+ >>>g0.s3 point   0.4966E+00 ,   0.9478E+00
+ >>>g0.s3 point   0.9965E+00 ,   0.9450E+00
+ >>>g0.s3 point   0.1997E+01 ,   0.9395E+00
+ >>>g0.s3 point   0.2997E+01 ,   0.9340E+00
+ >>>g0.s3 point   0.3997E+01 ,   0.9285E+00
+ >>>g0.s3 point   0.5996E+01 ,   0.9177E+00
+ >>>g0.s3 point   0.7997E+01 ,   0.9070E+00
+ >>>g0.s3 point   0.9997E+01 ,   0.8964E+00
+ >>>g0.s3 point   0.1300E+02 ,   0.8808E+00
+ >>>g0.s3 point   0.1600E+02 ,   0.8654E+00
+ >>>g0.s3 point   0.1900E+02 ,   0.8503E+00
+ >>>g0.s3 point   0.2200E+02 ,   0.8355E+00
+ >>>g0.s3    symbol 0
+ >>>g0.s3    line type 1
+ >>>g0.s3    line color        4
+ >>>g0.s3    symbol color        4
+ >>>g0.s3    symbol fill color        4
+ >>>g0.s3    errorbar off
+ >>>g0.s3   comment " q=0.30453E-01\n trans_fa=0.93238E+00\n volf_bgr=0.99000E+00\n temp=0.31965E+03\n ref=0.28850E+04\n bgr=0.29240E+04\n keep_pha=0.10000E+01\n zero_pof=0.00000E+00\n fit_pha=0.10000E+01\n window=0.40000E+01\n windowpo=0.80000E+01\n ud_strat=0.00000E+00\n w_fitpha=0.00000E+00\n chisqlim=0.15000E+02\n raterrli=0.20000E+01\n x1=0.00000E+00\n x2=0.00000E+00\n st1ampli=0.95056E+00\n est1ampl=0.98563E-02\n st1tau=0.55979E+04\n est1tau=0.10915E+04\n st1beta=0.10000E+01\n est1beta=0.00000E+00\n st1qexp=0.10000E+01\n est1qexp=0.00000E+00\n ssq=0.17510E+01\n"
+ >>>g0.s3   legend " q=0.30453E-01\n"
+ >>>redraw
+ >>>redraw
+ >>>updateall
+ ! #####################something completly different###########################################
+ ! sleep 1
+ ! c select other data
+ ! sel
+ selected items:     0
+ scan-address:  numor:      fit-address:
+
+ ! sel 1 6  7 8
+ select adress              1
+ select adress              6
+ select adress              7
+ select adress              8
+ selected items:     4
+ scan-address:  numor:      fit-address:
+        1      2891002            0
+        6      2891007            0
+        7     -2891004            0
+        8     -2891005            0
+ ! c plot it with offset to different graph in same window
+ ! gp  so 10
+   gplot help,h,? for helptext
+ >>>updateall
+ >>>default symbol size 0.500000
+ >>>AUTOSCALE ONREAD XYAXES
+ >>>g0.s10   on
+ >>>kill g0.s10
+ >>>g0.s10   type xydy
+ >>>g0.s10   point   0.9681E-01 ,   0.9350E+00
+ >>>g0.s10.y1[0]=  0.1916E-01
+ >>>g0.s10   point   0.1968E+00 ,   0.9311E+00
+ >>>g0.s10.y1[1]=  0.1757E-01
+ >>>g0.s10   point   0.4966E+00 ,   0.9999E+00
+ >>>g0.s10.y1[2]=  0.1795E-01
+ >>>g0.s10   point   0.9965E+00 ,   0.9818E+00
+ >>>g0.s10.y1[3]=  0.1775E-01
+ >>>g0.s10   point   0.1997E+01 ,   0.9286E+00
+ >>>g0.s10.y1[4]=  0.1734E-01
+ >>>g0.s10   point   0.2997E+01 ,   0.9014E+00
+ >>>g0.s10.y1[5]=  0.1698E-01
+ >>>g0.s10   point   0.3997E+01 ,   0.8923E+00
+ >>>g0.s10.y1[6]=  0.1729E-01
+ >>>g0.s10   point   0.5996E+01 ,   0.8955E+00
+ >>>g0.s10.y1[7]=  0.1796E-01
+ >>>g0.s10   point   0.7997E+01 ,   0.8563E+00
+ >>>g0.s10.y1[8]=  0.1807E-01
+ >>>g0.s10   point   0.9997E+01 ,   0.8027E+00
+ >>>g0.s10.y1[9]=  0.1824E-01
+ >>>g0.s10   point   0.1300E+02 ,   0.7777E+00
+ >>>g0.s10.y1[10]=  0.1926E-01
+ >>>g0.s10   point   0.1600E+02 ,   0.8082E+00
+ >>>g0.s10.y1[11]=  0.2173E-01
+ >>>g0.s10   point   0.1900E+02 ,   0.7708E+00
+ >>>g0.s10.y1[12]=  0.2517E-01
+ >>>g0.s10   point   0.2200E+02 ,   0.8011E+00
+ >>>g0.s10.y1[13]=  0.3124E-01
+ >>>g0.s10   symbol        2
+ >>>g0.s10   line type 0
+ >>>g0.s10   line color       12
+ >>>g0.s10   symbol color       12
+ >>>g0.s10   symbol fill color       12
+ >>>g0.s10   errorbar color       12
+ >>>g0.s10   symbol fill pattern 1
+ >>>g0.s10   errorbar size 0.3
+ >>>g0.s10   errorbar on
+ >>>g0.s10  comment " q=0.30000E-01\n trans_fa=0.93238E+00\n volf_bgr=0.99000E+00\n temp=0.31965E+03\n ref=0.28850E+04\n bgr=0.29240E+04\n keep_pha=0.10000E+01\n zero_pof=0.00000E+00\n fit_pha=0.10000E+01\n window=0.40000E+01\n windowpo=0.80000E+01\n ud_strat=0.00000E+00\n w_fitpha=0.00000E+00\n chisqlim=0.15000E+02\n raterrli=0.20000E+01\n"
+ >>>g0.s10  legend "comment PEOGEL Sat Feb+22 01:36:01 2003\n q=0.30000E-01\n"
+ >>>redraw
+ >>>g0.s11   on
+ >>>kill g0.s11
+ >>>g0.s11   type xydy
+ >>>g0.s11   point   0.9681E-01 ,   0.8713E+00
+ >>>g0.s11.y1[0]=  0.4577E-01
+ >>>g0.s11   point   0.1968E+00 ,   0.8783E+00
+ >>>g0.s11.y1[1]=  0.4233E-01
+ >>>g0.s11   point   0.4966E+00 ,   0.9541E+00
+ >>>g0.s11.y1[2]=  0.4207E-01
+ >>>g0.s11   point   0.9965E+00 ,   0.9606E+00
+ >>>g0.s11.y1[3]=  0.4518E-01
+ >>>g0.s11   point   0.1997E+01 ,   0.8430E+00
+ >>>g0.s11.y1[4]=  0.4178E-01
+ >>>g0.s11   point   0.2997E+01 ,   0.9054E+00
+ >>>g0.s11.y1[5]=  0.4580E-01
+ >>>g0.s11   point   0.3997E+01 ,   0.8462E+00
+ >>>g0.s11.y1[6]=  0.4536E-01
+ >>>g0.s11   point   0.5996E+01 ,   0.9143E+00
+ >>>g0.s11.y1[7]=  0.5099E-01
+ >>>g0.s11   point   0.7997E+01 ,   0.7892E+00
+ >>>g0.s11.y1[8]=  0.5159E-01
+ >>>g0.s11   point   0.9997E+01 ,   0.6514E+00
+ >>>g0.s11.y1[9]=  0.5248E-01
+ >>>g0.s11   point   0.1300E+02 ,   0.6086E+00
+ >>>g0.s11.y1[10]=  0.5543E-01
+ >>>g0.s11   point   0.1600E+02 ,   0.6535E+00
+ >>>g0.s11.y1[11]=  0.6688E-01
+ >>>g0.s11   point   0.1900E+02 ,   0.6824E+00
+ >>>g0.s11.y1[12]=  0.7778E-01
+ >>>g0.s11   point   0.2200E+02 ,   0.6138E+00
+ >>>g0.s11.y1[13]=  0.9798E-01
+ >>>g0.s11   symbol        3
+ >>>g0.s11   line type 0
+ >>>g0.s11   line color        1
+ >>>g0.s11   symbol color        1
+ >>>g0.s11   symbol fill color        1
+ >>>g0.s11   errorbar color        1
+ >>>g0.s11   symbol fill pattern 0
+ >>>g0.s11   errorbar size 0.3
+ >>>g0.s11   errorbar on
+ >>>g0.s11  comment " q=0.51648E-01\n trans_fa=0.93238E+00\n volf_bgr=0.99000E+00\n temp=0.31965E+03\n ref=0.28850E+04\n bgr=0.29240E+04\n keep_pha=0.10000E+01\n zero_pof=0.00000E+00\n fit_pha=0.10000E+01\n window=0.40000E+01\n windowpo=0.80000E+01\n ud_strat=0.00000E+00\n w_fitpha=0.00000E+00\n chisqlim=0.15000E+02\n raterrli=0.20000E+01\n"
+ >>>g0.s11  legend "comment PEOGEL Sat Feb 22 01:36:01 2003\n q=0.51648E-01\n"
+ >>>redraw
+ >>>g0.s12   on
+ >>>kill g0.s12
+ >>>g0.s12   type xydy
+ >>>g0.s12   point   0.9681E-01 ,   0.9498E+00
+ >>>g0.s12.y1[0]=  0.0000E+00
+ >>>g0.s12   point   0.1968E+00 ,   0.9490E+00
+ >>>g0.s12.y1[1]=  0.0000E+00
+ >>>g0.s12   point   0.4966E+00 ,   0.9465E+00
+ >>>g0.s12.y1[2]=  0.0000E+00
+ >>>g0.s12   point   0.9965E+00 ,   0.9425E+00
+ >>>g0.s12.y1[3]=  0.0000E+00
+ >>>g0.s12   point   0.1997E+01 ,   0.9344E+00
+ >>>g0.s12.y1[4]=  0.0000E+00
+ >>>g0.s12   point   0.2997E+01 ,   0.9265E+00
+ >>>g0.s12.y1[5]=  0.0000E+00
+ >>>g0.s12   point   0.3997E+01 ,   0.9186E+00
+ >>>g0.s12.y1[6]=  0.0000E+00
+ >>>g0.s12   point   0.5996E+01 ,   0.9030E+00
+ >>>g0.s12.y1[7]=  0.0000E+00
+ >>>g0.s12   point   0.7997E+01 ,   0.8876E+00
+ >>>g0.s12.y1[8]=  0.0000E+00
+ >>>g0.s12   point   0.9997E+01 ,   0.8726E+00
+ >>>g0.s12.y1[9]=  0.0000E+00
+ >>>g0.s12   point   0.1300E+02 ,   0.8504E+00
+ >>>g0.s12.y1[10]=  0.0000E+00
+ >>>g0.s12   point   0.1600E+02 ,   0.8289E+00
+ >>>g0.s12.y1[11]=  0.0000E+00
+ >>>g0.s12   point   0.1900E+02 ,   0.8078E+00
+ >>>g0.s12.y1[12]=  0.0000E+00
+ >>>g0.s12   point   0.2200E+02 ,   0.7874E+00
+ >>>g0.s12.y1[13]=  0.0000E+00
+ >>>g0.s12   symbol 0
+ >>>g0.s12   line type 1
+ >>>g0.s12   line color        2
+ >>>g0.s12   symbol color        2
+ >>>g0.s12   symbol fill color        2
+ >>>g0.s12   errorbar color        2
+ >>>g0.s12   symbol fill pattern 1
+ >>>g0.s12   errorbar size 0.3
+ >>>g0.s12   errorbar on
+ >>>g0.s12  comment " q=0.20860E-01\n trans_fa=0.93238E+00\n volf_bgr=0.99000E+00\n temp=0.31965E+03\n ref=0.28850E+04\n bgr=0.29240E+04\n keep_pha=0.10000E+01\n zero_pof=0.00000E+00\n fit_pha=0.10000E+01\n window=0.40000E+01\n windowpo=0.80000E+01\n ud_strat=0.00000E+00\n w_fitpha=0.00000E+00\n chisqlim=0.15000E+02\n raterrli=0.20000E+01\n x1=0.00000E+00\n x2=0.00000E+00\n st1ampli=0.95056E+00\n est1ampl=0.98563E-02\n st1tau=0.55979E+04\n est1tau=0.10915E+04\n st1beta=0.10000E+01\n est1beta=0.00000E+00\n st1qexp=0.10000E+01\n est1qexp=0.00000E+00\n ssq=0.17510E+01\n"
+ >>>g0.s12  legend "comment PEOGEL Sat Feb 22 01:36:01 2003\n q=0.20860E-01\n"
+ >>>redraw
+ >>>g0.s13   on
+ >>>kill g0.s13
+ >>>g0.s13   type xydy
+ >>>g0.s13   point   0.9681E-01 ,   0.9500E+00
+ >>>g0.s13.y1[0]=  0.0000E+00
+ >>>g0.s13   point   0.1968E+00 ,   0.9495E+00
+ >>>g0.s13.y1[1]=  0.0000E+00
+ >>>g0.s13   point   0.4966E+00 ,   0.9478E+00
+ >>>g0.s13.y1[2]=  0.0000E+00
+ >>>g0.s13   point   0.9965E+00 ,   0.9450E+00
+ >>>g0.s13.y1[3]=  0.0000E+00
+ >>>g0.s13   point   0.1997E+01 ,   0.9395E+00
+ >>>g0.s13.y1[4]=  0.0000E+00
+ >>>g0.s13   point   0.2997E+01 ,   0.9340E+00
+ >>>g0.s13.y1[5]=  0.0000E+00
+ >>>g0.s13   point   0.3997E+01 ,   0.9285E+00
+ >>>g0.s13.y1[6]=  0.0000E+00
+ >>>g0.s13   point   0.5996E+01 ,   0.9177E+00
+ >>>g0.s13.y1[7]=  0.0000E+00
+ >>>g0.s13   point   0.7997E+01 ,   0.9070E+00
+ >>>g0.s13.y1[8]=  0.0000E+00
+ >>>g0.s13   point   0.9997E+01 ,   0.8964E+00
+ >>>g0.s13.y1[9]=  0.0000E+00
+ >>>g0.s13   point   0.1300E+02 ,   0.8808E+00
+ >>>g0.s13.y1[10]=  0.0000E+00
+ >>>g0.s13   point   0.1600E+02 ,   0.8654E+00
+ >>>g0.s13.y1[11]=  0.0000E+00
+ >>>g0.s13   point   0.1900E+02 ,   0.8503E+00
+ >>>g0.s13.y1[12]=  0.0000E+00
+ >>>g0.s13   point   0.2200E+02 ,   0.8355E+00
+ >>>g0.s13.y1[13]=  0.0000E+00
+ >>>g0.s13   symbol 0
+ >>>g0.s13   line type 1
+ >>>g0.s13   line color        3
+ >>>g0.s13   symbol color        3
+ >>>g0.s13   symbol fill color        3
+ >>>g0.s13   errorbar color        3
+ >>>g0.s13   symbol fill pattern 0
+ >>>g0.s13   errorbar size 0.3
+ >>>g0.s13   errorbar on
+ >>>g0.s13  comment " q=0.30453E-01\n trans_fa=0.93238E+00\n volf_bgr=0.99000E+00\n temp=0.31965E+03\n ref=0.28850E+04\n bgr=0.29240E+04\n keep_pha=0.10000E+01\n zero_pof=0.00000E+00\n fit_pha=0.10000E+01\n window=0.40000E+01\n windowpo=0.80000E+01\n ud_strat=0.00000E+00\n w_fitpha=0.00000E+00\n chisqlim=0.15000E+02\n raterrli=0.20000E+01\n x1=0.00000E+00\n x2=0.00000E+00\n st1ampli=0.95056E+00\n est1ampl=0.98563E-02\n st1tau=0.55979E+04\n est1tau=0.10915E+04\n st1beta=0.10000E+01\n est1beta=0.00000E+00\n st1qexp=0.10000E+01\n est1qexp=0.00000E+00\n ssq=0.17510E+01\n"
+ >>>g0.s13  legend "comment PEOGEL Sat Feb 22 01:36:01 2003\n q=0.30453E-01\n"
+ >>>redraw
+ >>>redraw
+ >>>updateall
+ ! gp cm autoscale
+ >>>autoscale
+ ! gp cm redraw
+ >>>redraw
+ ! 
+ ! gp cm legend 0.2, 0.85
+ evaluate: 0.2, to   0.200000000000000     
+ >>>legend 0.2, 0.85
+ ! gp cm legend char size 0.3
+ >>>legend char size 0.3
+ ! gp cm title "NSE data"
+ >>>title "NSE data"
+ ! sleep 1
+ ! purge all
+ purging all ...
+ nbuf is now            0
+ selections are removed
+ ! ########new data#####################################
+ ! c only to demonstrate path new dataset
+ ! in ../test/h00
+ opening: >../test/h00<
+ Comment ignor: name
+ 1:lx 373 para   1 Comment: file
+ Comment ignor: name
+ 2:lx 458 para   1 Comment: file
+ Comment ignor: name
+ 3:lx 507 para   1 Comment: file
+ Comment ignor: name
+ 4:lx 546 para   1 Comment: file
+ Comment ignor: name
+ 5:lx 579 para   1 Comment: file
+ Comment ignor: name
+ 6:lx 607 para   1 Comment: file
+ Comment ignor: name
+ 7:lx 631 para   1 Comment: file
+ Comment ignor: name
+ 8:lx 653 para   1 Comment: file
+ Comment ignor: name
+ 9:lx 673 para   1 Comment: file
+ Comment ignor: name
+10:lx 691 para   1 Comment: file
+ Comment ignor: name
+11:lx 707 para   1 Comment: file
+ Comment ignor: name
+12:lx 721 para   1 Comment: file
+ Comment ignor: name
+13:lx 735 para   1 Comment: file
+ Comment ignor: name
+14:lx 740 para   1 Comment: file
+ Comment ignor: name
+15:lx 611 para   1 Comment: file
+ Comment ignor: name
+16:lx 508 para   1 Comment: file
+ appended comments found and ignored
+ ! sel 1 5 9 16
+ select adress              1
+ select adress              5
+ select adress              9
+ select adress             16
+ selected items:     4
+ scan-address:  numor:      fit-address:
+        1          100            0
+        5          500            0
+        9          900            0
+       16         1600            0
+ ! # plot to new new graph with number 1
+ ! gp gr 1
+ >>>with g1
+ >>>g1 on
+ >>>updateall
+ to arrange use Menue EDIT/ARRANGE Graphs
+   gplot help,h,? for helptext
+ >>>updateall
+ >>>default symbol size 0.500000
+ >>>AUTOSCALE ONREAD XYAXES
+ >>>g1.s0    on
+ >>>kill g1.s0
+ >>>g1.s0    point 0,0
+ >>>READ xydy ".iofile.tmpg1.s0"
+ >>>MOVE S_ TO g1.s0
+ >>>s_ HIDDEN FALSE
+ >>>g1.s0    symbol        2
+ >>>g1.s0    line type 0
+ >>>g1.s0    line color        2
+ >>>g1.s0    symbol color        2
+ >>>g1.s0    symbol fill color        2
+ >>>g1.s0    errorbar color        2
+ >>>g1.s0    symbol fill pattern 1
+ >>>g1.s0    errorbar size 0.3
+ >>>g1.s0    errorbar on
+ >>>g1.s0   comment " q=0.20000E+00\n"
+ >>>g1.s0   legend " q=0.20000E+00\n"
+ >>>redraw
+ >>>g1.s1    on
+ >>>kill g1.s1
+ >>>g1.s1    point 0,0
+ >>>READ xydy ".iofile.tmpg1.s1"
+ >>>MOVE S_ TO g1.s1
+ >>>s_ HIDDEN FALSE
+ >>>g1.s1    symbol        3
+ >>>g1.s1    line type 0
+ >>>g1.s1    line color        3
+ >>>g1.s1    symbol color        3
+ >>>g1.s1    symbol fill color        3
+ >>>g1.s1    errorbar color        3
+ >>>g1.s1    symbol fill pattern 0
+ >>>g1.s1    errorbar size 0.3
+ >>>g1.s1    errorbar on
+ >>>g1.s1   comment " q=0.40000E+00\n"
+ >>>g1.s1   legend " q=0.40000E+00\n"
+ >>>redraw
+ >>>g1.s2    on
+ >>>kill g1.s2
+ >>>g1.s2    point 0,0
+ >>>READ xydy ".iofile.tmpg1.s2"
+ >>>MOVE S_ TO g1.s2
+ >>>s_ HIDDEN FALSE
+ >>>g1.s2    symbol        4
+ >>>g1.s2    line type 0
+ >>>g1.s2    line color        4
+ >>>g1.s2    symbol color        4
+ >>>g1.s2    symbol fill color        4
+ >>>g1.s2    errorbar color        4
+ >>>g1.s2    symbol fill pattern 1
+ >>>g1.s2    errorbar size 0.3
+ >>>g1.s2    errorbar on
+ >>>g1.s2   comment " q=0.60000E+00\n"
+ >>>g1.s2   legend " q=0.60000E+00\n"
+ >>>redraw
+ >>>g1.s3    on
+ >>>kill g1.s3
+ >>>g1.s3    point 0,0
+ >>>READ xydy ".iofile.tmpg1.s3"
+ >>>MOVE S_ TO g1.s3
+ >>>s_ HIDDEN FALSE
+ >>>g1.s3    symbol        5
+ >>>g1.s3    line type 0
+ >>>g1.s3    line color        5
+ >>>g1.s3    symbol color        5
+ >>>g1.s3    symbol fill color        5
+ >>>g1.s3    errorbar color        5
+ >>>g1.s3    symbol fill pattern 0
+ >>>g1.s3    errorbar size 0.3
+ >>>g1.s3    errorbar on
+ >>>g1.s3   comment " q=0.95000E+00\n"
+ >>>g1.s3   legend " q=0.95000E+00\n"
+ >>>redraw
+ >>>redraw
+ >>>updateall
+ ! c direct comands to grace
+ ! gp cm with g1
+ >>>with g1
+ ! gp cm title "IN5 data"
+ >>>title "IN5 data"
+ ! gp cm ARRANGE(1, 3, 0.15, 0.15, 0.15, ON, OFF, ON)
+ evaluate: ARRANGE(1, to    1.00000000000000     
+ evaluate: 3, to    3.00000000000000     
+ evaluate: 0.15, to   0.150000000000000     
+ evaluate: 0.15, to   0.150000000000000     
+ evaluate: 0.15, to   0.150000000000000     
+ evaluate: ON) to   0.150000000000000     
+ >>>ARRANGE(1, 3, 0.15, 0.15, 0.15, ON, OFF, ON)
+ ! gp cm page size 600,400
+ evaluate: 600,400 to    600.000000000000     
+ >>>page size 600,400
+ ! gp cm legend 0.6, 0.8
+ evaluate: 0.6, to   0.600000000000000     
+ >>>legend 0.6, 0.8
+ ! gp cm redraw
+ >>>redraw
+ ! # deactivate old theories
+ ! dac
+  theory activation stack counter set to zero
+ ! #new theory only in specified range if q is availible in data
+ ! ac hohdiff
+ hohdiff  is the            1 -th  activated entry
+  ***** activated theories *****
+ current parametersetting:
+ theory   hohdiff                                                                         
+      amplitu    0.0000E+00  0.0E+00  0.00E+00
+      u_quadra   0.0000E+00  0.0E+00  0.00E+00
+      self_dif   0.0000E+00  0.0E+00  0.00E+00
+      tau0_dif   0.0000E+00  0.0E+00  0.00E+00
+      a_rot      0.0000E+00  0.0E+00  0.00E+00
+      d_rot      0.0000E+00  0.0E+00  0.00E+00
+      shiftt     0.0000E+00  0.0E+00  0.00E+00
+ end
+ ! chgthpar hohdiff 1 amplitu  par 0.6      scale 1
+change parameter amplitu  of th(  1):hohdiff  to  0.600000E+00
+change scale of  amplitu  of th(  1):hohdiff  to  0.100000E+01
+ ! chgthpar hohdiff 1 u_quadra par 0.4      scale 1
+change parameter u_quadra of th(  1):hohdiff  to  0.400000E+00
+change scale of  u_quadra of th(  1):hohdiff  to  0.100000E+01
+ ! chgthpar hohdiff 1 self_dif par 40       scale 1
+change parameter self_dif of th(  1):hohdiff  to  0.400000E+02
+change scale of  self_dif of th(  1):hohdiff  to  0.100000E+01
+ ! chgthpar hohdiff 1 tau0_dif par 0.01     scale 1
+change parameter tau0_dif of th(  1):hohdiff  to  0.100000E-01
+change scale of  tau0_dif of th(  1):hohdiff  to  0.100000E+01
+ ! chgthpar hohdiff 1 a_rot    par 1       scale 1
+change parameter a_rot    of th(  1):hohdiff  to  0.100000E+01
+change scale of  a_rot    of th(  1):hohdiff  to  0.100000E+01
+ ! c fit it now
+ ! # show list of theories
+ ! al
+  ***** activated theories *****
+ current parametersetting:
+ theory   hohdiff                                                                         
+      amplitu    0.6000E+00  0.1E+01  0.00E+00
+      u_quadra   0.4000E+00  0.1E+01  0.00E+00
+      self_dif   0.4000E+02  0.1E+01  0.00E+00
+      tau0_dif   0.1000E-01  0.1E+01  0.00E+00
+      a_rot      0.1000E+01  0.1E+01  0.00E+00
+      d_rot      0.0000E+00  0.0E+00  0.00E+00
+      shiftt     0.0000E+00  0.0E+00  0.00E+00
+ end
+ ! fit
+  startparameters : 
+  ***** activated theories *****
+ current parametersetting:
+ theory   hohdiff                                                                         
+      amplitu    0.6000E+00  0.1E+01  0.00E+00
+      u_quadra   0.4000E+00  0.1E+01  0.00E+00
+      self_dif   0.4000E+02  0.1E+01  0.00E+00
+      tau0_dif   0.1000E-01  0.1E+01  0.00E+00
+      a_rot      0.1000E+01  0.1E+01  0.00E+00
+      d_rot      0.0000E+00  0.0E+00  0.00E+00
+      shiftt     0.0000E+00  0.0E+00  0.00E+00
+ end
+   55: ssq=  0.6509E+01  0.6000E+00  0.4000E+00  0.4000E+02  0.1000E-01
+                         0.1000E+01
+  no. of sample points m =         2133
+ IMSL routine u4lsf called,
+ not used with minpack...
+  so weit, so gut  *****
+   56: ssq=  0.6509E+01  0.6000E+00  0.4000E+00  0.4000E+02  0.1000E-01
+                         0.1000E+01
+   57: ssq=  0.6504E+01  0.6003E+00  0.4000E+00  0.4000E+02  0.1000E-01
+                         0.1000E+01
+   58: ssq=  0.6510E+01  0.6000E+00  0.4002E+00  0.4000E+02  0.1000E-01
+                         0.1000E+01
+   59: ssq=  0.6510E+01  0.6000E+00  0.4000E+00  0.4002E+02  0.1000E-01
+                         0.1000E+01
+   60: ssq=  0.6509E+01  0.6000E+00  0.4000E+00  0.4000E+02  0.1000E-01
+                         0.1000E+01
+   61: ssq=  0.6511E+01  0.6000E+00  0.4000E+00  0.4000E+02  0.1000E-01
+                         0.1000E+01
+   62: ssq=  0.8247E+01  0.6848E+00  0.5832E+00  0.3326E+02 -0.2398E-01
+                        -0.9913E+00
+   63: ssq=  0.4389E+01  0.6909E+00 -0.3925E+00  0.3725E+02 -0.1910E-01
+                         0.4390E+00
+   64: ssq=  0.4392E+01  0.6912E+00 -0.3925E+00  0.3725E+02 -0.1910E-01
+                         0.4390E+00
+   65: ssq=  0.4389E+01  0.6909E+00 -0.3924E+00  0.3725E+02 -0.1910E-01
+                         0.4390E+00
+   66: ssq=  0.4395E+01  0.6909E+00 -0.3925E+00  0.3726E+02 -0.1910E-01
+                         0.4390E+00
+   67: ssq=  0.4386E+01  0.6909E+00 -0.3925E+00  0.3725E+02 -0.1909E-01
+                         0.4390E+00
+   68: ssq=  0.4389E+01  0.6909E+00 -0.3925E+00  0.3725E+02 -0.1910E-01
+                         0.4392E+00
+   69: ssq=  0.1671E+02  0.6995E+00 -0.9340E+00  0.3574E+02 -0.1469E-01
+                         0.3157E+01
+   70: ssq=  0.2650E+01  0.7052E+00 -0.1450E+00  0.3708E+02 -0.1355E-01
+                         0.5174E+00
+   71: ssq=  0.2650E+01  0.7055E+00 -0.1450E+00  0.3708E+02 -0.1355E-01
+                         0.5174E+00
+   72: ssq=  0.2650E+01  0.7052E+00 -0.1449E+00  0.3708E+02 -0.1355E-01
+                         0.5174E+00
+   73: ssq=  0.2652E+01  0.7052E+00 -0.1450E+00  0.3709E+02 -0.1355E-01
+                         0.5174E+00
+   74: ssq=  0.2649E+01  0.7052E+00 -0.1450E+00  0.3708E+02 -0.1355E-01
+                         0.5174E+00
+   75: ssq=  0.2650E+01  0.7052E+00 -0.1450E+00  0.3708E+02 -0.1355E-01
+                         0.5176E+00
+   76: ssq=  0.2396E+01  0.6963E+00 -0.3618E+00  0.3693E+02 -0.8743E-02
+                         0.1100E+01
+   77: ssq=  0.2394E+01  0.6966E+00 -0.3618E+00  0.3693E+02 -0.8743E-02
+                         0.1100E+01
+   78: ssq=  0.2396E+01  0.6963E+00 -0.3616E+00  0.3693E+02 -0.8743E-02
+                         0.1100E+01
+   79: ssq=  0.2396E+01  0.6963E+00 -0.3618E+00  0.3695E+02 -0.8743E-02
+                         0.1100E+01
+   80: ssq=  0.2395E+01  0.6963E+00 -0.3618E+00  0.3693E+02 -0.8739E-02
+                         0.1100E+01
+   81: ssq=  0.2396E+01  0.6963E+00 -0.3618E+00  0.3693E+02 -0.8743E-02
+                         0.1100E+01
+   82: ssq=  0.2229E+01  0.6948E+00 -0.3354E+00  0.3703E+02 -0.7153E-02
+                         0.9034E+00
+   83: ssq=  0.2229E+01  0.6951E+00 -0.3354E+00  0.3703E+02 -0.7153E-02
+                         0.9034E+00
+   84: ssq=  0.2229E+01  0.6948E+00 -0.3352E+00  0.3703E+02 -0.7153E-02
+                         0.9034E+00
+   85: ssq=  0.2229E+01  0.6948E+00 -0.3354E+00  0.3705E+02 -0.7153E-02
+                         0.9034E+00
+   86: ssq=  0.2229E+01  0.6948E+00 -0.3354E+00  0.3703E+02 -0.7150E-02
+                         0.9034E+00
+   87: ssq=  0.2229E+01  0.6948E+00 -0.3354E+00  0.3703E+02 -0.7153E-02
+                         0.9038E+00
+   88: ssq=  0.2228E+01  0.6952E+00 -0.3457E+00  0.3693E+02 -0.7178E-02
+                         0.9099E+00
+   89: ssq=  0.2228E+01  0.6955E+00 -0.3457E+00  0.3693E+02 -0.7178E-02
+                         0.9099E+00
+   90: ssq=  0.2228E+01  0.6952E+00 -0.3456E+00  0.3693E+02 -0.7178E-02
+                         0.9099E+00
+   91: ssq=  0.2228E+01  0.6952E+00 -0.3457E+00  0.3695E+02 -0.7178E-02
+                         0.9099E+00
+   92: ssq=  0.2228E+01  0.6952E+00 -0.3457E+00  0.3693E+02 -0.7174E-02
+                         0.9099E+00
+   93: ssq=  0.2228E+01  0.6952E+00 -0.3457E+00  0.3693E+02 -0.7178E-02
+                         0.9103E+00
+   94: ssq=  0.2229E+01  0.6945E+00 -0.4521E+00  0.3692E+02 -0.7183E-02
+                         0.1075E+01
+   95: ssq=  0.2228E+01  0.6951E+00 -0.3554E+00  0.3692E+02 -0.7177E-02
+                         0.9250E+00
+   96: ssq=  0.2228E+01  0.6954E+00 -0.3554E+00  0.3692E+02 -0.7177E-02
+                         0.9250E+00
+   97: ssq=  0.2228E+01  0.6951E+00 -0.3552E+00  0.3692E+02 -0.7177E-02
+                         0.9250E+00
+   98: ssq=  0.2228E+01  0.6951E+00 -0.3554E+00  0.3694E+02 -0.7177E-02
+                         0.9250E+00
+   99: ssq=  0.2228E+01  0.6951E+00 -0.3554E+00  0.3692E+02 -0.7174E-02
+                         0.9250E+00
+  100: ssq=  0.2228E+01  0.6951E+00 -0.3554E+00  0.3692E+02 -0.7177E-02
+                         0.9254E+00
+  und nu???
+  **-1- : ftol reached           *****
+ icode =            0
+ no. of func calls .....     50
+ est. no. of sig. dig. . ******
+ no of iterations ...... 896688
+
+ error determination...
+ error for hohdiff (amplitu ) = +-   7.0093935E-03
+ error for hohdiff (u_quadra) = +-   0.9239725    
+ error for hohdiff (self_dif) = +-   0.3596522    
+ error for hohdiff (tau0_dif) = +-   4.2028891E-04
+ error for hohdiff (a_rot   ) = +-    1.409050    
+  101: ssq=  0.2228E+01  0.6951E+00 -0.3554E+00  0.3692E+02 -0.7177E-02
+                         0.9250E+00
+  ******* final parameters ********
+  ***** activated theories *****
+ current parametersetting:
+ theory   hohdiff                                                                         
+      amplitu    0.6951E+00  0.1E+01  0.70E-02
+      u_quadra  -0.3554E+00  0.1E+01  0.92E+00
+      self_dif   0.3692E+02  0.1E+01  0.36E+00
+      tau0_dif  -0.7177E-02  0.1E+01  0.42E-03
+      a_rot      0.9250E+00  0.1E+01  0.14E+01
+      d_rot      0.0000E+00  0.0E+00  0.00E+00
+      shiftt     0.0000E+00  0.0E+00  0.00E+00
+ end
+ ! # plot it incl the fit
+ ! gp gr 1 fp
+ >>>with g1
+ >>>g1 on
+ >>>updateall
+ to arrange use Menue EDIT/ARRANGE Graphs
+ writefit F
+ writefit T
+   gplot help,h,? for helptext
+ >>>updateall
+ >>>default symbol size 0.500000
+ >>>AUTOSCALE ONREAD XYAXES
+ >>>g1.s0    on
+ >>>kill g1.s0
+ >>>g1.s0    point 0,0
+ >>>READ xydy ".iofile.tmpg1.s0"
+ >>>MOVE S_ TO g1.s0
+ >>>s_ HIDDEN FALSE
+ >>>g1.s0    symbol        2
+ >>>g1.s0    line type 0
+ >>>g1.s0    line color        2
+ >>>g1.s0    symbol color        2
+ >>>g1.s0    symbol fill color        2
+ >>>g1.s0    errorbar color        2
+ >>>g1.s0    symbol fill pattern 1
+ >>>g1.s0    errorbar size 0.3
+ >>>g1.s0    errorbar on
+ >>>g1.s0   comment " q=0.20000E+00\n u_quadra=-.35540E+00\n self_dif=0.36925E+02\n tau0_dif=-.71768E-02\n a_rot=0.92496E+00\n d_rot=0.00000E+00\n shiftt=0.00000E+00\n x1=0.00000E+00\n x2=0.00000E+00\n"
+ >>>g1.s0   legend " q=0.20000E+00\n"
+ >>>g1.s1    on
+ >>>kill g1.s1
+ >>>g1.s1    point 0,0
+ >>>READ xy "./.iofile.tmpf0000"
+ >>>MOVE S_ TO g1.s1
+ >>>S_ HIDDEN FALSE
+ >>>g1.s1    symbol 0
+ >>>g1.s1    line type 1
+ >>>g1.s1    line color        2
+ >>>g1.s1    symbol color        2
+ >>>g1.s1    symbol fill color        2
+ >>>g1.s1    errorbar off
+ >>>g1.s1   comment " q=0.20000E+00\n u_quadra=-.35540E+00\n self_dif=0.36925E+02\n tau0_dif=-.71768E-02\n a_rot=0.92496E+00\n d_rot=0.00000E+00\n shiftt=0.00000E+00\n x1=0.00000E+00\n x2=0.00000E+00\n ho1ampli=0.69509E+00\n eho1ampl=0.70094E-02\n ho1u_qua=-.35540E+00\n eho1u_qu=0.92397E+00\n ho1self_=0.36925E+02\n eho1self=0.35965E+00\n ho1tau0_=-.71768E-02\n eho1tau0=0.42029E-03\n ho1a_rot=0.92496E+00\n eho1a_ro=0.14091E+01\n ho1d_rot=0.00000E+00\n eho1d_ro=0.00000E+00\n ho1shift=0.00000E+00\n eho1shif=0.00000E+00\n ssq=0.22280E+01\n"
+ >>>g1.s1   legend " q=0.20000E+00\n"
+ >>>redraw
+ >>>g1.s2    on
+ >>>kill g1.s2
+ >>>g1.s2    point 0,0
+ >>>READ xydy ".iofile.tmpg1.s2"
+ >>>MOVE S_ TO g1.s2
+ >>>s_ HIDDEN FALSE
+ >>>g1.s2    symbol        4
+ >>>g1.s2    line type 0
+ >>>g1.s2    line color        4
+ >>>g1.s2    symbol color        4
+ >>>g1.s2    symbol fill color        4
+ >>>g1.s2    errorbar color        4
+ >>>g1.s2    symbol fill pattern 1
+ >>>g1.s2    errorbar size 0.3
+ >>>g1.s2    errorbar on
+ >>>g1.s2   comment " q=0.40000E+00\n u_quadra=-.35540E+00\n self_dif=0.36925E+02\n tau0_dif=-.71768E-02\n a_rot=0.92496E+00\n d_rot=0.00000E+00\n shiftt=0.00000E+00\n x1=0.00000E+00\n x2=0.00000E+00\n"
+ >>>g1.s2   legend " q=0.40000E+00\n"
+ >>>g1.s3    on
+ >>>kill g1.s3
+ >>>g1.s3    point 0,0
+ >>>READ xy "./.iofile.tmpf0001"
+ >>>MOVE S_ TO g1.s3
+ >>>S_ HIDDEN FALSE
+ >>>g1.s3    symbol 0
+ >>>g1.s3    line type 1
+ >>>g1.s3    line color        4
+ >>>g1.s3    symbol color        4
+ >>>g1.s3    symbol fill color        4
+ >>>g1.s3    errorbar off
+ >>>g1.s3   comment " q=0.40000E+00\n u_quadra=-.35540E+00\n self_dif=0.36925E+02\n tau0_dif=-.71768E-02\n a_rot=0.92496E+00\n d_rot=0.00000E+00\n shiftt=0.00000E+00\n x1=0.00000E+00\n x2=0.00000E+00\n ho1ampli=0.69509E+00\n eho1ampl=0.70094E-02\n ho1u_qua=-.35540E+00\n eho1u_qu=0.92397E+00\n ho1self_=0.36925E+02\n eho1self=0.35965E+00\n ho1tau0_=-.71768E-02\n eho1tau0=0.42029E-03\n ho1a_rot=0.92496E+00\n eho1a_ro=0.14091E+01\n ho1d_rot=0.00000E+00\n eho1d_ro=0.00000E+00\n ho1shift=0.00000E+00\n eho1shif=0.00000E+00\n ssq=0.22280E+01\n"
+ >>>g1.s3   legend " q=0.40000E+00\n"
+ >>>redraw
+ >>>g1.s4    on
+ >>>kill g1.s4
+ >>>g1.s4    point 0,0
+ >>>READ xydy ".iofile.tmpg1.s4"
+ >>>MOVE S_ TO g1.s4
+ >>>s_ HIDDEN FALSE
+ >>>g1.s4    symbol        6
+ >>>g1.s4    line type 0
+ >>>g1.s4    line color        6
+ >>>g1.s4    symbol color        6
+ >>>g1.s4    symbol fill color        6
+ >>>g1.s4    errorbar color        6
+ >>>g1.s4    symbol fill pattern 1
+ >>>g1.s4    errorbar size 0.3
+ >>>g1.s4    errorbar on
+ >>>g1.s4   comment " q=0.60000E+00\n u_quadra=-.35540E+00\n self_dif=0.36925E+02\n tau0_dif=-.71768E-02\n a_rot=0.92496E+00\n d_rot=0.00000E+00\n shiftt=0.00000E+00\n x1=0.00000E+00\n x2=0.00000E+00\n"
+ >>>g1.s4   legend " q=0.60000E+00\n"
+ >>>g1.s5    on
+ >>>kill g1.s5
+ >>>g1.s5    point 0,0
+ >>>READ xy "./.iofile.tmpf0002"
+ >>>MOVE S_ TO g1.s5
+ >>>S_ HIDDEN FALSE
+ >>>g1.s5    symbol 0
+ >>>g1.s5    line type 1
+ >>>g1.s5    line color        6
+ >>>g1.s5    symbol color        6
+ >>>g1.s5    symbol fill color        6
+ >>>g1.s5    errorbar off
+ >>>g1.s5   comment " q=0.60000E+00\n u_quadra=-.35540E+00\n self_dif=0.36925E+02\n tau0_dif=-.71768E-02\n a_rot=0.92496E+00\n d_rot=0.00000E+00\n shiftt=0.00000E+00\n x1=0.00000E+00\n x2=0.00000E+00\n ho1ampli=0.69509E+00\n eho1ampl=0.70094E-02\n ho1u_qua=-.35540E+00\n eho1u_qu=0.92397E+00\n ho1self_=0.36925E+02\n eho1self=0.35965E+00\n ho1tau0_=-.71768E-02\n eho1tau0=0.42029E-03\n ho1a_rot=0.92496E+00\n eho1a_ro=0.14091E+01\n ho1d_rot=0.00000E+00\n eho1d_ro=0.00000E+00\n ho1shift=0.00000E+00\n eho1shif=0.00000E+00\n ssq=0.22280E+01\n"
+ >>>g1.s5   legend " q=0.60000E+00\n"
+ >>>redraw
+ >>>g1.s6    on
+ >>>kill g1.s6
+ >>>g1.s6    point 0,0
+ >>>READ xydy ".iofile.tmpg1.s6"
+ >>>MOVE S_ TO g1.s6
+ >>>s_ HIDDEN FALSE
+ >>>g1.s6    symbol        8
+ >>>g1.s6    line type 0
+ >>>g1.s6    line color        8
+ >>>g1.s6    symbol color        8
+ >>>g1.s6    symbol fill color        8
+ >>>g1.s6    errorbar color        8
+ >>>g1.s6    symbol fill pattern 1
+ >>>g1.s6    errorbar size 0.3
+ >>>g1.s6    errorbar on
+ >>>g1.s6   comment " q=0.95000E+00\n u_quadra=-.35540E+00\n self_dif=0.36925E+02\n tau0_dif=-.71768E-02\n a_rot=0.92496E+00\n d_rot=0.00000E+00\n shiftt=0.00000E+00\n x1=0.00000E+00\n x2=0.00000E+00\n"
+ >>>g1.s6   legend " q=0.95000E+00\n"
+ >>>g1.s7    on
+ >>>kill g1.s7
+ >>>g1.s7    point 0,0
+ >>>READ xy "./.iofile.tmpf0003"
+ >>>MOVE S_ TO g1.s7
+ >>>S_ HIDDEN FALSE
+ >>>g1.s7    symbol 0
+ >>>g1.s7    line type 1
+ >>>g1.s7    line color        8
+ >>>g1.s7    symbol color        8
+ >>>g1.s7    symbol fill color        8
+ >>>g1.s7    errorbar off
+ >>>g1.s7   comment " q=0.95000E+00\n u_quadra=-.35540E+00\n self_dif=0.36925E+02\n tau0_dif=-.71768E-02\n a_rot=0.92496E+00\n d_rot=0.00000E+00\n shiftt=0.00000E+00\n x1=0.00000E+00\n x2=0.00000E+00\n ho1ampli=0.69509E+00\n eho1ampl=0.70094E-02\n ho1u_qua=-.35540E+00\n eho1u_qu=0.92397E+00\n ho1self_=0.36925E+02\n eho1self=0.35965E+00\n ho1tau0_=-.71768E-02\n eho1tau0=0.42029E-03\n ho1a_rot=0.92496E+00\n eho1a_ro=0.14091E+01\n ho1d_rot=0.00000E+00\n eho1d_ro=0.00000E+00\n ho1shift=0.00000E+00\n eho1shif=0.00000E+00\n ssq=0.22280E+01\n"
+ >>>g1.s7   legend " q=0.95000E+00\n"
+ >>>redraw
+ >>>with string
+ >>>string on
+ >>>string loctype view
+ >>>string 0.80, 0.13
+ >>>string def "theory+ hohdiff \namplitu =  0.6951E+00+- 0.70E-02 0.1E+01\nu_quadra= -0.3554E+00+- 0.92E+00 0.1E+01\nself_dif=  0.3692E+02+- 0.36E+00 0.1E+01\ntau0_dif= -0.7177E-02+- 0.42E-03 0.1E+01\na_rot   =  0.9250E+00+- 0.14E+01 0.1E+01\nd_rot   =  0.0000E+00+- 0.00E+00 0.0E+00\nshiftt  =  0.0000E+00+- 0.00E+00 0.0E+00\n                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    "
+ >>>redraw
+ >>>updateall
+ ! gp cm world xmin -0.2
+ >>>world xmin -0.2
+ ! gp cm world xmax 0.2
+ >>>world xmax 0.2
+ ! 
+ ! sleep 1
+ ! purge all
+ purging all ...
+ nbuf is now            0
+ selections are removed
+ ! dac
+  theory activation stack counter set to zero
+ ! in n_5564
+ opening: >./n_5564<
+ 1:lx  61 para   2 Comment: 
+ appended comments found and ignored
+ ! in n_5577
+ opening: >./n_5577<
+ 2:lx  61 para   2 Comment: 
+ appended comments found and ignored
+ ! in n_5568
+ opening: >./n_5568<
+ 3:lx  61 para   2 Comment: 
+ appended comments found and ignored
+ ! in n_5580
+ opening: >./n_5580<
+ 4:lx  61 para   2 Comment: 
+ appended comments found and ignored
+ ! sel 1 2 3 4
+ select adress              1
+ select adress              2
+ select adress              3
+ select adress              4
+ selected items:     4
+ scan-address:  numor:      fit-address:
+        1         5564            0
+        2         5577            0
+        3         5568            0
+        4         5580            0
+ ! 
+ ! gp gr 2
+ >>>with g2
+ >>>g2 on
+ >>>updateall
+ to arrange use Menue EDIT/ARRANGE Graphs
+   gplot help,h,? for helptext
+ >>>updateall
+ >>>default symbol size 0.500000
+ >>>AUTOSCALE ONREAD XYAXES
+ >>>g2.s0    on
+ >>>kill g2.s0
+ >>>g2.s0    point 0,0
+ >>>READ xydy ".iofile.tmpg2.s0"
+ >>>MOVE S_ TO g2.s0
+ >>>s_ HIDDEN FALSE
+ >>>g2.s0    symbol        2
+ >>>g2.s0    line type 0
+ >>>g2.s0    line color        2
+ >>>g2.s0    symbol color        2
+ >>>g2.s0    symbol fill color        2
+ >>>g2.s0    errorbar color        2
+ >>>g2.s0    symbol fill pattern 1
+ >>>g2.s0    errorbar size 0.3
+ >>>g2.s0    errorbar on
+ >>>g2.s0   comment " conc=0.50000E+01\n temp=0.23000E+02\n"
+ >>>g2.s0   legend " conc=0.50000E+01\n temp=0.23000E+02\n"
+ >>>redraw
+ >>>g2.s1    on
+ >>>kill g2.s1
+ >>>g2.s1    point 0,0
+ >>>READ xydy ".iofile.tmpg2.s1"
+ >>>MOVE S_ TO g2.s1
+ >>>s_ HIDDEN FALSE
+ >>>g2.s1    symbol        3
+ >>>g2.s1    line type 0
+ >>>g2.s1    line color        3
+ >>>g2.s1    symbol color        3
+ >>>g2.s1    symbol fill color        3
+ >>>g2.s1    errorbar color        3
+ >>>g2.s1    symbol fill pattern 0
+ >>>g2.s1    errorbar size 0.3
+ >>>g2.s1    errorbar on
+ >>>g2.s1   comment " conc=0.50000E+01\n temp=0.55000E+02\n"
+ >>>g2.s1   legend " conc=0.50000E+01\n temp=0.55000E+02\n"
+ >>>redraw
+ >>>g2.s2    on
+ >>>kill g2.s2
+ >>>g2.s2    point 0,0
+ >>>READ xydy ".iofile.tmpg2.s2"
+ >>>MOVE S_ TO g2.s2
+ >>>s_ HIDDEN FALSE
+ >>>g2.s2    symbol        4
+ >>>g2.s2    line type 0
+ >>>g2.s2    line color        4
+ >>>g2.s2    symbol color        4
+ >>>g2.s2    symbol fill color        4
+ >>>g2.s2    errorbar color        4
+ >>>g2.s2    symbol fill pattern 1
+ >>>g2.s2    errorbar size 0.3
+ >>>g2.s2    errorbar on
+ >>>g2.s2   comment " conc=0.50000E+01\n temp=0.23000E+02\n"
+ >>>g2.s2   legend " conc=0.50000E+01\n temp=0.23000E+02\n"
+ >>>redraw
+ >>>g2.s3    on
+ >>>kill g2.s3
+ >>>g2.s3    point 0,0
+ >>>READ xydy ".iofile.tmpg2.s3"
+ >>>MOVE S_ TO g2.s3
+ >>>s_ HIDDEN FALSE
+ >>>g2.s3    symbol        5
+ >>>g2.s3    line type 0
+ >>>g2.s3    line color        5
+ >>>g2.s3    symbol color        5
+ >>>g2.s3    symbol fill color        5
+ >>>g2.s3    errorbar color        5
+ >>>g2.s3    symbol fill pattern 0
+ >>>g2.s3    errorbar size 0.3
+ >>>g2.s3    errorbar on
+ >>>g2.s3   comment " conc=0.50000E+01\n temp=0.55000E+02\n"
+ >>>g2.s3   legend " conc=0.50000E+01\n temp=0.55000E+02\n"
+ >>>redraw
+ >>>redraw
+ >>>updateall
+ ! gp cm with g1
+ >>>with g1
+ ! gp cm subtitle "a smal test of possibilities  y=A\S-0.5\x\Sabcg\f{}\N\stest\Nsdf"
+ evaluate: y=A\S-0.5\x\Sabcg\f{}\N\stest\Nsdf" to    2.00000000000000     
+ >>>subtitle "a smal test of possibilities  y=A\S-0.5\x\Sabcg\f{}\N\stest\Nsdf"
+ ! gp cm SUBTITLE COLOR "blue"
+ >>>SUBTITLE COLOR "blue"
+ ! gp cm redraw
+ >>>redraw
+ ! gp cm with g2
+ >>>with g2
+ ! gp cm title "SANS"
+ >>>title "SANS"
+ ! gp cm xaxes scale Normal
+ >>>xaxes scale Normal
+ ! gp cm yaxes scale Logarithmic
+ >>>yaxes scale Logarithmic
+ ! gp cm autoscale
+ >>>autoscale
+ ! gp cm legend 1.1, 0.8
+ evaluate: 1.1, to    1.10000000000000     
+ >>>legend 1.1, 0.8
+ ! gp cm legend char size 0.6
+ >>>legend char size 0.6
+ ! gp cm redraw
+ >>>redraw
+ ! 
+ ! 
+ ! gp cm saveall "testmac.agr"
+ >>>saveall "testmac.agr"
+ ! 
+ ! msg To open testmac.agr use xmgrace
+ msg To open testmac.agr use xmgrace                 
+ ! msg  I will sleep for 15 seconds
+ msg  I will sleep for 15 seconds                 
+ ! 
+ ! sleep 5
+ ! gp cm exit
+ >>>exit
+ ! 
+ ! purge all
+ purging all ...
+ nbuf is now            0
+ selections are removed
+ ! dac
+  theory activation stack counter set to zero
+ ! 
+ ! 
+ end of data 
+  command input back to keybord
+  #-###->
+  #-->
+ > q
+ delete temporary .iofile.tmp
+ exit by q, bye...

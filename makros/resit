@@ -1,0 +1,10 @@
+makro
+set ii 1
+:l1
+sel (ii)
+makres
+putresa
+set nnb (nbuf)
+purge (nnb)
+set ii (ii+1)
+if (ii) < 11 then goto :l1

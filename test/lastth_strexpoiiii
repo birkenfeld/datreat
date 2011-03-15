@@ -1,0 +1,6 @@
+ theory   strexpo                                                                         
+      amplitu    0.9506E+00  0.1E+01  0.99E-02
+      tau        0.5599E+04  0.1E+01  0.11E+04
+      beta       0.1000E+01  0.0E+00  0.00E+00
+      qexp       0.1000E+01  0.0E+00  0.00E+00
+ end

@@ -1,0 +1,3 @@
+makro _savename_
+
+cp lastth testsave_savename_

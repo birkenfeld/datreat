@@ -1,0 +1,222 @@
+PDB Contents Guide, Ver.2.1 (draft)Protein Data Bank Contents Guide: 
+Atomic Coordinate Entry Format Description 
+Version 2.1 (draft), October 25, 1996 
+
+QUELLE:
+http://www.rcsb.org/pdb/static.do?p=file_formats/pdb/index.html
+
+Ausschnitt:
+
+
+
+
+ATOM 
+Overview 
+The ATOM records present the atomic coordinates for standard residues. They also 
+present the occupancy and temperature factor for each atom. Heterogen 
+coordinates use the HETATM record type. The element symbol is always present on 
+each ATOM record; segment identifier and charge are optional. 
+Record Format 
+COLUMNS        DATA TYPE       FIELD         DEFINITION                            
+---------------------------------------------------------------------------------
+ 1 -  6        Record name     "ATOM  "                                            
+ 7 - 11        Integer         serial        Atom serial number.                   
+
+13 - 16        Atom            name          Atom name.                            
+
+17             Character       altLoc        Alternate location indicator.         
+
+18 - 20        Residue name    resName       Residue name.                         
+
+22             Character       chainID       Chain identifier.                     
+
+23 - 26        Integer         resSeq        Residue sequence number.              
+
+27             AChar           iCode         Code for insertion of residues.       
+
+31 - 38        Real(8.3)       x             Orthogonal coordinates for X in       
+                                             Angstroms.                       
+
+39 - 46        Real(8.3)       y             Orthogonal coordinates for Y in       
+                                             Angstroms.                            
+
+47 - 54        Real(8.3)       z             Orthogonal coordinates for Z in       
+                                             Angstroms.                            
+
+55 - 60        Real(6.2)       occupancy     Occupancy.                            
+
+61 - 66        Real(6.2)       tempFactor    Temperature factor.                   
+
+73 - 76        LString(4)      segID         Segment identifier, left-justified.   
+
+77 - 78        LString(2)      element       Element symbol, right-justified.      
+
+79 - 80        LString(2)      charge        Charge on the atom.       
+
+Details 
+* ATOM records for proteins are listed from amino to carboxyl terminus. 
+* Nucleic acid residues are listed from the 5' to the 3' terminus. 
+* No ordering is specified for polysaccharides. 
+* The list of ATOM records in a chain is terminated by a TER record. 
+* If more than one model is present in the entry, each model is delimited by 
+MODEL and ENDMDL records. 
+* For more information on atom naming conventions, see Appendix 3, and for 
+residue names, see Appendix 4 and the HET section of this document 
+* If an atom is provided in more than one position, then a non-blank alternate 
+location indicator must be used as the alternate location indicator for each of 
+the positions. Within a residue all atoms that are associated with each other in 
+a given conformation are assigned the same alternate position indicator. 
+* For atoms that are in alternate sites indicated by the alternate site 
+indicator, sorting of atoms in the ATOM/HETATM list uses the following general 
+rules: 
+  - In the simple case that involves a few atoms or a few residues with 
+  alternate sites, the coordinates occur one after the other in the entry. 
+  - In the case of a whole macromolecular chain, or significant portion of a 
+  chain, having alternate sites, the atoms for each alternate position are 
+  listed together. The two conformers are delineated by MODEL/ENDMDL records. In 
+  this case each MODEL must represent the entire molecular assemblage, including 
+  any heterogen group which is not necessarily disordered. Such is the case when 
+  DNA molecules are placed in UP and DOWN positions. 
+  - In the case of a large heterogen groups which are disordered, the atoms for 
+  each conformer are listed together. The two lists are not separated by 
+  MODEL/ENDMDL as is done for macromolecular chains. 
+* Addition of atoms to side chains of standard residues are handled as follows: 
+  The additional atoms (modifying group) are represented as a HET group which is 
+  assigned its own residue name. The chainID, sequence number, and insertion 
+  code assigned to the HET group is that of the standard residue to which it is 
+  attached. 
+* Chemical modifications of standard residue side chains by addition of new 
+atoms are handled as follows: 
+  - The new atoms are represented as a HET group. This group is assigned the 
+  chain name, sequence number, and insertion code of the standard residue that 
+  it modifies. 
+  - The atoms comprising these het groups are listed as HETATM and are inserted 
+  in the ATOM list immediately after the TER record of the chain. These groups 
+  are listed in the same order as the standard residue to which they are bonded 
+  (i.e., from the N- to C-terminus for polypeptides and from the 5' to 3' end 
+  for nucleic acids). 
+  - Modified standard residues and the modifying het group may be assigned the 
+  same SEGID to further describe the relationship between the groups. PDB will 
+  use this mechanism only if SEGID's were not assigned to these atoms for other 
+  purposes. 
+  - Modified standard residues must have a corresponding MODRES record. 
+* The insertion code is commonly used in sequence numbering and is described 
+here. In most cases, the amino acids that comprise a protein are numbered 
+sequentially starting with 1. However, there are a number of situations that may 
+give rise to different numbering schemes: 
+  - Homologous proteins can exist in a number of different species. Depositors 
+  may use a residue numbering scheme in order to preserve the homology. The 
+  reference protein may be numbered sequentially starting with 1, then the 
+  homologous protein from another species aligned to it. If residues are not 
+  present in the homologous sequence, residue numbers may be skipped so that 
+  alignment can be preserved. If additional residues are present relative to the 
+  reference protein, they may have a letter, called an insertion code, appended 
+  to the sequence number. Negative numbers and zeros are permitted if they are 
+  needed to align the N-terminus. 
+     REFERENCE PROTEIN NUMBERING        HOMOLOGOUS PROTEIN NUMBERING        
+     ---------------------------------------------------------------------
+                 59                                  59                      
+                 60                                  60                      
+                 61                                                          
+                 62                                  62                      
+     REFERENCE PROTEIN NUMBERING         HOMOLOGOUS PROTEIN NUMBERING        
+     ---------------------------------------------------------------------
+                 85                                  85                      
+                 86                                  86                      
+                                                     86A                     
+                                                     86B                     
+                 87                                  87                      
+
+  - The numbering of a proenzyme may be used for the enzyme following cleavage. 
+  - The molecule studied might be a portion of the whole protein. The residue 
+  numbering scheme could show the relationship to the intact protein. 
+  - The protein might be a mutant with residues inserted and deleted. As above, 
+  the residue numbering of the native protein could be preserved by appropriate 
+  use of gaps in the numbering and/or insertion codes. 
+  - The nucleic acid community generally numbers structures sequentially. For 
+  double-stranded nucleic acids, entries usually use two different chain 
+  identifiers. For example, an octameric duplex would be numbered 1 - 8 for 
+  chain A, and 9 - 16 for chain B. 
+* If the depositor provides the data, then the isotropic B value is given for 
+the temperature factor. 
+* If there is no isotropic B value from the depositor, but there is an ANISOU 
+record with anisotropic temperature factors, then the B equivalent is stored in 
+the tempFactor field, as calculated by: 
+  B(eq) = 8pi**2{1/3[U(1,1) + U(2,2) + U(3,3)]} 
+  - This will obviate the need to check if ANISOU records are present before 
+  interpreting the contents of the temperature factor field. 
+  - In some previously released PDB entries with anisotropic temperature factors 
+  provided as ANISOU records, the temperature factor field of the corresponding 
+  ATOM or HETATM record contained the equivalent U-isotropic [U(eq)] which is 
+  calculated by: 
+  U(eq) = 1/3[U(1,1) + U(2,2) + U(3,3)] x 10**-4 
+* If there are neither isotropic B values from the depositor, nor anisotropic 
+temperature factors in ANISOU, then the default value of 0.0 is used for the 
+temperature factor. 
+* In some entries, the occupancy and temperature factor fields are used for 
+other quantities. In these cases, an explanation is provided in the remarks. 
+* Columns 73 - 76 identify specific segments of the molecule. The segment id is 
+a string of up to four (4) alphanumeric characters, left-justified, and may 
+include a space, e.g., CH86, A 1, NASE. The segment itself may consist of a 
+complete chain or a portion of a chain. The importance of this new field can be 
+appreciated if one considers an antibody structure having two molecules in the 
+asymmetric unit. Since each chain must have a unique chain identifier, the two 
+heavy chains and two light chains cannot currently be labeled to indicate their 
+nature. Segment id's of CH, VH1, VH2, VH3, CL, and VL would clearly identify 
+regions of the chains and the relationship between them. Users of X-PLOR will be 
+familiar with SEGID as used in the refinement application of X-PLOR. 
+* Columns 77 - 78 contain the atom's element symbol (as given in the periodic 
+table), right-justified. This is especially needed because in some cases it has 
+not been possible to follow the convention that columns 13 - 14 of the atom name 
+contain the element symbol. The most common cases are: 
+  - In large het groups it sometimes is not possible to follow the convention of 
+  having the first two characters be the chemical symbol and still use atom 
+  names that are meaningful to users. A example is nicotinamide adenine 
+  dinucleotide, atom names begin with an A or N, depending on which portion of 
+  the molecule they appear in, e.g., AC6 or NC6, AN1 or NN1. 
+  - Hydrogen naming sometimes conflicts with IUPAC conventions. For example, a 
+  hydrogen named HG11 in columns 13 - 16 is differentiated from a mercury atom 
+  by the element symbol in columns 77 - 78. Columns 13 - 16 present a unique 
+  name for each atom. 
+* Columns 79 - 80 indicate any charge on the atom, e.g., 2+, 1-. In most cases 
+these are blank. 
+Verification/Validation/Value Authority Control 
+PDB checks ATOM/HETATM records for PDB format, sequence information, and 
+packing. The PDB reserves the right to return deposited coordinates to the 
+author for transformation into PDB format. 
+PDB intends to verify the coordinates against the experimental structure factor 
+data in the when available. Details on this will be forthcoming. 
+Relationships to Other Record Types 
+The ATOM records are compared to the corresponding sequence database. Residue 
+discrepancies appear in the SEQADV record. Missing atoms are annotated in the 
+remarks. HETATM records are formatted in the same way as ATOM records. The 
+sequence implied by ATOM records must be identical to that given in SEQRES, with 
+the exception that residues that have no coordinates, e.g., due to disorder, 
+must appear in SEQRES. Remark 550 is used to describe the meaning assigned to 
+any segment identifiers used. 
+Example 
+         1         2         3         4         5         6         7         8
+12345678901234567890123456789012345678901234567890123456789012345678901234567890
+ATOM    145  N   VAL A  25      32.433  16.336  57.540  1.00 11.92      A1   N
+ATOM    146  CA  VAL A  25      31.132  16.439  58.160  1.00 11.85      A1   C
+ATOM    147  C   VAL A  25      30.447  15.105  58.363  1.00 12.34      A1   C
+ATOM    148  O   VAL A  25      29.520  15.059  59.174  1.00 15.65      A1   O
+ATOM    149  CB AVAL A  25      30.385  17.437  57.230  0.28 13.88      A1   C
+ATOM    150  CB BVAL A  25      30.166  17.399  57.373  0.72 15.41      A1   C
+ATOM    151  CG1AVAL A  25      28.870  17.401  57.336  0.28 12.64      A1   C
+ATOM    152  CG1BVAL A  25      30.805  18.788  57.449  0.72 15.11      A1   C
+ATOM    153  CG2AVAL A  25      30.835  18.826  57.661  0.28 13.58      A1   C
+ATOM    154  CG2BVAL A  25      29.909  16.996  55.922  0.72 13.25      A1   C
+
+Known Problems 
+Due to the ever-increasing size of protein structures in the PDB, the atom 
+serial number field may soon need to be increased. An increase of one column 
+will allow for cases where entries have more than 99,999 atoms. Only 5 digits 
+are available for the atom serial number, but some structures have already been 
+received with more that 99,999 atoms. 
+No distinction is made between ribo- and deoxyribonucleotides in the SEQRES 
+records. These residues are identified with the same residue name (i.e., A, C, 
+G, T, U). 
+
+
+

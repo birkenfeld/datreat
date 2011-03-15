@@ -1,0 +1,46 @@
+# write initialisation include
+echo "! ---following is created by make_ini_include which is called from Makefile----"
+echo "! ---- initialize theory tables start----"
+echo "       ini=0 "
+
+theosf90=`grep "^ *[Ff][Uu][Nn][Cc][Tt][Ii][Oo][nN] .*( *x *, *pa *\(,[^,]*\)\{5\})" *.f *.f90 | sed 's#.*[Ff][Uu][Nn][Cc][Tt][Ii][Oo][nN] \(.*\)( *x.*#\1#'`
+theos_new=`grep "^ *[Ff][Uu][Nn][Cc][Tt][Ii][Oo][nN] .*( *x *, *pa *\(,[^,]*\)\{8\})" *.f *.f90 | sed 's#.*[Ff][Uu][Nn][Cc][Tt][Ii][Oo][nN] \(.*\)( *x.*#\1#'`
+
+################
+i=0
+for theo in $theosf90
+do
+	i=` expr $i + 1`
+	if [ $i -gt 40 ]; then
+		break;
+	fi;
+	echo "       nthpar($i) = mtpar "
+	echo "       dummy = $theo(x,par,thenam($i),thparn(:,$i),nthpar($i),idum,ini)"
+	
+done
+
+for theo in $theos_new
+do
+	i=` expr $i + 1`
+	if [ $i -gt 40 ]; then
+	break;
+	fi;
+	echo "       nthpar($i) = mtpar "
+	echo "       dummy = $theo(x,par,thenam($i),thparn(:,$i),nthpar($i),ini,idum ,idum,idum,idum)"
+done
+
+if [ $i -gt 40 ]; then
+		echo '        write(6,*) "Warning to many theories in directory theos"'  
+		echo '        write(6,*) "Warning to many theories in directory theos"' 
+		echo '        write(6,*) "Warning to many theories in directory theos"'  
+		echo '        write(6,*) "Warning to many theories in directory theos"'
+		echo '        write(6,*) "Warning to many theories in directory theos"'
+		echo '        write(6,*) "Warning to many theories in directory theos"'
+		echo '        write(6,*) "ONLY 40 are allowd"                         '
+		echo '        write(6,*) "ONLY 40 are allowd"                         '
+		echo '        write(6,*) "ONLY 40 are allowd"                         '
+		echo '        write(6,*) "ONLY 40 are allowd some were truncated"     '
+		break;
+	fi;
+echo "       ntheos=0"
+echo "! ---- initialize theory tables ende----"

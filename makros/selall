@@ -1,0 +1,10 @@
+makro
+
+set nn (nbuf)
+sel
+set i 1
+:anf1
+sel add (i)
+set i (i+1)
+
+if (i) <= (nn) then goto :anf1

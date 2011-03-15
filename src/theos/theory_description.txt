@@ -1,0 +1,991 @@
+#[[#th_zglam]]<br />
+#[[#nzimm_pna]]<br />
+#[[#approxi]]<br />
+#[[#diffqav]]<br />
+#[[#bkgr]]<br />
+#[[#core_shell3]]<br />
+#[[#cumulant]]<br />
+#[[#debye2]]<br />
+#[[#th38]]<br />
+#[[#exp_q]]<br />
+#[[#eval]]<br />
+#[[#doubsheq]]<br />
+#[[#doubshee]]<br />
+#[[#fqsheet]]<br />
+#[[#gauspolynom]]<br />
+#[[#thgauss]]<br />
+#[[#th_kohl_q]]<br />
+#[[#th_ln_bss]]<br />
+#[[#thlorenz]]<br />
+#[[#th_mickin]]<br />
+#[[#th_mickincombe]]<br />
+#[[#m_exp_q]]<br />
+#[[#echo]]<br />
+#[[#th7]]<br />
+#[[#th_hohdiff]]<br />
+#[[#riggch]]<br />
+#[[#rouse]]<br />
+#[[#roused]]<br />
+#[[#srouse]]<br />
+#[[#sofqq]]<br />
+#[[#sqrdg]]<br />
+#[[#strexpo]]<br />
+#[[#th_zgbicbic]]<br />
+#[[#zimm]]<br />
+#[[#check]]<br />
+#[[#caillexx2]]<br />
+#[[#caillexx]]<br />
+#[[#th37]]<br />
+#[[#th000_000]]<br />
+#[[#doubsheq]]<br />
+#[[#doubshee]]<br />
+#[[#fqsheet]]<br />
+#[[#thdatr1]]<br />
+#[[#th_likhtman]]<br />
+#[[#thlorenz]]<br />
+#[[#th_mickin]]<br />
+#[[#th9]]<br />
+#[[#th_nrouse3]]<br />
+#[[#echo]]<br />
+#[[#th_pythres]]<br />
+#[[#th10]]<br />
+#[[#th_reptamode_sum]]<br />
+#[[#th_rodmod]]<br />
+#[[#thrmo]]<br />
+#[[#thrmi]]<br />
+#[[#thick_co]]<br />
+#[[#tribapr]]<br />
+#[[#undulend2]]<br />
+#[[#userfunktion]]<br />
+#[[#th_vrouse]]<br />
+<div id="th_zglam">'''th_zglam'''</div>    filename ../theos/th_Zilman-granek_lamellar.f90<br />
+<br />
+<br />
+zilman-granek for lammelar phase<br />
+<br />
+<br />
+implicit none<br />
+parnam(1) = 'xi'<br />
+parnam(2) = 'axi'<br />
+parnam(3) = 'aa'<br />
+parnam(4) = 'na'<br />
+parnam(5) = 'akappa'<br />
+parnam(6) = 'eta'<br />
+parnam(7) = 'amp'<br />
+----<br />
+<div id="nzimm_pna">'''nzimm_pna'''</div>    filename ../theos/th_Zimm_N_b_moden_Xnue_alpha.f<br />
+parnam(1) = 'intensit'    ! intensität tau=0<br />
+parnam(2) = 'etasolv'     ! viscosität<br />
+parnam(3) = 'n_segmnt'    !number chain elements<br />
+parnam(4) = 're      '   ! : re**2 = n * b**2 in angstroem<br />
+parnam(5) = 'temp    '    ! temp<br />
+parnam(6) = 'com_diff'    ! diffusion coefficient<br />
+parnam(7) = 'q_width '    ! q width of detector (width for an averaging in q )<br />
+parnam(8) = 'p_max   '   ! : maximum mode that may move > 0<br />
+parnam(9) = 'p_width '   ! : width of transition regime f=1/(1+exp((p-pmax)/p_width))<br />
+parnam(10)= 'nue     '   ! : chain expansion parameter (gaussian=1/2)<br />
+parnam(11)= 'alpha   '   ! : chain stiffness descriptor alpha*p**4<br />
+----<br />
+<div id="approxi">'''approxi'''</div>    filename ../theos/th_approxi.f90<br />
+<br />
+approximation method????<br />
+r = exp (x)<br />
+y = ampl * (r**m1 + c5 * r**m3 + c4 * r**m5) / (c1 + c2 * r**m2 + &<br />
+c3 * r**m4 + c6 * r**m6 + c7 * r**m7)<br />
+approxi = dlog (y)<br />
+<br />
+parnam (1) = 'ampl'<br />
+parnam (2) = 'm1'<br />
+parnam (3) = 'm2'<br />
+parnam (4) = 'm3'<br />
+parnam (5) = 'm4'<br />
+parnam (6) = 'm5'<br />
+parnam (7) = 'c1'<br />
+parnam (8) = 'c2'<br />
+parnam (9) = 'c3'<br />
+parnam (10) = 'c4'<br />
+parnam (11) = 'c5'<br />
+parnam (12) = 'm6'<br />
+parnam (13) = 'c6'<br />
+parnam (14) = 'm7'<br />
+parnam (15) = 'c7'<br />
+----<br />
+<div id="diffqav">'''diffqav'''</div>    filename ../theos/th_average_diff_q.f90<br />
+<br />
+diffqav<br />
+average over exp(-q**2 t) assuming Intensity goes like 1/q**2<br />
+<br />
+<br />
+parnam (1) = 'amplit'<br />
+parnam (2) = 'd'<br />
+parnam (3) = 'qwid/2'<br />
+----<br />
+<div id="bkgr">'''bkgr'''</div>    filename ../theos/th_background.f90<br />
+<br />
+bkgr<br />
+linear background bkgr = pa (1) + pa (2) * x<br />
+<br />
+<br />
+parnam (1) = 'level '<br />
+parnam (2) = 'slope '<br />
+----<br />
+<div id="core_shell3">'''core_shell3'''</div>    filename ../theos/th_core_shell_Sq.f90<br />
+shell3<br />
+core-shell-shell-modell <--<br />
+auessere Schale kann parabolisch oder starlike<br />
+gemacht werden<br />
+<br />
+<br />
+parnam (1) = 'amplitu'<br />
+parnam (2) = 'mcore'<br />
+parnam (3) = 'mbrush'<br />
+parnam (4) = 'rhocore'<br />
+parnam (5) = 'rhobrsh'<br />
+parnam (6) = 'bcore'<br />
+parnam (7) = 'bbrush'<br />
+parnam (8) = 'naggr'<br />
+parnam (9) = 'd1plus'<br />
+parnam (10) = 'part23'<br />
+parnam (11) = 'd2plus'<br />
+parnam (12) = 'd3plus'<br />
+parnam (13) = 'sigma1'<br />
+parnam (14) = 'sigma2'<br />
+parnam (15) = 'sigma3'<br />
+parnam (16) = 'partstar'<br />
+parnam (17) = 'gamma'<br />
+parnam (18) = 'lparabol'<br />
+parnam (19) = 'f_brush'<br />
+parnam (20) = 'f_core'<br />
+----<br />
+<div id="cumulant">'''cumulant'''</div>    filename ../theos/th_cumulant_analysis.f90<br />
+<br />
+cumulant analysis<br />
+cumulant= ampli * exp ( - sum_i mui * x^i/i )<br />
+<br />
+parnam (1) = 'amplitu'<br />
+parnam (2) = 'mu1'<br />
+parnam (3) = 'mu2'<br />
+parnam (4) = 'mu3'<br />
+parnam (5) = 'mu4'<br />
+parnam (6) = 'mu5'<br />
+parnam (7) = 'mu6'<br />
+----<br />
+<div id="debye2">'''debye2'''</div>    filename ../theos/th_debye_S_q.f90<br />
+Debye function<br />
+<br />
+parnam (1)  = 'intensit'<br />
+parnam (2)  = 'rg      '<br />
+parnam (3)  = 'gamma   '<br />
+parnam (4)  = 'molwght '<br />
+parnam (5)  = 'density '<br />
+parnam (6)  = 'bpolym  '<br />
+parnam (7)  = 'v       '<br />
+parnam (8) = 'volfrac '<br />
+----<br />
+<div id="th38">'''th38'''</div>    filename ../theos/th_degennes.f90<br />
+degennes<br />
+<br />
+parnam (1) = 'amplitud'<br />
+parnam (2)  = 'w       '<br />
+parnam (3)  = 'dtube   '<br />
+parnam (4)  = 'n       '<br />
+parnam (5)  = 'l       '<br />
+----<br />
+<div id="exp_q">'''exp_q'''</div>    filename ../theos/th_exp_q.f90<br />
+<br />
+expq<br />
+y= amplitu *  exp([x/tau0]/[q/q0]^q_exp)<br />
+scaled streched exponential decay<br />
+parnam (1) = 'amplitu'<br />
+parnam (2) = 'tau0'<br />
+parnam (3) = 'q0'<br />
+parnam (4) = 'q_exp'<br />
+----<br />
+<div id="eval">'''eval'''</div>    filename ../theos/th_fitwithyfitform.f90<br />
+<br />
+user function in datreat<br />
+only working in datreat<br />
+parnam (1)  = 'p(1)  '<br />
+parnam (2)  = 'p(2)  '<br />
+parnam (3)  = 'p(3)  '<br />
+parnam (4)  = 'p(4)  '<br />
+parnam (5)  = 'p(5)  '<br />
+parnam (6)  = 'p(6)  '<br />
+parnam (7)  = 'p(7)  '<br />
+parnam (8)  = 'p(8)  '<br />
+parnam (9)  = 'p(9)  '<br />
+parnam (10) = 'p(10) '<br />
+----<br />
+<div id="doubsheq">'''doubsheq'''</div>    filename ../theos/th_fq_double_sqare_well.f90<br />
+formfactor squared of a double square-well<br />
+dd = 0.5 * (pa (1) + pa (2) )<br />
+doubsheq = (2/x)*(2*pa(3)*cos(dd*x)*sin(pa(1)*x*0.5)+pa(4)*sin(pa(2)*x*0.5))<br />
+doubsheq = doubsheq * doubsheq<br />
+parnam (1) = 'd_outer'<br />
+parnam (2) = 'd_inner'<br />
+parnam (3) = 'b_outer'<br />
+parnam (4) = 'b_inner'<br />
+----<br />
+<div id="doubshee">'''doubshee'''</div>    filename ../theos/th_fq_doublesquaresheet.f90<br />
+<br />
+formfactor squared of a double square-well<br />
+<br />
+parnam (1) = 'd_outer'<br />
+parnam (2) = 'd_inner'<br />
+parnam (3) = 'b_outer'<br />
+parnam (4) = 'b_inner'<br />
+parnam (5) = 'qz:qx'<br />
+parnam (6) = 'chi'<br />
+----<br />
+<div id="fqsheet">'''fqsheet'''</div>    filename ../theos/th_fq_multi_square_well.f90<br />
+<br />
+formfactor squared of a multiple square well<br />
+<br />
+|-dn-|....|-d2-|--d1--|d0|--d1--|-d2-|....|-dn-|<br />
+bn        b2    b1      b0      b1    b2        bn<br />
+<br />
+parnam (1) = 'd0'<br />
+parnam (2) = 'd1'<br />
+parnam (3) = 'd2'<br />
+parnam (4) = 'd3'<br />
+parnam (5) = 'd4'<br />
+parnam (6) = 'd5'<br />
+parnam (7) = 'd6'<br />
+parnam (8) = 'd7'<br />
+parnam (9) = 'd8'<br />
+parnam (10) = 'd9'<br />
+parnam (11) = 'b0'<br />
+parnam (12) = 'b1'<br />
+parnam (13) = 'b2'<br />
+parnam (14) = 'b3'<br />
+parnam (15) = 'b4'<br />
+parnam (16) = 'b5'<br />
+parnam (17) = 'b6'<br />
+parnam (18) = 'b7'<br />
+parnam (19) = 'b8'<br />
+parnam (20) = 'b9'<br />
+----<br />
+<div id="gauspolynom">'''gauspolynom'''</div>    filename ../theos/th_gaupol.f90<br />
+gausspolynom<br />
+xx=x-center<br />
+y=intensit *exp( a1+xx(a2+(xx+a3+xx(a4+xx(a5+xx(a6+(xx*(a7+(a8*xx)))))))))<br />
+<br />
+parnam (1) = 'intensit'<br />
+parnam (2) = 'center'<br />
+parnam (3) = 'a1'<br />
+parnam (4) = 'a2'<br />
+parnam (5) = 'a3'<br />
+parnam (6) = 'a4'<br />
+parnam (7) = 'a5'<br />
+parnam (8) = 'a6'<br />
+parnam (9) = 'a7'<br />
+parnam (10) = 'a8'<br />
+----<br />
+<div id="thgauss">'''thgauss'''</div>    filename ../theos/th_gauss.f90<br />
+<br />
+gaussian<br />
+Y= intensit*exp((x-center)/width)<br />
+parnam (1) = 'intensit'<br />
+parnam (2) = 'width'<br />
+parnam (3) = 'center'<br />
+----<br />
+<div id="th_kohl_q">'''th_kohl_q'''</div>    filename ../theos/th_kohlrausch_in_time.f<br />
+parnam(1) = 'intensit'          ! prefactor<br />
+parnam(2) = 'tau0'              ! kww time-constant, prefactor in front of q-dependence<br />
+parnam(3) = 'beta'              ! streched exp, prefactor in front of-q-dependence<br />
+parnam(4) = 'epsilon '          ! accuracy parameter for ft-integrations (do not fit)<br />
+parnam(5) = 'omega0'            ! omega scale zero shift<br />
+parnam(6) = 'u_sqr'             ! < u^2> value for debye-waller-factor<br />
+parnam(7) = 'j0'                ! jump length (if applicable)<br />
+parnam(8) = 'beta0'             ! beta offset<br />
+parnam(9) = 'qexp_t0'           ! q-exponent for tau0<br />
+parnam(10)= 'qexp_bet'          ! beta-exponent<br />
+parnam(11)= 'bkgr'              ! constant background<br />
+----<br />
+<div id="th_ln_bss">'''th_ln_bss'''</div>    filename ../theos/th_lognorm_bss.f<br />
+parnam(1) = 'intensit'          ! prefactor<br />
+parnam(2) = 'lntau0'            ! center of lognormal time constant<br />
+parnam(3) = 'beta'              ! extra streched exp in kernel relaxation<br />
+parnam(4) = 'epsilon '          ! accuracy parameter for ft-integrations (do not fit)<br />
+parnam(5) = 'omega0'            ! omega scale zero shift<br />
+parnam(6) = 'u_sqr'             ! < u*u> value for debye-waller-factor<br />
+parnam(7) = 'lnwidth'           ! lognormal width<br />
+----<br />
+<div id="thlorenz">'''thlorenz'''</div>    filename ../theos/th_lorenz.f90<br />
+<br />
+lorenzian<br />
+amp= pa (1)<br />
+XX = (x - pa (3) )<br />
+g =  pa (2)<br />
+thlorenz = amp/pi *(g/2)**2/(XX**2+(g/2)**2)<br />
+parnam (1) = 'intensit'<br />
+parnam (2) = 'width'<br />
+parnam (3) = 'center'<br />
+----<br />
+<div id="th_mickin">'''th_mickin'''</div>    filename ../theos/th_mickin.f90<br />
+parnam(1) = 't_start'<br />
+parnam(2) = 't_end'<br />
+parnam(3) = 'p_max'<br />
+parnam(4) = 'gamma'<br />
+parnam(5) = 'p_equil'<br />
+parnam(6) = 'cmc'<br />
+parnam(7) = 'tauscal'<br />
+parnam(8) = 'tol'<br />
+parnam(9) = 'rhoscal'           ! sacling of input concentrations<br />
+parnam(10) = 'alpha'            ! prefactor for term in gp default=1<br />
+parnam(11) = 'epsilonf'         ! prefactor-1 for term f1 in gp default=0<br />
+----<br />
+<div id="th_mickincombe">'''th_mickincombe'''</div>    filename ../theos/th_mickincombe.f90<br />
+==<br />
+<br />
+micellkinetics<br />
+combined model for <P> and scattering<br />
+<br />
+<br />
+parnam(1) = 't_start'<br />
+parnam(2) = 't_end'<br />
+parnam(3) = 'p_max'<br />
+parnam(4) = 'gamma'             ! reduced surface tension / kt<br />
+parnam(5) = 'beta'              ! [--> beta=factor in front of p**(3/2) term of micelle energy]<br />
+parnam(6) = 'coscal'            ! [--> concentration scale}<br />
+parnam(7) = 'tauscal'<br />
+parnam(8) = 'tol'<br />
+parnam(9) = 'cte_blob'          ! prefactor for blob scattering<br />
+parnam(10) = 'alpha'            ! prefactor for term in gpn default=1<br />
+parnam(11) = 'epsil_mc'         ! scaling of mw_core<br />
+parnam(12) = 'epsil_ms'         ! scaling of mw_shell<br />
+parnam(13) = 'nue'              ! exponent for rho**(-nu)<br />
+parnam(14) = 'phicore'          ! 1.0d0 volume fraction polymerchain segments in core<br />
+parnam(15) = 'phishell'         ! 0.3d0<br />
+parnam(16) = 'rexpon'           ! = 2/3<br />
+parnam(17) = 'expshell'         ! = 2/3<br />
+parnam(18) = 'intensity'        ! scattering intensityscale<br />
+parnam(19) = 'xi_blob'          ! blob_xi<br />
+----<br />
+<div id="m_exp_q">'''m_exp_q'''</div>    filename ../theos/th_multi_expDecay.f90<br />
+multi exp decay exp_q<br />
+-<br />
+2-Exponentials with Q-dependend Amplitude-Ratio and Decay<br />
+Amplitude = p1<br />
+Aratio    = p2 + p3*Q**p4+p5*Q**p6+p7*Q**p8<br />
+Tau1      = p9 + p10*Q**p11 + p12*Q**p13<br />
+Beta1     = p14<br />
+Tau2      = p15+ p16*Q**p17 + p18*Q**p19<br />
+Beta2     = p20<br />
+-<br />
+<br />
+<br />
+parnam (1) = 'amplitud'<br />
+parnam (2) = 'aratioc0'<br />
+parnam (3) = 'aratioc1'<br />
+parnam (4) = 'aratioe1'<br />
+parnam (5) = 'aratioc2'<br />
+parnam (6) = 'aratioe2'<br />
+parnam (7) = 'aratioc3'<br />
+parnam (8) = 'aratioe3'<br />
+parnam (9)  = 'tau1c0  '<br />
+parnam (10)  = 'tau1c1  '<br />
+parnam (11)  = 'tau1e1  '<br />
+parnam (12)  = 'tau1c2  '<br />
+parnam (13)  = 'tau1e2  '<br />
+parnam (14)  = 'beta1   '<br />
+parnam (15)  = 'tau1c0  '<br />
+parnam (16)  = 'tau2c1  '<br />
+parnam (17)  = 'tau2e1  '<br />
+parnam (18)  = 'tau2c2  '<br />
+parnam (19)  = 'tau2e2  '<br />
+parnam (20)  = 'beta2   '<br />
+----<br />
+<div id="echo">'''echo'''</div>    filename ../theos/th_nse_echo_fct.f90<br />
+<br />
+<br />
+nse echo function<br />
+<br />
+<br />
+parnam (1) = 'amplitu'<br />
+parnam (2) = 'average'<br />
+parnam (3) = 'derotat'<br />
+parnam (4) = 'lambda0'<br />
+parnam (5) = 'lamfwhm'<br />
+parnam (6) = 'ishift '<br />
+parnam (7) = 'nturns '<br />
+parnam (8)  = 'rcoil  '<br />
+parnam (9)  = 'lcoil  '<br />
+parnam (10)  = 'acoil  '<br />
+parnam (11)  = 'bcoil  '<br />
+parnam (12)  = 'a2coil  '<br />
+----<br />
+<div id="th7">'''th7'''</div>    filename ../theos/th_percus-yevick_SQ.f90<br />
+<br />
+<br />
+test fuer percus-yevick s(q)<br />
+<br />
+<br />
+parnam (1) = 'intens'<br />
+parnam (2) = 'radius'<br />
+parnam (3) = 'density'<br />
+parnam (4) = 'epsilon'<br />
+----<br />
+<div id="th_hohdiff">'''th_hohdiff'''</div>    filename ../theos/th_randomjumpdiffusion.f90<br />
+randomjumpdiffusion<br />
+Water dynamics for TOF vibrational+rotational+translational motion<br />
+RANDOM JUMP - DIFFUSION SEARS<br />
+J. Teixeira<br />
+Experimental determination of the nature of diffusive motions of water molecules at low temperatures<br />
+Phys. Rev. A 31, 1913–1917 (1985)<br />
+<br />
+parnam(1) = 'amplitu'      ! name of theory parameters<br />
+parnam(2) = 'u_quadra'<br />
+parnam(3) = 'self_dif'<br />
+parnam(4) = 'tau0_dif'<br />
+parnam(5) = 'a_rot'<br />
+parnam(6) = 'd_rot'<br />
+parnam(7) = 'shiftt'<br />
+----<br />
+<div id="riggch">'''riggch'''</div>    filename ../theos/th_rigid_gaussssian_chain.f90<br />
+<br />
+rigid gaussian chain:   riggch<br />
+<br />
+according to:<br />
+C.M. Marques and G.H. Fredrickson<br />
+J.Phys. II France 7 (1997) 1805-1816<br />
+Eqn. 11 and 14<br />
+Attention: observe error in eqn. 11 m<n, (m-n)->(n-m)<br />
+Parameters:<br />
+==<br />
+volfrac        -> Phi-Polymer<br />
+rho            -> density of polymer in g/cm**3<br />
+molwgt         -> molecular weight   in g/mol<br />
+b_chain        -> scattering length density in cm**-2<br />
+nseg           -> no. of segments<br />
+rg             -> radius of gyration<br />
+lpers          -> presistence length<br />
+select         -> selects: 0=rigid gaussin chain (rgc)<br />
++> selects: 1=approximant to rgc Eq 21<br />
++> selects: 2=debye function<br />
+<br />
+Required data set parameters:<br />
+==<br />
+bsolv          -> scattering length density of solvent<br />
+<br />
+parnam(1) = 'volfrac '<br />
+parnam(2) = 'rho     '<br />
+parnam(3) = 'molwgt  '<br />
+parnam(4) = 'b_chain '<br />
+parnam(5) = 'nseg    '<br />
+parnam(6) = 'rg      '<br />
+parnam(7) = 'lpers   '<br />
+parnam(8) = 'select  '<br />
+----<br />
+<div id="rouse">'''rouse'''</div>    filename ../theos/th_rouse.f90<br />
+<br />
+<br />
+-> rouse <--<br />
+<br />
+<br />
+parnam (1) = 'intensit'<br />
+parnam (2) = 'xi_frict'<br />
+parnam (3) = 'b_segmnt'<br />
+parnam (4) = 'epsilon '<br />
+parnam (5)  = 'temp    '<br />
+parnam (6) = 'com_diff'<br />
+parnam (7) = 'q_width'<br />
+----<br />
+<div id="roused">'''roused'''</div>    filename ../theos/th_rouse_d.f90<br />
+<br />
+<br />
+rouse<br />
+<br />
+<br />
+parnam (1) = 'intensit'<br />
+parnam (2) = 'xi_frict'<br />
+parnam (3) = 'b_segmnt'<br />
+parnam (4) = 'epsilon '<br />
+parnam (5)  = 'temp    '<br />
+parnam (6)  = 'n       '<br />
+parnam (7) = 'q_width '<br />
+----<br />
+<div id="srouse">'''srouse'''</div>    filename ../theos/th_rouse_stretched.f90<br />
+<br />
+stretched rouse <--<br />
+<br />
+<br />
+parnam (1) = 'intensit'<br />
+parnam (2) = 'xi_frict'<br />
+parnam (3) = 'n_segmnt'<br />
+parnam (4)  = 're      '<br />
+parnam (5)  = 'temp    '<br />
+parnam (6) = 'com_diff'<br />
+parnam (7) = 'q_width '<br />
+parnam (8)  = 'scos    '<br />
+----<br />
+<div id="sofqq">'''sofqq'''</div>    filename ../theos/th_sofQ.f90<br />
+<br />
+<br />
+sofq<br />
+calculates the structure factor according to<br />
+mode=   1       H.-P. form<br />
+2       Shieu-Chen form<br />
+3       Sharma-Sharma form<br />
+4       Critical diverg.<br />
+5       none (sq=1.)<br />
+6       PercusYevik<br />
+<br />
+parnam (1) = 'volfrac'<br />
+parnam (2) = 'scalelen'<br />
+parnam (3) = 'gamma'<br />
+parnam (4) = 'r'<br />
+parnam (5) = 'mode'<br />
+----<br />
+<div id="sqrdg">'''sqrdg'''</div>    filename ../theos/th_sqRayleighDebyeGans.f90<br />
+<br />
+<br />
+RDG formfactor of a sphere<br />
+<br />
+<br />
+parnam (1) = 'density'<br />
+parnam (2) = 'r'<br />
+parnam (3) = 'drho'<br />
+----<br />
+<div id="strexpo">'''strexpo'''</div>    filename ../theos/th_stretched_exponential.f90<br />
+<br />
+strexpo<br />
+stretched exponential function<br />
+y=amplitu*exp([x/(tau0 * q**qexp)]^beta)<br />
+units: nothing special<br />
+Reference : unknown author in unknown Journal<br />
+author r.biehl<br />
+tested<br />
+parnam (1) = 'amplitu'    ! amplitude   1<br />
+parnam (2) = 'tau'<br />
+parnam (3) = 'beta'<br />
+parnam (4) = 'qexp'<br />
+----<br />
+<div id="th_zgbicbic">'''th_zgbicbic'''</div>    filename ../theos/th_zilmannggranek_bicont.f90<br />
+<br />
+<br />
+zilman-granek for bicontinuous phase<br />
+<br />
+<br />
+parnam(1) = 'xi'<br />
+parnam(2) = 'nxi'<br />
+parnam(3) = 'aa'<br />
+parnam(4) = 'na'<br />
+parnam(5) = 'akappa'<br />
+parnam(6) = 'eta'<br />
+parnam(7) = 'axi'<br />
+parnam(8) = 'amp'<br />
+----<br />
+<div id="zimm">'''zimm'''</div>    filename ../theos/th_zimm.f90<br />
+<br />
+zimm<br />
+<br />
+<br />
+parnam (1) = 'intensit'<br />
+parnam (2) = 'eta_solv'<br />
+parnam (3) = 'epsilon '<br />
+parnam (4)  = 'temp    '<br />
+parnam (5) = 'com_diff'<br />
+----<br />
+<div id="check">'''check'''</div>    filename ../unused_theos/th_aurels_schulz.f<br />
+parnam(1)='d_c12e5'<br />
+parnam(2)='conc'<br />
+parnam(3)='sld_d20'<br />
+parnam(4)='sld_c12e5'<br />
+parnam(5)='z_schulz'<br />
+parnam(6)='r_rod'<br />
+parnam(7)='r_min'<br />
+----<br />
+<div id="caillexx2">'''caillexx2'''</div>    filename ../unused_theos/th_caille.f90<br />
+<br />
+<br />
+<br />
+<br />
+-> caille <<br />
+<br />
+<br />
+parnam (1) = 'scale'<br />
+parnam (2) = 'qz:ortho'<br />
+parnam (3) = 'iz:ortho'<br />
+parnam (4) = 'q0'<br />
+parnam (5) = 'a'<br />
+parnam (6) = 'ln_alpha'<br />
+parnam (7) = 'd'<br />
+parnam (8) = '4a:3r:3s'<br />
+parnam (9) = 'nmax3'<br />
+parnam (10) = 'dwf'<br />
+parnam (11) = 'peakf'<br />
+parnam (12) = 'eps'<br />
+parnam (13) = 'eps2'<br />
+parnam (14) = 'xmuswit'<br />
+parnam (15) = 'strechf'<br />
+parnam (16) = 'rellim'<br />
+parnam (17) = 'splitf4'<br />
+parnam (18) = 'e1switch'<br />
+parnam (19) = 'polpow'<br />
+parnam (20) = 'rres'<br />
+----<br />
+<div id="caillexx">'''caillexx'''</div>    filename ../unused_theos/th_caille2.f90<br />
+<br />
+<br />
+<br />
+<br />
+-> caille2<<br />
+wege in q entlang schraeger schnitte durch die qz-qortho-ebene<br />
+<br />
+<br />
+parnam (1) = 'scale'<br />
+parnam (2) = 'qz:qx'<br />
+parnam (3) = 'chi'<br />
+parnam (4) = 'q0'<br />
+parnam (5) = 'a'<br />
+parnam (6) = 'ln_alpha'<br />
+parnam (7) = 'd'<br />
+parnam (8) = '4a:3r:3s'<br />
+parnam (9) = 'nmax3'<br />
+parnam (10) = 'dwf'<br />
+parnam (11) = 'peakf'<br />
+parnam (12) = 'eps'<br />
+parnam (13) = 'eps2'<br />
+parnam (14) = 'xmuswit'<br />
+parnam (15) = 'strechf'<br />
+parnam (16) = 'rellim'<br />
+parnam (17) = 'splitf4'<br />
+parnam (18) = 'e1switch'<br />
+parnam (19) = 'polpow'<br />
+parnam (20) = 'rres'<br />
+----<br />
+<div id="th37">'''th37'''</div>    filename ../unused_theos/th_cloizeaux.f<br />
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!<br />
+=<br />
+<br />
+-> cloizeaux <--<br />
+<br />
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!<br />
+parnam(1) = 'amplitud'<br />
+parnam(2) = 'wl4     '<br />
+parnam(3) = 'dtube   '<br />
+----<br />
+<div id="th000_000">'''th000_000'''</div>    filename ../unused_theos/th_exampleTheory.f90.example<br />
+=<br />
+name of this function in quotes  to call in datreat<br />
+<br />
+"dummy"<br />
+# description<br />
+this is a dymmy function<br />
+#start description<br />
+Please give a description<br />
+#end description<br />
+<br />
+enforce of  explicit variable definition<br />
+parnam(1) = 'temperat'<br />
+----<br />
+<div id="doubsheq">'''doubsheq'''</div>    filename ../unused_theos/th_fq_double_sqare_well.f90<br />
+<br />
+<br />
+-> formfactor squared of a double square-well<br />
+<br />
+<br />
+parnam (1) = 'd_outer'<br />
+parnam (2) = 'd_inner'<br />
+parnam (3) = 'b_outer'<br />
+parnam (4) = 'b_inner'<br />
+----<br />
+<div id="doubshee">'''doubshee'''</div>    filename ../unused_theos/th_fq_doublesquaresheet.f90<br />
+<br />
+<br />
+-> formfactor squared of a double square-well<br />
+<br />
+<br />
+parnam (1) = 'd_outer'<br />
+parnam (2) = 'd_inner'<br />
+parnam (3) = 'b_outer'<br />
+parnam (4) = 'b_inner'<br />
+parnam (5) = 'qz:qx'<br />
+parnam (6) = 'chi'<br />
+----<br />
+<div id="fqsheet">'''fqsheet'''</div>    filename ../unused_theos/th_fq_multi_square_well.f90<br />
+<br />
+<br />
+-> formfactor squared of a multiple square well<br />
+<br />
+|-dn-|....|-d2-|--d1--|d0|--d1--|-d2-|....|-dn-|<br />
+bn        b2    b1      b0      b1    b2        bn<br />
+<br />
+<br />
+<br />
+parnam (1) = 'd0'<br />
+parnam (2) = 'd1'<br />
+parnam (3) = 'd2'<br />
+parnam (4) = 'd3'<br />
+parnam (5) = 'd4'<br />
+parnam (6) = 'd5'<br />
+parnam (7) = 'd6'<br />
+parnam (8) = 'd7'<br />
+parnam (9) = 'd8'<br />
+parnam (10) = 'd9'<br />
+parnam (11) = 'b0'<br />
+parnam (12) = 'b1'<br />
+parnam (13) = 'b2'<br />
+parnam (14) = 'b3'<br />
+parnam (15) = 'b4'<br />
+parnam (16) = 'b5'<br />
+parnam (17) = 'b6'<br />
+parnam (18) = 'b7'<br />
+parnam (19) = 'b8'<br />
+parnam (20) = 'b9'<br />
+----<br />
+<div id="thdatr1">'''thdatr1'''</div>    filename ../unused_theos/th_j1ave.f90<br />
+=<br />
+<br />
+-> simple gauss :  g <-<br />
+only energy dependence<br />
+<br />
+<br />
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++<br />
+<br />
+--> general construction scheme for theory functions <-<br />
+<br />
+<br />
+- names must be thdatr1 , th2 .... thn<br />
+max. no is given by parameter mth in monito<br />
+to increase max no. change all mth='s & extend all lists<br />
+beginning with thdatr1( ...<br />
+<br />
+- inputs:<br />
+x    = x-value<br />
+pa(*)= parameters<br />
+ini  = initialisation flag (0 init , 1 calculate)<br />
+- ouputs: (only for init=0)<br />
+thnam= name of theory<br />
+parnam=names of parameters<br />
+npar = no. of req. parameters (must be max. no. on input)<br />
+<br />
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++<br />
+<br />
+<br />
+parnam (1) = 'drho*a*a'<br />
+parnam (2) = 'rave/a'<br />
+parnam (3) = 'z'<br />
+parnam (4) = 'den*a**3'<br />
+parnam (5) = 'rp/r3'<br />
+parnam (6) = 'scale'<br />
+parnam (7) = 'v/cm**3'<br />
+parnam (8) = 'select'<br />
+parnam (9) = 'rmax/int'<br />
+----<br />
+<div id="th_likhtman">'''th_likhtman'''</div>    filename ../unused_theos/th_likhtman.f<br />
+degennes<br />
+geaendert nach likhtman - mz<br />
+parnam(1) = 'amplitud'<br />
+parnam(2) = 'w       '<br />
+parnam(3) = 'dtube   '<br />
+parnam(4) = 'n       '<br />
+parnam(5) = 'l       '<br />
+parnam(6) = 'td2     '<br />
+----<br />
+<div id="thlorenz">'''thlorenz'''</div>    filename ../unused_theos/th_lorenz.f90<br />
+<br />
+<br />
+-> lorenzian <-<br />
+<br />
+<br />
+parnam (1) = 'intensit'<br />
+parnam (2) = 'width'<br />
+parnam (3) = 'center'<br />
+----<br />
+<div id="th_mickin">'''th_mickin'''</div>    filename ../unused_theos/th_micellkinetics.f90<br />
+==<br />
+-> micellkinetics: mickin  <--<br />
+<br />
+<br />
+parnam(1) = 't_start'<br />
+parnam(2) = 't_end'<br />
+parnam(3) = 'p_max'<br />
+parnam(4) = 'gamma'<br />
+parnam(5) = 'p_equil'<br />
+parnam(6) = 'cmc'<br />
+parnam(7) = 'tauscal'<br />
+parnam(8) = 'tol'<br />
+----<br />
+<div id="th9">'''th9'''</div>    filename ../unused_theos/th_nrouse.f<br />
+parnam(1) = 'intensit'<br />
+parnam(2) = 'xi_frict'<br />
+parnam(3) = 'n_segmnt'   ! : if <0 return non-normalized s(q,t)<br />
+parnam(4) = 're      '   ! : re**2 = n * b**2<br />
+parnam(5) = 'temp    '<br />
+parnam(6) = 'com_diff'<br />
+parnam(7) = 'q_width '<br />
+----<br />
+<div id="th_nrouse3">'''th_nrouse3'''</div>    filename ../unused_theos/th_nrouse3.f<br />
+parnam(1) = 'intensit'<br />
+parnam(2) = 'wl4'<br />
+parnam(3) = 'n_segmnt'<br />
+parnam(4) = 're      '   ! : re**2 = n * b**2<br />
+parnam(5) = 'temp    '<br />
+parnam(6) = 'com_diff'<br />
+parnam(7) = 'q_width '<br />
+parnam(8) = 'fixend  '   ! : 0 normal rouse, 1 fixed segment (n)<br />
+parnam(9) = 'nmin    '   ! : minimum n for averaging lengths<br />
+----<br />
+<div id="echo">'''echo'''</div>    filename ../unused_theos/th_nse_echo_fct.f90<br />
+<br />
+<br />
+-> echo <--<br />
+<br />
+<br />
+parnam (1) = 'amplitu'<br />
+parnam (2) = 'average'<br />
+parnam (3) = 'derotat'<br />
+parnam (4) = 'lambda0'<br />
+parnam (5) = 'lamfwhm'<br />
+parnam (6) = 'ishift '<br />
+parnam (7) = 'nturns '<br />
+parnam (8)  = 'rcoil  '<br />
+parnam (9)  = 'lcoil  '<br />
+parnam (10)  = 'acoil  '<br />
+parnam (11)  = 'bcoil  '<br />
+parnam (12)  = 'a2coil  '<br />
+----<br />
+<div id="th_pythres">'''th_pythres'''</div>    filename ../unused_theos/th_pytres.f90<br />
+<br />
+<br />
+-> Resistance of Zones of Pythargoras coil with finite cuts and deltah <-<br />
+<br />
+<br />
+parnam (1) = 'scale'    ! skalierungsfaktor (strom fuer spannungsabfal o.ae)<br />
+parnam (2) = 'rho'      ! leitfaehigkeit<br />
+parnam (3) = 'alpha'    ! nominalbreite der 1. zone<br />
+parnam (4) = 'beta'     ! steigung des keils (8mm/50mm)<br />
+parnam (5) = 'l'        ! laenge der messstrecke<br />
+parnam (6) = 'dcuts'    ! breite der schnitte<br />
+parnam (7) = 'hoffset'  ! offsetdicke<br />
+----<br />
+<div id="th10">'''th10'''</div>    filename ../unused_theos/th_qtopowern.f90<br />
+<br />
+<br />
+-> q**n <--<br />
+<br />
+<br />
+parnam (1) = 'an'<br />
+parnam (2) = 'n'<br />
+parnam (3) = 'offset'<br />
+----<br />
+<div id="th_reptamode_sum">'''th_reptamode_sum'''</div>    filename ../unused_theos/th_reptamode_sum.f<br />
+parnam(1) = 'intensit'    ! intensität tau=0<br />
+parnam(2) = 'w'           ! rate<br />
+parnam(3) = 'n_segmnt'    ! number chain elements<br />
+parnam(4) = 're      '    ! : re**2 = n * b**2 in angstroem<br />
+parnam(5) = 'temp    '    ! temp<br />
+parnam(6) = 'com_diff'    ! diffusion coefficient<br />
+parnam(7) = 'q_width '    ! q width of detector (width for an averaging in q )<br />
+parnam(8) = 'p_trans '    ! : transition between slow and fast regime<br />
+parnam(9) = 'p_width '    ! : width of transition regime f=1/(1+exp((p-pmax)/p_width))<br />
+parnam(10)= 'beta    '    ! : exponent steepness of transistion<br />
+parnam(11)= 'alpha   '    ! : fraction of slow rate/p**2 to fast rate/p**2<br />
+----<br />
+<div id="th_rodmod">'''th_rodmod'''</div>    filename ../unused_theos/th_rod_modulated_density.f90<br />
+<br />
+<br />
+-> density modulated rod rho(z) ~ (cos(2Pi/rep*z)**2 + c) randomly orien in space<br />
+<br />
+<br />
+parnam(1) = 'amplitu'<br />
+parnam(2) = 'radius '<br />
+parnam(3) = 'd_cos  '<br />
+parnam(4) = 'const  '<br />
+parnam(5) = 'nrep   '<br />
+parnam(6) = 'epsilon'<br />
+----<br />
+<div id="thrmo">'''thrmo'''</div>    filename ../unused_theos/th_rousemodes.f<br />
+parnam(1) = 'intensit'<br />
+parnam(2) = 'wl4     '<br />
+parnam(3) = 'n_segmnt'   ! : if <0 return non-normalized s(q,t)<br />
+parnam(4) = 're      '   ! : re**2 = n * b**2<br />
+parnam(5) = 'temp    '<br />
+parnam(6) = 'com_diff'<br />
+parnam(7) = 'q_width '<br />
+parnam(8) = 'rmode   '   ! uebergangslaenge<br />
+parnam(9) = 'rmode_wd'   ! schaerfe des uebergangs<br />
+parnam(10)= 'flowlim '   ! factor (< 1) fuer langwellige moden (f=1--> keine modenanalyse)<br />
+----<br />
+<div id="thrmi">'''thrmi'''</div>    filename ../unused_theos/th_rousemodes_i.f<br />
+parnam(1) = 'intensit'<br />
+parnam(2) = 'wl4     '<br />
+parnam(3) = 'n_segmnt'   ! : if <0 return non-normalized s(q,t)<br />
+parnam(4) = 're      '   ! : re**2 = n * b**2<br />
+parnam(5) = 'temp    '<br />
+parnam(6) = 'com_diff'<br />
+parnam(7) = 'q_width '<br />
+parnam(8) = 'rmode   '   ! uebergangslaenge<br />
+parnam(9) = 'rmode_wd'   ! schaerfe des uebergangs<br />
+parnam(10)= 'flowlim '   ! factor (< 1) fuer langwellige moden (f=1--> keine modenanalyse)<br />
+parnam(11)= 'rat_scsi'   ! ratio: sigma_coherent pro effektivem segment : sigma_incoherent pro eff. segment<br />
+----<br />
+<div id="thick_co">'''thick_co'''</div>    filename ../unused_theos/th_thickcoilField.f90<br />
+<br />
+<br />
+-> thickcoil <<br />
+<br />
+<br />
+parnam (1) = 'centerx'<br />
+parnam (2) = 'centery'<br />
+parnam (3) = 'centerz'<br />
+parnam (4) = 'length'<br />
+parnam (5) = 'ri'<br />
+parnam (6) = 'ra'<br />
+parnam (7) = 'nw'<br />
+parnam (8) = 'cur'<br />
+parnam (9) = 'componen'<br />
+parnam (10) = 'maxit'<br />
+parnam (11) = 'epsilon'<br />
+----<br />
+<div id="tribapr">'''tribapr'''</div>    filename ../unused_theos/th_triblock_approximation.f90<br />
+<br />
+<br />
+-> triblock1 approximation  <<br />
+<br />
+<br />
+parnam (1) = 'uquadrat'<br />
+parnam (2) = 'rate'<br />
+parnam (3) = 'dispers'<br />
+----<br />
+<div id="undulend2">'''undulend2'''</div>    filename ../unused_theos/th_undulend.f90<br />
+<br />
+<br />
+-> triblock undulation incoherent approximation<br />
+end modifying factor<br />
++<br />
+<br />
+<br />
+parnam (1) = 'intens'     ! scaling prefactor<br />
+parnam (2) = 'gam'        ! surface tension     [si]<br />
+parnam (3) = 'xi'         ! correlation length  [si]<br />
+parnam (4) = 'l0'         ! minimal length      [si]<br />
+parnam (5) = 'eta'        ! effective viscosity [si]<br />
+parnam (6) = 'sigma'      ! influence length in fraction of chainlength<br />
+parnam (7) = 'wl4'        ! in a*4/ns  !!!!!!   [a,ns]<br />
+----<br />
+<div id="userfunktion">'''userfunktion'''</div>    filename ../unused_theos/th_userfunction_at_runtime.f90<br />
+<br />
+also a nice axample for programming a theory<br />
+-> userfinction  <--    stretched exponential function<br />
+<br />
+dont change these definitions<br />
+parnam (1) = 'amplitu'    ! amplitude   1<br />
+parnam (2) = 'slope'<br />
+----<br />
+<div id="th_vrouse">'''th_vrouse'''</div>    filename ../unused_theos/th_vilgis.f<br />
+parnam(1) = 'intensit'<br />
+parnam(2) = 'xi_frict'<br />
+parnam(3) = 'n_segmnt'<br />
+parnam(4) = 're      '   ! : re**2 = n * b**2<br />
+parnam(5) = 'temp    '<br />
+parnam(6) = 'com_diff'<br />
+parnam(7) = 'q_width '<br />
+parnam(8) = 'labi    '<br />
+parnam(9) = 'labf    '<br />
+parnam(10)= 'xi2     '<br />
+parnam(11)= 'pc      '<br />
+parnam(12)= 'rmesh2  '<br />
+----<br />

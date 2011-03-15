@@ -1,0 +1,746 @@
+5.11.93: new multiplicative theories, only datreata !
+22.5.96: master version again datreat.f
+22.5.96: max number of datasets is now 100
+22.5.96: new command chgthpar                           
+                                                                                
+         ***** datreat information *****                                        
+                                                                                
+  symbols:                                                                      
+   <,>  are used to mark a datreat-command (usually the short form)             
+   [,]  mark optional parameters                                                
+                                                                                
+                                                                                
+                                                                                
+  commands available:  <command/synonym/synonym..>                              
+                                                                                
+  <activate/ac>              : activates a theory                               
+  <aclast/acl>               : reactivates the last theory used                 
+  <activlst/al>              : lists active theories & current parameters
+  <chgthpar>                 : change single theory parameter value or scale       
+  <label>                    : supply a theory parameter with a label           
+  <couple>                   : install a coupling of a                          
+                               theory parameter with a label                    
+  <arit>                     : allows arithmetic operations on your data        
+  <combine>                  : interpolates and combines data from              
+                               several datasets onto one raster                 
+  <clearsel/cs>              : clears list of selected datarecords              
+  <cms>                      : executes a cms command (xedit,list,...)          
+  <desactiv/dac>             : deactivates all theories                         
+  <dir>                      : lists all loaded and generated datarecords       
+  <dsl>                      : lists all selected datarecords                   
+  <edit>                     : allows editing of a specified datarecord         
+  <save>                     : allows saving  of a specified datarecord         
+  <fit>                      : starts a fit of the selected data with the       
+                               activated theory                                 
+  <yfitform>                 : enters a fitformula for eval-theory !            
+  <open>                     : opens a file for the collection of               
+                               parameters(fitparametres) vs parameters(f.       
+  <write>                    : writes the actual parameter(fitp.) into          
+                               the opened file                                  
+  <close>                    : close the opened parameter collection file       
+  <help/?>                   : gives infos                                      
+  <input/in>                 : reads a datafile                                 
+  <invers>                   : converts i vs q-data to i-1 vs q**2              
+  <iout>                     : sets output-level                                
+  <mirror/m>                 : mirrors the data                                 
+  <numorpls>                 : sets the increment of scan-numbers when          
+                               the data is treated. (default 10000)             
+  <plot/p>                   : plots selected datarecords                       
+  <plot0/p0>                 : allows to set plot-parameters. no plot!          
+  <purge>                    : erases specified datarecords from buffer         
+  <q-conv/qc>                : converts channel-numbers to q                    
+  <fun>                      : treat x and/or y -values by some functions       
+  <funfun>                   : x-formula and y-formula from file fromdat        
+  <fft>                      : experimental small angle multiple scatt.         
+  <quit/q>                   : leaves the program                               
+  <sel>                      : selects specified datarecords                    
+  <sym>                      : makes data symmetric                             
+  <spline>                   : generates spline coefficients smooth data        
+  <des>                      : infinte slit height desmearing                   
+  <thc>                      : computes data according to activated theo-       
+                               ries (no fit !)                                  
+  <theos>                    : lists all theories available                     
+  <title/tit>                : defines a title for the plots                    
+  <rename>                   : renames axis of selected items                   
+  <putpar>                   : puts a parameter into the list of selected       
+  <zero/z>                   : clears databuffer                                
+  <set>          : set/create a user-defined variable                           
+  <clr>          : remove user-defined variables                                
+  <setdeg>       : set angle-units to degree                                    
+  <setrad>       : set angle-units to rad                                       
+  <??>           : display the value of a formula                               
+  <if>           : if-construct for makros                                      
+  <goto>         : goto construct for makros                                    
+  <vars?>        : display all userdefined variables                            
+  <ref>                      : reference to internal data.                      
+                                                                                
+                                                                                
+  adressing a specific datarecord:                                              
+                                                                                
+  there are two ways to access a specific set of data: either use the           
+  linenumber of the databuffer-directory or use the 'scan'-code of your         
+  data, which is defined in your datafile or generated by some operations       
+  of the program. nearly all of the commands require the keyword 'sc',          
+  when you want to use the scan-code.                                           
+                                                                                
+                                                                                
+  makro-facilities: you can define a makro containing a series of com-          
+                    mands which may use parameters. it is possible              
+                    to call makros recursively!!                                
+                    to generate a makro use the <cms> xedit-command.            
+                    the first line must be:                                     
+                      makro  [par1] [par2] [...]                                
+                    now you can simply type your commands - one per line!       
+                    to use the parameters simply type the parameter-name.       
+                    example:  <plot> sc par1 xmax par2 ymax 60                  
+              !!!>  makros allow for the use of a few basic like                
+                    programming features as set, if and goto.                   
+                    any numerical parameters may be a formula.                  
+                    to identify a parameter as number or formula                
+                    the parameterexpression has to begin with                   
+                    one of the following characters: '(+-.0..9'.                
+                                                                                
+                    there are two standard makros, which, of course, can        
+                    be altered to suit your purposes: doit fname scannr         
+                    and cth. the first makro requires a filename and its        
+                    scancode as inputs and will read the file, find the         
+                    mirror-axes, symmetrize and convert channel-numbers         
+                    to q. the second makro calls xedit with the last            
+                    activated theories and parameters. this allows easy         
+                    theory-parameter-changes.                                   
+                                                                                
+*                                                                               
+?            ------- general remarks --------                                   
+                                                                                
+   to execute datreat simply type : datreat                                     
+   after a while you will see a list of all available theories and then         
+   the request-prompt: '----->'. always when this symbol appears, you           
+   can type a command. datreat will try to execute the command or - if          
+   there is no such command - it will look for a makro with that name.          
+   if there is no command and no makro with that name, no action will           
+   take place.                                                                  
+   a command line has the following syntax:                                     
+                                                                                
+      <cmd> parname1 value1 [value2] [..] [parname2] [value1] [...]             
+                                                                                
+   cmd is the command-name, parameters are adressed by names and                
+   seperated with a blank. with certain parameters you can set more             
+   than one value. these have to be seperated by blanks, too.                   
+                                                                                
+   usually every parameter once defined is kept until it is explicitly          
+   changed. one important exeption from this rule is the list of selec-         
+   ted datarecords. <m>,<sym> and <qc> allow only one selected item. if         
+   there is more than one in the list, only the first datarecord is used!       
+                                                                                
+   the maximum no of names and of numerical values that may be given at         
+   once is 20, the maximum length of an input line is 80 characters. one        
+   input line may contain several commands seperated by ';'.                    
+                                                                                
+   once you activated a theory and fitted your data, the fit-curve will         
+   automatically be plotted. you can recognize a fit-curve in the data-         
+   buffer (use <dir> to see) by a negative scan-number. if you don't want       
+   the fit further displayed, use <purge> to erase it.                          
+                                                                                
+                                                                                
+             ------- additional remarks -------                                 
+                                                                                
+   new theoretical curves for fitting may be programmed by use of one of        
+   the subroutines thx1 ... thxn as templates (near the end of the              
+   listing). if you look at the predefined theories, you will immediately       
+   see, what you have to do.                                                    
+                                                                                
+   to save a generated datarecord, use the <edit>-command. when you enter       
+   the fullscreen-editor, simply type 'file file xxxx' into the command-        
+   line, where xxxx is the name, you want to give your file.                    
+                                                                                
+*                                                                               
+*                                                                               
+*            ------- detailed explanations -------                              
+ac           <ac> theoryname [par1] [scale1] [par2] [scale2] [...]              
+         or  <ac> theoryname parname par1 [scale1] [parname...]                 
+         or  <ac> theoryname multiply parname par1 [scale1] [parname...]        
+                                                                                
+         the theorynames can be listed with the <al>-command.                   
+         the number of parameters to be passed depends on the number you        
+         defined for this theory (see general remarks).                         
+         the scale is used in the fit-procedure. for sensible results it        
+         should be ten to the power of the corresponding parameter.             
+                                                                                
+         you can activate more than one theory by calling <ac> several          
+         times. all activated theories will be added or multiplied              
+         respectively. i.e. if the multiply flag is given the                   
+         corresponding theory result is multiplied with the                     
+         result from the preceeding theories (sum or product)                   
+         instead of beeing added.                                               
+                                                                                
+acl         <acl>                                                               
+                                                                                
+         theories that were activated before are reactivated with the           
+         parameters as stored in file lastth. this file is rewritten            
+         every times when <al> (list activated theories) is executed            
+         (this takes also place during the fit-procedure). you can edit         
+         file lastth using the <cms> x-command.                                 
+         typing of multiply (blank separated) behind a theory name              
+         flags this as multiplicative theory, the result of which               
+         is multiplied with the result from the previous theories               
+         to yield the new (intermediate) result.                                
+                                                                                
+         the command sequence al, <edit>, acl is combined in the                
+         cth makro, which thereby provides a tool for easy change               
+         of theory(fit)-parameters.                                             
+                                                                                
+al          <al>                                                                
+                                                                                
+         all activated theories and their actual parameters are listed.         
+         this command rewrites the file lastth.
+
+chgthpar   <chgthpar> theoryname [number] parametername [par new_value] [scale new_value]
+         
+         changes the parameter given by parametername in the specified theory to
+         a new value and/or the scale of the parameter.
+         par and scale may be specified both or individually.
+         If the theoryname is not unique (e.g. the same theory is active several times)
+         the optional <number> specifies the (sequence) number of it in the list of
+         activated theories.                                   
+                                                                                
+label       <label> theoryname [which occurence] parametername label            
+                                                                                
+         supplies a theory parameter with a label. the label may contain        
+         up to 4 characters, it may not be a number nor may its first           
+         character be a number. the label may be referenced if linear           
+         couplings of parameters are to be employed during a fit.               
+         see command couple.                                                    
+                                                                                
+cth      <cth>                                                                  
+                                                                                
+         is a standard makro to faciliate the changing of theory-               
+         (fit) parameters. it loads the actual parameter set into               
+         the editor, thereby allows for editing and rereads the                 
+         (changed) parameters after filing of the editor input.                 
+                                                                                
+                                                                                
+couple      <couple> theoryname [which occurence] parametername label     factor
+                                                                                
+         installs a coupling of a labeled parameter onto a parameter            
+         quoted in this command. labels may be assigned to parameters           
+         by the label command. the whole procedure may also be done             
+         by editing the fitparameter-file.                                      
+         see command label.                                                     
+                                                                                
+arit        <arit> [normflag] [sc scan1 [scan2 ...]] [f1 factor1]               
+                   [f2 factor2] *[to scan]*                                     
+                                                                                
+         this command requires two selected scans; these can be selected        
+         in the command with the sc-parameter. normflag must have one of        
+         the values 'norm' or 'nonorm' - if not specified, norm is de-          
+         faulted.                                                               
+         the command performs arithmetic operations with your data:             
+           factor1 * scan1-data  + factor2 * scan2-data is written into         
+         the destination-scan datarecord. if not specified by to, the           
+         destination is defaulted by ????. (to is not yet realised !)           
+         the norm-option normalises by the monitor-parameter given in           
+         your data-file. if this parameter is not specified, the program        
+         will give a message.                                                   
+                                                                                
+combine     <combine> [sc scan1 [scan2 ...]] [raster xstart dx n]               
+                      [to scan]                                                 
+                                                                                
+         this command requires two or more selected scans;                      
+         these may be selected in the command with the sc-parameter.            
+         the data are collected on a new scan, which has x-values               
+         that are created by the raster directive. y-values are                 
+         generated by interpolation from the input data sets.                   
+         if the input data sets are provided with a monitor                     
+         parameter, data and monitor values are summed for each                 
+         overlapping channel. finally all data are normalized                   
+         to the summed monitor values. if no monitor-data are                   
+         given, 1 is assumed. errors are evaluated using                        
+         the 1/sqrt(n) ansatz. x-points that are not present                    
+         in the set of input points are set to zero.                            
+                                                                                
+cs          <cs>                                                                
+                                                                                
+         this command clears the list of selected data-records.                 
+                                                                                
+cms         <cms> cms-command                                                   
+                                                                                
+         with <cms> it is possible to use most of the cms-commands,             
+         especially the xeditor. when a cms-command is executed, it will        
+         return to the program.                                                 
+                                                                                
+dac         <dac> [number1] [number2 ...]                                       
+                                                                                
+         the theories are deactivated according to their number of acti-        
+         vation. if you use <dac> without a parameter, all theories are         
+         deactivated.                                                           
+         you can reactivate these theories by <acl>.                            
+                                                                                
+dir         <dir>                                                               
+                                                                                
+         this command shows you all the datarecords presently loaded. it        
+         is recommended to press the pa2-button before executing this           
+         command.                                                               
+                                                                                
+dsl         <dsl>                                                               
+         lists all selected datarecords.                                        
+                                                                                
+edit        <edit> [number] [sc scan]                                           
+                                                                                
+         with <edit> you can change the datarecords that are loaded or          
+         generated by the program. this command will call the xeditor.          
+         <edit> also gives you the possibility to save these records on         
+         your disk: you only have to specifiy a filename when leaving the       
+         xeditor by file or ffile. if you only type file, your datarecord       
+         is stored in file datbuf and your original file (if existing)          
+         will not be affected.                                                  
+                                                                                
+save        <save> to filename                                                  
+            <save> dirnum to filename                                           
+            <save> n name to filename                                           
+            <save> sc numor to filename                                         
+            <save>                                                              
+         store a datarecord on disk permanently with the name :                 
+         file filename a. if no item is specified the first datarecord          
+         in the selection table will be saved. by giving dirnum the             
+         dirnum-th record as shown in the dir-list may be saved.                
+         by specifying n name a file with the internal name <name> will         
+         be save and by sc <numor> a file with the corresponding numor          
+         will be saved. if no destination <filename> is given the data          
+         will be saved onto file lastsave.                                      
+                                                                                
+<open>      <open> filename parnam1 [no.theo1] parnam2 [no.theo2]               
+         will prepare a file named file <filename> a for output.                
+         this file will be filled with the values of the parameters             
+         with names <parnam1> as x-values and <parnam2> as y-values.            
+         the parameters may be taken from the parameter-block associated        
+         with the currently selected file (1st file of selection list)          
+         or from the parameters associated with the currently activated         
+         theory setting, in the latter case it may be specified                 
+         by giving <no.theo> that the parameter is to be taken from             
+         the <no.theo>-th theory that is activated.                             
+                                                                                
+<write>      <write>                                                            
+         write one line into the opened parameter file according to the         
+         actual selection and/or theory status.                                 
+                                                                                
+<close>      <close>                                                            
+         close the open parameter collecting file.                              
+                                                                                
+<fun>        <fun> optionx optiony                                              
+         treat all selected files by applying some functions to the x           
+         and/or y-values.                                                       
+         option :   op or np   : item   --->  item  or item ---> new item       
+         optionx:   x          : x      ---> x                                  
+                    log(x)     : ln(x)  ---> x                                  
+                    exp(x)     : exp(x) ---> x                                  
+                    x**2       : x**2   ---> x                                  
+                    x* [f1]    : x* f1  ---> x                                  
+                    sqrt(x)    : sqrt(x)---> x                                  
+         optionx:   y          : y      ---> y                                  
+                    log(y)     : ln(y)  ---> y                                  
+                    exp(y)     : exp(y) ---> y                                  
+                    y**2       : y**2   ---> y                                  
+                    y* [f1]    : y* f1  ---> y                                  
+                    sqrt(y)    : sqrt(y)---> y                                  
+                                                                                
+funfun   x-values and y-values of all selected items are treated                
+         by the formula lines that are given in file formdat a                  
+         as first and second line. the lines may not contain                    
+         any blanks within the formula. they may be written                     
+         as usual formulas, the x-values are to be referred                     
+         by xx, the y-values by yy.                                             
+         exponentiation is indicated by ^ eg. xx^2, xx may                      
+         not be negative!                                                       
+         log is ln.                                                             
+         functions available: sin,cos,tan,asin,acos,atan,ln,exp,                
+                              sqrt,int,abs                                      
+         the trig. function operate with rad or degree, which may               
+         be switched by the setrad or setdeg command.                           
+         the output may be reduced by iout -5 .                                 
+                                                                                
+fit         <fit> [sc scan1 [scan2 ...]]                                        
+                  [x1 startvalue] [x2 endvalue]   .. and other thc opts.        
+                  [auto]                                                        
+                  [maxit max._number_of_iterations]                             
+                  [ngood est_no. of valid digits in the theory]                 
+                  [maxstep max._step_between_to_values]                         
+                  [trustreg trustregion]                                        
+                  [maxfn max_fun_calls]                                         
+                  [errors]                                                      
+                  [go]                                                          
+                                                                                
+         with the <fit>-command the parameters of the activated theories        
+         are fitted to your selected data (more than one data-record may        
+         be selected !)                                                         
+         x1 specifies the lower x-value of the fit-intervall, x2 the            
+         upper value.                                                           
+         if auto is given x1 and x2 values are ignored and all data are         
+         respected in the fit. the next time x1 or x2 is given again            
+         a corresponding limit is again established.                            
+         with maxfn you can set the maximum number of function calls that       
+         take place during the fit-procedure.                                   
+                                                                                
+         the (volatile) errors option causes the computation of                 
+         statictical errors for the fit-parameters, provided                    
+         errors for the data are given. the errors option must                  
+         be combined with the go option.                                        
+                                                                                
+         the go-option must be explicitely stated every time the <fit>-         
+         command is used. if not given, <fit> will only find the para-          
+         meters for the activated theory. the curve-fitting can then be         
+         done by once more typing <fit> without any parameters.                 
+                                                                                
+         convolution with a resolution function may be performed.               
+         for details see thc !                                                  
+                                                                                
+yfitform enter a formula that may be used as fitting function by                
+         invoking eval as theory. the formula is entered as                     
+         a pseudo-resline after a ;                                             
+         yfitform  ;p(1)+xx*p(2)+xx*xx*p(3)                                     
+         where xx is the independent variable and p(i) are the                  
+         parameters as given with eval.                                         
+         ! this type of function evaluation is quite inefficient !              
+         however it may be used for a quick check of simple ideas               
+         without changing the program code.                                     
+                                                                                
+help     with the <help>-command you get these information or, if you use       
+         <help> <command>, you will get specific information about one          
+         datreat-command.                                                       
+                                                                                
+in          <in> filename                                                       
+                                                                                
+         this command allows you to read a datarecord from disk. the data       
+         must be stored in the following format:                                
+         (the uppercaes words are keywords !)                                   
+         line  1: arbitrary comments                                            
+         line  2: filename  y-label  vs  x-label    scancode                    
+         line  3:                                {must be empty !}              
+         line  4: parameters                                                    
+         line  5: par1  value1                                                  
+          .                                                                     
+          .                                                                     
+         line  x: parxy valuexy  {10 is the maximum number of parameters}       
+       {let's call it line 10}                                                  
+         line 11:                                {must be empty !}              
+         line 12: values                                                        
+         line 13ff.: [x]   x-value  [y]   y-value   [e] error                   
+             or      x   x-value1 x-value2 x-value3 ...                         
+                     y   y-value1 y-value2 y-value3 ...                         
+                     e   error1   error2   error3 .....                         
+       {always one line x-values and one line y-values !}                       
+         line  y:                                {must be empty !}              
+         line y+1: #eod                                                         
+                                                                                
+         there are two files that can be linked to your data by the             
+         get-command of the xeditor: file kopf must be linked to the            
+         beginning of your data and provides the header, file eod gives         
+         an empty line and the #eod-keyword.                                    
+                                                                                
+invers      <invers>  [bkgr background]                                         
+                                                                                
+         this command converts the first selected datarecord to                 
+         i-1 vs q**2 - format. the original data must be i vs q.                
+                                                                                
+         with bkgr you can subtract a constant background-level                 
+         before inverting.                                                      
+                                                                                
+iout        <iout>  [number]                                                    
+                                                                                
+         with <iout> you can set your output-level.                             
+                                                                                
+m           <m> est_mid x1 x2                                                   
+                                                                                
+         the <m>-command generates a mirror-image of a selected data-           
+         record (it must be selected before !).                                 
+         in est_mid you estimate the center-x.                                  
+         with x1 and x2 you specifiy the range that shall be used to            
+         determine the center.                                                  
+                                                                                
+numorplos   <numorpls> offset                                                   
+                                                                                
+         this command should only be used in the beginning of a session,        
+         it sets the offset, that is added to the scan-code, when any           
+         operation is performed by the program.                                 
+         the default-value is 10000. this means, that usually you can           
+         identify your data as follows:                                         
+               00xxx :  raw-data        i(ntensity) vs kanal                    
+               10xxx :  mirror-data     dto.              {see <m>}             
+               20xxx :  symmetric-data  sym-i vs kanal    {see <sym>}           
+               30xxx :  converted-data  i vs q            {see <qc>}            
+               40xxx :  "inverted"-data i-1 vs q**2       {see <invers>}        
+              -xxxxx :  fit-curve                         {see <fit>}           
+                                                                                
+         to keap your head clear of garbage, you should use the cycle-          
+         numbers of your experiment as scan-numbers. to distinguish             
+         "horizontal"-data from "vertical"-data use 1xxx for horizontal         
+         and 0xxx for vertical data. if this definition becomes popular,        
+         it will be easier to exchange data with other users.                   
+                                                                                
+p           <p> [sc scan1 [scan2 ...]]                                          
+               *[fsc fitscan1 [fitscan2 ...]]*                                  
+                [xmin minimum_x_value]                                          
+                [xmax maximum_x_value]                                          
+                [ymin min_y] [ymax max_y]                                       
+                [framx length_of_x_axes] [framy length_of_y_axes]               
+                [frlux beginning_of_x_axes] [frluy beg_of_y_axes]               
+                [symb symbol1 [symbol2 ...]]                                    
+                [icolo color1 [color2 ...]]                                     
+                [o... option-specifier]                                         
+                [fitflag]                                                       
+                [textflag]                                                      
+                [show_parameter_flag]                                           
+                [txsize textsize]                                               
+                [font fontnumber]                                               
+                [legsize legend_size]                                           
+                [legx relative_x_position_of_legend]                            
+                [legy rel_y_pos_of_legend]                                      
+                [errplo / noerrplo]                                             
+                                                                                
+         the <plot>-command is one of the most powerful commands of this        
+         program. once you know how to use the parameters, you can do           
+         nearly every plot you like. after execution you are asked,             
+         whether you want to print the plot elsewhere.                          
+                                                                                
+         with sc you can select certain data-records as usually.                
+                                                                                
+         fsc may be used to select several fit-curves. if you performed         
+         a fitting, this fit is automatically selected. after selecting         
+         other curves by sc or a <sel>-command, you have to specify the         
+         fit-curves that shall be plotted. this is especially useful,           
+         when you want to have different fits for different intervals.          
+         attention: you must give the corresponding positive scan-number        
+         to select a fit! this allows it to select fit-curves automati-         
+         cally in a makro.                                                      
+                                                                                
+         choose the borders of your plot with xmin, xmax, ymin and ymax.        
+         the frxxx-parameters can be used to size and locate your plot.         
+         symb chooses the symbols that are used to represent a data-point       
+         in the plot. the first number will be used for the first selec-        
+         ted item, the second for the second, ... . for detailed infor-         
+         mation see the gr-software-handbook or (if you read a print of         
+         this guide to datreat) the appendix.                                   
+         icolo chooses the colors for your plot. only selected data-            
+         records can be colored. the codes are:                                 
+                0  black  (default for all curves)                              
+                1  red                                                          
+                2  blue                                                         
+                3  green                                                        
+                4  purple                                                       
+                5  yellow                                                       
+                6  zyan.                                                        
+         o... specifies the options for your axes. for detailed informa-        
+         tion see the gr-software-handbook (graxs-subprogram). the format       
+         is (example): ox x=1   {shows x-axes below your graph}.                
+         {2 puts the axes above and 3 on both sides. -1/-2/-3 shows a           
+         grid}                                                                  
+         fitflag can be fits or nofits and says if fit-curves are to be         
+         presented.                                                             
+         textflag is text or notext and is used to show title and legend        
+         or not.                                                                
+         show_parameter_flag is parplo or noparplo and determines whether       
+         (when text is set) all parameters are shown or only the legend.        
+         txsize determines the size of the text on the axes and the             
+         title.                                                                 
+         with font you can choose a graphic font. detailed information is       
+         again given in the gr-software-handbook or in the appendix.            
+         legsize sets the size in which the legend-text and parameters          
+         are plotted.                                                           
+         legx and legy can be used to move the legend elsewhere, when           
+         it would cover your data (or if you prefer a different place).         
+                                                                                
+         {if you want to set plot-parameters only, use <plot0>}                 
+         errplo / noerrplo activates/desactivates plotting of                   
+         errorbars                                                              
+                                                                                
+p0          <p0>  [...  see p(lot) ... ]                                        
+                                                                                
+         <plot0> sets parameters for following plots, but does not plot         
+         anything. this command is especially useful for defining an            
+         initial setting according to your taste. the parameters are            
+         described in <p(lot)>.                                                 
+                                                                                
+purge       <purge> [dir#1 [dir#2 ...]] | [all]                                 
+                                                                                
+         this command is used to delete datarecords from your directory.        
+         use the <dir>-command before to get the right numbers.                 
+         all selections will be removed.                                        
+                                                                                
+qc          <qc>                                                                
+                                                                                
+         <qc> converts the symmetric i vs kanal -data into i vs q. this         
+         command operates on the first selected item.                           
+                                                                                
+q           <q>                                                                 
+                                                                                
+         leaves the program. if you send plots to external printing-media       
+         it may be useful to quit datreat once a while, because the plot        
+         is only started when the program is quitted.                           
+                                                                                
+sel         <sel> sc scan1 [scan2 ...]                                          
+            <sel> nadd1 nadd2                                                   
+            <sel> sc+ scan-n+1 ...                                              
+            <sel> fits                                                          
+                                                                                
+         the <sel>-command can be used to select certain datarecords for        
+         further operations. the same effect is achieved when using sc          
+         as keyword in several commands.                                        
+         when an operation generates a new datarecord this new record is        
+         automatically selected.                                                
+         parameter sc selects scans according to their numors                   
+                   sc+ adds numor selections to present list                    
+         only a number list selects entries according to their                  
+         sequence number in the dir-list                                        
+         option fits searches for old fitted items and selects them             
+         as fits of the selected items if the numors do match.                  
+                                                                                
+sym         <sym>                                                               
+                                                                                
+         this command calculates the mean-values of the data on the left        
+         and right side of the center and creates a new datarecord with         
+         only one side.                                                         
+                                                                                
+spline      <spline> [auto]/[noauto] [nneu nneu] [smpar smpar]                  
+         spline approximation of scattered data on the selected scan.           
+         the smoothing parameter smpar is automatically determined if           
+         the option auto is given. otherwise (noauto) smpar must be             
+         specified (by try and error, look at the plot!). smpar will            
+         influence the degree of smoothing. nneu specifies the number           
+         of points (density) the smoothed synthetic new scan should             
+         get within the x-range of the original scan.                           
+         the spline polynomial coefficients of the last spline call             
+         are stored in an internal common block for subsequent use,             
+         i.e. in des or fft.                                                    
+                                                                                
+des      des [qmax qmax] [nneu nneu]                                            
+         infinite slit height desmearing up to a q-value of qmax.               
+         the new dataset will contain nneu points.                              
+         the data to be desmeared must be splined immediately before            
+         des is invoked.                                                        
+                                                                                
+thc         <thc> [n] n [x[c]1 x1] [x[c]2 x2] [auto] [convolute] [off]          
+                                                                                
+         with <thc> you can recalculate fit-data. n is the number               
+         of points that are used for calculation; 0 means: take value           
+         from last fit.                                                         
+         if auto is given x1 and x2 values are ignored and all data are         
+         respected in the calcul. the next time x1 or x2 is given again         
+         a corresponding limit is again established.                            
+         if convolute the external routine datconv is taken to                  
+         convolute the calculated data before leaving thc.                      
+         the number of points and range before convolution is                   
+         specified by n, xc1 and xc2 ( instead of n, x1 and x2 ! ).             
+         the result gets the x-values of the selected template(s).              
+         the x-ranges before and after convolution may be different             
+         depending on the transformation that is implicit in the                
+         convolution kernel (e.g. q-values ---> scattering angles).             
+         usually x belongs is a physical varaible before and an                 
+         experiment varaiable after convolution. xc1/2 refer to the             
+         physical variable range. the selected item has to                      
+         be in experiment space.                                                
+         all convolution settings are also valid during fit.                    
+         convolution is valid until convolution off is specified.               
+         any parameters needed to specify the convolution kernel                
+         are to be given as parameters in the selected data-item,               
+         they are extracted by datconv using the getpar routine.                
+                                                                                
+theos       <theos>                                                             
+                                                                                
+         if you want to know what theories are available in your version        
+         of datreat, simply type theos and you will see.                        
+                                                                                
+tit         <tit> titlestring                                                   
+                                                                                
+         with the <title>-command you can define a title that is dis-           
+         played with your plots if the text-option is set.                      
+                                                                                
+rename      <rename> [xaxis <new-string>] [yaxis <new-string>] [name new]       
+         the xaxis and/or yaxis and/or id-names of all selected items           
+         are replaced by the strings given here.                                
+                                                                                
+putpar      <putpar> <parname> <value>                                          
+         a parameter with name <parname> will be created and set                
+         to the value <value> in all selected items. if the                     
+         parameter already exists, its value is updated.                        
+                                                                                
+z           <z>                                                                 
+                                                                                
+         this command is used to clear (<zero>) the buffer. no datare-          
+         cords can be selected afterwards. the <dir>-command will show          
+         an empty list.                                                         
+                                                                                
+makro    {see general information also}                                         
+                                                                                
+         there are some standard-makros which simplify the use of this          
+         program:                                                               
+            doit  filename scancode       loads the specified data-record       
+                                          and does everything up to the         
+                                          q-conversion automatically.           
+                                                                                
+            cth                           calls the xeditor to edit the         
+                                          last activated theorie-para-          
+                                          meters and then activates this        
+                                          theorie.                              
+                                                                                
+            plnorm                        sets standard values for plot         
+                                          i vs q.                               
+                                                                                
+            plzimm                        sets standard values for plot         
+                                          i-1 vs q**2.                          
+                                                                                
+set        set/create a user-defined variable.                                  
+           usage is  set <name> <value> [ <name> <value> ...                    
+           variables may be listed by the command: vars?                        
+           some commands transfer their parameters to the                       
+           uservariable-stack, so that these variables can                      
+           be referred to.                                                      
+                                                                                
+clr        remove user-defined variables                                        
+           usage clr all removes all uservariables.                             
+           clr <name1> <name2> ... <namex>  removes the                         
+           variables with <name1> .. <namex>                                    
+                                                                                
+setdeg     set angle-units to degree for the commandline                        
+           trigonometric functions.                                             
+                                                                                
+setrad     set angle-units to rad for the commandline                           
+           trigonometric functions.                                             
+                                                                                
+??         display the value of a formula.                                      
+           ?? <expression>                                                      
+           displays the evaluated value of <expression>                         
+                                                                                
+if         if-construct for makros                                              
+           usage if <expression1> =  <expression2> then <commandline>           
+           or    if <expression1> >  <expression2> then <commandline>           
+           or    if <expression1> <  <expression2> then <commandline>           
+           or    if <expression1> <= <expression2> then <commandline>           
+           or    if <expression1> >= <expression2> then <commandline>           
+           or    if <expression1> <> <expression2> then <commandline>           
+                                                                                
+goto       goto construct for makros                                            
+           usage goto :label                                                    
+           the label :label has to start with ':', the                          
+           line containing the label may not contain any                        
+           other commands.                                                      
+                                                                                
+vars       lists all userdefined variables                                      
+                                                                                
+ref      internal data may be referenced within expressions.                    
+         xx      --> current x-value (funfun)                                   
+         yy      --> current y-value (funfun)                                   
+         xv(i,j) --> j-th x-value of i-th databuffer                            
+         yv(i,j) --> j-th y-value of i-th databuffer                            
+         ye(i,j) --> j-th yerror-value of i-th databuffer                       
+         sumx(i,j1,j2)                                                          
+         sumy(i,j1,j2) --> sums                                                 
+         sel     --> first selected buffer                                      
+         maxx                                                                   
+         maxy                                                                   
+         minx                                                                   
+         miny   --> max and min of the first selected curve                     
+         iout   --> current outputlevel                                         
+         <parname> --> parametervalue of selected curve                         
+         <fitpar>  --> name of fitparameter, only the                           
+                       last of equally named fit-parameters                     
+                       is accessible                                            
+                                                                                

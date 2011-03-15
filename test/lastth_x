@@ -1,0 +1,8 @@
+ theory   bkgr                                                                            
+      level      0.3180E-02  0.0E+00  0.00E+00
+      slope      0.0000E+00  0.0E+00  0.00E+00
+ theory   gauss                                                                           
+      intensit   0.1416E-01  0.1E+01  0.53E-02
+      width      0.4838E+00  0.1E+01  0.15E+00
+      center     0.2484E+00  0.1E+01  0.77E-01
+ end

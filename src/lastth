@@ -1,0 +1,8 @@
+ theory   rouse61                                                                         
+      intensit   0.1000E+01  0.0E+00  0.00E+00
+      xi_frict   0.1000E+01  0.0E+00  0.00E+00
+      b_segmnt   0.1000E+01  0.0E+00  0.00E+00
+      epsilon    0.1000E+01  0.0E+00  0.00E+00
+      temp       0.1000E+01  0.0E+00  0.00E+00
+      com_diff   0.1000E+01  0.0E+00  0.00E+00
+ end

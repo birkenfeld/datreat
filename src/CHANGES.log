@@ -1,0 +1,37 @@
+# last changes in CHANGES.log
+# add always at the beginning after this line
+
+#Feb 2011
++included anxmgrace configuration to allow direct ascii
+  import of data with textlines in between data lines
+
+#Jan 2011
++fixed grace_np bug ; use the grace_np version of 5.1.20 others have to live with it
++ in grace the legend is limited to 1800 char because some phd used more and it chrashed
+  use "gp legend noplot"   to switch to no legend
+  and plot eg with "gp parname" to include "parname" in legend 
+
+
+#Dez 2010
++ now we use the gfortran compiler
++ compile on CENTOS (64bittested ) and on UBUNTU (32 bit tested)
++dependent on installet gr software this can be used
++added new functions sumyerr and others by MM
+
+
+
+#changelog file started at  Tuesday 06 March 2007 by Ralf
++introduced changelog
++changed lapack blas to liblapack.a  
+	if others are used change SPECIALVERSION to your needs
++olaf changed d1mach, r1mach, i1mach usage in slatec (used in all slatec
+        routines which need to know machene precision) 
++olaf changed bicontinuous zilman granek theory th_zg
++olaf changed dtpur.f routine d01ahf (integration used in th_zg)
+
+
+#rules for changelog
+ # introduces new entry by date
+ + introduces topic/ single entry 
+
+for last changes i only need to search for second last #
