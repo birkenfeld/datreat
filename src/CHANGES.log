@@ -1,6 +1,10 @@
 # last changes in CHANGES.log
 # add always at the beginning after this line
 
+#Mar2011
++ added git repository at /usr/users/iff_ns/biehl/temp/datreat/ndatreat/ ndatreat
++ added functionality to generate description in wiki
+
 #Feb 2011
 +included anxmgrace configuration to allow direct ascii
   import of data with textlines in between data lines
