@@ -2,7 +2,10 @@
 c     ===================================================
 !
 !      kohlrausch in time
+!      kww-function with DWF and EISF
+!      Perez Aparcio, Arbe, Colmenro, Macromeleules 2006, 1060
 !
+
 
        implicit none
        
@@ -44,9 +47,9 @@ c     ===================================================
        common/thiadd/iadda
 
 
-       real*8 omega0, u_sqr, dwf
-       real*8 qcenter, qband, qexpt0, qexpbeta, bkgr 
-       real*8 jlen, beta0       
+       real*8 omega0, u_sqr, dwf, eisf
+       real*8 qcenter, qband, qexpt0, qexpbeta, bkgr, nmg 
+       real*8 jlen, beta0
 
        real*8 a,b, domega, o0
        real*8 adapint, sum, result, result2, err, erraccu
@@ -65,7 +68,7 @@ c
 c ----- initialisation -----
        if(ini.eq.0) then
          thnam = 'kohl_q'
-         nparx = 11
+         nparx = 12
          if(npar.lt.nparx) then
            write(6,1)thnam,nparx,npar
 1          format(' theory: ',a8,' no of parametrs=',i8,
@@ -80,13 +83,13 @@ c        --------------> set the number of parameters
          parnam(3) = 'beta'              ! streched exp, prefactor in front of-q-dependence
          parnam(4) = 'epsilon '          ! accuracy parameter for FT-integrations (DO NOT FIT)
          parnam(5) = 'omega0'            ! omega scale zero shift
-         parnam(6) = 'u_sqr'             ! < u^2> value for Debye-Waller-Factor
+         parnam(6) = 'u_sqr'             ! <u**2> value for Debye-Waller-Factor
          parnam(7) = 'j0'                ! jump length (if applicable)
          parnam(8) = 'beta0'             ! beta offset
          parnam(9) = 'qexp_t0'           ! q-exponent for tau0
          parnam(10)= 'qexp_bet'          ! beta-exponent 
          parnam(11)= 'bkgr'              ! constant background 
-
+	 parnam(12)= 'n_mg'              ! fraction of hydrogen in side chains
 
 
 c
@@ -104,10 +107,10 @@ c ---- calculate theory here -----
        jlen         = pa(7)
        beta0        = pa(8)
        qexpt0       = pa(9)
-       qexpbeta     = pa(10)         
+       qexpbeta     = pa(10)
        bkgr         = pa(11)
+       nmg          = pa(12)
 
-     
        if(epsilon.eq.0.0d0) epsilon = 1.0d-8
        maxit = 1000
 
@@ -267,8 +270,10 @@ c ---- calculate theory here -----
         enddo
 
        dwf  = exp(-u_sqr*qz*qz/3.0d0)
+
+       eisf = (1.0/3.0)*(1.0+2.0*(sin(qz*0.178)/qz*1.78))
  
-       th_kohl_q = a0*dwf*sum + bkgr
+       th_kohl_q = a0*dwf*(1-nmg+(nmg*eisf))*sum + bkgr
 
        th_kohl_q =  th_kohl_q + bgr_level + bgr_slope*o0
 c
