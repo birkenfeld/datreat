@@ -83,7 +83,7 @@ c        --------------> set the number of parameters
          parnam(3) = 'beta'              ! streched exp, prefactor in front of-q-dependence
          parnam(4) = 'epsilon '          ! accuracy parameter for FT-integrations (DO NOT FIT)
          parnam(5) = 'omega0'            ! omega scale zero shift
-         parnam(6) = 'u_sqr'             ! <u**2> value for Debye-Waller-Factor
+         parnam(6) = 'u_sqr'             ! < u^2> value for Debye-Waller-Factor
          parnam(7) = 'j0'                ! jump length (if applicable)
          parnam(8) = 'beta0'             ! beta offset
          parnam(9) = 'qexp_t0'           ! q-exponent for tau0
