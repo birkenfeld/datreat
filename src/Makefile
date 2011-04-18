@@ -142,6 +142,7 @@ cleanall:
 
 distribution:	
 	cd ../..; tar --exclude=*.o --exclude=*.a --exclude=*.so --exclude=*~ --exclude=bin/datreat --exclude=.git* -z -cf ndatreat_$(shell date +%F).tar.gz ndatreat ;
+	cd ../..; ln -s ndatreat_$(shell date +%F).tar.gz ndatreat_latest.tar.gz
 	touch ./datreat05_2.f90
 	@if [ $$USERNAME = biehl  ]; then  mkdir -p /temp/biehl; cp ../../ndatreat_$(shell date +%F).tar.gz /temp/biehl/;chmod ugo+r /temp/biehl/ndatreat_$(shell date +%F).tar.gz;fi
 	#chmod ugo+r /temp/biehl/ndatreat_$(shell date +%F).tar.gz
