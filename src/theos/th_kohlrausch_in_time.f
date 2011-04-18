@@ -3,7 +3,7 @@ c     ===================================================
 !
 !      kohlrausch in time
 !      kww-function with DWF and EISF
-!      Perez Aparcio, Arbe, Colmenro, Macromeleules 2006, 1060
+!      Perez Aparcio, Arbe, Colmenro, Macromolecules 2006, 1060
 !
 
 
@@ -83,7 +83,7 @@ c        --------------> set the number of parameters
          parnam(3) = 'beta'              ! streched exp, prefactor in front of-q-dependence
          parnam(4) = 'epsilon '          ! accuracy parameter for FT-integrations (DO NOT FIT)
          parnam(5) = 'omega0'            ! omega scale zero shift
-         parnam(6) = 'u_sqr'             ! < u^2> value for Debye-Waller-Factor
+         parnam(6) = 'u_sqr'             ! <u**2> value for Debye-Waller-Factor
          parnam(7) = 'j0'                ! jump length (if applicable)
          parnam(8) = 'beta0'             ! beta offset
          parnam(9) = 'qexp_t0'           ! q-exponent for tau0
@@ -271,7 +271,7 @@ c ---- calculate theory here -----
 
        dwf  = exp(-u_sqr*qz*qz/3.0d0)
 
-       eisf = (1.0/3.0)*(1.0+2.0*(sin(qz*0.178)/qz*1.78))
+       eisf = (1.0/3.0)*(1.0+2.0*(sin(qz*1.78)/(qz*1.78)))
  
        th_kohl_q = a0*dwf*(1-nmg+(nmg*eisf))*sum + bkgr
 
