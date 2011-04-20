@@ -35,7 +35,7 @@
 !                                                                       
        character*6 cnum 
 !                                                                       
-       character*1024 inlbuf 
+        
       logical cray 
       common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
        common/xroxxx/  xyorig(3), rotvec(3) 
@@ -605,7 +605,7 @@
        use constants
        parameter(mth=40,mtpar=40,mtcal=40) 
        parameter(mwert=1024,mbuf=200,mpar=200) 
-       character*1024 inlbuf 
+        
       logical cray 
       common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
        common/xroxxx/  xyorig(3), rotvec(3) 
@@ -681,7 +681,7 @@
        use cincom
        use cincoc
        use constants
-       character*1024 inlbuf 
+        
       logical cray 
       common/xoutxx/iot,ioold,ibild,ierrr,inka, cray 
                                                                         

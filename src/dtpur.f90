@@ -33,7 +33,6 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
        parameter(mth=40,mtpar=40,mtcal=40) 
        
 	character*8 ci 
-       character*132 inlbuf 
 	real*8 getval 
        
       logical cray 

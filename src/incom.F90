@@ -38,7 +38,7 @@
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inlbuf
+       
                                                                         
 ! ---- communication common block containig the analysed inputline       
 !      comand   = actual command keyword                               
@@ -208,7 +208,7 @@
 		if(ktop.ne.0.and.iot.gt.-1)write(6,*)'! '//trim(inread)
         if(ktop.eq.0.and.iot.gt.-2)write(6,*)'> '//trim(inread)
 			inline = inread 
-            inlbuf = inline 
+ 
 		else 
 			inline = trim(reslin)
 			ioldc=0
@@ -411,8 +411,7 @@
 			endif 
          inpar(i) = isum 
 		  enddo
-!                                                                       
-       !inline = inlbuf    ! warum dies hier ? 
+!                                                                        
 !                                                                       
        if(lmakro) goto 9888 
                                                                         

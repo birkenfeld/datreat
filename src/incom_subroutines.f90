@@ -249,7 +249,7 @@
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inlbuf 
+        
        character*1024 zeile, reslbf 
        character*8   cmd 
 !-----------------------------------------------------------------------
@@ -388,7 +388,7 @@
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inlbuf 
+        
 !-----------------------------------------------------------------------
        character*8 pname 
 !-----------------------------------------------------------------------
@@ -438,7 +438,7 @@
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inlbuf
+       
 !-----------------------------------------------------------------------
        character*8 pname 
        character*16 pnamc 
@@ -487,7 +487,7 @@
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inlbuf 
+        
        character*8 pname 
 !-----------------------------------------------------------------------
 !                                                                       
@@ -518,7 +518,7 @@
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inlbuf 
+        
        character*8 pname 
 !-----------------------------------------------------------------------
 !                                                                       
@@ -620,7 +620,7 @@
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inlbuf
+       
        character*8 pname 
        character*16 pnamc 
 !-----------------------------------------------------------------------
@@ -663,7 +663,7 @@
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inlbuf 
+        
        character*8 pname 
 !-----------------------------------------------------------------------
 !                                                                       
@@ -694,7 +694,7 @@
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inlbuf 
+        
        character*8 pname, cdef 
 !-----------------------------------------------------------------------
 !                                                                       
@@ -731,7 +731,7 @@
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inlbuf 
+        
        character*8 pname, cdef 
 !-----------------------------------------------------------------------
 !                                                                       
@@ -762,7 +762,7 @@
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inlbuf 
+        
        character*8 pname 
 !-----------------------------------------------------------------------
 !                                                                       
@@ -787,7 +787,7 @@
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inlbuf 
+        
        character*8 pname 
 !-----------------------------------------------------------------------
 !                                                                       
@@ -813,7 +813,7 @@
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inlbuf 
+        
        character*80 newtit 
 !-----------------------------------------------------------------------
 !                                                                       
@@ -839,7 +839,7 @@
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inlbuf 
+        
        titlef = title(1:80) 
 !                                                                       
       return 
@@ -861,7 +861,7 @@
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inlbuf 
+        
        character*8 pname 
 !-----------------------------------------------------------------------
 !                                                                       
@@ -887,7 +887,7 @@
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inlbuf 
+        
        character*8 pname 
 !-----------------------------------------------------------------------
 !                                                                       
@@ -915,7 +915,7 @@
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inlbuf 
+        
        character*8 pname 
 !-----------------------------------------------------------------------
 !                                                                       
@@ -941,7 +941,7 @@
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inlbuf 
+        
        character*8 pname 
 !-----------------------------------------------------------------------
 !                                                                       
@@ -967,7 +967,7 @@
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inlbuf 
+        
        character*8 pname 
 !-----------------------------------------------------------------------
 !                                                                       
@@ -992,7 +992,7 @@
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inlbuf 
+        
        character*8 pname 
 !-----------------------------------------------------------------------
 !                                                                       
@@ -1047,7 +1047,7 @@
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inlbuf 
+        
        character*8 popt, pname 
 !-----------------------------------------------------------------------
 !                                                                       
@@ -1077,7 +1077,7 @@
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inlbuf 
+        
 !-----------------------------------------------------------------------
 !                                                                       
        inew      = 0 
@@ -1107,7 +1107,7 @@
 !                                                                       
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inlbuf 
+        
 !                                                                       
        inew      = 0 
        getvno    = adef 
@@ -1136,7 +1136,7 @@
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inlbuf
+       
        character*16 pnamc
        common/xroxxx/  xyorig(3), rotvec(3) 
 !-----------------------------------------------------------------------
@@ -1213,7 +1213,7 @@
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inlbuf 
+        
        common/xroxxx/  xyorig(3), rotvec(3) 
 !-----------------------------------------------------------------------
        character*8 pname 

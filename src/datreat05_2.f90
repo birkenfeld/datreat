@@ -43,7 +43,7 @@ INCLUDE "commons.h"
 !     msmpl= max no. of datapoints in fit                               
 !                                                                       
 ! --- incom common-section ---                                          
-       character*1024 inlbuf
+       
        real*8 rparf, getval, valnxt, get1, get2, get3, dble
        logical cray 
        common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 

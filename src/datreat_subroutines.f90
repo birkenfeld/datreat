@@ -264,7 +264,7 @@
      &        xname(mbuf),yname(mbuf),name(mbuf),nwert(mbuf),           &
      &        numor(mbuf),nbuf,coment(mbuf),params(mpar,mbuf),          &
      &        napar(mpar,mbuf),nopar(mbuf)                               
-       character*1024 inlbuf 
+        
        real*8 getval, dble 
        logical cray 
       common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
@@ -307,7 +307,7 @@
 !  msmpl= max-no. of data points where a comparison is made             
        parameter(mth=40,mtpar=40,mtcal=40) 
        character*8 ci  
-       character*1024 inlbuf   
+          
        real*8 getval
        logical cray 
       common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
@@ -868,7 +868,7 @@
      &        xname(mbuf),yname(mbuf),name(mbuf),nwert(mbuf),           &
      &        numor(mbuf),nbuf,coment(mbuf),params(mpar,mbuf),          &
      &        napar(mpar,mbuf),nopar(mbuf)                              
-       character*1024 inlbuf
+       
        real*8 getval, dble 
 
       logical cray 
@@ -1286,7 +1286,7 @@
        parameter(mwert=1024,mbuf=200,mpar=200) 
        parameter(mth=40,mtpar=40,mtcal=40,mcoup=10) 
 !                                                                        
-       character*1024 inlbuf 
+        
       logical cray 
       common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
        common/xroxxx/  xyorig(3), rotvec(3) 
@@ -1662,7 +1662,7 @@
        parameter(mwert=1024,mbuf=200,mpar=200) 
        parameter(mth=40,mtpar=40,mtcal=40,mcoup=10) 
                                                                          
-       character*1024 inlbuf 
+        
        character*8 combinam,cha*1  
       logical cray 
       common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
@@ -1877,7 +1877,7 @@
        use constants
        parameter(mth=40,mtpar=40,mtcal=40) 
        parameter(mwert=1024,mbuf=200,mpar=200)  
-       character*1024 inlbuf 
+        
       logical cray 
       common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
        common/xroxxx/  xyorig(3), rotvec(3) 
@@ -2162,7 +2162,7 @@
        use constants
        parameter(mth=40,mtpar=40,mtcal=40) 
        parameter(mwert=1024,mbuf=200,mpar=200)  
-       character*1024 inlbuf 
+        
       logical cray 
       common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
        common/xroxxx/  xyorig(3), rotvec(3) 
@@ -2310,7 +2310,7 @@
        use cincom
        use cincoc
        use constants
-       character*1024 inlbuf 
+        
       logical cray 
       common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
        common/xroxxx/  xyorig(3), rotvec(3) 
@@ -3184,7 +3184,7 @@
 !     msmpl= max no. of datapoints in fit                               
 !                                                                       
 ! --- incom common-section ---                                           
-       character*1024 inlbuf 
+        
       logical cray 
       common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
        common/xroxxx/  xyorig(3), rotvec(3) 
@@ -3630,7 +3630,7 @@
 !     msmpl= max no. of datapoints in fit                               
 !                                                                       
 ! --- incom common-section ---                                           
-       character*1024 inlbuf 
+        
       logical cray 
       common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
        common/xroxxx/  xyorig(3), rotvec(3) 

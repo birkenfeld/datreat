@@ -28,7 +28,7 @@ subroutine gplot ()
   character*6 cnum
   !
 
-  character*1024 inlbuf
+  
   logical cray
   common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray
   common/xroxxx/  xyorig(3), rotvec(3)
