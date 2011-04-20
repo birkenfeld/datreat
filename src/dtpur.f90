@@ -15,7 +15,6 @@
 !                                                                       
 !*ds                                                                    
 !*ds                                                                    
-!INCLUDE "commons.h"
 
 
 
@@ -25,7 +24,6 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
                                                                         
        use cincom
        use constants
-!	parameter(minc=40)
 	parameter (mfit=40,msmpl=10000) 
        parameter(mwert=1024,mbuf=200,mpar=200) 
 !      parameter(mkurv=minc)                                            
@@ -34,11 +32,9 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
        parameter(mth=40,mtpar=40,mtcal=40) 
        
 	character*8 ci 
-!       !parameter(minc=40) 
        character*132 inline,reslin,title,rlbuf,inlbuf 
        character*20 arglst,pmlist 
        character*8 comand,vname 
-!       real*8 rpar, getval
        
 	real*8 getval 
        
