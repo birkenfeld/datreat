@@ -1,10 +1,10 @@
-!INCLUDE "commons.h"
 !*ds                                                                    
        subroutine splot (doplo) 
 !      ================  scan-plotting                                  
 !                                                                       
 !                                                                       
        use cincom
+       use cincoc
        use constants
        parameter(mth=40,mtpar=40,mtcal=40) 
 !      parameter(mkurv=minc)                                            
@@ -35,11 +35,7 @@
 !                                                                       
        character*6 cnum 
 !                                                                       
-       character*1024 inline,reslin,title,rlbuf,inlbuf 
-       character*8 comand,vname 
-       character*20 arglst,pmlist 
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                              
+       character*1024 inlbuf 
       logical cray 
       common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
        common/xroxxx/  xyorig(3), rotvec(3) 
@@ -605,14 +601,11 @@
 !      ==================                                               
 !                                                                       
        use cincom
+       use cincoc
        use constants
        parameter(mth=40,mtpar=40,mtcal=40) 
        parameter(mwert=1024,mbuf=200,mpar=200) 
-       character*1024 inline,reslin,title,rlbuf,inlbuf 
-       character*20 arglst,pmlist 
-       character*8 comand,vname  
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                              
+       character*1024 inlbuf 
       logical cray 
       common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
        common/xroxxx/  xyorig(3), rotvec(3) 
@@ -686,14 +679,9 @@
 ! --- minc = incom stack depth                                          
 !                                                                       
        use cincom
+       use cincoc
        use constants
-       character*1024 inline,reslin,title,rlbuf,inlbuf 
-       character*20 arglst,pmlist 
-       character*8 comand,vname 
-!                                                                       
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                              
-                                                                        
+       character*1024 inlbuf 
       logical cray 
       common/xoutxx/iot,ioold,ibild,ierrr,inka, cray 
                                                                         

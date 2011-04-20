@@ -11,6 +11,7 @@
 !*ed                                                                    
        subroutine incom( cmd )
        use cincom
+       use cincoc
        use constants 
 !      -----------------------                                          
 !      
@@ -37,11 +38,7 @@
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inline,reslin,title,rlbuf,inlbuf
-       character*20 arglst,pmlist 
-       character*8 comand,vname
-!                                                                       
-       common/cincoc/comand,vname(minc),title,reslin,inline,arglst(minc),pmlist(minc,2),rlbuf                              
+       character*1024 inlbuf
                                                                         
 ! ---- communication common block containig the analysed inputline       
 !      comand   = actual command keyword                               

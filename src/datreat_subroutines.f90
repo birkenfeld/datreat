@@ -1,4 +1,3 @@
-!INCLUDE "commons.h"
 !                                                                       
 !                                                                       
 !*ds                                                                    
@@ -247,6 +246,7 @@
 ! ---- compute the value of the active set of theories at value x       
 !                                                                       
        use cincom
+       use cincoc
        use constants
        parameter (mfit=40,msmpl=4000) 
        parameter(mwert=1024,mbuf=200,mpar=200) 
@@ -264,14 +264,9 @@
      &        xname(mbuf),yname(mbuf),name(mbuf),nwert(mbuf),           &
      &        numor(mbuf),nbuf,coment(mbuf),params(mpar,mbuf),          &
      &        napar(mpar,mbuf),nopar(mbuf)                               
-       character*1024 inline,reslin,title,rlbuf,inlbuf 
-       character*20 arglst,pmlist 
-       character*8 comand,vname  
+       character*1024 inlbuf 
        real*8 getval, dble 
- 
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                              
-      logical cray 
+       logical cray 
       common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
        common/xroxxx/  xyorig(3), rotvec(3) 
 !                                                                       
@@ -303,6 +298,7 @@
 ! ---- fit of activated theories to data on /fil2/ ----                 
 !                                                                       
        use cincom
+       use cincoc
        use constants
        parameter (mfit=40,msmpl=4000) 
        parameter(mwert=1024,mbuf=200,mpar=200) 
@@ -311,13 +307,9 @@
 !  msmpl= max-no. of data points where a comparison is made             
        parameter(mth=40,mtpar=40,mtcal=40) 
        character*8 ci  
-       character*1024 inline,reslin,title,rlbuf,inlbuf 
-       character*20 arglst,pmlist 
-       character*8 comand,vname  
+       character*1024 inlbuf   
        real*8 getval
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                              
-      logical cray 
+       logical cray 
       common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
        common/xroxxx/  xyorig(3), rotvec(3) 
 !                                                                       
@@ -860,6 +852,7 @@
 !      corresponding isels-scan                                         
 !                                                                       
        use cincom
+       use cincoc
        use constants
        parameter (mfit=40,msmpl=4000) 
        parameter(mwert=1024,mbuf=200,mpar=200) 
@@ -875,13 +868,9 @@
      &        xname(mbuf),yname(mbuf),name(mbuf),nwert(mbuf),           &
      &        numor(mbuf),nbuf,coment(mbuf),params(mpar,mbuf),          &
      &        napar(mpar,mbuf),nopar(mbuf)                              
-       character*1024 inline,reslin,title,rlbuf,inlbuf 
-       character*20 arglst,pmlist 
-       character*8 comand,vname  
+       character*1024 inlbuf
        real*8 getval, dble 
 
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                              
       logical cray 
       common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
        common/xroxxx/  xyorig(3), rotvec(3) 
@@ -1292,15 +1281,12 @@
 !                                                                       
 !                                                                       
        use cincom
+       use cincoc
        use constants
        parameter(mwert=1024,mbuf=200,mpar=200) 
        parameter(mth=40,mtpar=40,mtcal=40,mcoup=10) 
 !                                                                        
-       character*1024 inline,reslin,title,rlbuf,inlbuf 
-       character*20 arglst,pmlist 
-       character*8 comand,vname  
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                              
+       character*1024 inlbuf 
       logical cray 
       common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
        common/xroxxx/  xyorig(3), rotvec(3) 
@@ -1671,16 +1657,13 @@
 !      -----------------------                                          
 !                                                                       
        use cincom
+       use cincoc
        use constants
        parameter(mwert=1024,mbuf=200,mpar=200) 
        parameter(mth=40,mtpar=40,mtcal=40,mcoup=10) 
                                                                          
-       character*1024 inline,reslin,title,rlbuf,inlbuf 
-       character*20 arglst,pmlist 
-       character*8 comand,vname 
+       character*1024 inlbuf 
        character*8 combinam,cha*1  
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                              
       logical cray 
       common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
        common/xroxxx/  xyorig(3), rotvec(3) 
@@ -1890,13 +1873,11 @@
 !      ================                                                 
 !                                                                       
        use cincom
+       use cincoc
        use constants
        parameter(mth=40,mtpar=40,mtcal=40) 
        parameter(mwert=1024,mbuf=200,mpar=200)  
-       character*1024 inline,reslin,title,rlbuf,inlbuf 
-       character*20 arglst,pmlist 
-       character*8 comand,vname  
-       common/cincoc/comand,vname(minc),title,reslin,inline,arglst(minc),pmlist(minc,2),rlbuf                              
+       character*1024 inlbuf 
       logical cray 
       common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
        common/xroxxx/  xyorig(3), rotvec(3) 
@@ -2177,14 +2158,11 @@
 !      ================ input of sv4-scantype data                      
 !                                                                       
        use cincom
+       use cincoc
        use constants
        parameter(mth=40,mtpar=40,mtcal=40) 
        parameter(mwert=1024,mbuf=200,mpar=200)  
-       character*1024 inline,reslin,title,rlbuf,inlbuf 
-       character*20 arglst,pmlist 
-       character*8 comand,vname  
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                              
+       character*1024 inlbuf 
       logical cray 
       common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
        common/xroxxx/  xyorig(3), rotvec(3) 
@@ -2330,12 +2308,9 @@
 !      the results are stored in the usual fashion in /cincom/          
 !                                                                        
        use cincom
+       use cincoc
        use constants
-       character*1024 inline,reslin,title,rlbuf,inlbuf 
-       character*20 arglst,pmlist 
-       character*8 comand,vname  
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                              
+       character*1024 inlbuf 
       logical cray 
       common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
        common/xroxxx/  xyorig(3), rotvec(3) 
@@ -3195,6 +3170,7 @@
 !     selection list                                                    
 !                                                                       
        use cincom
+       use cincoc
        use constants
        parameter(mwert=1024,mbuf=200,mpar=200) 
 ! --- mwert  = max. no. of x-y-values in one buffer                     
@@ -3208,11 +3184,7 @@
 !     msmpl= max no. of datapoints in fit                               
 !                                                                       
 ! --- incom common-section ---                                           
-       character*1024 inline,reslin,title,rlbuf,inlbuf 
-       character*20 arglst,pmlist 
-       character*8 comand,vname 
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                              
+       character*1024 inlbuf 
       logical cray 
       common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
        common/xroxxx/  xyorig(3), rotvec(3) 
@@ -3644,6 +3616,7 @@
 ! --> pushes data y-values to the datafiles                             
 !                                                                       
        use cincom
+       use cincoc
        use constants
        parameter(mwert=1024,mbuf=200,mpar=200) 
 ! --- mwert  = max. no. of x-y-values in one buffer                     
@@ -3657,12 +3630,7 @@
 !     msmpl= max no. of datapoints in fit                               
 !                                                                       
 ! --- incom common-section ---                                           
-       character*1024 inline,reslin,title,rlbuf,inlbuf 
-       character*20 arglst,pmlist 
-       character*8 comand,vname  
-
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                              
+       character*1024 inlbuf 
       logical cray 
       common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
        common/xroxxx/  xyorig(3), rotvec(3) 

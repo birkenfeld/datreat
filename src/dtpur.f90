@@ -23,6 +23,7 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
 !      Fitting with minpack instead of imsl...                          
                                                                         
        use cincom
+       use cincoc
        use constants
 	parameter (mfit=40,msmpl=10000) 
        parameter(mwert=1024,mbuf=200,mpar=200) 
@@ -32,14 +33,9 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
        parameter(mth=40,mtpar=40,mtcal=40) 
        
 	character*8 ci 
-       character*132 inline,reslin,title,rlbuf,inlbuf 
-       character*20 arglst,pmlist 
-       character*8 comand,vname 
-       
+       character*132 inlbuf 
 	real*8 getval 
        
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                              
       logical cray 
       common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
        common/xroxxx/  xyorig(3), rotvec(3) 

@@ -1,5 +1,6 @@
 subroutine gplot ()
   use cincom
+  use cincoc
   use constants
   !      ================  scan-plotting
   !
@@ -27,11 +28,7 @@ subroutine gplot ()
   character*6 cnum
   !
 
-  character*1024 inline,reslin,title,rlbuf,inlbuf
-  character*8 comand,vname
-  character*20 arglst,pmlist
-
-  common/cincoc/comand,vname(minc),title,reslin,inline,arglst(minc),pmlist(minc,2),rlbuf
+  character*1024 inlbuf
   logical cray
   common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray
   common/xroxxx/  xyorig(3), rotvec(3)

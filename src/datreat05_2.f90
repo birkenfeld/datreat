@@ -29,6 +29,7 @@
 !                                                                       
 INCLUDE "commons.h"
       use cincom
+      use cincoc
       use constants
       parameter(mwert=1024,mbuf=200,mpar=200) 
 ! --- mwert  = max. no. of x-y-values in one buffer                     
@@ -42,13 +43,8 @@ INCLUDE "commons.h"
 !     msmpl= max no. of datapoints in fit                               
 !                                                                       
 ! --- incom common-section ---                                          
-       character*1024 inline,reslin,title,rlbuf,inlbuf
-       character*20 arglst,pmlist 
-       character*8 comand,vname  
+       character*1024 inlbuf
        real*8 rparf, getval, valnxt, get1, get2, get3, dble
-       
-                                                        
-       common/cincoc/comand,vname(minc),title,reslin,inline,arglst(minc),pmlist(minc,2),rlbuf                              
        logical cray 
        common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
        real*8 xyorig, rotvec 

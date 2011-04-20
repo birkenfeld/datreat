@@ -242,19 +242,14 @@
 !                                                                       
 !ray -------------------------------                                    
        use cincom
+       use cincoc
        use constants
        implicit real*8 (a-h,o-z) 
 !ray -------------------------------                                    
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inline,reslin,title,rlbuf,inlbuf 
-       character*20 arglst,pmlist 
-       character*8 comand,vname 
-!                                                                       
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                              
-!                                                                       
+       character*1024 inlbuf 
        character*1024 zeile, reslbf 
        character*8   cmd 
 !-----------------------------------------------------------------------
@@ -381,24 +376,19 @@
 !*ed                                                                    
       subroutine pushn(pname) 
        use cincom
+       use cincoc
        use constants
 !-----------------------------------------------------------------------
 !  wert eintrag in den namensstack                                      
 !-----------------------------------------------------------------------
 !                                                                       
 !ray -------------------------------                                    
-       use constants
        implicit real*8 (a-h,o-z) 
 !ray -------------------------------                                    
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inline,reslin,title,rlbuf,inlbuf 
-       character*20 arglst,pmlist 
-       character*8 comand,vname 
-!                                                                       
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                              
+       character*1024 inlbuf 
 !-----------------------------------------------------------------------
        character*8 pname 
 !-----------------------------------------------------------------------
@@ -441,18 +431,14 @@
 !                                                                       
 !ray -------------------------------                                    
        use cincom
+       use cincoc
        use constants
        implicit real*8 (a-h,o-z) 
 !ray -------------------------------                                    
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inline,reslin,title,rlbuf,inlbuf 
-       character*20 arglst,pmlist 
-       character*8 comand,vname 
-!                                                                       
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                              
+       character*1024 inlbuf
 !-----------------------------------------------------------------------
        character*8 pname 
        character*16 pnamc 
@@ -494,19 +480,14 @@
 !                                                                       
 !ray -------------------------------                                    
        use cincom
+       use cincoc
        use constants
        implicit real*8 (a-h,o-z) 
 !ray -------------------------------                                    
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inline,reslin,title,rlbuf,inlbuf 
-       character*20 arglst,pmlist 
-       character*8 comand,vname 
-!                                                                       
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                              
-!-----------------------------------------------------------------------
+       character*1024 inlbuf 
        character*8 pname 
 !-----------------------------------------------------------------------
 !                                                                       
@@ -530,19 +511,14 @@
 !                                                                       
 !ray -------------------------------                                    
        use cincom
+       use cincoc
        use constants
        implicit real*8 (a-h,o-z) 
 !ray -------------------------------                                    
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inline,reslin,title,rlbuf,inlbuf 
-       character*20 arglst,pmlist 
-       character*8 comand,vname 
-!                                                                       
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                              
-!-----------------------------------------------------------------------
+       character*1024 inlbuf 
        character*8 pname 
 !-----------------------------------------------------------------------
 !                                                                       
@@ -637,18 +613,14 @@
 !                                                                       
 !ray -------------------------------                                    
        use cincom
+       use cincoc
        use constants
        implicit real*8 (a-h,o-z) 
 !ray -------------------------------                                    
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inline,reslin,title,rlbuf,inlbuf 
-       character*20 arglst,pmlist 
-       character*8 comand,vname 
-!                                                                       
-       common/cincoc/comand,vname(minc),title,reslin,inline,arglst(minc),pmlist(minc,2),rlbuf                              
-!-----------------------------------------------------------------------
+       character*1024 inlbuf
        character*8 pname 
        character*16 pnamc 
 !-----------------------------------------------------------------------
@@ -684,20 +656,14 @@
 !                                                                       
 !ray -------------------------------                                    
        use cincom
+       use cincoc
        use constants
        implicit real*8 (a-h,o-z)
 !ray -------------------------------                                    
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inline,reslin,title,rlbuf,inlbuf 
-       character*20 arglst,pmlist 
-       character*8 comand,vname 
-!                                                                       
-                                                                        
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                              
-!-----------------------------------------------------------------------
+       character*1024 inlbuf 
        character*8 pname 
 !-----------------------------------------------------------------------
 !                                                                       
@@ -721,19 +687,14 @@
 !                                                                       
 !ray -------------------------------                                    \
        use cincom
+       use cincoc
        use constants
        implicit real*8 (a-h,o-z) 
 !ray -------------------------------                                    
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inline,reslin,title,rlbuf,inlbuf 
-       character*20 arglst,pmlist 
-       character*8 comand,vname 
-!                                                                       
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                              
-!-----------------------------------------------------------------------
+       character*1024 inlbuf 
        character*8 pname, cdef 
 !-----------------------------------------------------------------------
 !                                                                       
@@ -763,19 +724,14 @@
 !                                                                       
 !ray -------------------------------                                    
        use cincom
+       use cincoc
        use constants
        implicit real*8 (a-h,o-z) 
 !ray -------------------------------                                    
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inline,reslin,title,rlbuf,inlbuf 
-       character*20 arglst,pmlist 
-       character*8 comand,vname 
-!                                                                       
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                              
-!-----------------------------------------------------------------------
+       character*1024 inlbuf 
        character*8 pname, cdef 
 !-----------------------------------------------------------------------
 !                                                                       
@@ -799,19 +755,14 @@
 !                                                                       
 !ray -------------------------------                                    
        use cincom
+       use cincoc
        use constants
        implicit real*8 (a-h,o-z) 
 !ray -------------------------------                                    
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inline,reslin,title,rlbuf,inlbuf 
-       character*20 arglst,pmlist 
-       character*8 comand,vname 
-!                                                                       
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                              
-!-----------------------------------------------------------------------
+       character*1024 inlbuf 
        character*8 pname 
 !-----------------------------------------------------------------------
 !                                                                       
@@ -829,19 +780,14 @@
 !                                                                       
 !ray -------------------------------                                    
        use cincom
+       use cincoc
        use constants
        implicit real*8 (a-h,o-z) 
 !ray -------------------------------                                    
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inline,reslin,title,rlbuf,inlbuf 
-       character*20 arglst,pmlist 
-       character*8 comand,vname 
-!                                                                       
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                              
-!-----------------------------------------------------------------------
+       character*1024 inlbuf 
        character*8 pname 
 !-----------------------------------------------------------------------
 !                                                                       
@@ -860,19 +806,14 @@
 !                                                                       
 !ray -------------------------------                                           
        use cincom
+       use cincoc
        use constants
        implicit real*8 (a-h,o-z) 
 !ray -------------------------------                                    
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inline,reslin,title,rlbuf,inlbuf 
-       character*20 arglst,pmlist 
-       character*8 comand,vname 
-!                                                                       
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                              
-!-----------------------------------------------------------------------
+       character*1024 inlbuf 
        character*80 newtit 
 !-----------------------------------------------------------------------
 !                                                                       
@@ -891,20 +832,14 @@
 !                                                                       
 !ray -------------------------------                                    
        use cincom
+       use cincoc
        use constants
        implicit real*8 (a-h,o-z) 
 !ray -------------------------------                                    
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inline,reslin,title,rlbuf,inlbuf 
-       character*20 arglst,pmlist 
-       character*8 comand,vname 
-!                                                                       
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                              
-!-----------------------------------------------------------------------
-!                                                                       
+       character*1024 inlbuf 
        titlef = title(1:80) 
 !                                                                       
       return 
@@ -919,19 +854,14 @@
 !                                                                       
 !ray -------------------------------                                    
        use cincom
+       use cincoc
        use constants
        implicit real*8 (a-h,o-z) 
 !ray -------------------------------                                    
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inline,reslin,title,rlbuf,inlbuf 
-       character*20 arglst,pmlist 
-       character*8 comand,vname 
-!                                                                       
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                              
-!-----------------------------------------------------------------------
+       character*1024 inlbuf 
        character*8 pname 
 !-----------------------------------------------------------------------
 !                                                                       
@@ -950,19 +880,14 @@
 !                                                                       
 !ray -------------------------------                                    
        use cincom
+       use cincoc
        use constants
        implicit real*8 (a-h,o-z) 
 !ray -------------------------------                                    
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inline,reslin,title,rlbuf,inlbuf 
-       character*20 arglst,pmlist 
-       character*8 comand,vname 
-!                                                                       
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                              
-!-----------------------------------------------------------------------
+       character*1024 inlbuf 
        character*8 pname 
 !-----------------------------------------------------------------------
 !                                                                       
@@ -983,19 +908,14 @@
 !                                                                       
 !ray -------------------------------                                    
        use cincom
+       use cincoc
        use constants
        implicit real*8 (a-h,o-z) 
 !ray -------------------------------                                    
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inline,reslin,title,rlbuf,inlbuf 
-       character*20 arglst,pmlist 
-       character*8 comand,vname 
-!                                                                       
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                              
-!-----------------------------------------------------------------------
+       character*1024 inlbuf 
        character*8 pname 
 !-----------------------------------------------------------------------
 !                                                                       
@@ -1014,19 +934,14 @@
 !                                                                       
 !ray -------------------------------                                    
        use cincom
+       use cincoc
        use constants
        implicit real*8 (a-h,o-z) 
 !ray -------------------------------                                    
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inline,reslin,title,rlbuf,inlbuf 
-       character*20 arglst,pmlist 
-       character*8 comand,vname 
-!                                                                       
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                              
-!-----------------------------------------------------------------------
+       character*1024 inlbuf 
        character*8 pname 
 !-----------------------------------------------------------------------
 !                                                                       
@@ -1045,19 +960,14 @@
 !                                                                       
 !ray -------------------------------                                    
        use cincom
+       use cincoc
        use constants
        implicit real*8 (a-h,o-z) 
 !ray -------------------------------                                    
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inline,reslin,title,rlbuf,inlbuf 
-       character*20 arglst,pmlist 
-       character*8 comand,vname 
-!                                                                       
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                              
-!-----------------------------------------------------------------------
+       character*1024 inlbuf 
        character*8 pname 
 !-----------------------------------------------------------------------
 !                                                                       
@@ -1075,19 +985,14 @@
 !                                                                       
 !ray -------------------------------                                    
        use cincom
+       use cincoc
        use constants
        implicit real*8 (a-h,o-z) 
 !ray -------------------------------                                    
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inline,reslin,title,rlbuf,inlbuf 
-       character*20 arglst,pmlist 
-       character*8 comand,vname 
-!                                                                       
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                              
-!-----------------------------------------------------------------------
+       character*1024 inlbuf 
        character*8 pname 
 !-----------------------------------------------------------------------
 !                                                                       
@@ -1135,19 +1040,14 @@
 !                                                                       
 !ray -------------------------------                                    
        use cincom
+       use cincoc
        use constants
        implicit real*8 (a-h,o-z) 
 !ray -------------------------------                                    
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inline,reslin,title,rlbuf,inlbuf 
-       character*20 arglst,pmlist 
-       character*8 comand,vname 
-!                                                                       
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                              
-!-----------------------------------------------------------------------
+       character*1024 inlbuf 
        character*8 popt, pname 
 !-----------------------------------------------------------------------
 !                                                                       
@@ -1170,18 +1070,14 @@
 !                                                                       
 !ray -------------------------------                                    
        use cincom
+       use cincoc
        use constants
        implicit real*8 (a-h,o-z) 
 !ray -------------------------------                                    
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inline,reslin,title,rlbuf,inlbuf 
-       character*20 arglst,pmlist 
-       character*8 comand,vname 
-!                                                                       
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                              
+       character*1024 inlbuf 
 !-----------------------------------------------------------------------
 !                                                                       
        inew      = 0 
@@ -1204,19 +1100,14 @@
 !                                                                       
 !ray -------------------------------                                    
        use cincom
+       use cincoc
        use constants
        implicit real*8 (a-h,o-z) 
 !ray -------------------------------                                    
 !                                                                       
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inline,reslin,title,rlbuf,inlbuf 
-       character*20 arglst,pmlist 
-       character*8 comand,vname 
-!                                                                       
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                              
-!-----------------------------------------------------------------------
+       character*1024 inlbuf 
 !                                                                       
        inew      = 0 
        getvno    = adef 
@@ -1238,20 +1129,15 @@
 !                                                                       
 !ray -------------------------------                                    
        use cincom
+       use cincoc
        use constants
        implicit real*8 (a-h,o-z) 
 !ray -------------------------------                                    
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inline,reslin,title,rlbuf,inlbuf 
-       character*20 arglst,pmlist 
-       character*16 pnamc 
-       character*8 comand,vname 
-!                                                                       
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                              
-!-----------------------------------------------------------------------
+       character*1024 inlbuf
+       character*16 pnamc
        common/xroxxx/  xyorig(3), rotvec(3) 
 !-----------------------------------------------------------------------
        character*8 pname 
@@ -1320,19 +1206,14 @@
 !                                                                       
 !ray -------------------------------                                    
        use cincom
+       use cincoc
        use constants
        implicit real*8 (a-h,o-z) 
 !ray -------------------------------                                    
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inline,reslin,title,rlbuf,inlbuf 
-       character*20 arglst,pmlist 
-       character*8 comand,vname 
-!                                                                       
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                              
-!-----------------------------------------------------------------------
+       character*1024 inlbuf 
        common/xroxxx/  xyorig(3), rotvec(3) 
 !-----------------------------------------------------------------------
        character*8 pname 
@@ -1780,19 +1661,13 @@
 !                                                                       
 !ray -------------------------------                                    
        use cincom
+       use cincoc
        use constants
        implicit real*8 (a-h,o-z) 
 !ray -------------------------------                                    
 !                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
-       character*1024 inline,reslin,title,rlbuf 
-       character*20 arglst,pmlist 
-       character*8 comand,vname 
-!                                                                       
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                              
-                                                                        
        logical cray 
        common/xoutxx/iot,ioold,ibild,ierrr,inka, cray 
                                                                         
