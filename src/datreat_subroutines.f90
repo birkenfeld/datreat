@@ -1874,6 +1874,8 @@
 !                                                                       
        use cincom
        use cincoc
+       use imargs
+       use cmargs
        use constants
        parameter(mth=40,mtpar=40,mtcal=40) 
        parameter(mwert=1024,mbuf=200,mpar=200)  
@@ -1892,21 +1894,7 @@
 !                                                                       
 !                                                                       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!111
-      parameter(mdepth=20) 
-      character*1024 argvals 
-      character*80 pmlst 
-      common/cmargs/argvals(minc),pmlst(mdepth,minc,2) 
-      common/imargs/iargvs,ipmlst(mdepth),kanal(0:mdepth),ktop 
-! --- variables for makro-parameter-passing ---                         
-!     argvals(i)  = parameterlist at a call of a makro, only temp.      
-!     pmlst(k,i,1..2) = replace list, in the k-th makro-layer           
-!                       all substrings=pmlst(k,*,1) will be             
-!                       replaced by pmlst(k,*,2)                        
-!     iargvs      = number of arguments                                 
-!     ipmlst(k)   = number of given replacing items for makro k         
-!     kanal(k)    = fortran io-number associated to makro layer k       
-!     ktop        = current makro layer (0=keyboard-input)              
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                                                               
+        
        common/outlev/iout,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20),yyee 
 !                                                                       
                                                                         

@@ -59,8 +59,8 @@ FFLAGS=-g -O2 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash
 LDFLAGS = -DPATH_TO_LOCAL_DATREAT=\"$(LOCAL)\"
 
 
-OBJS = dataconvolution4.o dtpur.o util_get_y_value.o \
-datreat05_2.o incom.o utilux.o datreat2xmgrace.o incom_subroutines.o \
+OBJS = datreat05_2.o dataconvolution4.o dtpur.o util_get_y_value.o \
+ incom.o utilux.o datreat2xmgrace.o incom_subroutines.o \
 datreat_subroutines.o
 
 LIBS = theos/libtheos.a \

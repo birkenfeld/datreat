@@ -13,6 +13,8 @@
        use cincom
        use cincoc
        use icpathes
+       use imargs
+       use cmargs
        use constants 
 !      -----------------------                                          
 !      
@@ -27,10 +29,6 @@
 ! ---- parameter separator is blank !!!                                 
 ! ---- command separator is ;                                           
 !                                                                       
-! ---- the current command is stored on comand                          
-!      the names on stack vname(*)                                      
-!      the numbers on stack rpar(*)                                     
-!      in common/cincom/                                                
 !                                                                       
 !                                                                       
 !ray -------------------------------                                    
@@ -41,42 +39,8 @@
 !                                                                       
        
                                                                         
-! ---- communication common block containig the analysed inputline       
-!      comand   = actual command keyword                               
-!      vname(*) = names stack                                           
-!      rpar(*)  = number stack                                          
-!      inames   = length of names stack                                 
-!      ipars    = length of number stack                                
-!      ioldc    = flag to indicate second command in line               
-!      inline   = actual inputline                                      
-!      reslin   = residual line conaining all still nonprocessed command
-!      inpar(*) = no. of parameters associated with the i-th name       
-!      iparn(*) = pointer parameters to names                           
-!      inapa(*) = adress of first parameter following the *-th name     
-!      arglst(*)= character*20 list of arguments                        
-!      iargs    = length of arglst = no. of parameters                  
-!      pmlist(*,i) => dummy, left only for compatibility reasons        
-!      ipmls    =       "                    "                          
-!      iolbuf   = buffer for saving ioldc during a makro call           
-!      rlbuf    = buffer to save reslin during a makro call             
-!      lstpar   = number of the last decoded parameter                  
-!      lstnam   = number of the last decoded name                       
-                                                                        
-      parameter(mdepth=20) 
-      character*1024 argvals 
-      character*80 pmlst 
-      common/cmargs/argvals(minc),pmlst(mdepth,minc,2) 
-      common/imargs/iargvs,ipmlst(mdepth),kanal(0:mdepth),ktop 
-! --- variables for makro-parameter-passing ---                         
-!     argvals(i)  = parameterlist at a call of a makro, only temp.      
-!     pmlst(k,i,1..2) = replace list, in the k-th makro-layer           
-!                       all substrings=pmlst(k,*,1) will be             
-!                       replaced by pmlst(k,*,2)                        
-!     iargvs      = number of arguments                                 
-!     ipmlst(k)   = number of given replacing items for makro k         
-!     kanal(k)    = fortran io-number associated to makro layer k       
-!     ktop        = current makro layer (0=keyboard-input)              
-!                                                                       
+
+
 !                                                                       
 ! ---- outputlevel                                                      
       logical cray 
@@ -901,17 +865,13 @@
       END        
 !     END of incom!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                                 
 !                                                                       
-       block data kanass 
+!       data kanass 
 !      -----------------                                                 
-       use constants
-       parameter(mdepth=20) 
-       character*1024 argvals 
-       character*80 pmlst 
-       common/cmargs/argvals(minc),pmlst(mdepth,minc,2) 
-       common/imargs/iargvs,ipmlst(mdepth),kanal(0:mdepth),ktop 
-       data kanal/ 5,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58, 59/                    
-       data ktop /0/ 
-      END                                           
+!       use constants
+!       use cmargs
+!       use imargs
+       
+!      END                                           
                                                                         
 !*ds                                                                    
 !*ed                                                                    

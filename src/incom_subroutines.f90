@@ -303,13 +303,11 @@
       end
      
 	  character*1024 function get_argvals(ii)
-       use constants
+        use imargs
+        use cmargs
+	use constants
 !     ================================= 
-      parameter(mdepth=20)
-      character*1024 argvals 
-      character*80 pmlst 
-      common/cmargs/argvals(minc),pmlst(mdepth,minc,2) 
-      common/imargs/iargvs,ipmlst(mdepth),kanal(0:mdepth),ktop 
+ 
 ! --- variables for makro-parameter-passing ---  see incom for details                       
 		integer ii
       get_argvals =argvals(ii)(:) 
