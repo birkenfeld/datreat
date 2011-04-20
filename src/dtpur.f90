@@ -15,25 +15,33 @@
 !                                                                       
 !*ds                                                                    
 !*ds                                                                    
-       subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
+!INCLUDE "commons.h"
+
+
+
+subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
      &                   x,f,xjac,ixjac)                                
 !      Fitting with minpack instead of imsl...                          
                                                                         
-       parameter (mfit=40,msmpl=10000) 
+       use cincom
+       use constants
+!	parameter(minc=40)
+	parameter (mfit=40,msmpl=10000) 
        parameter(mwert=1024,mbuf=200,mpar=200) 
 !      parameter(mkurv=minc)                                            
 !  mfit = max-no. of fitvariables                                       
 !  msmpl= max-no. of data points where a comparison is made             
        parameter(mth=40,mtpar=40,mtcal=40) 
-       character*8 ci 
-       parameter(minc=40) 
+       
+	character*8 ci 
+!       !parameter(minc=40) 
        character*132 inline,reslin,title,rlbuf,inlbuf 
        character*20 arglst,pmlist 
        character*8 comand,vname 
-       real*8 rpar, getval 
-       common/cincom/rpar(minc),inames,ipars                            &
-     &  ,ioldc,inpar(minc),iparn(minc),inapa(minc),iargs,ipmls,iolbuf   &
-     &  ,lstpar, lstnam                                                 
+!       real*8 rpar, getval
+       
+	real*8 getval 
+       
        common/cincoc/comand,vname(minc),title,reslin,inline             &
      &  ,arglst(minc),pmlist(minc,2),rlbuf                              
       logical cray 

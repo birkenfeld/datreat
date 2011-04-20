@@ -1,8 +1,11 @@
+!INCLUDE "commons.h"
 !*ds                                                                    
        subroutine splot (doplo) 
 !      ================  scan-plotting                                  
 !                                                                       
 !                                                                       
+       use cincom
+       use constants
        parameter(mth=40,mtpar=40,mtcal=40) 
 !      parameter(mkurv=minc)                                            
 !                ---------> max. no of curves to be plotted             
@@ -32,14 +35,9 @@
 !                                                                       
        character*6 cnum 
 !                                                                       
-       parameter(minc=40) 
        character*1024 inline,reslin,title,rlbuf,inlbuf 
        character*8 comand,vname 
        character*20 arglst,pmlist 
-       real*8 rpar 
-       common/cincom/rpar(minc),inames,ipars                            &
-     &  ,ioldc,inpar(minc),iparn(minc),inapa(minc),iargs,ipmls,iolbuf   &
-     &  ,lstpar, lstnam                                                 
        common/cincoc/comand,vname(minc),title,reslin,inline             &
      &  ,arglst(minc),pmlist(minc,2),rlbuf                              
       logical cray 
@@ -606,16 +604,13 @@
        subroutine out_gli 
 !      ==================                                               
 !                                                                       
+       use cincom
+       use constants
        parameter(mth=40,mtpar=40,mtcal=40) 
        parameter(mwert=1024,mbuf=200,mpar=200) 
-       parameter(minc=40) 
        character*1024 inline,reslin,title,rlbuf,inlbuf 
        character*20 arglst,pmlist 
-       character*8 comand,vname 
-       real*8 rpar 
-       common/cincom/rpar(minc),inames,ipars                            &
-     &  ,ioldc,inpar(minc),iparn(minc),inapa(minc),iargs,ipmls,iolbuf   &
-     &  ,lstpar, lstnam                                                 
+       character*8 comand,vname  
        common/cincoc/comand,vname(minc),title,reslin,inline             &
      &  ,arglst(minc),pmlist(minc,2),rlbuf                              
       logical cray 
@@ -688,17 +683,14 @@
        subroutine preplo 
 !      ================= prepare plotting (plotmachine)                 
 !                                                                       
-       parameter(minc=40) 
 ! --- minc = incom stack depth                                          
 !                                                                       
+       use cincom
+       use constants
        character*1024 inline,reslin,title,rlbuf,inlbuf 
        character*20 arglst,pmlist 
        character*8 comand,vname 
 !                                                                       
-       real*8 rpar 
-       common/cincom/rpar(minc),inames,ipars                            &
-     &  ,ioldc,inpar(minc),iparn(minc),inapa(minc),iargs,ipmls,iolbuf   &
-     &  ,lstpar, lstnam                                                 
        common/cincoc/comand,vname(minc),title,reslin,inline             &
      &  ,arglst(minc),pmlist(minc,2),rlbuf                              
                                                                         

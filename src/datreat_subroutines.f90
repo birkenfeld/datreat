@@ -1,3 +1,4 @@
+!INCLUDE "commons.h"
 !                                                                       
 !                                                                       
 !*ds                                                                    
@@ -89,8 +90,9 @@
 !     imx returns the no. of biggest gradient contribution              
 !                                                                       
 !                                                                       
-! ----- search for the scans to be selected -----                       
-       parameter(minc=40) 
+! ----- search for the scans to be selected -----                        
+
+       use constants
        parameter(mth=40,mtpar=40,mtcal=40) 
 !      parameter(mkurv=minc)                                            
 !                ---------> max. no of curves to be selected            
@@ -169,7 +171,7 @@
 ! attention: the fsc-command requires positive inputs, therefore this   
 !            routine searches for -num !!                               
 !                                                                       
-       parameter(minc=40) 
+       use constants 
        parameter(mth=40,mtpar=40,mtcal=40) 
 !      parameter(mkurv=minc)                                            
 !                ---------> max. no of curves to be selected            
@@ -244,6 +246,8 @@
 !                                                                       
 ! ---- compute the value of the active set of theories at value x       
 !                                                                       
+       use cincom
+       use constants
        parameter (mfit=40,msmpl=4000) 
        parameter(mwert=1024,mbuf=200,mpar=200) 
        parameter(mth=40,mtpar=40,mtcal=40) 
@@ -259,16 +263,12 @@
      &        yerror(mwert,mbuf),                                       &
      &        xname(mbuf),yname(mbuf),name(mbuf),nwert(mbuf),           &
      &        numor(mbuf),nbuf,coment(mbuf),params(mpar,mbuf),          &
-     &        napar(mpar,mbuf),nopar(mbuf)                              
-       parameter(minc=40) 
+     &        napar(mpar,mbuf),nopar(mbuf)                               
        character*1024 inline,reslin,title,rlbuf,inlbuf 
        character*20 arglst,pmlist 
-       character*8 comand,vname 
-       real*8 rpar 
+       character*8 comand,vname  
        real*8 getval, dble 
-       common/cincom/rpar(minc),inames,ipars                            &
-     &  ,ioldc,inpar(minc),iparn(minc),inapa(minc),iargs,ipmls,iolbuf   &
-     &  ,lstpar, lstnam                                                 
+ 
        common/cincoc/comand,vname(minc),title,reslin,inline             &
      &  ,arglst(minc),pmlist(minc,2),rlbuf                              
       logical cray 
@@ -302,21 +302,19 @@
 !                                                                       
 ! ---- fit of activated theories to data on /fil2/ ----                 
 !                                                                       
+       use cincom
+       use constants
        parameter (mfit=40,msmpl=4000) 
        parameter(mwert=1024,mbuf=200,mpar=200) 
 !      parameter(mkurv=minc)                                            
 !  mfit = max-no. of fitvariables                                       
 !  msmpl= max-no. of data points where a comparison is made             
        parameter(mth=40,mtpar=40,mtcal=40) 
-       character*8 ci 
-       parameter(minc=40) 
+       character*8 ci  
        character*1024 inline,reslin,title,rlbuf,inlbuf 
        character*20 arglst,pmlist 
-       character*8 comand,vname 
-       real*8 rpar, getval 
-       common/cincom/rpar(minc),inames,ipars                            &
-     &  ,ioldc,inpar(minc),iparn(minc),inapa(minc),iargs,ipmls,iolbuf   &
-     &  ,lstpar, lstnam                                                 
+       character*8 comand,vname  
+       real*8 getval
        common/cincoc/comand,vname(minc),title,reslin,inline             &
      &  ,arglst(minc),pmlist(minc,2),rlbuf                              
       logical cray 
@@ -861,6 +859,8 @@
 !      if npoint= 0 the sample points match exactly those of the        
 !      corresponding isels-scan                                         
 !                                                                       
+       use cincom
+       use constants
        parameter (mfit=40,msmpl=4000) 
        parameter(mwert=1024,mbuf=200,mpar=200) 
        parameter(mth=40,mtpar=40,mtcal=40) 
@@ -875,15 +875,11 @@
      &        xname(mbuf),yname(mbuf),name(mbuf),nwert(mbuf),           &
      &        numor(mbuf),nbuf,coment(mbuf),params(mpar,mbuf),          &
      &        napar(mpar,mbuf),nopar(mbuf)                              
-       parameter(minc=40) 
        character*1024 inline,reslin,title,rlbuf,inlbuf 
        character*20 arglst,pmlist 
-       character*8 comand,vname 
-       real*8 rpar 
+       character*8 comand,vname  
        real*8 getval, dble 
-       common/cincom/rpar(minc),inames,ipars                            &
-     &  ,ioldc,inpar(minc),iparn(minc),inapa(minc),iargs,ipmls,iolbuf   &
-     &  ,lstpar, lstnam                                                 
+
        common/cincoc/comand,vname(minc),title,reslin,inline             &
      &  ,arglst(minc),pmlist(minc,2),rlbuf                              
       logical cray 
@@ -1295,17 +1291,14 @@
 !     iopt = 3 ===> reactivate theories from lastth                     
 !                                                                       
 !                                                                       
+       use cincom
+       use constants
        parameter(mwert=1024,mbuf=200,mpar=200) 
        parameter(mth=40,mtpar=40,mtcal=40,mcoup=10) 
-!                                                                       
-       parameter(minc=40) 
+!                                                                        
        character*1024 inline,reslin,title,rlbuf,inlbuf 
        character*20 arglst,pmlist 
-       character*8 comand,vname 
-       real*8 rpar 
-       common/cincom/rpar(minc),inames,ipars                            &
-     &  ,ioldc,inpar(minc),iparn(minc),inapa(minc),iargs,ipmls,iolbuf   &
-     &  ,lstpar, lstnam                                                 
+       character*8 comand,vname  
        common/cincoc/comand,vname(minc),title,reslin,inline             &
      &  ,arglst(minc),pmlist(minc,2),rlbuf                              
       logical cray 
@@ -1677,18 +1670,15 @@
        subroutine theo_out(kk) 
 !      -----------------------                                          
 !                                                                       
+       use cincom
+       use constants
        parameter(mwert=1024,mbuf=200,mpar=200) 
        parameter(mth=40,mtpar=40,mtcal=40,mcoup=10) 
-                                                                        
-       parameter(minc=40) 
+                                                                         
        character*1024 inline,reslin,title,rlbuf,inlbuf 
        character*20 arglst,pmlist 
        character*8 comand,vname 
-       character*8 combinam,cha*1 
-       real*8 rpar 
-       common/cincom/rpar(minc),inames,ipars                            &
-     &  ,ioldc,inpar(minc),iparn(minc),inapa(minc),iargs,ipmls,iolbuf   &
-     &  ,lstpar, lstnam                                                 
+       character*8 combinam,cha*1  
        common/cincoc/comand,vname(minc),title,reslin,inline             &
      &  ,arglst(minc),pmlist(minc,2),rlbuf                              
       logical cray 
@@ -1899,14 +1889,13 @@
        subroutine input 
 !      ================                                                 
 !                                                                       
+       use cincom
+       use constants
        parameter(mth=40,mtpar=40,mtcal=40) 
-       parameter(mwert=1024,mbuf=200,mpar=200) 
-       parameter(minc=40) 
+       parameter(mwert=1024,mbuf=200,mpar=200)  
        character*1024 inline,reslin,title,rlbuf,inlbuf 
        character*20 arglst,pmlist 
-       character*8 comand,vname 
-       real*8 rpar 
-       common/cincom/rpar(minc),inames,ipars ,ioldc,inpar(minc),iparn(minc),inapa(minc),iargs,ipmls,iolbuf,lstpar, lstnam                                                 
+       character*8 comand,vname  
        common/cincoc/comand,vname(minc),title,reslin,inline,arglst(minc),pmlist(minc,2),rlbuf                              
       logical cray 
       common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
@@ -2187,16 +2176,13 @@
        subroutine inscn 
 !      ================ input of sv4-scantype data                      
 !                                                                       
+       use cincom
+       use constants
        parameter(mth=40,mtpar=40,mtcal=40) 
-       parameter(mwert=1024,mbuf=200,mpar=200) 
-       parameter(minc=40) 
+       parameter(mwert=1024,mbuf=200,mpar=200)  
        character*1024 inline,reslin,title,rlbuf,inlbuf 
        character*20 arglst,pmlist 
-       character*8 comand,vname 
-       real*8 rpar 
-       common/cincom/rpar(minc),inames,ipars                            &
-     &  ,ioldc,inpar(minc),iparn(minc),inapa(minc),iargs,ipmls,iolbuf   &
-     &  ,lstpar, lstnam                                                 
+       character*8 comand,vname  
        common/cincoc/comand,vname(minc),title,reslin,inline             &
      &  ,arglst(minc),pmlist(minc,2),rlbuf                              
       logical cray 
@@ -2342,15 +2328,12 @@
 ! ---- decode provides a means to treat a 80 characters line by the     
 !      incom facilities (comand is always set to '&')                   
 !      the results are stored in the usual fashion in /cincom/          
-!                                                                       
-       parameter(minc=40) 
+!                                                                        
+       use cincom
+       use constants
        character*1024 inline,reslin,title,rlbuf,inlbuf 
        character*20 arglst,pmlist 
-       character*8 comand,vname 
-       real*8 rpar 
-       common/cincom/rpar(minc),inames,ipars                            &
-     &  ,ioldc,inpar(minc),iparn(minc),inapa(minc),iargs,ipmls,iolbuf   &
-     &  ,lstpar, lstnam                                                 
+       character*8 comand,vname  
        common/cincoc/comand,vname(minc),title,reslin,inline             &
      &  ,arglst(minc),pmlist(minc,2),rlbuf                              
       logical cray 
@@ -3211,6 +3194,8 @@
 ! --> interpolates y-value at x for the file on top of the              
 !     selection list                                                    
 !                                                                       
+       use cincom
+       use constants
        parameter(mwert=1024,mbuf=200,mpar=200) 
 ! --- mwert  = max. no. of x-y-values in one buffer                     
 !     mbuf   = max. no. of different buffers                            
@@ -3222,15 +3207,10 @@
 !  -- mfit = max no. of fitted parameters                               
 !     msmpl= max no. of datapoints in fit                               
 !                                                                       
-! --- incom common-section ---                                          
-       parameter(minc=40) 
+! --- incom common-section ---                                           
        character*1024 inline,reslin,title,rlbuf,inlbuf 
        character*20 arglst,pmlist 
        character*8 comand,vname 
-       real*8 rpar 
-       common/cincom/rpar(minc),inames,ipars                            &
-     &  ,ioldc,inpar(minc),iparn(minc),inapa(minc),iargs,ipmls,iolbuf   &
-     &  ,lstpar, lstnam                                                 
        common/cincoc/comand,vname(minc),title,reslin,inline             &
      &  ,arglst(minc),pmlist(minc,2),rlbuf                              
       logical cray 
@@ -3663,6 +3643,8 @@
 !      ----------------------------                                     
 ! --> pushes data y-values to the datafiles                             
 !                                                                       
+       use cincom
+       use constants
        parameter(mwert=1024,mbuf=200,mpar=200) 
 ! --- mwert  = max. no. of x-y-values in one buffer                     
 !     mbuf   = max. no. of different buffers                            
@@ -3674,15 +3656,11 @@
 !  -- mfit = max no. of fitted parameters                               
 !     msmpl= max no. of datapoints in fit                               
 !                                                                       
-! --- incom common-section ---                                          
-       parameter(minc=40) 
+! --- incom common-section ---                                           
        character*1024 inline,reslin,title,rlbuf,inlbuf 
        character*20 arglst,pmlist 
-       character*8 comand,vname 
-       real*8 rpar 
-       common/cincom/rpar(minc),inames,ipars                            &
-     &  ,ioldc,inpar(minc),iparn(minc),inapa(minc),iargs,ipmls,iolbuf   &
-     &  ,lstpar, lstnam                                                 
+       character*8 comand,vname  
+
        common/cincoc/comand,vname(minc),title,reslin,inline             &
      &  ,arglst(minc),pmlist(minc,2),rlbuf                              
       logical cray 

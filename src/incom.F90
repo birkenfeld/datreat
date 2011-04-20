@@ -9,7 +9,9 @@
 !***********************************************************************
 !*ds                                                                    
 !*ed                                                                    
-       subroutine incom( cmd ) 
+       subroutine incom( cmd )
+       use cincom
+       use constants 
 !      -----------------------                                          
 !      
 ! ---- command line decoder ----                                        
@@ -32,15 +34,13 @@
 !ray -------------------------------                                    
        implicit real*8 (a-h,o-z) 
 !ray -------------------------------                                    
-!                                                                       
-       parameter(minc=40) 
+!                                                                        
 ! --- minc = incom stack depth                                          
 !                                                                       
        character*1024 inline,reslin,title,rlbuf,inlbuf
        character*20 arglst,pmlist 
        character*8 comand,vname
 !                                                                       
-       common/cincom/rpar(minc),inames,ipars,ioldc,inpar(minc),iparn(minc),inapa(minc),iargs,ipmls,iolbuf,lstpar, lstnam                                                 
        common/cincoc/comand,vname(minc),title,reslin,inline,arglst(minc),pmlist(minc,2),rlbuf                              
                                                                         
 ! ---- communication common block containig the analysed inputline       
@@ -907,8 +907,8 @@
 !     END of incom!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                                 
 !                                                                       
        block data kanass 
-!      -----------------                                                
-       parameter(minc=40) 
+!      -----------------                                                 
+       use constants
        parameter(mdepth=20) 
        character*1024 argvals 
        character*80 pmlst 

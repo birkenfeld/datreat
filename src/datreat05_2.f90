@@ -27,7 +27,10 @@
 ! *                                                                    *
 ! **********************************************************************
 !                                                                       
-       parameter(mwert=1024,mbuf=200,mpar=200) 
+INCLUDE "commons.h"
+      use cincom
+      use constants
+      parameter(mwert=1024,mbuf=200,mpar=200) 
 ! --- mwert  = max. no. of x-y-values in one buffer                     
 !     mbuf   = max. no. of different buffers                            
 !     mpar   = max. no. of parameters associated with one buffer        
@@ -39,12 +42,12 @@
 !     msmpl= max no. of datapoints in fit                               
 !                                                                       
 ! --- incom common-section ---                                          
-       parameter(minc=40) 
        character*1024 inline,reslin,title,rlbuf,inlbuf
        character*20 arglst,pmlist 
-       character*8 comand,vname 
-       real*8 rpar, rparf, getval, valnxt, get1, get2, get3, dble 
-       common/cincom/rpar(minc),inames,ipars,ioldc,inpar(minc),iparn(minc),inapa(minc),iargs,ipmls,iolbuf,lstpar, lstnam                                                 
+       character*8 comand,vname  
+       real*8 rparf, getval, valnxt, get1, get2, get3, dble
+       
+                                                        
        common/cincoc/comand,vname(minc),title,reslin,inline,arglst(minc),pmlist(minc,2),rlbuf                              
        logical cray 
        common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
@@ -272,15 +275,15 @@
 			write(6,*)'=     initdatr  is an initialisation makro at startup ='
 			write(6,*)'=                                                     ='
 			write(6,*)'=    #NEW input routine accepts nearly everything     ='
-			write(6,*)'=                                                     ='
+			write(6,*)'=                   TEST!!                            ='
 			write(6,*)'=                changed by R.Biehl and O.Holderer    ='
 			write(6,*)'=              in collaboration with M.Monkenbusch    ='
 			write(6,*)'======================================================='
-            write(6,*)'=   for laptop users                                  ='
-            write(6,*)'=  use the 5.1.20 version of grace_np to have a       ='
-            write(6,*)'=      single grace plot after system calls           ='
-            write(6,*)'======================================================='
-            write(6,*)
+			write(6,*)'=   for laptop users                                  ='
+			write(6,*)'=  use the 5.1.20 version of grace_np to have a       ='
+			write(6,*)'=      single grace plot after system calls           ='
+			write(6,*)'======================================================='
+			write(6,*)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !                                                                       
        pi   = 4 * atan(1.0) 
