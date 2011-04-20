@@ -243,6 +243,7 @@
 !ray -------------------------------                                    
        use cincom
        use cincoc
+       use icpathes
        use constants
        implicit real*8 (a-h,o-z) 
 !ray -------------------------------                                    
@@ -270,8 +271,8 @@
 !                                                                       
       character*1024 function X_datpath()
 !     =================================
-      character*1024  data_path, save_path, makro_path,home,datreat_path,PWD, history
-      common/icpathes/data_path, save_path, makro_path, home, datreat_path,PWD, history(0:20)
+      use icpathes
+
       X_datpath(1:1024) = data_path
 
       return
@@ -279,9 +280,7 @@
 !                                                                       
       character*1024 function savepath()
 !     =================================
-      character*1024  data_path, save_path, makro_path,home,datreat_path,PWD, history
-      common/icpathes/data_path, save_path, makro_path, home, datreat_path,PWD, history(0:20)
-
+      use icpathes
       savepath = save_path
 
       return
@@ -289,9 +288,7 @@
 
       character*1024 function makropath()
 !     =================================
-      character*1024  data_path, save_path, makro_path,home,datreat_path,PWD, history
-      common/icpathes/data_path, save_path, makro_path, home, datreat_path,PWD, history(0:20)
-
+      use icpathes
       makropath = makro_path
 
       return
@@ -299,9 +296,7 @@
 		
       character*1024 function homepath()
 !     =================================
-      character*1024  data_path, save_path, makro_path,home,datreat_path,PWD, history
-      common/icpathes/data_path, save_path, makro_path, home, datreat_path,PWD, history(0:20)
-
+      use icpathes
       homepath = home
       
       return

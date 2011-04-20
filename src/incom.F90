@@ -12,6 +12,7 @@
        subroutine incom( cmd )
        use cincom
        use cincoc
+       use icpathes
        use constants 
 !      -----------------------                                          
 !      
@@ -93,8 +94,6 @@
        character*1024 ma_fil
        integer       ilma
 
-       character*1024  data_path, save_path, makro_path, home, datreat_path,PWD, history
-       common/icpathes/data_path, save_path, makro_path, home, datreat_path,PWD, history(0:20)
        integer       init_run
        data          init_run /1/
        data          lmakro /.false./ 
