@@ -34,28 +34,10 @@ INCLUDE "commons.h"
       use cincoc
       use xoutxx
       use xroxxx
+      use cdata
       use constants
 
        real*8 rparf, getval, valnxt, get1, get2, get3, dble
-!                                                                       
-       character*80 name,xname,yname,napar,coment*80 
-       common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),yerror(mwert,mbuf),                                       &
-     &        xname(mbuf),yname(mbuf),name(mbuf),nwert(mbuf),           &
-     &        numor(mbuf),nbuf,coment(mbuf),params(mpar,mbuf),          &
-     &        napar(mpar,mbuf),nopar(mbuf)                              
-! --- xwerte(i,j)   x-values on buffer j                                
-!     ywerte(i,j)   y-values on buffer j                                
-!     yerror(i,j)   error of y-values   (only supported by some fktn)   
-!     xname(j)      name of x-values (x-axis) for buffer j              
-!     yname(j)       "   "  y-   "    y-  "    "    "    "              
-!     name(j)       short text-identifier for data on buffer j          
-!     nwert(j)      no. of valid points on buffer j                     
-!     nbuf          no. of filled buffers                               
-!     numor(j)      numerical identification of data on buffer j          
-!     coment(j)     one line of comment describing data on buffer j     
-!     params(l,j)   set of parameters associated with data on buffer j  
-!     napar(l,j)    names of these parameters                           
-!     nopar(j)      no. of valid parameters                             
 !                                                                       
 ! ---- common containing a selected list of spectra ----                
        common/selist/isels(mbuf),ifits(mbuf),nsel,numpls 

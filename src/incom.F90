@@ -858,14 +858,5 @@
       END        
 !     END of incom!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                                 
 !                                                                       
-!       data kanass 
-!      -----------------                                                 
-!       use constants
-!       use cmargs
-!       use imargs
-       
-!      END                                           
-                                                                        
-!*ds                                                                    
-!*ed                                                                    
+
 

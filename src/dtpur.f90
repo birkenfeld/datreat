@@ -27,6 +27,7 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
        use xoutxx
        use xroxxx
        use constants
+       use constants
        
 	character*8 ci 
 	real*8 getval 
@@ -39,13 +40,7 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
                                                                         
        common/therrc/therro(mtpar,mtcal) 
 !                                                                       
-       character*80 name,xname,yname,napar,coment*80 
-       common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &
-     &        yerror(mwert,mbuf),                                       &
-     &        xname(mbuf),yname(mbuf),name(mbuf),nwert(mbuf),           &
-     &        numor(mbuf),nbuf,coment(mbuf),params(mpar,mbuf),          &
-     &        napar(mpar,mbuf),nopar(mbuf)                              
-!                                                                       
+
        common/selist/isels(mbuf),ifits(mbuf),nsel,numpls 
 !                                                                       
        common/outlev/iout,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20) 

@@ -1,6 +1,9 @@
 #define __MINC 40
 #define __MDEPTH 20
 #define __MUSEVAR 100
+#define __MBUF 200
+#define __MWERT 1024
+#define __MPAR 200
 ! ---- communication common block containig the analysed inputline       
 !      comand   = actual command keyword                               
 !      vname(*) = names stack                                           
@@ -115,14 +118,47 @@
 		character*16 usenam(__MUSEVAR)
 	end module usevar
 
+! ---- common containing all the scans ----                             
+!                                                                       
+! --- xwerte(i,j)   x-values on buffer j                                
+!     ywerte(i,j)   y-values on buffer j                                
+!     yerror(i,j)   error of y-values   (only supported by some fktn)   
+!     xname(j)      name of x-values (x-axis) for buffer j              
+!     yname(j)       "   "  y-   "    y-  "    "    "    "              
+!     name(j)       short text-identifier for data on buffer j          
+!     nwert(j)      no. of valid points on buffer j                     
+!     nbuf          no. of filled buffers                               
+!     numor(j)      numerical identification of data on buffer j          
+!     coment(j)     one line of comment describing data on buffer j     
+!     params(l,j)   set of parameters associated with data on buffer j  
+!     napar(l,j)    names of these parameters                           
+!     nopar(j)      no. of valid parameters                             
+!                                                                       
 
 
-! --- minc = incom stack depth                                          
+	module cdata
+		real xwerte(__MWERT,__MBUF)
+		real ywerte(__MWERT,__MBUF)
+		real yerror(__MWERT,__MBUF)
+     		character*80 xname(__MBUF)
+		character*80 yname(__MBUF)
+		character*80 name(__MBUF)
+		integer nwert(__MBUF)
+		integer numor(__MBUF)
+		integer nbuf
+		character*80 coment(__MBUF)*80
+		real params(__MPAR,__MBUF)
+		character*80 napar(__MPAR,__MBUF)
+		integer nopar(__MBUF)
+	end module cdata
+
+
 	module constants
 		save
+		! --- minc = incom stack depth                                          
 		integer, parameter :: minc=__MINC
       		integer, parameter :: mdepth=__MDEPTH
-	        integer, parameter :: mwert=1024, mbuf=200, mpar=200
+	        integer, parameter :: mwert=__MWERT, mbuf=__MBUF, mpar=__MPAR
 		! --- mwert  = max. no. of x-y-values in one buffer                     
 		!     mbuf   = max. no. of different buffers                            
 		!     mpar   = max. no. of parameters associated with one buffer        

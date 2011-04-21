@@ -3,15 +3,12 @@ subroutine gplot ()
   use cincoc
   use xoutxx
   use xroxxx
+  use cdata
   use constants
   !      ================  scan-plotting
   !
   !
   !       implicit none
-  ! ---- common containing all the scans ----
-  character*80 name,xname,yname,napar,coment*80
-  common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),yerror(mwert,mbuf), xname(mbuf),yname(mbuf),name(mbuf),nwert(mbuf),&
-       numor(mbuf),nbuf,coment(mbuf),params(mpar,mbuf),napar(mpar,mbuf),nopar(mbuf)
   !
   common/selist/isels(mbuf),ifits(mbuf),nsel,numpls
   common/fslist/isfits(mbuf),nfsel

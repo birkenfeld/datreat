@@ -91,16 +91,10 @@
 !                                                                       
 ! ----- search for the scans to be selected -----                        
 
-       use constants 
+       use constants
+       use cdata
 !      parameter(mkurv=minc)                                            
 !                ---------> max. no of curves to be selected            
-! ---- common containing all the scans ----                             
-       character*80 name,xname,yname,napar,coment*80 
-       common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &
-     &        yerror(mwert,mbuf),                                       &
-     &        xname(mbuf),yname(mbuf),name(mbuf),nwert(mbuf),           &
-     &        numor(mbuf),nbuf,coment(mbuf),params(mpar,mbuf),          &
-     &        napar(mpar,mbuf),nopar(mbuf)                              
 !                                                                       
        common/selist/isels(mbuf),ifits(mbuf),nsel,numpls 
        common/fslist/isfits(mbuf),nfsel 
@@ -166,18 +160,10 @@
 ! attention: the fsc-command requires positive inputs, therefore this   
 !            routine searches for -num !!                               
 !                                                                       
-       use constants 
+	use cdata
+	use constants 
 !      parameter(mkurv=minc)                                            
 !                ---------> max. no of curves to be selected            
-! ---  maximum scan length                                              
-!                                                                       
-! ---- common containing all the scans ----                             
-       character*80 name,xname,yname,napar,coment*80 
-       common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &
-     &        yerror(mwert,mbuf),                                       &
-     &        xname(mbuf),yname(mbuf),name(mbuf),nwert(mbuf),           &
-     &        numor(mbuf),nbuf,coment(mbuf),params(mpar,mbuf),          &
-     &        napar(mpar,mbuf),nopar(mbuf)                              
 !                                                                       
       common/fslist/isfits(mbuf),nfsel 
 !                                                                       
@@ -243,6 +229,7 @@
        use cincoc
        use xoutxx
        use xroxxx
+       use cdata
        use constants
        character*8 dum 
        character*8 thenam,thparn 
@@ -251,15 +238,7 @@
        real*4      thramin, thramax 
        common /thparc/ thrapar(mth),thramin(mth),thramax(mth) 
                                                                         
-       character*80 name,xname,yname,napar,coment*80 
-       common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &
-     &        yerror(mwert,mbuf),                                       &
-     &        xname(mbuf),yname(mbuf),name(mbuf),nwert(mbuf),           &
-     &        numor(mbuf),nbuf,coment(mbuf),params(mpar,mbuf),          &
-     &        napar(mpar,mbuf),nopar(mbuf)                               
-        
        real*8 getval, dble 
-!                                                                       
 !                                                                       
        common/selist/isels(mbuf),ifits(mbuf),nsel,numpls 
 !                                                                       
@@ -291,6 +270,7 @@
        use cincoc
        use xoutxx
        use xroxxx
+       use cdata
        use constants
 !      parameter(mkurv=minc)                                            
        character*8 ci  
@@ -303,13 +283,6 @@
      & ,multflg(mtcal)                                                  
                                                                         
        common/therrc/therro(mtpar,mtcal) 
-!                                                                       
-       character*80 name,xname,yname,napar,coment*80 
-       common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &
-     &        yerror(mwert,mbuf),                                       &
-     &        xname(mbuf),yname(mbuf),name(mbuf),nwert(mbuf),           &
-     &        numor(mbuf),nbuf,coment(mbuf),params(mpar,mbuf),          &
-     &        napar(mpar,mbuf),nopar(mbuf)                              
 !                                                                       
        common/selist/isels(mbuf),ifits(mbuf),nsel,numpls 
 !                                                                       
@@ -697,18 +670,13 @@
 !                                                                       
 ! ----- calculates deviation data theory for zxssq ----                 
 !                                                                       
+       use cdata
        use constants       
        character*8 dum 
        character*8 thenam,thparn 
        common/theory/thenam(mth),thparn(mtpar,mth),nthpar(mth),         &
      &  thparx(mtpar,mtcal),thpsca(mtpar,mtcal),nthtab(mtcal),ntheos    &
      & ,multflg(mtcal)                                                  
-       character*80 name,xname,yname,napar,coment*80 
-       common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &
-     &        yerror(mwert,mbuf),                                       &
-     &        xname(mbuf),yname(mbuf),name(mbuf),nwert(mbuf),           &
-     &        numor(mbuf),nbuf,coment(mbuf),params(mpar,mbuf),          &
-     &        napar(mpar,mbuf),nopar(mbuf)                              
        logical sqwght,sqwbuf 
        logical autox1,autox2 
        common/cfunc/iprt,sqwght,x1,x2,autox1,autox2,ferror(msmpl) 
@@ -836,19 +804,13 @@
        use cincoc
        use xoutxx
        use xroxxx
+       use cdata
        use constants
        character*8 dum 
        character*8 thenam,thparn 
        common/theory/thenam(mth),thparn(mtpar,mth),nthpar(mth),         &
      &  thparx(mtpar,mtcal),thpsca(mtpar,mtcal),nthtab(mtcal),ntheos    &
      & ,multflg(mtcal)                                                  
-       character*80 name,xname,yname,napar,coment*80 
-       common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &
-     &        yerror(mwert,mbuf),                                       &
-     &        xname(mbuf),yname(mbuf),name(mbuf),nwert(mbuf),           &
-     &        numor(mbuf),nbuf,coment(mbuf),params(mpar,mbuf),          &
-     &        napar(mpar,mbuf),nopar(mbuf)                              
-       
        real*8 getval, dble 
 !                                                                       
 !                                                                       
@@ -1085,14 +1047,8 @@
 !                                                                       
 ! ---- this routine changes or adds a parameter ----                    
 !                                                                       
+       use cdata
        use constants
-       character*80 name,xname,yname,napar,coment*80 
-       common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &
-     &        yerror(mwert,mbuf),                                       &
-     &        xname(mbuf),yname(mbuf),name(mbuf),nwert(mbuf),           &
-     &        numor(mbuf),nbuf,coment(mbuf),params(mpar,mbuf),          &
-     &        napar(mpar,mbuf),nopar(mbuf)                              
-!                                                                       
        character*8 pname 
 !                                                                       
 !                                                                       
@@ -1126,12 +1082,7 @@
 ! ---- this routine gets the value of a parameter ----                  
 !                                                                       
        use constants
-       character*80 name,xname,yname,napar,coment*80 
-       common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),yerror(mwert,mbuf),                                       &
-     &        xname(mbuf),yname(mbuf),name(mbuf),nwert(mbuf),           &
-     &        numor(mbuf),nbuf,coment(mbuf),params(mpar,mbuf),          &
-     &        napar(mpar,mbuf),nopar(mbuf)                              
-!                                                                       
+       use cdata
        character*8 pname 
 !                                                                       
 ! ----------- look for the parameter -----------------------------------
@@ -1166,12 +1117,7 @@
 !      besser gekapselte Routine zur Kommunikation mit th-Routinen      
 !                                                                       
        use constants
-       character*80 name,xname,yname,napar,coment*80 
-       common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &
-     &        yerror(mwert,mbuf),                                       &
-     &        xname(mbuf),yname(mbuf),name(mbuf),nwert(mbuf),           &
-     &        numor(mbuf),nbuf,coment(mbuf),params(mpar,mbuf),          &
-     &        napar(mpar,mbuf),nopar(mbuf)                              
+       use cdata
 !                                                                       
        common /thiadd/iadda 
        character*8 pname 
@@ -1845,16 +1791,8 @@
        use cmargs
        use xoutxx
        use xroxxx
+       use cdata
        use constants
-!                                                                       
-       character*80 name,xname,yname,napar,coment*80 
-       common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &
-     &        yerror(mwert,mbuf),                                       &
-     &        xname(mbuf),yname(mbuf),name(mbuf),nwert(mbuf),           &
-     &        numor(mbuf),nbuf,coment(mbuf),params(mpar,mbuf),          &
-     &        napar(mpar,mbuf),nopar(mbuf)                              
-!                                                                       
-!                                                                       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!111
         
        common/outlev/iout,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20),yyee 
@@ -2111,16 +2049,8 @@
        use cincoc
        use xoutxx
        use xroxxx
+       use cdata
        use constants
-!                                                                       
-       character*80 name,xname,yname,napar,coment*80 
-       common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &
-     &        yerror(mwert,mbuf),                                       &
-     &        xname(mbuf),yname(mbuf),name(mbuf),nwert(mbuf),           &
-     &        numor(mbuf),nbuf,coment(mbuf),params(mpar,mbuf),          &
-     &        napar(mpar,mbuf),nopar(mbuf)                              
-!                                                                       
-!                                                                       
 !                                                                       
        common/outlev/iout,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20),yyee 
 !                                                                       
@@ -2407,12 +2337,7 @@
 ! --- copies all accompanying infos from data slot ia to slot ib        
 !                                                                       
        use constants 
-       character*80 name,xname,yname,napar,coment*80 
-       common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &
-     &        yerror(mwert,mbuf),                                       &
-     &        xname(mbuf),yname(mbuf),name(mbuf),nwert(mbuf),           &
-     &        numor(mbuf),nbuf,coment(mbuf),params(mpar,mbuf),          &
-     &        napar(mpar,mbuf),nopar(mbuf)                              
+       use cdata
 !                                                                       
        np=nopar(ia) 
        nopar(ib)=np 
@@ -2435,14 +2360,9 @@
 !      ========================                                         
 ! ---- copy the contens of data slot ia into slot ib -----              
 !                                                                       
+       use cdata
        use constants 
-       character*80 name,xname,yname,napar,coment*80 
-       common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &
-     &        yerror(mwert,mbuf),                                       &
-     &        xname(mbuf),yname(mbuf),name(mbuf),nwert(mbuf),           &
-     &        numor(mbuf),nbuf,coment(mbuf),params(mpar,mbuf),          &
-     &        napar(mpar,mbuf),nopar(mbuf)                              
-!                                                                       
+
        np=nopar(ia) 
        nopar(ib)=np 
        do 5 i=1,nwert(ia) 
@@ -2471,15 +2391,8 @@
 !      =============================                                    
 ! -- save data on adress ispc onto a file named file fname a --         
 !                                                                       
+       use cdata
        use constants 
-       character*80 name,xname,yname,napar,coment*80 
-       common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &
-     &        yerror(mwert,mbuf),                                       &
-     &        xname(mbuf),yname(mbuf),name(mbuf),nwert(mbuf),           &
-     &        numor(mbuf),nbuf,coment(mbuf),params(mpar,mbuf),          &
-     &        napar(mpar,mbuf),nopar(mbuf)                              
-!                                                                       
-       !character*8 
        character*1024 fname,finame,savepath, pathbuf, outfile
        
 		 pathbuf = savepath() 
@@ -2525,13 +2438,8 @@
 !      =========================                                        
 ! -- MULTI save data on adress ispc onto a file named file fname a --   
 !                                                                       
+       use cdata
        use constants 
-       character*80 name,xname,yname,napar,coment*80 
-       common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &
-     &        yerror(mwert,mbuf),                                       &
-     &        xname(mbuf),yname(mbuf),name(mbuf),nwert(mbuf),           &
-     &        numor(mbuf),nbuf,coment(mbuf),params(mpar,mbuf),          &
-     &        napar(mpar,mbuf),nopar(mbuf)                              
 !                                                                       
 ! ---- common containing a selected list of spectra ----                
        common/selist/isels(mbuf),ifits(mbuf),nsel,numpls 
@@ -3116,28 +3024,9 @@
        use cincoc
        use xoutxx
        use xroxxx
+       use cdata
        use constants 
 !                                                                       
-!                                                                       
-       character*80 name,xname,yname,napar,coment*80 
-       common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &
-     &        yerror(mwert,mbuf),                                       &
-     &        xname(mbuf),yname(mbuf),name(mbuf),nwert(mbuf),           &
-     &        numor(mbuf),nbuf,coment(mbuf),params(mpar,mbuf),          &
-     &        napar(mpar,mbuf),nopar(mbuf)                              
-! --- xwerte(i,j)   x-values on buffer j                                
-!     ywerte(i,j)   y-values on buffer j                                
-!     yerror(i,j)   error of y-values   (only supported by some fktn)   
-!     xname(j)      name of x-values (x-axis) for buffer j              
-!     yname(j)       "   "  y-   "    y-  "    "    "    "              
-!     name(j)       short text-identifier for data on buffer j          
-!     nwert(j)      no. of valid points on buffer j                     
-!     nbuf          no. of filled buffers                               
-!     numor(j)      numerical idenfication of data on buffer j          
-!     coment(j)     one line of comment describing data on buffer j     
-!     params(l,j)   set of parameters associated with data on buffer j  
-!     napar(l,j)    names of these parameters                           
-!     nopar(j)      no. of valid parameters                             
 !                                                                       
 ! ---- common containing a selected list of spectra ----                
        common/selist/isels(mbuf),ifits(mbuf),nsel,numpls 
@@ -3547,29 +3436,8 @@
        use cincoc
        use xoutxx
        use xroxxx
+       use cdata
        use constants
-!                                                                       
-!                                                                       
-       character*80 name,xname,yname,napar,coment*80 
-       common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &
-     &        yerror(mwert,mbuf),                                       &
-     &        xname(mbuf),yname(mbuf),name(mbuf),nwert(mbuf),           &
-     &        numor(mbuf),nbuf,coment(mbuf),params(mpar,mbuf),          &
-     &        napar(mpar,mbuf),nopar(mbuf)                              
-! --- xwerte(i,j)   x-values on buffer j                                
-!     ywerte(i,j)   y-values on buffer j                                
-!     yerror(i,j)   error of y-values   (only supported by some fktn)   
-!     xname(j)      name of x-values (x-axis) for buffer j              
-!     yname(j)       "   "  y-   "    y-  "    "    "    "              
-!     name(j)       short text-identifier for data on buffer j          
-!     nwert(j)      no. of valid points on buffer j                     
-!     nbuf          no. of filled buffers                               
-!     numor(j)      numerical idenfication of data on buffer j          
-!     coment(j)     one line of comment describing data on buffer j     
-!     params(l,j)   set of parameters associated with data on buffer j  
-!     napar(l,j)    names of these parameters                           
-!     nopar(j)      no. of valid parameters                             
-!                                                                       
 ! ---- common containing a selected list of spectra ----                
        common/selist/isels(mbuf),ifits(mbuf),nsel,numpls 
 !  isels(i)  = address (/spectr/) of selected scan                      
@@ -3613,14 +3481,8 @@
 !                                                                       
        use xoutxx
        use xroxxx
+       use cdata
        use constants
-!                                                                       
-       character*80 name,xname,yname,napar,coment*80 
-       common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &
-     &        yerror(mwert,mbuf),                                       &
-     &        xname(mbuf),yname(mbuf),name(mbuf),nwert(mbuf),           &
-     &        numor(mbuf),nbuf,coment(mbuf),params(mpar,mbuf),          &
-     &        napar(mpar,mbuf),nopar(mbuf)                              
 !                                                                       
        character*8 thenam,thparn 
        common/theory/thenam(mth),thparn(mtpar,mth),nthpar(mth),         &
@@ -3932,15 +3794,8 @@
 !                                                                       
        use xoutxx
        use xroxxx
+       use cdata
        use constants 
-!                                                                       
-       character*80 name,xname,yname,napar,coment*80 
-       common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &
-     &        yerror(mwert,mbuf),                                       &
-     &        xname(mbuf),yname(mbuf),name(mbuf),nwert(mbuf),           &
-     &        numor(mbuf),nbuf,coment(mbuf),params(mpar,mbuf),          &
-     &        napar(mpar,mbuf),nopar(mbuf)                              
-!                                                                       
 ! ---- common containing a selected list of spectra ----                
        common/selist/isels(mbuf),ifits(mbuf),nsel,numpls 
 !                                                                       
