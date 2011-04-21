@@ -88,7 +88,7 @@
 		integer ipmlst(__MDEPTH)
 		integer kanal(0:__MDEPTH)
 		integer ktop
-		data kanal/ 5,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58, 59/                    
+		data kanal/ 5,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58, 59/
        		data ktop /0/ 
 	end module imargs
  
@@ -152,6 +152,21 @@
 		integer nopar(__MBUF)
 	end module cdata
 
+
+! ---- outputlevel                                                      
+! xxxx,yyyy = aktuelle addersse fuer wertextraktion xx,yy               
+!
+	module outlev 
+		integer iout
+		integer ibild
+		integer ierrs
+		integer inka
+		integer iibuf
+		real xxxx
+		real yyyy
+		real ptxf(20)
+		real yyee 
+	end module outlev
 
 	module constants
 		save

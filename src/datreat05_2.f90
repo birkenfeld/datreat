@@ -35,6 +35,7 @@ INCLUDE "commons.h"
       use xoutxx
       use xroxxx
       use cdata
+      use outlev
       use constants
 
        real*8 rparf, getval, valnxt, get1, get2, get3, dble
@@ -95,10 +96,6 @@ INCLUDE "commons.h"
 !     qziel is the value at witch the spline should be evaluated        
 !     numspl numor of spline fitted data                                
 !     nwspl  length of splined data vectors                             
-!                                                                       
-! ---- outputlevel                                                      
-       common/outlev/iout,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20),yyee 
-! xxxx,yyyy = aktuelle addersse fuer wertextraktion xx,yy               
 !                                                                       
 ! ---- communication with subr. func ---                                
       logical sqwght,sqwbuf 

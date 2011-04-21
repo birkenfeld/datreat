@@ -8,6 +8,7 @@
        use xoutxx
        use xroxxx
        use cdata
+       use outlev
        use constants
 !                                                                       
        common/selist/isels(mbuf),ifits(mbuf),nsel,numpls 
@@ -24,10 +25,6 @@
 !                                                                       
 !                                                                       
        character*6 cnum 
-!                                                                       
-!                                                                       
-       common/outlev/iout,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20),yyee 
-!                                                                       
        dimension x(mwert),y(mwert),yl(mwert),yh(mwert),irecv(minc),     &
      &          isymb(minc),irecn(minc),icolo(minc),ifrec(minc)         
        dimension e(mwert) 
@@ -590,13 +587,11 @@
        use xoutxx
        use xroxxx
        use cdata
+       use outlev
        use constants
 !                                                                       
        common/selist/isels(mbuf),ifits(mbuf),nsel,numpls 
        common/fslist/isfits(mbuf),nfsel 
-!                                                                       
-!                                                                       
-       common/outlev/iout,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20),yyee 
 !                                                                       
        character*12 infile 
        character*80 rline 

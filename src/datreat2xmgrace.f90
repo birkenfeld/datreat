@@ -4,6 +4,7 @@ subroutine gplot ()
   use xoutxx
   use xroxxx
   use cdata
+  use outlev
   use constants
   !      ================  scan-plotting
   !
@@ -19,9 +20,6 @@ subroutine gplot ()
   common/therrc/therro(mtpar,mtcal)
   !
   character*6 cnum
-  !
-  !
-  common/outlev/iout,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20)
   !
   dimension x(mwert),y(mwert),yl(mwert),yh(mwert),irecv(minc),isymb(minc),irecn(minc),icolo(minc),ifrec(minc)
   dimension e(mwert)
@@ -733,7 +731,7 @@ END SUBROUTINE MyError
 
 
 SUBROUTINE MyGraceCommandf(str)
-  common/outlev/iout,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20)
+  use outlev
   EXTERNAL GraceCommandf
   CHARACTER*(*) str
   if(iout.gt.0) WRITE(*,*) '>>>'//trim(str)

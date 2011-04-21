@@ -26,7 +26,8 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
        use cincoc
        use xoutxx
        use xroxxx
-       use constants
+       use cdata
+       use outlev
        use constants
        
 	character*8 ci 
@@ -42,8 +43,7 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
 !                                                                       
 
        common/selist/isels(mbuf),ifits(mbuf),nsel,numpls 
-!                                                                       
-       common/outlev/iout,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20) 
+ 
 !                                                                       
       dimension iparam(6),rparam(7),x(mfit),f(msmpl),xjac(msmpl,mfit),  &
      &          xguess(mfit),xscale(mfit),fscale(msmpl)                 

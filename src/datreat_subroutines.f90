@@ -4,7 +4,8 @@
 !*ed                                                                    
        subroutine lsearch( jpar, itcal, ierr) 
 !      ======================================                           
-	use constants
+       use outlev
+       use constants
 !                                                                       
 !  ---- search for a theory parameter specification by the commandline  
 !       cmd  theoryname <n-th occ> parametername                        
@@ -25,10 +26,6 @@
         common /theorc/ thpala(mtpar,mtcal), thpalc( mcoup,mtpar,mtcal),&
      &        thpafc(mcoup,mtpar,mtcal), thpaco(mtpar,mtcal),           &
      &        ncoup(mtpar,mtcal)                                        
-                                                                        
-!!     common/outlev/iout,ibild,ierrs,inka   !! aix                     
-       common/outlev/iout,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20),yyee 
-!                                                                       
                                                                         
        character*8      vnameF 
        double precision rparF 
@@ -93,13 +90,12 @@
 
        use constants
        use cdata
+       use outlev
 !      parameter(mkurv=minc)                                            
 !                ---------> max. no of curves to be selected            
 !                                                                       
        common/selist/isels(mbuf),ifits(mbuf),nsel,numpls 
        common/fslist/isfits(mbuf),nfsel 
-!                                                                       
-      common/outlev/iout,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20),yyee 
 !                                                                       
       dimension irecv(minc),irecn1(minc) 
 !                                                                       
@@ -160,14 +156,13 @@
 ! attention: the fsc-command requires positive inputs, therefore this   
 !            routine searches for -num !!                               
 !                                                                       
-	use cdata
-	use constants 
+       use cdata
+       use outlev
+       use constants 
 !      parameter(mkurv=minc)                                            
 !                ---------> max. no of curves to be selected            
 !                                                                       
-      common/fslist/isfits(mbuf),nfsel 
-!                                                                       
-      common/outlev/iout,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20),yyee 
+      common/fslist/isfits(mbuf),nfsel  
 !                                                                       
       dimension ifrec(minc),irecn1(minc) 
 !                                                                       
@@ -230,6 +225,7 @@
        use xoutxx
        use xroxxx
        use cdata
+       use outlev
        use constants
        character*8 dum 
        character*8 thenam,thparn 
@@ -244,8 +240,6 @@
 !                                                                       
        logical autox1,autox2 
        common/cfunc/iprt,sqwght,x1,x2,autox1,autox2,ferror(msmpl) 
-!                                                                       
-       common/outlev/iout,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20),yyee 
 !                                                                       
        LOGICAL imu 
                                                                         
@@ -271,6 +265,7 @@
        use xoutxx
        use xroxxx
        use cdata
+       use outlev
        use constants
 !      parameter(mkurv=minc)                                            
        character*8 ci  
@@ -285,8 +280,6 @@
        common/therrc/therro(mtpar,mtcal) 
 !                                                                       
        common/selist/isels(mbuf),ifits(mbuf),nsel,numpls 
-!                                                                       
-       common/outlev/iout,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20),yyee 
 !                                                                       
       dimension iparam(6),rparam(7),x(mfit),f(msmpl),xjac(msmpl,mfit),  &
      &          xguess(mfit),xscale(mfit),fscale(msmpl)                 
@@ -671,7 +664,8 @@
 ! ----- calculates deviation data theory for zxssq ----                 
 !                                                                       
        use cdata
-       use constants       
+       use outlev
+       use constants
        character*8 dum 
        character*8 thenam,thparn 
        common/theory/thenam(mth),thparn(mtpar,mth),nthpar(mth),         &
@@ -687,8 +681,6 @@
 !                                                                       
        common/selist/isels(mbuf),ifits(mbuf),nsel,numpls 
 !                                                                       
-!                                                                       
-       common/outlev/iout,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20),yyee 
 !                                                                       
        real      x(mfit),f(msmpl) 
        dimension xp(mtpar),q2(3) 
@@ -805,6 +797,7 @@
        use xoutxx
        use xroxxx
        use cdata
+       use outlev
        use constants
        character*8 dum 
        character*8 thenam,thparn 
@@ -818,8 +811,6 @@
 !                                                                       
        logical autox1,autox2 
        common/cfunc/iprt,sqwght,x1,x2,autox1,autox2,ferror(msmpl) 
-!                                                                       
-       common/outlev/iout,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20),yyee 
 !                                                                       
        common /thiadd/iadda 
 ! ---> transfer der addresse der gerade bearbeiteten kurve nach thdatr1 
@@ -1201,9 +1192,10 @@
 !                                                                       
        use cincom
        use cincoc
-       use constants
        use xoutxx
        use xroxxx
+       use outlev
+       use constants
 !                                                                        
         
 !                                                                       
@@ -1226,8 +1218,6 @@
        character*8 thrapar 
        real*4      thramin, thramax 
        common /thparc/ thrapar(mth),thramin(mth),thramax(mth) 
-                                                                        
-       common/outlev/iout,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20),yyee 
 !                                                                       
        character*1024  rlibuf 
        integer       iocbuf 
@@ -1576,6 +1566,7 @@
        use cincoc
        use xoutxx
        use xroxxx
+       use outlev
        use constants
                                                                          
         
@@ -1604,10 +1595,6 @@
                                                                         
        character*30 buf1 
        character*60 buf2 
-                                                                        
-                                                                        
-       common/outlev/iout,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20),yyee 
-                                                                        
        integer i, ith, kk 
                                                                         
           if(ntheos.le.0) return 
@@ -1715,6 +1702,7 @@
 ! ----------------------------------------------------------------------
 !                                                                       
 !                                                                       
+       use outlev
        use constants 
 !                                                                       
        character*8 thenam,thparn,thenax,thpanx(mtpar) 
@@ -1726,9 +1714,6 @@
         common /theorc/ thpala(mtpar,mtcal), thpalc( mcoup,mtpar,mtcal),&
      &        thpafc(mcoup,mtpar,mtcal), thpaco(mtpar,mtcal),           &
      &        ncoup(mtpar,mtcal)                                        
-!                                                                       
-!!     common/outlev/iout,ibild,ierrs,inka   !! aix                     
-       common/outlev/iout,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20),yyee 
 !                                                                       
        character*4   label 
 !                                                                       
@@ -1792,12 +1777,9 @@
        use xoutxx
        use xroxxx
        use cdata
+       use outlev
        use constants
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!111
-        
-       common/outlev/iout,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20),yyee 
-!                                                                       
-                                                                        
        character*1024  infile 
 !       character*8  infile                                             
        character*80 rline 
@@ -2050,9 +2032,8 @@
        use xoutxx
        use xroxxx
        use cdata
+       use outlev
        use constants
-!                                                                       
-       common/outlev/iout,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20),yyee 
 !                                                                       
        character*8  infile,intyp,inmode 
        character*131 rline 
@@ -2186,11 +2167,8 @@
        use cincoc
        use xoutxx
        use xroxxx
+       use outlev
        use constants
-!                                                                       
-!                                                                       
-       common/outlev/iout,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20),yyee 
-!                                                                       
 !                                                                       
        character*80 tline 
 !                                                                       
@@ -2500,10 +2478,10 @@
 !      ==================                                               
 ! --- spline interpolated data evaluation ---                           
 !     spline coefficients are taken from the last call of spline        
+       use outlev
        use constants 
        common/cfc/qziel,cscoef(4,mwert),break(mwert),weight(mwert),     &
      &            numspl,nwspl                                          
-       common/outlev/iout,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20),yyee 
 !                                                                       
          nn  = nwspl 
          do 2705 j=1,nn 
@@ -2532,10 +2510,10 @@
        function fdes(x) 
 !      ================                                                 
 ! --- integrand for desmearing ---                                      
+       use outlev
        use constants 
        common/cfc/qziel,cscoef(4,mwert),break(mwert),weight(mwert),     &
-     &            numspl,nwspl                                          
-       common/outlev/iout,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20),yyee 
+     &            numspl,nwspl                                           
 !                                                                       
          nn  = nwspl 
          xx = sqrt(qziel**2 + x**2) 
@@ -2586,11 +2564,9 @@
 !      x(1..nfft/2) : output x-values                                   
 !      y(1..nfft/2) : output y-values                                   
 ! ----------------------------------------------------------------------
-!                                                                       
-! ---- outputlevel                                                      
-       common/outlev/iout,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20),yyee 
-!                                                                       
 ! --- fft-dimensioning -------------------------------------------------
+       use outlev
+
        parameter(mdim=1024) 
        parameter(lda = mdim+1) 
        complex*8  ca,cexp,clog,cabs 
@@ -2721,9 +2697,7 @@
 !      y(1..nfft/2) : output y-values                                   
 !      ai0 ........ : primary intensity varaible as assumed (i0)        
 ! ----------------------------------------------------------------------
-!                                                                       
-! ---- outputlevel                                                      
-       common/outlev/iout,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20),yyee 
+       use outlev 
 !                                                                       
 ! --- fft-dimensioning -------------------------------------------------
        parameter(mdim=1024) 
@@ -2871,10 +2845,7 @@
 !      y(1..nfft/2) : output y-values                                   
 !      ai0 ........ : primary intensity varaible as assumed (i0)        
 ! ----------------------------------------------------------------------
-!                                                                       
-! ---- outputlevel                                                      
-       common/outlev/iout,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20),yyee 
-!                                                                       
+       use outlev
 ! --- fft-dimensioning -------------------------------------------------
        parameter(mdim=1024) 
        dimension  ca(mdim)   ,cb(mdim) 
@@ -3482,6 +3453,7 @@
        use xoutxx
        use xroxxx
        use cdata
+       use outlev
        use constants
 !                                                                       
        character*8 thenam,thparn 
@@ -3502,9 +3474,6 @@
 !     qziel is the value at witch the spline should be evaluated        
 !     numspl numor of spline fitted data                                
 !     nwspl  length of splined data vectors                             
-!                                                                       
-! ---- outputlevel                                                      
-       common/outlev/iout,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20),yyee 
 !                                                                       
 ! ---- communication with subr. func ---                                
       logical sqwght,sqwbuf 
@@ -3795,6 +3764,7 @@
        use xoutxx
        use xroxxx
        use cdata
+       use outlev
        use constants 
 ! ---- common containing a selected list of spectra ----                
        common/selist/isels(mbuf),ifits(mbuf),nsel,numpls 
@@ -3807,9 +3777,6 @@
 !     qziel is the value at witch the spline should be evaluated        
 !     numspl numor of spline fitted data                                
 !     nwspl  length of splined data vectors                             
-!                                                                       
-! ---- outputlevel                                                      
-       common/outlev/iout,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20),yyee 
 !                                                                       
        common /thiadd/iadda 
                                                                         
