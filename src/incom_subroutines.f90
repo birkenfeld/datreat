@@ -716,11 +716,7 @@
        use cincoc
        use constants
        implicit real*8 (a-h,o-z) 
-!ray -------------------------------                                    
-!                                                                        
-! --- minc = incom stack depth                                          
-!                                                                       
-        
+
        character*8 pname, cdef 
 !-----------------------------------------------------------------------
 !                                                                       
@@ -2422,12 +2418,9 @@
       subroutine extract(nam,val,ier) 
 !     -------------------------------                                   
       use constants
+      use usevar
       character*1 nam(*) 
-      parameter (musevar=100) 
-      character*16 usenam 
-      real*8 val, useval 
-      common/usevar/useval(musevar),nousev 
-      common/usevac/usenam(musevar) 
+      real*8 val 
       common/imargs/iargvs,ipmlst(mdepth),kanal(0:mdepth),ktop 
                                                                         
       logical compare 
@@ -2455,12 +2448,10 @@
       subroutine setudf(nam,val,ier) 
 !     ------------------------------                                    
       use xoutxx
-      character*16 nam 
-      parameter (musevar=100) 
-      character*16 usenam 
-      real*8 val, useval 
-      common/usevar/useval(musevar),nousev 
-      common/usevac/usenam(musevar) 
+      use usevar
+      use constants
+      character*16 nam  
+      real*8 val
       logical compare 
                                                                         
       ier = 0 
@@ -2504,12 +2495,10 @@
 !*ed                                                                    
       subroutine clrudf(nam) 
 !     ----------------------                                            
+      use usevar
+      use constants
       character*16 nam 
-      parameter (musevar=100) 
-      character*16 usenam 
-      real*8 val, useval 
-      common/usevar/useval(musevar),nousev 
-      common/usevac/usenam(musevar) 
+      real*8 val 
       logical compare 
                                                                         
       if(nam(1:3).eq.'all') then 
@@ -2535,12 +2524,10 @@
 !*ed                                                                    
       subroutine shwudf 
 !     -----------------                                                 
+      use usevar
+      use constants
       character*16 nam 
-      parameter (musevar=100) 
-      character*16 usenam 
-      real*8 val, useval 
-      common/usevar/useval(musevar),nousev 
-      common/usevac/usenam(musevar) 
+      real*8 val 
       logical compare 
                                                                         
       if(nousev.eq.0) then 

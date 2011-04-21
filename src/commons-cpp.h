@@ -1,5 +1,6 @@
 #define __MINC 40
 #define __MDEPTH 20
+#define __MUSEVAR 100
 ! ---- communication common block containig the analysed inputline       
 !      comand   = actual command keyword                               
 !      vname(*) = names stack                                           
@@ -107,6 +108,15 @@
 		data xyorig/3*0.d0/, rotvec/3*0.d0/
         end module xroxxx 
 
+! usenum and usevar are now combined
+	module usevar
+		real*8 useval(__MUSEVAR)
+		integer nousev 
+		character*16 usenam(__MUSEVAR)
+	end module usevar
+
+
+
 ! --- minc = incom stack depth                                          
 	module constants
 		save
@@ -121,5 +131,6 @@
 		! ---  fit dimensions ---                                               
 		!  -- mfit = max no. of fitted parameters                               
 		!     msmpl= max no. of datapoints in fit                               
-       		integer, parameter:: mfit=40,msmpl=4000
+       		integer, parameter :: mfit=40,msmpl=4000
+		integer, parameter :: musevar=__MUSEVAR
 	end module constants
