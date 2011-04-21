@@ -15,6 +15,8 @@
        use icpathes
        use imargs
        use cmargs
+       use xoutxx
+       use xroxxx
        use constants 
 !      -----------------------                                          
 !      
@@ -35,17 +37,8 @@
        implicit real*8 (a-h,o-z) 
 !ray -------------------------------                                    
 !                                                                        
-! --- minc = incom stack depth                                          
-!                                                                       
-       
-                                                                        
-
-
 !                                                                       
 ! ---- outputlevel                                                      
-      logical cray 
-      common/xoutxx/iot,ioold,ibild,ierrr,inka, cray 
-      common/xroxxx/  xyorig(3), rotvec(3) 
 !                                                                       
 !                                                                       
        character*8   glabel,xlab,itypc,vnamef 

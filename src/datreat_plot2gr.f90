@@ -5,6 +5,8 @@
 !                                                                       
        use cincom
        use cincoc
+       use xoutxx
+       use xroxxx
        use constants
        parameter(mth=40,mtpar=40,mtcal=40) 
 !      parameter(mkurv=minc)                                            
@@ -34,11 +36,6 @@
 !                                                                       
 !                                                                       
        character*6 cnum 
-!                                                                       
-        
-      logical cray 
-      common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
-       common/xroxxx/  xyorig(3), rotvec(3) 
 !                                                                       
 !                                                                       
        common/outlev/iout,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20),yyee 
@@ -603,12 +600,10 @@
        use cincom
        use cincoc
        use constants
+       use xoutxx
+       use xroxxx
        parameter(mth=40,mtpar=40,mtcal=40) 
        parameter(mwert=1024,mbuf=200,mpar=200) 
-        
-      logical cray 
-      common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
-       common/xroxxx/  xyorig(3), rotvec(3) 
 !                                                                       
 !                                                                       
        character*80 name,xname,yname,napar,coment*80 
@@ -676,14 +671,10 @@
        subroutine preplo 
 !      ================= prepare plotting (plotmachine)                 
 !                                                                       
-! --- minc = incom stack depth                                          
-!                                                                       
        use cincom
        use cincoc
+       use xoutxx
        use constants
-        
-      logical cray 
-      common/xoutxx/iot,ioold,ibild,ierrr,inka, cray 
                                                                         
        logical ptex 
        logical paplo 

@@ -32,6 +32,8 @@ INCLUDE "commons.h"
   program datreat
       use cincom
       use cincoc
+      use xoutxx
+      use xroxxx
       use constants
       parameter(mwert=1024,mbuf=200,mpar=200) 
 ! --- mwert  = max. no. of x-y-values in one buffer                     
@@ -44,15 +46,7 @@ INCLUDE "commons.h"
 !  -- mfit = max no. of fitted parameters                               
 !     msmpl= max no. of datapoints in fit                               
 !                                                                       
-! --- incom common-section ---                                          
-       
        real*8 rparf, getval, valnxt, get1, get2, get3, dble
-       logical cray 
-       common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
-       real*8 xyorig, rotvec 
-       common/xroxxx/  xyorig(3), rotvec(3) 
-!                                                                       
-!                                                                       
 !                                                                       
        character*80 name,xname,yname,napar,coment*80 
        common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),yerror(mwert,mbuf),                                       &

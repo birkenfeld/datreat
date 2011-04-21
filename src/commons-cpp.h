@@ -87,7 +87,25 @@
 		data kanal/ 5,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58, 59/                    
        		data ktop /0/ 
 	end module imargs
+ 
+  
 
+       	module xoutxx
+		integer iot
+		integer ioold
+		integer ibild1
+		integer ierrr
+		integer inka1
+		logical cray 
+		data cray/.false./
+		data iot/0/, inka1/5/, ierrr/0/, ibild1/0/, ioold/0/
+	end module xoutxx
+	
+	module xroxxx
+		real*8 xyorig(3)
+		real*8 rotvec(3)
+		data xyorig/3*0.d0/, rotvec/3*0.d0/
+        end module xroxxx 
 
 ! --- minc = incom stack depth                                          
 	module constants

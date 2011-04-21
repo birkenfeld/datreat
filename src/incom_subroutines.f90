@@ -320,7 +320,7 @@
 !*ed                                                                    
       function iout() 
 !     ===============                                                   
-      common/xoutxx/iot,ioold,ibild,ierrr,inka, cray 
+       use xoutxx
          iout = iot 
       return 
       END                                           
@@ -329,7 +329,7 @@
 !*ed                                                                    
       function ierrs() 
 !     ===============                                                   
-      common/xoutxx/iot,ioold,ibild,ierrr,inka, cray 
+       use xoutxx
          ierrs = ierrr 
       return 
       END                                           
@@ -339,7 +339,7 @@
 !*ed                                                                    
       subroutine errsig(ierr,say) 
 !     ================================                                  
-      common/xoutxx/iot,ioold,ibild,ierrr,inka, cray 
+       use xoutxx
       character*128 say, sayit 
 ! ----------------------------------------------------------------------
 !  error signalisierung                                                 
@@ -356,7 +356,7 @@
 !*ed                                                                    
       subroutine clean 
 !     ================                                                  
-      common/xoutxx/iot,ioold,ibild,ierrr,inka, cray 
+       use xoutxx
           if(ierrr.ne.0) then 
             write(6,*)'error condition:',ierrr,' cleaned' 
             ierrr = 0 
@@ -378,10 +378,6 @@
 !ray -------------------------------                                    
        implicit real*8 (a-h,o-z) 
 !ray -------------------------------                                    
-!                                                                        
-! --- minc = incom stack depth                                          
-!                                                                       
-        
 !-----------------------------------------------------------------------
        character*8 pname 
 !-----------------------------------------------------------------------
@@ -1123,16 +1119,11 @@
 !ray -------------------------------                                    
        use cincom
        use cincoc
+       use xroxxx
        use constants
        implicit real*8 (a-h,o-z) 
-!ray -------------------------------                                    
-!                                                                        
-! --- minc = incom stack depth                                          
-!                                                                       
-       
-       character*16 pnamc
-       common/xroxxx/  xyorig(3), rotvec(3) 
 !-----------------------------------------------------------------------
+       character*16 pnamc
        character*8 pname 
        dimension defvec(3), vec(3) 
 !-----------------------------------------------------------------------
@@ -1200,14 +1191,10 @@
 !ray -------------------------------                                    
        use cincom
        use cincoc
+       use xroxxx
        use constants
        implicit real*8 (a-h,o-z) 
 !ray -------------------------------                                    
-!                                                                        
-! --- minc = incom stack depth                                          
-!                                                                       
-        
-       common/xroxxx/  xyorig(3), rotvec(3) 
 !-----------------------------------------------------------------------
        character*8 pname 
        character*8 napp, pnamc*16 
@@ -1649,31 +1636,6 @@
 !                                                                       
 !*ds                                                                    
 !*ed                                                                    
-       block data bdinco 
-!      =================                                                
-!                                                                       
-!ray -------------------------------                                    
-       use cincom
-       use cincoc
-       use constants
-       implicit real*8 (a-h,o-z) 
-!ray -------------------------------                                    
-!                                                                        
-! --- minc = incom stack depth                                          
-!                                                                       
-       logical cray 
-       common/xoutxx/iot,ioold,ibild,ierrr,inka, cray 
-                                                                        
-       common/xroxxx/  xyorig(3), rotvec(3) 
-                                                                        
-       data iot/0/, inka/5/, ierrr/0/, ibild/0/, ioold/0/ 
-       data cray/.false./ 
-       data xyorig/3*0.d0/, rotvec/3*0.d0/ 
-                                                                        
-      END                                           
-!*ds                                                                    
-!*ed                                                                    
-
       function laenge( string, maxlen, delim) 
 !     =======================================                           
 !     laenge von string, wobei das ende durch delim(1) gekennzeichnet is
@@ -2323,6 +2285,7 @@
        subroutine evaluate( f, val, ierr) 
 !      ----------------------------------                               
                                                                         
+       use xoutxx
        parameter(maxformlength=1024) 
        parameter(maxitemlength=80) 
        parameter(maxnumstack=50) 
@@ -2347,9 +2310,6 @@
        logical     ok, error, say 
        common/formnu/numstack,degree,  valnum,priostack,topnumstack,topopstack,tusrfstack,  klammerprio,actchar,len,litem,ok,error, say    
        common/formch/formula,item,delims,typ,opstack,usrfstack 
-                                                                        
-      logical cray 
-      common/xoutxx/iot,ioold,ibild,ierrr,inka, cray 
                                                                         
 ! --- internal use ---                                                  
        character*(maxitemlength+1) citem 
@@ -2495,14 +2455,13 @@
 !*ed                                                                    
       subroutine setudf(nam,val,ier) 
 !     ------------------------------                                    
+      use xoutxx
       character*16 nam 
       parameter (musevar=100) 
       character*16 usenam 
       real*8 val, useval 
       common/usevar/useval(musevar),nousev 
       common/usevac/usenam(musevar) 
-      logical cray 
-      common/xoutxx/iot,ioold,ibild,ierrr,inka, cray 
       logical compare 
                                                                         
       ier = 0 
@@ -2599,10 +2558,9 @@
 !*ed                                                                    
       subroutine adpicn 
 !     -----------------                                                 
-      logical cray 
-      common/xoutxx/iot,ioold,ibild,ierrr,inka, cray 
-                                                                        
-      ibild = ibild + 1 
+      use xoutxx
+
+      ibild1 = ibild1 + 1 
 !     -----------------                                                 
       return 
       END                                           

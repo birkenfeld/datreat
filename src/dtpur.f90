@@ -24,8 +24,10 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
                                                                         
        use cincom
        use cincoc
+       use xoutxx
+       use xroxxx
        use constants
-	parameter (mfit=40,msmpl=10000) 
+       parameter (mfit=40,msmpl=10000) 
        parameter(mwert=1024,mbuf=200,mpar=200) 
 !      parameter(mkurv=minc)                                            
 !  mfit = max-no. of fitvariables                                       
@@ -34,10 +36,6 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
        
 	character*8 ci 
 	real*8 getval 
-       
-      logical cray 
-      common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
-       common/xroxxx/  xyorig(3), rotvec(3) 
 !                                                                       
 !                                                                       
        character*8 thenam,thparn 

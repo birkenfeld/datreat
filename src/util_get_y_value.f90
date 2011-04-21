@@ -6,6 +6,11 @@
 !          used in backscattering background determination  
 !           	                                                            
 !       implicit none                 
+      use cincom
+      use cincoc
+      use xoutxx
+      use xroxxx
+      use constants
 	   real*4            :: getyval
 	   real*4            :: xvalue
 	   integer           :: specnum, i
@@ -20,20 +25,6 @@
 !  -- mfit = max no. of fitted parameters                               
 !     msmpl= max no. of datapoints in fit                               
 !                                                                       
-! --- incom common-section ---                                          
-       integer, parameter:: minc=40
-	   
-	   common/cincom/rpar(minc),inames,ipars                            &
-     &  ,ioldc,inpar(minc),iparn(minc),inapa(minc),iargs,ipmls,iolbuf   &
-     &  ,lstpar, lstnam                                                 
-       common/cincoc/comand,vname(minc),title,reslin,inline             &
-     &  ,arglst(minc),pmlist(minc,2),rlbuf                 
-       logical cray              
-       common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
-       common/xroxxx/  xyorig(3), rotvec(3) 
-!                                                                       
-!                                                                       
-!
        character(len=80) name,xname,yname,napar,coment*80        
        common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &
      &        yerror(mwert,mbuf),                                       &

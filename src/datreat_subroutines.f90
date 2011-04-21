@@ -247,6 +247,8 @@
 !                                                                       
        use cincom
        use cincoc
+       use xoutxx
+       use xroxxx
        use constants
        parameter (mfit=40,msmpl=4000) 
        parameter(mwert=1024,mbuf=200,mpar=200) 
@@ -266,9 +268,6 @@
      &        napar(mpar,mbuf),nopar(mbuf)                               
         
        real*8 getval, dble 
-       logical cray 
-      common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
-       common/xroxxx/  xyorig(3), rotvec(3) 
 !                                                                       
 !                                                                       
        common/selist/isels(mbuf),ifits(mbuf),nsel,numpls 
@@ -299,6 +298,8 @@
 !                                                                       
        use cincom
        use cincoc
+       use xoutxx
+       use xroxxx
        use constants
        parameter (mfit=40,msmpl=4000) 
        parameter(mwert=1024,mbuf=200,mpar=200) 
@@ -309,10 +310,6 @@
        character*8 ci  
           
        real*8 getval
-       logical cray 
-      common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
-       common/xroxxx/  xyorig(3), rotvec(3) 
-!                                                                       
 !                                                                       
        character*8 thenam,thparn 
        common/theory/thenam(mth),thparn(mtpar,mth),nthpar(mth),         &
@@ -853,6 +850,8 @@
 !                                                                       
        use cincom
        use cincoc
+       use xoutxx
+       use xroxxx
        use constants
        parameter (mfit=40,msmpl=4000) 
        parameter(mwert=1024,mbuf=200,mpar=200) 
@@ -870,10 +869,6 @@
      &        napar(mpar,mbuf),nopar(mbuf)                              
        
        real*8 getval, dble 
-
-      logical cray 
-      common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
-       common/xroxxx/  xyorig(3), rotvec(3) 
 !                                                                       
 !                                                                       
        common/selist/isels(mbuf),ifits(mbuf),nsel,numpls 
@@ -1283,13 +1278,12 @@
        use cincom
        use cincoc
        use constants
+       use xoutxx
+       use xroxxx
        parameter(mwert=1024,mbuf=200,mpar=200) 
        parameter(mth=40,mtpar=40,mtcal=40,mcoup=10) 
 !                                                                        
         
-      logical cray 
-      common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
-       common/xroxxx/  xyorig(3), rotvec(3) 
 !                                                                       
                                                                         
        character*1024 xformel,yformel,yfitform 
@@ -1658,15 +1652,14 @@
 !                                                                       
        use cincom
        use cincoc
+       use xoutxx
+       use xroxxx
        use constants
        parameter(mwert=1024,mbuf=200,mpar=200) 
        parameter(mth=40,mtpar=40,mtcal=40,mcoup=10) 
                                                                          
         
        character*8 combinam,cha*1  
-      logical cray 
-      common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
-       common/xroxxx/  xyorig(3), rotvec(3) 
 !                                                                       
                                                                         
        character*1024 xformel,yformel,yfitform 
@@ -1876,14 +1869,11 @@
        use cincoc
        use imargs
        use cmargs
+       use xoutxx
+       use xroxxx
        use constants
        parameter(mth=40,mtpar=40,mtcal=40) 
        parameter(mwert=1024,mbuf=200,mpar=200)  
-        
-      logical cray 
-      common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
-       common/xroxxx/  xyorig(3), rotvec(3) 
-!                                                                       
 !                                                                       
        character*80 name,xname,yname,napar,coment*80 
        common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &
@@ -2147,14 +2137,12 @@
 !                                                                       
        use cincom
        use cincoc
+       use xoutxx
+       use xroxxx
        use constants
        parameter(mth=40,mtpar=40,mtcal=40) 
        parameter(mwert=1024,mbuf=200,mpar=200)  
         
-      logical cray 
-      common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
-       common/xroxxx/  xyorig(3), rotvec(3) 
-!                                                                       
 !                                                                       
        character*80 name,xname,yname,napar,coment*80 
        common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &
@@ -2297,11 +2285,9 @@
 !                                                                        
        use cincom
        use cincoc
+       use xoutxx
+       use xroxxx
        use constants
-        
-      logical cray 
-      common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
-       common/xroxxx/  xyorig(3), rotvec(3) 
 !                                                                       
 !                                                                       
        common/outlev/iout,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20),yyee 
@@ -3159,6 +3145,8 @@
 !                                                                       
        use cincom
        use cincoc
+       use xoutxx
+       use xroxxx
        use constants
        parameter(mwert=1024,mbuf=200,mpar=200) 
 ! --- mwert  = max. no. of x-y-values in one buffer                     
@@ -3170,13 +3158,6 @@
        parameter (mfit=40,msmpl=4000) 
 !  -- mfit = max no. of fitted parameters                               
 !     msmpl= max no. of datapoints in fit                               
-!                                                                       
-! --- incom common-section ---                                           
-        
-      logical cray 
-      common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
-       common/xroxxx/  xyorig(3), rotvec(3) 
-!                                                                       
 !                                                                       
 !                                                                       
        character*80 name,xname,yname,napar,coment*80 
@@ -3605,6 +3586,8 @@
 !                                                                       
        use cincom
        use cincoc
+       use xoutxx
+       use xroxxx
        use constants
        parameter(mwert=1024,mbuf=200,mpar=200) 
 ! --- mwert  = max. no. of x-y-values in one buffer                     
@@ -3616,13 +3599,6 @@
        parameter (mfit=40,msmpl=4000) 
 !  -- mfit = max no. of fitted parameters                               
 !     msmpl= max no. of datapoints in fit                               
-!                                                                       
-! --- incom common-section ---                                           
-        
-      logical cray 
-      common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
-       common/xroxxx/  xyorig(3), rotvec(3) 
-!                                                                       
 !                                                                       
 !                                                                       
        character*80 name,xname,yname,napar,coment*80 
@@ -3686,11 +3662,11 @@
       subroutine usrfun(nam,x,nx,ier) 
 !     -------------------------------                                   
 !                                                                       
+       use xoutxx
+       use xroxxx
        parameter(mwert=1024,mbuf=200,mpar=200) 
        parameter(mth=40,mtpar=40,mtcal=40) 
        parameter (mfit=40,msmpl=4000) 
-       common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
-       common/xroxxx/  xyorig(3), rotvec(3) 
 !                                                                       
        character*80 name,xname,yname,napar,coment*80 
        common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &
@@ -4007,11 +3983,11 @@
 !*ed                                                                    
       subroutine usrextr(nam,val,ier) 
 !                                                                       
+       use xoutxx
+       use xroxxx
        parameter(mwert=1024,mbuf=200,mpar=200) 
        parameter(mth=40,mtpar=40,mtcal=40) 
        parameter (mfit=40,msmpl=4000) 
-       common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray 
-       common/xroxxx/  xyorig(3), rotvec(3) 
 !                                                                       
        character*80 name,xname,yname,napar,coment*80 
        common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &

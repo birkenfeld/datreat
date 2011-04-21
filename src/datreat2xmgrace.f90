@@ -1,6 +1,8 @@
 subroutine gplot ()
   use cincom
   use cincoc
+  use xoutxx
+  use xroxxx
   use constants
   !      ================  scan-plotting
   !
@@ -26,12 +28,6 @@ subroutine gplot ()
   common/therrc/therro(mtpar,mtcal)
   !
   character*6 cnum
-  !
-
-  
-  logical cray
-  common/xoutxx/iot,ioold,ibild1,ierrr,inka1, cray
-  common/xroxxx/  xyorig(3), rotvec(3)
   !
   !
   common/outlev/iout,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20)
