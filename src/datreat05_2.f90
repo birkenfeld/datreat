@@ -36,6 +36,7 @@ INCLUDE "commons.h"
       use xroxxx
       use cdata
       use outlev
+      use theory
       use constants
 
        real*8 rparf, getval, valnxt, get1, get2, get3, dble
@@ -49,21 +50,6 @@ INCLUDE "commons.h"
        common/fslist/isfits(mbuf),nfsel 
 !  isfits    = address (/spectr/) of selected fits                      
 !  nfsel     = length of this table                                     
-!                                                                       
-! ----- theories common block and definitions ----                      
-!                                                                       
-       character*8 thenam,thparn 
-       common/theory/thenam(mth),thparn(mtpar,mth),nthpar(mth),         &
-     &  thparx(mtpar,mtcal),thpsca(mtpar,mtcal),nthtab(mtcal),ntheos    &
-     & ,multflg(mtcal)                                                  
-!  thenam(i)  = name of i-th theory                                     
-!  thparn(j,i)= name of j-th parameter of i-th theory                   
-!  nthpar(i)  = no of parameters required for i-th theory               
-!  thparx(j,l)= parameters for the l-th activated theory                
-!  thpsca(j,l)= corresponding fit scales   "                            
-!  nthtab(l)  = no. of l-th activated theory                            
-!  ntheos     = total no. of activated theories                         
-!  multflg    = flag indicating a multiplicative theory                 
 !                                                                       
 ! ------ coupling of theory-parameters -----------------------          
         character*4 thpala, thpalc 

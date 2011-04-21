@@ -5,6 +5,7 @@
        subroutine lsearch( jpar, itcal, ierr) 
 !      ======================================                           
        use outlev
+       use theory
        use constants
 !                                                                       
 !  ---- search for a theory parameter specification by the commandline  
@@ -13,15 +14,6 @@
 !          itcal= theory adress                                         
 !          ierr = errorindicator ( 0=ok  1=not found)                   
 !                                                                       
-!                                                                        
-!                                                                       
-!                                                                       
-                                                                        
-       character*8 thenam,thparn 
-       common/theory/thenam(mth),thparn(mtpar,mth),nthpar(mth),         &
-     &  thparx(mtpar,mtcal),thpsca(mtpar,mtcal),nthtab(mtcal),ntheos    &
-     & ,multflg(mtcal)                                                  
-                                                                        
         character*4 thpala, thpalc 
         common /theorc/ thpala(mtpar,mtcal), thpalc( mcoup,mtpar,mtcal),&
      &        thpafc(mcoup,mtpar,mtcal), thpaco(mtpar,mtcal),           &
@@ -226,10 +218,9 @@
        use xroxxx
        use cdata
        use outlev
+       use theory
        use constants
-       character*8 dum 
-       character*8 thenam,thparn 
-       common/theory/thenam(mth),thparn(mtpar,mth),nthpar(mth),thparx(mtpar,mtcal),thpsca(mtpar,mtcal),nthtab(mtcal),ntheos ,multflg(mtcal)
+       character*8 dum  
        character*8 thrapar 
        real*4      thramin, thramax 
        common /thparc/ thrapar(mth),thramin(mth),thramax(mth) 
@@ -266,17 +257,13 @@
        use xroxxx
        use cdata
        use outlev
+       use theory
        use constants
 !      parameter(mkurv=minc)                                            
        character*8 ci  
           
        real*8 getval
 !                                                                       
-       character*8 thenam,thparn 
-       common/theory/thenam(mth),thparn(mtpar,mth),nthpar(mth),         &
-     &  thparx(mtpar,mtcal),thpsca(mtpar,mtcal),nthtab(mtcal),ntheos    &
-     & ,multflg(mtcal)                                                  
-                                                                        
        common/therrc/therro(mtpar,mtcal) 
 !                                                                       
        common/selist/isels(mbuf),ifits(mbuf),nsel,numpls 
@@ -665,12 +652,9 @@
 !                                                                       
        use cdata
        use outlev
+       use theory
        use constants
        character*8 dum 
-       character*8 thenam,thparn 
-       common/theory/thenam(mth),thparn(mtpar,mth),nthpar(mth),         &
-     &  thparx(mtpar,mtcal),thpsca(mtpar,mtcal),nthtab(mtcal),ntheos    &
-     & ,multflg(mtcal)                                                  
        logical sqwght,sqwbuf 
        logical autox1,autox2 
        common/cfunc/iprt,sqwght,x1,x2,autox1,autox2,ferror(msmpl) 
@@ -798,12 +782,9 @@
        use xroxxx
        use cdata
        use outlev
+       use theory
        use constants
        character*8 dum 
-       character*8 thenam,thparn 
-       common/theory/thenam(mth),thparn(mtpar,mth),nthpar(mth),         &
-     &  thparx(mtpar,mtcal),thpsca(mtpar,mtcal),nthtab(mtcal),ntheos    &
-     & ,multflg(mtcal)                                                  
        real*8 getval, dble 
 !                                                                       
 !                                                                       
@@ -1140,20 +1121,8 @@
 !                                                                       
 ! ----- get value of the parameter pname of the nothe-th theory -----   
 !                                                                       
+       use theory
        use constants
-! ----- theories common block and definitions ----                      
-!                                                                       
-       character*8 thenam,thparn 
-       common/theory/thenam(mth),thparn(mtpar,mth),nthpar(mth),         &
-     &  thparx(mtpar,mtcal),thpsca(mtpar,mtcal),nthtab(mtcal),ntheos    &
-     & ,multflg(mtcal)                                                  
-!  thenam(i)  = name of i-th theory                                     
-!  thparn(j,i)= name of j-th parameter of i-th theory                   
-!  nthpar(i)  = no of parameters required for i-th theory               
-!  thparx(j,l)= parameters for the l-th activated theory                
-!  thpsca(j,l)= corresponding fit scales   "                            
-!  nthtab(l)  = no. of l-th activated theory                            
-!  ntheos     = total no. of activated theoties                         
 !                                                                       
        character*8 pname 
 !                                                                       
@@ -1195,6 +1164,7 @@
        use xoutxx
        use xroxxx
        use outlev
+       use theory
        use constants
 !                                                                        
         
@@ -1203,11 +1173,6 @@
        character*1024 xformel,yformel,yfitform 
        common/formul/xformel,yformel,yfitform 
 !                                                                       
-       character*8 thenam,thparn 
-       common/theory/thenam(mth),thparn(mtpar,mth),nthpar(mth),         &
-     &  thparx(mtpar,mtcal),thpsca(mtpar,mtcal),nthtab(mtcal),ntheos    &
-     & ,multflg(mtcal)                                                  
-                                                                        
         character*4 thpala, thpalc 
         common /theorc/ thpala(mtpar,mtcal), thpalc( mcoup,mtpar,mtcal),&
      &        thpafc(mcoup,mtpar,mtcal), thpaco(mtpar,mtcal),           &
@@ -1567,6 +1532,7 @@
        use xoutxx
        use xroxxx
        use outlev
+       use theory
        use constants
                                                                          
         
@@ -1577,10 +1543,6 @@
        common/formul/xformel,yformel,yfitform 
 !                                                                       
        common/selist/isels(mbuf),ifits(mbuf),nsel,numpls 
-       character*8 thenam,thparn 
-       common/theory/thenam(mth),thparn(mtpar,mth),nthpar(mth),         &
-     &  thparx(mtpar,mtcal),thpsca(mtpar,mtcal),nthtab(mtcal),ntheos    &
-     & ,multflg(mtcal)                                                  
                                                                         
         character*4 thpala, thpalc 
         common /theorc/ thpala(mtpar,mtcal), thpalc( mcoup,mtpar,mtcal),&
@@ -1656,17 +1618,11 @@
 !      character varaibles are printed!                                 
 ! ----------------------------------------------------------------------
 !                                                                       
-              use constants 
+       use constants 
 !                                                                       
 ! ---- dervived auxiliary parameters only for block data ----           
        parameter(l1=mtpar*mtcal, l2=mcoup*mtpar*mtcal) 
-       parameter(l3=mth*mtpar) 
                                                                         
-       character*8 thenam,thparn 
-       common/theory/thenam(mth),thparn(mtpar,mth),nthpar(mth),         &
-     &  thparx(mtpar,mtcal),thpsca(mtpar,mtcal),nthtab(mtcal),ntheos    &
-     & ,multflg(mtcal)                                                  
-!                                                                       
         character*4 thpala, thpalc 
         common /theorc/ thpala(mtpar,mtcal), thpalc( mcoup,mtpar,mtcal),&
      &        thpafc(mcoup,mtpar,mtcal), thpaco(mtpar,mtcal),           &
@@ -1675,7 +1631,7 @@
 !                                                                       
 ! --- set the relevant character-varaibles ---                          
        data thpala/l1*'    '/,thpalc/l2*'    '/ 
-       data thparn/l3*'        '/ 
+
       END                                           
 !                                                                       
 !                                                                       
@@ -1703,13 +1659,10 @@
 !                                                                       
 !                                                                       
        use outlev
+       use theory
        use constants 
 !                                                                       
-       character*8 thenam,thparn,thenax,thpanx(mtpar) 
-       common/theory/thenam(mth),thparn(mtpar,mth),nthpar(mth),         &
-     &  thparx(mtpar,mtcal),thpsca(mtpar,mtcal),nthtab(mtcal),ntheos    &
-     & ,multflg(mtcal)                                                  
-!                                                                       
+       character*8 thenax,thpanx(mtpar) 
         character*4 thpala, thpalc 
         common /theorc/ thpala(mtpar,mtcal), thpalc( mcoup,mtpar,mtcal),&
      &        thpafc(mcoup,mtpar,mtcal), thpaco(mtpar,mtcal),           &
@@ -3454,12 +3407,9 @@
        use xroxxx
        use cdata
        use outlev
+       use theory
        use constants
 !                                                                       
-       character*8 thenam,thparn 
-       common/theory/thenam(mth),thparn(mtpar,mth),nthpar(mth),         &
-     &  thparx(mtpar,mtcal),thpsca(mtpar,mtcal),nthtab(mtcal),ntheos    &
-     & ,multflg(mtcal)                                                  
 ! ------ errors of fit --------------------------------------------     
        common/therrc/therro(mtpar,mtcal) 
                                                                         

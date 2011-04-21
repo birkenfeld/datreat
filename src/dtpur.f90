@@ -28,17 +28,13 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
        use xroxxx
        use cdata
        use outlev
+       use theory
        use constants
        
 	character*8 ci 
 	real*8 getval 
 !                                                                       
 !                                                                       
-       character*8 thenam,thparn 
-       common/theory/thenam(mth),thparn(mtpar,mth),nthpar(mth),         &
-     &  thparx(mtpar,mtcal),thpsca(mtpar,mtcal),nthtab(mtcal),ntheos    &
-     & ,multflg(mtcal)                                                  
-                                                                        
        common/therrc/therro(mtpar,mtcal) 
 !                                                                       
 

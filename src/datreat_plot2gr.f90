@@ -9,15 +9,12 @@
        use xroxxx
        use cdata
        use outlev
+       use theory
        use constants
 !                                                                       
        common/selist/isels(mbuf),ifits(mbuf),nsel,numpls 
        common/fslist/isfits(mbuf),nfsel 
 !                                                                       
-       character*8 thenam,thparn 
-       common/theory/thenam(mth),thparn(mtpar,mth),nthpar(mth),         &
-     &  thparx(mtpar,mtcal),thpsca(mtpar,mtcal),nthtab(mtcal),ntheos    &
-     & ,multflg(mtcal)                                                  
        common/therrc/therro(mtpar,mtcal) 
        character*8 thrapar 
        real*4      thramin, thramax 

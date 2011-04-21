@@ -4,6 +4,10 @@
 #define __MBUF 200
 #define __MWERT 1024
 #define __MPAR 200
+#define __MTH 40
+#define __MTPAR 40
+#define __MTCAL 40
+
 ! ---- communication common block containig the analysed inputline       
 !      comand   = actual command keyword                               
 !      vname(*) = names stack                                           
@@ -167,6 +171,30 @@
 		real ptxf(20)
 		real yyee 
 	end module outlev
+! ----- theories common block and definitions ----                      
+!                                                                       
+!  thenam(i)  = name of i-th theory                                     
+!  thparn(j,i)= name of j-th parameter of i-th theory                   
+!  nthpar(i)  = no of parameters required for i-th theory               
+!  thparx(j,l)= parameters for the l-th activated theory                
+!  thpsca(j,l)= corresponding fit scales   "                            
+!  nthtab(l)  = no. of l-th activated theory                            
+!  ntheos     = total no. of activated theories                         
+!  multflg    = flag indicating a multiplicative theory                 
+!                                                                       
+
+	module theory
+		character*8 thenam(__MTH)
+		character*8 thparn(__MTPAR,__MTH)
+		integer nthpar(__MTH)
+		real thparx(__MTPAR,__MTCAL)
+		real thpsca(__MTPAR,__MTCAL)
+		integer nthtab(__MTCAL)
+		integer ntheos
+		integer multflg(__MTCAL)
+	        integer, parameter :: l3=__MTH*__MTPAR
+                data thparn/l3*'        '/
+	end module theory
 
 	module constants
 		save
@@ -178,7 +206,7 @@
 		!     mbuf   = max. no. of different buffers                            
 		!     mpar   = max. no. of parameters associated with one buffer        
 		! ---  maximum scan length ....                                         
-       		integer, parameter:: mth=40, mtpar=40,mtcal=40,mcoup=10
+       		integer, parameter:: mth=__MTH, mtpar=__MTPAR,mtcal=__MTCAL,mcoup=10
 		! ---  fit dimensions ---                                               
 		!  -- mfit = max no. of fitted parameters                               
 		!     msmpl= max no. of datapoints in fit                               
