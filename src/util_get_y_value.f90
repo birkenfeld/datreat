@@ -14,17 +14,6 @@
 	   real*4            :: getyval
 	   real*4            :: xvalue
 	   integer           :: specnum, i
-	   integer, parameter:: mwert=1024, mbuf=200, mpar=200
-! --- mwert  = max. no. of x-y-values in one buffer                     
-!     mbuf   = max. no. of different buffers                            
-!     mpar   = max. no. of parameters associated with one buffer        
-! ---  maximum scan length ....                                         
-	   integer, parameter:: mth=40, mtpar=40,mtcal=40,mcoup=10
-! ---  fit dimensions ---                                               
-	   integer, parameter:: mfit=40,msmpl=4000
-!  -- mfit = max no. of fitted parameters                               
-!     msmpl= max no. of datapoints in fit                               
-!                                                                       
        character(len=80) name,xname,yname,napar,coment*80        
        common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &
      &        yerror(mwert,mbuf),                                       &

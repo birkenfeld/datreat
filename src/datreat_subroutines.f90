@@ -4,6 +4,7 @@
 !*ed                                                                    
        subroutine lsearch( jpar, itcal, ierr) 
 !      ======================================                           
+	use constants
 !                                                                       
 !  ---- search for a theory parameter specification by the commandline  
 !       cmd  theoryname <n-th occ> parametername                        
@@ -11,8 +12,7 @@
 !          itcal= theory adress                                         
 !          ierr = errorindicator ( 0=ok  1=not found)                   
 !                                                                       
-!                                                                       
-       parameter(mth=40,mtpar=40,mtcal=40,mcoup=10) 
+!                                                                        
 !                                                                       
 !                                                                       
                                                                         
@@ -91,13 +91,9 @@
 !                                                                       
 ! ----- search for the scans to be selected -----                        
 
-       use constants
-       parameter(mth=40,mtpar=40,mtcal=40) 
+       use constants 
 !      parameter(mkurv=minc)                                            
 !                ---------> max. no of curves to be selected            
-! ---  maximum scan length                                              
-!                                                                       
-       parameter(mwert=1024,mbuf=200,mpar=200) 
 ! ---- common containing all the scans ----                             
        character*80 name,xname,yname,napar,coment*80 
        common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &
@@ -171,12 +167,10 @@
 !            routine searches for -num !!                               
 !                                                                       
        use constants 
-       parameter(mth=40,mtpar=40,mtcal=40) 
 !      parameter(mkurv=minc)                                            
 !                ---------> max. no of curves to be selected            
 ! ---  maximum scan length                                              
 !                                                                       
-       parameter(mwert=1024,mbuf=200,mpar=200) 
 ! ---- common containing all the scans ----                             
        character*80 name,xname,yname,napar,coment*80 
        common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &
@@ -250,9 +244,6 @@
        use xoutxx
        use xroxxx
        use constants
-       parameter (mfit=40,msmpl=4000) 
-       parameter(mwert=1024,mbuf=200,mpar=200) 
-       parameter(mth=40,mtpar=40,mtcal=40) 
        character*8 dum 
        character*8 thenam,thparn 
        common/theory/thenam(mth),thparn(mtpar,mth),nthpar(mth),thparx(mtpar,mtcal),thpsca(mtpar,mtcal),nthtab(mtcal),ntheos ,multflg(mtcal)
@@ -301,12 +292,7 @@
        use xoutxx
        use xroxxx
        use constants
-       parameter (mfit=40,msmpl=4000) 
-       parameter(mwert=1024,mbuf=200,mpar=200) 
 !      parameter(mkurv=minc)                                            
-!  mfit = max-no. of fitvariables                                       
-!  msmpl= max-no. of data points where a comparison is made             
-       parameter(mth=40,mtpar=40,mtcal=40) 
        character*8 ci  
           
        real*8 getval
@@ -711,9 +697,7 @@
 !                                                                       
 ! ----- calculates deviation data theory for zxssq ----                 
 !                                                                       
-       parameter (mfit=40,msmpl=4000) 
-       parameter(mwert=1024,mbuf=200,mpar=200) 
-       parameter(mth=40,mtpar=40,mtcal=40) 
+       use constants       
        character*8 dum 
        character*8 thenam,thparn 
        common/theory/thenam(mth),thparn(mtpar,mth),nthpar(mth),         &
@@ -853,9 +837,6 @@
        use xoutxx
        use xroxxx
        use constants
-       parameter (mfit=40,msmpl=4000) 
-       parameter(mwert=1024,mbuf=200,mpar=200) 
-       parameter(mth=40,mtpar=40,mtcal=40) 
        character*8 dum 
        character*8 thenam,thparn 
        common/theory/thenam(mth),thparn(mtpar,mth),nthpar(mth),         &
@@ -1104,8 +1085,7 @@
 !                                                                       
 ! ---- this routine changes or adds a parameter ----                    
 !                                                                       
-       parameter(mwert=1024,mbuf=200,mpar=200) 
-       parameter(mth=40,mtpar=40,mtcal=40) 
+       use constants
        character*80 name,xname,yname,napar,coment*80 
        common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &
      &        yerror(mwert,mbuf),                                       &
@@ -1145,8 +1125,7 @@
 !                                                                       
 ! ---- this routine gets the value of a parameter ----                  
 !                                                                       
-       parameter(mwert=1024,mbuf=200,mpar=200) 
-       parameter(mth=40,mtpar=40,mtcal=40) 
+       use constants
        character*80 name,xname,yname,napar,coment*80 
        common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),yerror(mwert,mbuf),                                       &
      &        xname(mbuf),yname(mbuf),name(mbuf),nwert(mbuf),           &
@@ -1186,8 +1165,7 @@
 ! ---- this routine gets the value of a parameter ----                  
 !      besser gekapselte Routine zur Kommunikation mit th-Routinen      
 !                                                                       
-       parameter(mwert=1024,mbuf=200,mpar=200) 
-       parameter(mth=40,mtpar=40,mtcal=40) 
+       use constants
        character*80 name,xname,yname,napar,coment*80 
        common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &
      &        yerror(mwert,mbuf),                                       &
@@ -1225,7 +1203,7 @@
 !                                                                       
 ! ----- get value of the parameter pname of the nothe-th theory -----   
 !                                                                       
-       parameter(mth=40,mtpar=40,mtcal=40) 
+       use constants
 ! ----- theories common block and definitions ----                      
 !                                                                       
        character*8 thenam,thparn 
@@ -1280,8 +1258,6 @@
        use constants
        use xoutxx
        use xroxxx
-       parameter(mwert=1024,mbuf=200,mpar=200) 
-       parameter(mth=40,mtpar=40,mtcal=40,mcoup=10) 
 !                                                                        
         
 !                                                                       
@@ -1655,8 +1631,6 @@
        use xoutxx
        use xroxxx
        use constants
-       parameter(mwert=1024,mbuf=200,mpar=200) 
-       parameter(mth=40,mtpar=40,mtcal=40,mcoup=10) 
                                                                          
         
        character*8 combinam,cha*1  
@@ -1749,7 +1723,7 @@
 !      character varaibles are printed!                                 
 ! ----------------------------------------------------------------------
 !                                                                       
-       parameter(mth=40,mtpar=40,mtcal=40,mcoup=10) 
+              use constants 
 !                                                                       
 ! ---- dervived auxiliary parameters only for block data ----           
        parameter(l1=mtpar*mtcal, l2=mcoup*mtpar*mtcal) 
@@ -1795,7 +1769,7 @@
 ! ----------------------------------------------------------------------
 !                                                                       
 !                                                                       
-       parameter(mth=40,mtpar=40,mtcal=40,mcoup=10) 
+       use constants 
 !                                                                       
        character*8 thenam,thparn,thenax,thpanx(mtpar) 
        common/theory/thenam(mth),thparn(mtpar,mth),nthpar(mth),         &
@@ -1872,8 +1846,6 @@
        use xoutxx
        use xroxxx
        use constants
-       parameter(mth=40,mtpar=40,mtcal=40) 
-       parameter(mwert=1024,mbuf=200,mpar=200)  
 !                                                                       
        character*80 name,xname,yname,napar,coment*80 
        common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &
@@ -2140,9 +2112,6 @@
        use xoutxx
        use xroxxx
        use constants
-       parameter(mth=40,mtpar=40,mtcal=40) 
-       parameter(mwert=1024,mbuf=200,mpar=200)  
-        
 !                                                                       
        character*80 name,xname,yname,napar,coment*80 
        common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &
@@ -2343,7 +2312,7 @@
 !     value                                                             
 !     n is the total number of valid points                             
 !                                                                       
-       parameter(mwert=1024,mbuf=200,mpar=200) 
+       use constants 
 !                                                                       
        dimension y(mwert),y2(mwert) 
 !                                                                       
@@ -2375,7 +2344,7 @@
 ! ---- determine the xk0 - value with the minimum error to miirorsymm.  
 !      for the description of parameters see function smirro            
 !                                                                       
-       parameter(mwert=1024,mbuf=200,mpar=200) 
+       use constants 
        dimension y(mwert),y2(mwert) 
 !                                                                       
 !                                                                       
@@ -2408,7 +2377,7 @@
 ! ---- determine the xk0 - value with the minimum error to miirorsymm.  
 !      for the description of parameters see function smirro            
 !                                                                       
-       parameter(mwert=1024,mbuf=200,mpar=200) 
+       use constants 
        dimension y(mwert),y2(mwert) 
 !                                                                       
         f0 = smirro(y,y2,xk0,k1,k2,n) 
@@ -2437,7 +2406,7 @@
 !      ========================                                         
 ! --- copies all accompanying infos from data slot ia to slot ib        
 !                                                                       
-       parameter(mwert=1024,mbuf=200,mpar=200) 
+       use constants 
        character*80 name,xname,yname,napar,coment*80 
        common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &
      &        yerror(mwert,mbuf),                                       &
@@ -2466,7 +2435,7 @@
 !      ========================                                         
 ! ---- copy the contens of data slot ia into slot ib -----              
 !                                                                       
-       parameter(mwert=1024,mbuf=200,mpar=200) 
+       use constants 
        character*80 name,xname,yname,napar,coment*80 
        common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &
      &        yerror(mwert,mbuf),                                       &
@@ -2502,7 +2471,7 @@
 !      =============================                                    
 ! -- save data on adress ispc onto a file named file fname a --         
 !                                                                       
-       parameter(mwert=1024,mbuf=200,mpar=200) 
+       use constants 
        character*80 name,xname,yname,napar,coment*80 
        common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &
      &        yerror(mwert,mbuf),                                       &
@@ -2556,7 +2525,7 @@
 !      =========================                                        
 ! -- MULTI save data on adress ispc onto a file named file fname a --   
 !                                                                       
-       parameter(mwert=1024,mbuf=200,mpar=200) 
+       use constants 
        character*80 name,xname,yname,napar,coment*80 
        common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &
      &        yerror(mwert,mbuf),                                       &
@@ -2623,7 +2592,7 @@
 !      ==================                                               
 ! --- spline interpolated data evaluation ---                           
 !     spline coefficients are taken from the last call of spline        
-       parameter(mwert=1024,mbuf=200,mpar=200) 
+       use constants 
        common/cfc/qziel,cscoef(4,mwert),break(mwert),weight(mwert),     &
      &            numspl,nwspl                                          
        common/outlev/iout,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20),yyee 
@@ -2655,7 +2624,7 @@
        function fdes(x) 
 !      ================                                                 
 ! --- integrand for desmearing ---                                      
-       parameter(mwert=1024,mbuf=200,mpar=200) 
+       use constants 
        common/cfc/qziel,cscoef(4,mwert),break(mwert),weight(mwert),     &
      &            numspl,nwspl                                          
        common/outlev/iout,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20),yyee 
@@ -3147,17 +3116,7 @@
        use cincoc
        use xoutxx
        use xroxxx
-       use constants
-       parameter(mwert=1024,mbuf=200,mpar=200) 
-! --- mwert  = max. no. of x-y-values in one buffer                     
-!     mbuf   = max. no. of different buffers                            
-!     mpar   = max. no. of parameters associated with one buffer        
-! ---  maximum scan length ....                                         
-       parameter(mth=40,mtpar=40,mtcal=40) 
-! ---  fit dimensions ---                                               
-       parameter (mfit=40,msmpl=4000) 
-!  -- mfit = max no. of fitted parameters                               
-!     msmpl= max no. of datapoints in fit                               
+       use constants 
 !                                                                       
 !                                                                       
        character*80 name,xname,yname,napar,coment*80 
@@ -3589,16 +3548,6 @@
        use xoutxx
        use xroxxx
        use constants
-       parameter(mwert=1024,mbuf=200,mpar=200) 
-! --- mwert  = max. no. of x-y-values in one buffer                     
-!     mbuf   = max. no. of different buffers                            
-!     mpar   = max. no. of parameters associated with one buffer        
-! ---  maximum scan length ....                                         
-       parameter(mth=40,mtpar=40,mtcal=40) 
-! ---  fit dimensions ---                                               
-       parameter (mfit=40,msmpl=4000) 
-!  -- mfit = max no. of fitted parameters                               
-!     msmpl= max no. of datapoints in fit                               
 !                                                                       
 !                                                                       
        character*80 name,xname,yname,napar,coment*80 
@@ -3664,9 +3613,7 @@
 !                                                                       
        use xoutxx
        use xroxxx
-       parameter(mwert=1024,mbuf=200,mpar=200) 
-       parameter(mth=40,mtpar=40,mtcal=40) 
-       parameter (mfit=40,msmpl=4000) 
+       use constants
 !                                                                       
        character*80 name,xname,yname,napar,coment*80 
        common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &
@@ -3985,9 +3932,7 @@
 !                                                                       
        use xoutxx
        use xroxxx
-       parameter(mwert=1024,mbuf=200,mpar=200) 
-       parameter(mth=40,mtpar=40,mtcal=40) 
-       parameter (mfit=40,msmpl=4000) 
+       use constants 
 !                                                                       
        character*80 name,xname,yname,napar,coment*80 
        common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &

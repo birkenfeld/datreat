@@ -8,12 +8,6 @@
        use xoutxx
        use xroxxx
        use constants
-       parameter(mth=40,mtpar=40,mtcal=40) 
-!      parameter(mkurv=minc)                                            
-!                ---------> max. no of curves to be plotted             
-! ---  maximum scan length                                              
-!                                                                       
-       parameter(mwert=1024,mbuf=200,mpar=200) 
 ! ---- common containing all the scans ----                             
        character*80 name,xname,yname,napar,coment*80 
        common/cdata/ xwerte(mwert,mbuf),ywerte(mwert,mbuf),             &
@@ -602,8 +596,6 @@
        use constants
        use xoutxx
        use xroxxx
-       parameter(mth=40,mtpar=40,mtcal=40) 
-       parameter(mwert=1024,mbuf=200,mpar=200) 
 !                                                                       
 !                                                                       
        character*80 name,xname,yname,napar,coment*80 

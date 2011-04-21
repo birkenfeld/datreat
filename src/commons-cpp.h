@@ -109,6 +109,17 @@
 
 ! --- minc = incom stack depth                                          
 	module constants
+		save
 		integer, parameter :: minc=__MINC
       		integer, parameter :: mdepth=__MDEPTH
+	        integer, parameter :: mwert=1024, mbuf=200, mpar=200
+		! --- mwert  = max. no. of x-y-values in one buffer                     
+		!     mbuf   = max. no. of different buffers                            
+		!     mpar   = max. no. of parameters associated with one buffer        
+		! ---  maximum scan length ....                                         
+       		integer, parameter:: mth=40, mtpar=40,mtcal=40,mcoup=10
+		! ---  fit dimensions ---                                               
+		!  -- mfit = max no. of fitted parameters                               
+		!     msmpl= max no. of datapoints in fit                               
+       		integer, parameter:: mfit=40,msmpl=4000
 	end module constants

@@ -2421,14 +2421,13 @@
 !*ed                                                                    
       subroutine extract(nam,val,ier) 
 !     -------------------------------                                   
+      use constants
       character*1 nam(*) 
       parameter (musevar=100) 
       character*16 usenam 
       real*8 val, useval 
       common/usevar/useval(musevar),nousev 
       common/usevac/usenam(musevar) 
-                                                                        
-      parameter(mdepth=20) 
       common/imargs/iargvs,ipmlst(mdepth),kanal(0:mdepth),ktop 
                                                                         
       logical compare 

@@ -35,17 +35,7 @@ INCLUDE "commons.h"
       use xoutxx
       use xroxxx
       use constants
-      parameter(mwert=1024,mbuf=200,mpar=200) 
-! --- mwert  = max. no. of x-y-values in one buffer                     
-!     mbuf   = max. no. of different buffers                            
-!     mpar   = max. no. of parameters associated with one buffer        
-! ---  maximum scan length ....                                         
-       parameter(mth=40,mtpar=40,mtcal=40,mcoup=10) 
-! ---  fit dimensions ---                                               
-       parameter (mfit=40,msmpl=4000) 
-!  -- mfit = max no. of fitted parameters                               
-!     msmpl= max no. of datapoints in fit                               
-!                                                                       
+
        real*8 rparf, getval, valnxt, get1, get2, get3, dble
 !                                                                       
        character*80 name,xname,yname,napar,coment*80 

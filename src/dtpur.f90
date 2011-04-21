@@ -27,12 +27,6 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
        use xoutxx
        use xroxxx
        use constants
-       parameter (mfit=40,msmpl=10000) 
-       parameter(mwert=1024,mbuf=200,mpar=200) 
-!      parameter(mkurv=minc)                                            
-!  mfit = max-no. of fitvariables                                       
-!  msmpl= max-no. of data points where a comparison is made             
-       parameter(mth=40,mtpar=40,mtcal=40) 
        
 	character*8 ci 
 	real*8 getval 
