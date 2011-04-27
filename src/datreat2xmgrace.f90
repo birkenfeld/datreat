@@ -8,11 +8,9 @@ subroutine gplot ()
   use theory
   use selist
   use fslist
+  use therrc
   use constants
   !      ================  scan-plotting
-  !
-  common/therrc/therro(mtpar,mtcal)
-  !
   character*6 cnum
   !
   dimension x(mwert),y(mwert),yl(mwert),yh(mwert),irecv(minc),isymb(minc),irecn(minc),icolo(minc),ifrec(minc)

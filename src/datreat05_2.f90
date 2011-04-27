@@ -39,33 +39,13 @@ INCLUDE "commons.h"
       use theory
       use selist
       use fslist
+      use theorc
+      use therrc
+      use thparc
       use constants
 
        real*8 rparf, getval, valnxt, get1, get2, get3, dble
 
-! ------ coupling of theory-parameters -----------------------          
-        character*4 thpala, thpalc 
-        common /theorc/ thpala(mtpar,mtcal), thpalc( mcoup,mtpar,mtcal),&
-     &        thpafc(mcoup,mtpar,mtcal), thpaco(mtpar,mtcal),           &
-     &        ncoup(mtpar,mtcal)                                        
-!  --- thpala(i,j) ... label of i-th parameter , j-th theory            
-!      thpalc(l,i,j) . labels (l) that point to parameters that are     
-!                      coupleded to the i-th parameter of the j-th theo.
-!      thpafc(l,i,j) . associated proportionality factor                
-!      thpaco(i,j) ... offset value for a parameter that is derived by  
-!                      couplede other parameters                        
-!      ncoup(i,j) .... number of parameters that are coupled to i,j-par.
-!                                                                       
-! ------ errors of fit --------------------------------------------     
-       common/therrc/therro(mtpar,mtcal) 
-!      ------ estimates of 1 sigma errros -----------------------       
-!                                                                       
-! range definition of theories (only to be evaluated if parameter thrap
-!                               given range)                            
-       character*8 thrapar 
-       real*4      thramin, thramax 
-       common /thparc/ thrapar(mth),thramin(mth),thramax(mth) 
-!                                                                       
 !                                                                       
                                                                         
        common/cfc/qziel,cscoef(4,mwert),break(mwert),weight(mwert),     &

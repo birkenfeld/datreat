@@ -12,13 +12,9 @@
        use theory
        use selist
        use fslist
+       use therrc
+       use thparc
        use constants
-!                                                                       
-       common/therrc/therro(mtpar,mtcal) 
-       character*8 thrapar 
-       real*4      thramin, thramax 
-       common /thparc/ thrapar(mth),thramin(mth),thramax(mth) 
-!                                                                       
 !                                                                       
        character*6 cnum 
        dimension x(mwert),y(mwert),yl(mwert),yh(mwert),irecv(minc),     &

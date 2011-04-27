@@ -30,13 +30,11 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
        use outlev
        use theory
        use selist
+       use therrc
        use constants
-       
+
 	character*8 ci 
 	real*8 getval 
-!                                                                       
-!                                                                       
-       common/therrc/therro(mtpar,mtcal) 
 !                                                                       
       dimension iparam(6),rparam(7),x(mfit),f(msmpl),xjac(msmpl,mfit),  &
      &          xguess(mfit),xscale(mfit),fscale(msmpl)                 

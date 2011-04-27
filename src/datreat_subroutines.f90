@@ -6,6 +6,7 @@
 !      ======================================                           
        use outlev
        use theory
+       use theorc
        use constants
 !                                                                       
 !  ---- search for a theory parameter specification by the commandline  
@@ -14,11 +15,6 @@
 !          itcal= theory adress                                         
 !          ierr = errorindicator ( 0=ok  1=not found)                   
 !                                                                       
-        character*4 thpala, thpalc 
-        common /theorc/ thpala(mtpar,mtcal), thpalc( mcoup,mtpar,mtcal),&
-     &        thpafc(mcoup,mtpar,mtcal), thpaco(mtpar,mtcal),           &
-     &        ncoup(mtpar,mtcal)                                        
-                                                                        
        character*8      vnameF 
        double precision rparF 
        integer          inpaF 
@@ -215,12 +211,10 @@
        use outlev
        use theory
        use selist
+       use thparc
        use constants
+
        character*8 dum  
-       character*8 thrapar 
-       real*4      thramin, thramax 
-       common /thparc/ thrapar(mth),thramin(mth),thramax(mth) 
-                                                                        
        real*8 getval, dble 
 
        logical autox1,autox2 
@@ -253,15 +247,11 @@
        use outlev
        use theory
        use selist
+       use therrc
        use constants
-!      parameter(mkurv=minc)                                            
+
        character*8 ci  
-          
        real*8 getval
-!                                                                       
-       common/therrc/therro(mtpar,mtcal) 
- 
-!                                                                       
       dimension iparam(6),rparam(7),x(mfit),f(msmpl),xjac(msmpl,mfit),  &
      &          xguess(mfit),xscale(mfit),fscale(msmpl)                 
       dimension numv(minc),numn(minc) 
@@ -1155,24 +1145,13 @@
        use xroxxx
        use outlev
        use theory
+       use theorc
+       use therrc
+       use thparc
        use constants
-!                                                                        
-        
 !                                                                       
-                                                                        
        character*1024 xformel,yformel,yfitform 
        common/formul/xformel,yformel,yfitform 
-!                                                                       
-        character*4 thpala, thpalc 
-        common /theorc/ thpala(mtpar,mtcal), thpalc( mcoup,mtpar,mtcal),&
-     &        thpafc(mcoup,mtpar,mtcal), thpaco(mtpar,mtcal),           &
-     &        ncoup(mtpar,mtcal)                                        
-                                                                        
-       common/therrc/therro(mtpar,mtcal) 
-                                                                        
-       character*8 thrapar 
-       real*4      thramin, thramax 
-       common /thparc/ thrapar(mth),thramin(mth),thramax(mth) 
 !                                                                       
        character*1024  rlibuf 
        integer       iocbuf 
@@ -1524,6 +1503,9 @@
        use outlev
        use theory
        use selist
+       use theorc
+       use therrc
+       use thparc
        use constants
                                                                          
         
@@ -1531,17 +1513,6 @@
 !                                                                       
        character*1024 xformel,yformel,yfitform 
        common/formul/xformel,yformel,yfitform  
-                                                                        
-        character*4 thpala, thpalc 
-        common /theorc/ thpala(mtpar,mtcal), thpalc( mcoup,mtpar,mtcal),&
-     &        thpafc(mcoup,mtpar,mtcal), thpaco(mtpar,mtcal),           &
-     &        ncoup(mtpar,mtcal)                                        
-                                                                        
-       common/therrc/therro(mtpar,mtcal) 
-                                                                        
-       character*8 thrapar 
-       real*4      thramin, thramax 
-       common /thparc/ thrapar(mth),thramin(mth),thramax(mth) 
                                                                         
        character*30 buf1 
        character*60 buf2 
@@ -1594,38 +1565,7 @@
                                                                         
        return 
       END                                           
-                                                                        
-!                                                                       
-       block data bcoup 
-!      ==========                                                       
-! ----------------------------------------------------------------------
-! ---- this blockdata is used to replace the standard filling of        
-!      character variables with nulls ! by blanks !                     
-!      this is importatnt for the incom parser, which is only sensitiv  
-!      to blanks, whereas nulls are written and read if default         
-!      character varaibles are printed!                                 
-! ----------------------------------------------------------------------
-!                                                                       
-       use constants 
-!                                                                       
-! ---- dervived auxiliary parameters only for block data ----           
-       parameter(l1=mtpar*mtcal, l2=mcoup*mtpar*mtcal) 
-                                                                        
-        character*4 thpala, thpalc 
-        common /theorc/ thpala(mtpar,mtcal), thpalc( mcoup,mtpar,mtcal),&
-     &        thpafc(mcoup,mtpar,mtcal), thpaco(mtpar,mtcal),           &
-     &        ncoup(mtpar,mtcal)                                        
-!                                                                       
-!                                                                       
-! --- set the relevant character-varaibles ---                          
-       data thpala/l1*'    '/,thpalc/l2*'    '/ 
 
-      END                                           
-!                                                                       
-!                                                                       
-!                                                                       
-!*ds                                                                    
-!*ed                                                                    
        subroutine couple(iopt) 
 !      =======================                                          
 ! ----- couple theory-parameters -----                                  
@@ -1648,18 +1588,13 @@
 !                                                                       
        use outlev
        use theory
+       use theorc
        use constants 
 !                                                                       
        character*8 thenax,thpanx(mtpar) 
-        character*4 thpala, thpalc 
-        common /theorc/ thpala(mtpar,mtcal), thpalc( mcoup,mtpar,mtcal),&
-     &        thpafc(mcoup,mtpar,mtcal), thpaco(mtpar,mtcal),           &
-     &        ncoup(mtpar,mtcal)                                        
-!                                                                       
        character*4   label 
-!                                                                       
+
 ! ----------------------------------------------------------------------
-!                                                                       
 ! ----- go through all couplings ----                                   
        do 10 i=1,ntheos 
           ith = nthtab(i) 
@@ -3372,10 +3307,8 @@
        use theory
        use selist
        use fslist
+       use therrc
        use constants
-!                                                                       
-! ------ errors of fit --------------------------------------------     
-       common/therrc/therro(mtpar,mtcal) 
 !                                                                       
        common/cfc/qziel,cscoef(4,mwert),break(mwert),weight(mwert),     &
      &            numspl,nwspl                                          

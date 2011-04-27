@@ -7,7 +7,7 @@
 #define __MTH 40
 #define __MTPAR 40
 #define __MTCAL 40
-
+#define __MCOUP 10
 ! ---- communication common block containig the analysed inputline       
 !      comand   = actual command keyword                               
 !      vname(*) = names stack                                           
@@ -196,11 +196,10 @@
                 data thparn/l3*'        '/
 	end module theory
 
-! ---- common containing a selected list of spectra ----                
-!  isels(i)  = address (/spectr/) of selected scan                      
-!  ifits(i)  = adress of fitted spectrum (isels(i))                     
-!  nsel      = length of this table                                     
-
+	! ---- common containing a selected list of spectra ----                
+	!  isels(i)  = address (/spectr/) of selected scan                      
+	!  ifits(i)  = adress of fitted spectrum (isels(i))                     
+	!  nsel      = length of this table                                     
 	module selist
 		integer isels(__MBUF)
 		integer ifits(__MBUF)
@@ -208,13 +207,54 @@
 		integer numpls
 	end module selist
  
-!  isfits    = address (/spectr/) of selected fits                      
-!  nfsel     = length of this table                                     
-
+	!  isfits    = address (/spectr/) of selected fits                      
+	!  nfsel     = length of this table                                     
 	module fslist
 		integer isfits(__MBUF)
 		integer nfsel
 	end module fslist
+
+! ------ coupling of theory-parameters -----------------------          
+!  --- thpala(i,j) ... label of i-th parameter , j-th theory            
+!      thpalc(l,i,j) . labels (l) that point to parameters that are     
+!                      coupleded to the i-th parameter of the j-th theo.
+!      thpafc(l,i,j) . associated proportionality factor                
+!      thpaco(i,j) ... offset value for a parameter that is derived by  
+!                      couplede other parameters                        
+!      ncoup(i,j) .... number of parameters that are coupled to i,j-par.
+!
+
+        module theorc 
+		character*4 thpala(__MTPAR,__MTCAL)
+		character*4 thpalc(__MCOUP,__MTPAR,__MTCAL)
+		real thpafc(__MCOUP,__MTPAR,__MTCAL)
+		real thpaco(__MTPAR,__MTCAL)
+		integer ncoup(__MTPAR,__MTCAL)
+
+		! ---- this blockdata is used to replace the standard filling of        
+		!      character variables with nulls ! by blanks !                     
+		!      this is importatnt for the incom parser, which is only sensitiv  
+		!      to blanks, whereas nulls are written and read if default         
+		!      character varaibles are printed!                                 
+		! ---- dervived auxiliary parameters only for block data ----
+       		integer, parameter :: l1=__MTPAR*__MTCAL, l2=__MCOUP*__MTPAR*__MTCAL
+		data thpala/l1*'    '/,thpalc/l2*'    '/
+        end module theorc
+
+! ------ errors of fit --------------------------------------------     
+!      ------ estimates of 1 sigma errros -----------------------       
+	module therrc
+		real therro(__MTPAR,__MTCAL)
+	end module therrc	
+
+! range definition of theories (only to be evaluated if parameter thrap
+!                               given range)
+	module thparc
+		character*8 thrapar(__MTH)
+		real*4 thramin(__MTH)
+		real*4 thramax(__MTH)
+	end module thparc
+ 
 
 	module constants
 		save
@@ -226,7 +266,7 @@
 		!     mbuf   = max. no. of different buffers                            
 		!     mpar   = max. no. of parameters associated with one buffer        
 		! ---  maximum scan length ....                                         
-       		integer, parameter:: mth=__MTH, mtpar=__MTPAR,mtcal=__MTCAL,mcoup=10
+       		integer, parameter:: mth=__MTH, mtpar=__MTPAR,mtcal=__MTCAL,mcoup=__MCOUP
 		! ---  fit dimensions ---                                               
 		!  -- mfit = max no. of fitted parameters                               
 		!     msmpl= max no. of datapoints in fit                               
