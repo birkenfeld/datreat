@@ -6,14 +6,10 @@ subroutine gplot ()
   use cdata
   use outlev
   use theory
+  use selist
+  use fslist
   use constants
   !      ================  scan-plotting
-  !
-  !
-  !       implicit none
-  !
-  common/selist/isels(mbuf),ifits(mbuf),nsel,numpls
-  common/fslist/isfits(mbuf),nfsel
   !
   common/therrc/therro(mtpar,mtcal)
   !

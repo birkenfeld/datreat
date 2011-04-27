@@ -196,6 +196,26 @@
                 data thparn/l3*'        '/
 	end module theory
 
+! ---- common containing a selected list of spectra ----                
+!  isels(i)  = address (/spectr/) of selected scan                      
+!  ifits(i)  = adress of fitted spectrum (isels(i))                     
+!  nsel      = length of this table                                     
+
+	module selist
+		integer isels(__MBUF)
+		integer ifits(__MBUF)
+		integer nsel
+		integer numpls
+	end module selist
+ 
+!  isfits    = address (/spectr/) of selected fits                      
+!  nfsel     = length of this table                                     
+
+	module fslist
+		integer isfits(__MBUF)
+		integer nfsel
+	end module fslist
+
 	module constants
 		save
 		! --- minc = incom stack depth                                          

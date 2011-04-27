@@ -29,6 +29,7 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
        use cdata
        use outlev
        use theory
+       use selist
        use constants
        
 	character*8 ci 
@@ -36,10 +37,6 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
 !                                                                       
 !                                                                       
        common/therrc/therro(mtpar,mtcal) 
-!                                                                       
-
-       common/selist/isels(mbuf),ifits(mbuf),nsel,numpls 
- 
 !                                                                       
       dimension iparam(6),rparam(7),x(mfit),f(msmpl),xjac(msmpl,mfit),  &
      &          xguess(mfit),xscale(mfit),fscale(msmpl)                 

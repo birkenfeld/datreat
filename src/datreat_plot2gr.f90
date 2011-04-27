@@ -10,10 +10,9 @@
        use cdata
        use outlev
        use theory
+       use selist
+       use fslist
        use constants
-!                                                                       
-       common/selist/isels(mbuf),ifits(mbuf),nsel,numpls 
-       common/fslist/isfits(mbuf),nfsel 
 !                                                                       
        common/therrc/therro(mtpar,mtcal) 
        character*8 thrapar 
@@ -585,10 +584,9 @@
        use xroxxx
        use cdata
        use outlev
+       use selist
+       use fslist
        use constants
-!                                                                       
-       common/selist/isels(mbuf),ifits(mbuf),nsel,numpls 
-       common/fslist/isfits(mbuf),nfsel 
 !                                                                       
        character*12 infile 
        character*80 rline 

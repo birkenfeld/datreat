@@ -83,12 +83,10 @@
        use constants
        use cdata
        use outlev
+       use selist
+       use fslist
 !      parameter(mkurv=minc)                                            
 !                ---------> max. no of curves to be selected            
-!                                                                       
-       common/selist/isels(mbuf),ifits(mbuf),nsel,numpls 
-       common/fslist/isfits(mbuf),nfsel 
-!                                                                       
       dimension irecv(minc),irecn1(minc) 
 !                                                                       
       l = 0 
@@ -150,11 +148,8 @@
 !                                                                       
        use cdata
        use outlev
-       use constants 
-!      parameter(mkurv=minc)                                            
-!                ---------> max. no of curves to be selected            
-!                                                                       
-      common/fslist/isfits(mbuf),nfsel  
+       use fslist
+       use constants
 !                                                                       
       dimension ifrec(minc),irecn1(minc) 
 !                                                                       
@@ -219,6 +214,7 @@
        use cdata
        use outlev
        use theory
+       use selist
        use constants
        character*8 dum  
        character*8 thrapar 
@@ -226,9 +222,7 @@
        common /thparc/ thrapar(mth),thramin(mth),thramax(mth) 
                                                                         
        real*8 getval, dble 
-!                                                                       
-       common/selist/isels(mbuf),ifits(mbuf),nsel,numpls 
-!                                                                       
+
        logical autox1,autox2 
        common/cfunc/iprt,sqwght,x1,x2,autox1,autox2,ferror(msmpl) 
 !                                                                       
@@ -258,6 +252,7 @@
        use cdata
        use outlev
        use theory
+       use selist
        use constants
 !      parameter(mkurv=minc)                                            
        character*8 ci  
@@ -265,8 +260,7 @@
        real*8 getval
 !                                                                       
        common/therrc/therro(mtpar,mtcal) 
-!                                                                       
-       common/selist/isels(mbuf),ifits(mbuf),nsel,numpls 
+ 
 !                                                                       
       dimension iparam(6),rparam(7),x(mfit),f(msmpl),xjac(msmpl,mfit),  &
      &          xguess(mfit),xscale(mfit),fscale(msmpl)                 
@@ -653,6 +647,7 @@
        use cdata
        use outlev
        use theory
+       use selist
        use constants
        character*8 dum 
        logical sqwght,sqwbuf 
@@ -662,9 +657,6 @@
        real fcssq 
        logical lerrel, lwrtfitdat 
        common/cfunce/ lerrel, lwrtfitdat, fcssq 
-!                                                                       
-       common/selist/isels(mbuf),ifits(mbuf),nsel,numpls 
-!                                                                       
 !                                                                       
        real      x(mfit),f(msmpl) 
        dimension xp(mtpar),q2(3) 
@@ -783,12 +775,10 @@
        use cdata
        use outlev
        use theory
+       use selist
        use constants
        character*8 dum 
-       real*8 getval, dble 
-!                                                                       
-!                                                                       
-       common/selist/isels(mbuf),ifits(mbuf),nsel,numpls 
+       real*8 getval, dble  
 !                                                                       
        logical autox1,autox2 
        common/cfunc/iprt,sqwght,x1,x2,autox1,autox2,ferror(msmpl) 
@@ -1533,16 +1523,14 @@
        use xroxxx
        use outlev
        use theory
+       use selist
        use constants
                                                                          
         
        character*8 combinam,cha*1  
 !                                                                       
-                                                                        
        character*1024 xformel,yformel,yfitform 
-       common/formul/xformel,yformel,yfitform 
-!                                                                       
-       common/selist/isels(mbuf),ifits(mbuf),nsel,numpls 
+       common/formul/xformel,yformel,yfitform  
                                                                         
         character*4 thpala, thpalc 
         common /theorc/ thpala(mtpar,mtcal), thpalc( mcoup,mtpar,mtcal),&
@@ -2370,19 +2358,10 @@
 ! -- MULTI save data on adress ispc onto a file named file fname a --   
 !                                                                       
        use cdata
+       use selist
+       use fslist
        use constants 
-!                                                                       
-! ---- common containing a selected list of spectra ----                
-       common/selist/isels(mbuf),ifits(mbuf),nsel,numpls 
-!  isels(i)  = address (/spectr/) of selected scan                      
-!  ifits(i)  = adress of fitted spectrum (isels(i))                     
-!  nsel      = length of this table                                     
-!                                                                       
-       common/fslist/isfits(mbuf),nfsel 
-!  isfits    = address (/spectr/) of selected fits                      
-!  nfsel     = length of this table                                     
-!                                                                       
-       !character*8 
+
        character*1024 fname,finame, savepath, pathbuf, outfile
                                                                         
 ! first write data selected:                                            
@@ -2949,19 +2928,9 @@
        use xoutxx
        use xroxxx
        use cdata
+       use selist
+       use fslist
        use constants 
-!                                                                       
-!                                                                       
-! ---- common containing a selected list of spectra ----                
-       common/selist/isels(mbuf),ifits(mbuf),nsel,numpls 
-!  isels(i)  = address (/spectr/) of selected scan                      
-!  ifits(i)  = adress of fitted spectrum (isels(i))                     
-!  nsel      = length of this table                                     
-!                                                                       
-       common/fslist/isfits(mbuf),nfsel 
-!  isfits    = address (/spectr/) of selected fits                      
-!  nfsel     = length of this table                                     
-!                                                                       
 ! ----------------------------------------------------------------      
        ia = isels(1) 
        n  = nwert(ia) 
@@ -3361,16 +3330,9 @@
        use xoutxx
        use xroxxx
        use cdata
+       use selist
+       use fslist
        use constants
-! ---- common containing a selected list of spectra ----                
-       common/selist/isels(mbuf),ifits(mbuf),nsel,numpls 
-!  isels(i)  = address (/spectr/) of selected scan                      
-!  ifits(i)  = adress of fitted spectrum (isels(i))                     
-!  nsel      = length of this table                                     
-!                                                                       
-       common/fslist/isfits(mbuf),nfsel 
-!  isfits    = address (/spectr/) of selected fits                      
-!  nfsel     = length of this table                                     
 !                                                                       
        dimension y(n) 
        data  num/9000/ 
@@ -3408,15 +3370,12 @@
        use cdata
        use outlev
        use theory
+       use selist
+       use fslist
        use constants
 !                                                                       
 ! ------ errors of fit --------------------------------------------     
        common/therrc/therro(mtpar,mtcal) 
-                                                                        
-! ---- common containing a selected list of spectra ----                
-       common/selist/isels(mbuf),ifits(mbuf),nsel,numpls 
-!                                                                       
-       common/fslist/isfits(mbuf),nfsel 
 !                                                                       
        common/cfc/qziel,cscoef(4,mwert),break(mwert),weight(mwert),     &
      &            numspl,nwspl                                          
@@ -3715,11 +3674,9 @@
        use xroxxx
        use cdata
        use outlev
+       use selist
+       use fslist
        use constants 
-! ---- common containing a selected list of spectra ----                
-       common/selist/isels(mbuf),ifits(mbuf),nsel,numpls 
-!                                                                       
-       common/fslist/isfits(mbuf),nfsel 
 !                                                                       
        common/cfc/qziel,cscoef(4,mwert),break(mwert),weight(mwert),     &
      &            numspl,nwspl                                          

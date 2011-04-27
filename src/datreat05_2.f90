@@ -37,20 +37,12 @@ INCLUDE "commons.h"
       use cdata
       use outlev
       use theory
+      use selist
+      use fslist
       use constants
 
        real*8 rparf, getval, valnxt, get1, get2, get3, dble
-!                                                                       
-! ---- common containing a selected list of spectra ----                
-       common/selist/isels(mbuf),ifits(mbuf),nsel,numpls 
-!  isels(i)  = address (/spectr/) of selected scan                      
-!  ifits(i)  = adress of fitted spectrum (isels(i))                     
-!  nsel      = length of this table                                     
-!                                                                       
-       common/fslist/isfits(mbuf),nfsel 
-!  isfits    = address (/spectr/) of selected fits                      
-!  nfsel     = length of this table                                     
-!                                                                       
+
 ! ------ coupling of theory-parameters -----------------------          
         character*4 thpala, thpalc 
         common /theorc/ thpala(mtpar,mtcal), thpalc( mcoup,mtpar,mtcal),&
