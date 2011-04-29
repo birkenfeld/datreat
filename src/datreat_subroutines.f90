@@ -2063,7 +2063,7 @@
          write(6,*)'Decode2:',trim(reslin)//'#-------------' 
        endif 
                                                                         
-       call incom(comand) 
+	call incom(comand) 
                                                                         
        if(iout.gt.2) then 
          write(6,*)'Decode3:',trim(comand) 

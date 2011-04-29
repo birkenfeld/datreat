@@ -54,7 +54,7 @@
        integer       init_run
        data          init_run /1/
        data          lmakro /.false./ 
-		
+	real*8 val	
 !                                                                       
 ! ---- initialisations & conventions ----                               
 !

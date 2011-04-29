@@ -8,6 +8,13 @@
 #define __MTPAR 40
 #define __MTCAL 40
 #define __MCOUP 10
+#define __MAXFORMLENGTH 1024
+#define __MAXITEMLENGTH 80
+#define __MAXNUMSTACK 50
+#define __MAXOPSTACK 50
+#define __MUSRFSTACK 50
+#define __NODELIMS 7
+
 ! ---- communication common block containig the analysed inputline       
 !      comand   = actual command keyword                               
 !      vname(*) = names stack                                           
@@ -31,6 +38,7 @@
                                                                         
 
 	module cincom
+	    save
 	    real*8 rpar(__MINC)
 	    integer inames
 	    integer ipars
@@ -51,6 +59,7 @@
 !      in common/cincom/                                                
 !
 	module cincoc
+		save
 		character*8 comand
 		character*8 vname(__MINC)
 		character*1024 title
@@ -62,6 +71,7 @@
 	end module cincoc
 
 	module icpathes
+		save
 		character*1024 data_path
 		character*1024 save_path
 		character*1024 makro_path
@@ -83,11 +93,13 @@
  
 
 	module cmargs
+		save
 		character*1024 argvals(__MINC)
 		character*80 pmlst(__MDEPTH,__MINC,2)
 	end module cmargs
 	
 	module imargs
+		save
 		integer iargvs
 		integer ipmlst(__MDEPTH)
 		integer kanal(0:__MDEPTH)
@@ -99,6 +111,7 @@
   
 
        	module xoutxx
+		save
 		integer iot
 		integer ioold
 		integer ibild1
@@ -110,6 +123,7 @@
 	end module xoutxx
 	
 	module xroxxx
+		save
 		real*8 xyorig(3)
 		real*8 rotvec(3)
 		data xyorig/3*0.d0/, rotvec/3*0.d0/
@@ -117,6 +131,7 @@
 
 ! usenum and usevar are now combined
 	module usevar
+		save
 		real*8 useval(__MUSEVAR)
 		integer nousev 
 		character*16 usenam(__MUSEVAR)
@@ -141,6 +156,7 @@
 
 
 	module cdata
+		save
 		real xwerte(__MWERT,__MBUF)
 		real ywerte(__MWERT,__MBUF)
 		real yerror(__MWERT,__MBUF)
@@ -161,6 +177,7 @@
 ! xxxx,yyyy = aktuelle addersse fuer wertextraktion xx,yy               
 !
 	module outlev 
+		save
 		integer iout
 		integer ibild
 		integer ierrs
@@ -184,6 +201,7 @@
 !                                                                       
 
 	module theory
+		save
 		character*8 thenam(__MTH)
 		character*8 thparn(__MTPAR,__MTH)
 		integer nthpar(__MTH)
@@ -201,6 +219,7 @@
 	!  ifits(i)  = adress of fitted spectrum (isels(i))                     
 	!  nsel      = length of this table                                     
 	module selist
+		save
 		integer isels(__MBUF)
 		integer ifits(__MBUF)
 		integer nsel
@@ -210,6 +229,7 @@
 	!  isfits    = address (/spectr/) of selected fits                      
 	!  nfsel     = length of this table                                     
 	module fslist
+		save
 		integer isfits(__MBUF)
 		integer nfsel
 	end module fslist
@@ -225,6 +245,7 @@
 !
 
         module theorc 
+		save
 		character*4 thpala(__MTPAR,__MTCAL)
 		character*4 thpalc(__MCOUP,__MTPAR,__MTCAL)
 		real thpafc(__MCOUP,__MTPAR,__MTCAL)
@@ -244,16 +265,50 @@
 ! ------ errors of fit --------------------------------------------     
 !      ------ estimates of 1 sigma errros -----------------------       
 	module therrc
+		save
 		real therro(__MTPAR,__MTCAL)
 	end module therrc	
 
 ! range definition of theories (only to be evaluated if parameter thrap
 !                               given range)
 	module thparc
+		save
 		character*8 thrapar(__MTH)
 		real*4 thramin(__MTH)
 		real*4 thramax(__MTH)
 	end module thparc
+
+	module formnu
+		save
+		real*8 numstack(__MAXNUMSTACK)
+		real*8 degree
+		real*8 valnum
+		integer priostack(0:__MAXOPSTACK)
+		integer topnumstack
+		integer topopstack
+		integer tusrfstack
+		integer klammerprio
+		integer actchar
+		integer len
+		integer litem
+		logical ok
+		logical error
+		logical say
+		data degree  /1.d0/ 
+                data say     /.false./ 
+	end module formnu
+
+	module formch
+		save
+		character*1 formula(0:__MAXFORMLENGTH)
+		character*1 item(0:__MAXITEMLENGTH)
+		character*1 delims(0:__NODELIMS)
+		character*4 typ
+		character*4 opstack(__MAXOPSTACK) 
+		character*20 usrfstack(__MUSRFSTACK) 
+	end module formch
+
+
  
 
 	module constants
@@ -272,4 +327,14 @@
 		!     msmpl= max no. of datapoints in fit                               
        		integer, parameter :: mfit=40,msmpl=4000
 		integer, parameter :: musevar=__MUSEVAR
+		integer, parameter :: maxformlength=__MAXFORMLENGTH
+		integer, parameter :: maxitemlength=__MAXITEMLENGTH
+		integer, parameter :: maxnumstack=__MAXNUMSTACK 
+		integer, parameter :: maxopstack=__MAXOPSTACK
+		integer, parameter :: musrfstack=__MUSRFSTACK
+		integer, parameter :: nodelims=__NODELIMS
+ 	        ! do we really need the following constants?
+		integer, parameter :: klammerinc=10 
+ 	        integer, parameter :: iplusprio=1, minusprio=1, multprio=2, idivprio=2 
+ 	        integer, parameter :: iexpprio=3, iuprio=7,komprio=0 
 	end module constants

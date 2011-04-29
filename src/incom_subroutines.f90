@@ -1715,77 +1715,16 @@
 !***********************************************************************
 !---------- formula-interpreter-section --------------------------------
 !***********************************************************************
-!                                                                       
-                                                                        
-                                                                        
-       block data formb1 
-!      -----------------                                                
-       parameter(maxformlength=1024) 
-       parameter(maxitemlength=80) 
-       parameter(maxnumstack=50) 
-       parameter(maxopstack=50) 
-       parameter(musrfstack=50) 
-       parameter(klammerinc=10) 
-       parameter(iplusprio=1, minusprio=1, multprio=2, idivprio=2) 
-       parameter(iexpprio=3, iuprio=7,komprio=0) 
-                                                                        
-       parameter(nodelims=7) 
-       character*1 delims(0:nodelims) 
-       character*1 formula(0:maxformlength) 
-       character*1 item(0:maxitemlength) 
-       real*8      numstack(maxnumstack),valnum,degree 
-       character*4 opstack(maxopstack) 
-       integer     priostack(0:maxopstack) 
-       character*4 typ 
-       character*20 usrfstack(musrfstack) 
-       integer     tusrfstack 
-       integer     topnumstack,topopstack,klammerprio,actchar,len 
-       logical     ok, error, say 
-       common/formnu/numstack,degree,valnum,priostack,topnumstack,topopstack,  &
-     &      tusrfstack,  klammerprio,actchar,len,litem,ok,error, say    
-       common/formch/formula,item,delims,typ,opstack,usrfstack 
-                                                                        
-       data degree  /1.d0/ 
-       data say     /.false./ 
-      END                                           
-                                                                        
-                                                                        
-                                                                        
-                                                                        
-!*ds                                                                    
-!*ed                                                                    
        subroutine foinit 
 !      ----------------                                                 
 !====================================================================   
 ! formelinterpreter kern                                                
 ! -----------------                                                     
 !====================================================================   
-                                                                        
-       parameter(maxformlength=1024) 
-       parameter(maxitemlength=80) 
-       parameter(maxnumstack=50) 
-       parameter(maxopstack=50) 
-       parameter(musrfstack=50) 
-       parameter(klammerinc=10) 
-       parameter(iplusprio=1, minusprio=1, multprio=2, idivprio=2) 
-       parameter(iexpprio=3, iuprio=7,komprio=0) 
-                                                                        
-       parameter(nodelims=7) 
-       character*1 delims(0:nodelims) 
-       character*1 formula(0:maxformlength) 
-       character*1 item(0:maxitemlength) 
-       real*8      numstack(maxnumstack),valnum,degree 
-       character*4 opstack(maxopstack) 
-       integer     priostack(0:maxopstack) 
-       character*4 typ 
-       character*20 usrfstack(musrfstack) 
-       integer     tusrfstack 
-       integer     topnumstack,topopstack,klammerprio,actchar,len 
-       logical     ok, error, say 
-       common/formnu/numstack, degree,valnum,priostack,topnumstack,topopstack,  &
-     &      tusrfstack,  klammerprio,actchar,len,litem,ok,error, say    
-       common/formch/formula,item,delims,typ,opstack,usrfstack 
-                                                                        
+       use formnu
+       use formch
+       use constants
+
 ! ---- internal use ---                                                 
        character*4 op 
        integer     prio 
@@ -1868,7 +1807,7 @@
                                                                         
        if(topnumstack.le.maxnumstack) then 
           topnumstack = topnumstack + 1 
-          numstack(topnumstack) = val 
+          numstack(topnumstack) = val
        else 
           if(say) write(6,*)'error: numstack overflow!' 
           error = .true. 
@@ -1917,47 +1856,33 @@
        subroutine getitem 
 !      ------------------                                               
                                                                         
-       parameter(maxformlength=1024) 
-       parameter(maxitemlength=80) 
-       parameter(maxnumstack=50) 
-       parameter(maxopstack=50) 
-       parameter(musrfstack=50) 
-       parameter(klammerinc=10) 
-       parameter(iplusprio=1, minusprio=1, multprio=2, idivprio=2) 
-       parameter(iexpprio=3, iuprio=7,komprio=0) 
-                                                                        
-       parameter(nodelims=7) 
-       character*1 delims(0:nodelims) 
-       character*1 formula(0:maxformlength) 
-       character*1 item(0:maxitemlength) 
-       real*8      numstack(maxnumstack),valnum,degree 
-       character*4 opstack(maxopstack) 
-       integer     priostack(0:maxopstack) 
-       character*4 typ 
-       character*20 usrfstack(musrfstack) 
-       integer     tusrfstack 
-       integer     topnumstack,topopstack,klammerprio,actchar,len 
-       logical     ok, error, say 
-       common/formnu/numstack,degree,  valnum,priostack,topnumstack,topopstack,  &
-     &      tusrfstack,  klammerprio,actchar,len,litem,ok,error, say    
-       common/formch/formula,item,delims,typ,opstack,usrfstack 
-                                                                        
+
+       use formnu
+       use formch
+       use constants
+
 ! --- internal use ---                                                  
+       implicit none
+       integer j, intn, ier, ierr, l, ll, lit
        logical compare 
        logical anklam 
-                                                                        
+
        character*(maxitemlength+1) citem 
-       character*(maxformlength+1) cform 
-       equivalence(citem,item(0)) 
-       equivalence(cform,formula(0)) 
-                                                                        
-!cc    citem = ' '                                                      
+
+       !needed since common-block conversion - maybe this could be simpliefied
+       !equivalence is the problem here
+       character*1 tempitem(0:maxitemlength) 
+
+       equivalence(citem,tempitem(0)) 
+
+       !the assignment hast to follow equivalence or else the compiler will explode! 
+       tempitem=item
        if(actchar.gt.len) then 
           typ = 'end ' 
           call putopstack('end ',0) 
           return 
        endif 
-                                                                        
+
        if(formula(actchar).eq.'(') then 
           typ = 'klam' 
           klammerprio = klammerprio+klammerinc 
@@ -2020,8 +1945,9 @@
           goto 100 
        endif 
 ! ---  suche bis zum naechsten delimiter ---                            
-       citem = ' ' 
-       call getword 
+       citem = ' '
+       item=tempitem
+	call getword 
 ! --- ist item ein unaerer operator ? ---                               
        if( compare(item,'sin ') ) then 
          typ = 'unae' 
@@ -2092,7 +2018,7 @@
          goto 100 
        endif 
 ! --- ist item eine zahl ? ----                                         
-       call scan(item ,valnum,ierr) 
+       call scan(item ,valnum,ierr)
 ! --- try exp-num-representation --                                     
        if(ierr.ne.0) then 
 !ccw   write(6,*)'check exp-num item(litem)=',item(litem),'  ',litem    
@@ -2282,37 +2208,17 @@
 !      ----------------------------------                               
                                                                         
        use xoutxx
-       parameter(maxformlength=1024) 
-       parameter(maxitemlength=80) 
-       parameter(maxnumstack=50) 
-       parameter(maxopstack=50) 
-       parameter(musrfstack=50) 
-       parameter(klammerinc=10) 
-       parameter(iplusprio=1, minusprio=1, multprio=2, idivprio=2) 
-       parameter(iexpprio=3, iuprio=7,komprio=0) 
-                                                                        
-       parameter(nodelims=7) 
-       character*1 delims(0:nodelims) 
-       character*1 formula(0:maxformlength) 
-       character*1 item(0:maxitemlength) 
-       real*8      val 
-       real*8      numstack(maxnumstack),valnum,degree 
-       character*4 opstack(maxopstack) 
-       integer     priostack(0:maxopstack) 
-       character*4 typ 
-       character*20 usrfstack(musrfstack) 
-       integer     tusrfstack 
-       integer     topnumstack,topopstack,klammerprio,actchar,len 
-       logical     ok, error, say 
-       common/formnu/numstack,degree,  valnum,priostack,topnumstack,topopstack,tusrfstack,  klammerprio,actchar,len,litem,ok,error, say    
-       common/formch/formula,item,delims,typ,opstack,usrfstack 
-                                                                        
+       use formnu
+       use formch
+       use outlev !for iout
+       use constants
 ! --- internal use ---                                                  
-       character*(maxitemlength+1) citem 
-       character*(maxformlength+1) cform ,f 
-       equivalence(citem,item(0)) 
-       equivalence(cform,formula(0)) 
-                                                                        
+
+       implicit none
+       real*8 val
+       integer i, ierr
+       character*(maxformlength+1) f 
+!	
        do i=0,maxformlength 
          formula(i) = ' ' 
        enddo 
@@ -2354,8 +2260,7 @@
        val = numstack(1) 
                                                                         
        call scan(formula,valnum,ierrs) 
-       if(ierrs.ne.0 .and. iout.ge.1) write(6,*)'evaluate: ',(formula(i),i=0,len),' to ',val         
-       
+       if(ierrs.ne.0 .and. iout.ge.1) write(6,*)'evaluate: ',(formula(i),i=0,len),' to ',val
 			 return 
       END                                           
                                                                         
