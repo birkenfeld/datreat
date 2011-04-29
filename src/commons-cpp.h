@@ -376,6 +376,46 @@
 		real tau
 	end module sqtran 
 
+! ergsum & ergfil seem to be only used in the ain program. obsolete? 
+! --- ergebnisse der sum-auswertung                                     
+!     bcut1,2 --- y-achsschittpunkte der high u. low-freq. geraden      
+!     slope1,2 -- steigungen              "          "                  
+!     rcoef1,2 -- r-parameter                                           
+!     yint     -- abgeleitete intensitaet                               
+	module ergsum
+		real bcut1
+		real rcoef1
+		real slope1
+		real bcut2
+		real rcoef2
+		real slope2
+		real yint
+	end module ergsum
+
+! --- filter-sektion (parameter & ergebnisse) ---                       
+!  -- ymx : wert des maximums im spektrum                               
+!     imx : kanal des spektralen max.                                   
+!     imx2: spiegel kanal (imx)                                         
+!     ymaxf: maximum in der gefilterten huellkurve                      
+!     imaxf: kanallage des maximums ymaxf                               
+!     yminf: minimum in der gefilterten huellkurve                      
+!     iminf: kanallage des maximums ymaxf                               
+!     ic1,2,3 : die letzten 3 angesprochenen kurven                     
+
+	module ergfil
+		real ymx
+		real sigma
+		real ymaxf
+		real yminf
+		integer imx
+		integer imx2
+		integer imaxf
+		integer iminf
+		integer ic1
+		integer ic2
+		integer ic3
+	end module ergfil
+
 	module constants
 		save
 		! --- minc = incom stack depth                                          
