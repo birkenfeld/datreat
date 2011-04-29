@@ -14,7 +14,7 @@
 #define __MAXOPSTACK 50
 #define __MUSRFSTACK 50
 #define __NODELIMS 7
-
+#define __MSMPL 4000
 ! ---- communication common block containig the analysed inputline       
 !      comand   = actual command keyword                               
 !      vname(*) = names stack                                           
@@ -323,7 +323,34 @@
 		integer nwspl
 	end module cfc
 
- 
+! ---- communication with subr. func ---                                
+!  --- iprt     : printing during func calculation (set by fit)         
+!      x1       : lower limit of fit range (if autox1 = .false.)        
+!      x2       : upper limit of fit range (if autox2 = .false.)        
+!      autox1/2 : if true the genuine limits of the datafiled is taken  
+!                 else x1 /x2 values are taken (set by thc)             
+!      ferror   : fehler des zu vergleichenden datenfeldes              
+! ----------------------------------------------------------------------
+
+
+	module cfunc
+		integer iprt
+		logical sqwght
+		real x1
+		real x2
+		logical autox1
+		logical autox2
+		real ferror(__MSMPL)
+	end module cfunc
+
+
+! ---  if lerrel=.true. the fiterrors are take as relative errors 
+	module cfunce
+		logical lerrel
+		logical lwrtfitdat
+		real fcssq
+	end module cfunce 
+
 
 	module constants
 		save
@@ -339,7 +366,7 @@
 		! ---  fit dimensions ---                                               
 		!  -- mfit = max no. of fitted parameters                               
 		!     msmpl= max no. of datapoints in fit                               
-       		integer, parameter :: mfit=40,msmpl=4000
+       		integer, parameter :: mfit=40,msmpl=__MSMPL
 		integer, parameter :: musevar=__MUSEVAR
 		integer, parameter :: maxformlength=__MAXFORMLENGTH
 		integer, parameter :: maxitemlength=__MAXITEMLENGTH

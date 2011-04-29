@@ -212,14 +212,13 @@
        use theory
        use selist
        use thparc
+       use cfunc
        use constants
 
        character*8 dum  
        real*8 getval, dble 
 
-       logical autox1,autox2 
-       common/cfunc/iprt,sqwght,x1,x2,autox1,autox2,ferror(msmpl) 
-!                                                                       
+
        LOGICAL imu 
                                                                         
        integer iadda 
@@ -248,6 +247,8 @@
        use theory
        use selist
        use therrc
+       use cfunc
+       use cfunce
        use constants
 
        character*8 ci  
@@ -262,17 +263,9 @@
 !                                                                       
       external func 
 !                                                                       
-      logical sqwght,sqwbuf 
-      logical autox1,autox2 
+      logical sqwbuf 
       logical found, folgt 
       logical final_thc, lbuffer 
-      common/cfunc/iprt,sqwght,x1,x2,autox1,autox2,ferror(msmpl) 
-                                                                        
-       real    fcssq 
-       logical lerrel, lwrtfitdat 
-       common/cfunce/ lerrel, lwrtfitdat, fcssq 
-! ---- communication with subr. func ---                                
-                                                                        
        real*8 ssq 
 !                                                                       
 !                                                                       
@@ -638,16 +631,11 @@
        use outlev
        use theory
        use selist
+       use cfunc
+       use cfunce
        use constants
        character*8 dum 
-       logical sqwght,sqwbuf 
-       logical autox1,autox2 
-       common/cfunc/iprt,sqwght,x1,x2,autox1,autox2,ferror(msmpl) 
-                                                                        
-       real fcssq 
-       logical lerrel, lwrtfitdat 
-       common/cfunce/ lerrel, lwrtfitdat, fcssq 
-!                                                                       
+
        real      x(mfit),f(msmpl) 
        dimension xp(mtpar),q2(3) 
 !                                                                       
@@ -766,12 +754,10 @@
        use outlev
        use theory
        use selist
+       use cfunc
        use constants
        character*8 dum 
        real*8 getval, dble  
-!                                                                       
-       logical autox1,autox2 
-       common/cfunc/iprt,sqwght,x1,x2,autox1,autox2,ferror(msmpl) 
 !                                                                       
        common /thiadd/iadda 
 ! ---> transfer der addresse der gerade bearbeiteten kurve nach thdatr1 
@@ -3308,18 +3294,9 @@
        use fslist
        use therrc
        use cfc
+       use cfunc
        use constants
 
-! ---- communication with subr. func ---                                
-      logical sqwght,sqwbuf 
-      logical autox1,autox2 
-      common/cfunc/iprt,sqwght,x1,x2,autox1,autox2,ferror(msmpl) 
-!  --- iprt     : printing during func calculation (set by fit)         
-!      x1       : lower limit of fit range (if autox1 = .false.)        
-!      x2       : upper limit of fit range (if autox2 = .false.)        
-!      autox1/2 : if true the genuine limits of the datafiled is taken  
-!                 else x1 /x2 values are taken (set by thc)             
-! ----------------------------------------------------------------------
       character*20 nam 
       character*8 pname 
       real*8 x(*)
@@ -3603,20 +3580,11 @@
        use selist
        use fslist
        use cfc
+       use cfunc
        use constants 
 
        common /thiadd/iadda 
-                                                                        
-! ---- communication with subr. func ---                                
-      logical sqwght,sqwbuf 
-      logical autox1,autox2 
-      common/cfunc/iprt,sqwght,x1,x2,autox1,autox2,ferror(msmpl) 
-!  --- iprt     : printing during func calculation (set by fit)         
-!      x1       : lower limit of fit range (if autox1 = .false.)        
-!      x2       : upper limit of fit range (if autox2 = .false.)        
-!      autox1/2 : if true the genuine limits of the datafiled is taken  
-!                 else x1 /x2 values are taken (set by thc)             
-! ----------------------------------------------------------------------
+ 
       character*1 nam(*) 
       character*8 pname 
       logical compare 

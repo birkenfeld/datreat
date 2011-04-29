@@ -43,26 +43,13 @@ INCLUDE "commons.h"
       use therrc
       use thparc
       use cfc
+      use cfunc
+      use cfunce
       use constants
 
        real*8 rparf, getval, valnxt, get1, get2, get3, dble
 
-! ---- communication with subr. func ---                                
-      logical sqwght,sqwbuf 
-      logical autox1,autox2 
-      common/cfunc/iprt,sqwght,x1,x2,autox1,autox2,ferror(msmpl) 
-!  --- iprt     : printing during func calculation (set by fit)         
-!      x1       : lower limit of fit range (if autox1 = .false.)        
-!      x2       : upper limit of fit range (if autox2 = .false.)        
-!      autox1/2 : if true the genuine limits of the datafiled is taken  
-!                 else x1 /x2 values are taken (set by thc)             
-!      ferror   : fehler des zu vergleichenden datenfeldes              
-! ----------------------------------------------------------------------
-       real    fcssq 
-       logical lerrel, lwrtfitdat 
-       common/cfunce/ lerrel, lwrtfitdat, fcssq 
-! ---  if lerrel=.true. the fiterrors are take as relative errors       
-!                                                                       
+      logical sqwbuf 
 ! --- echoform related parameters ( nse-programs ) ----                 
       real*4 j1echo,j2echo,j0delta 
                                                                         
