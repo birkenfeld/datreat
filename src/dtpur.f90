@@ -31,6 +31,8 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
        use theory
        use selist
        use therrc
+       use cfunc
+       use cfunce
        use constants
 
 	character*8 ci 
@@ -46,17 +48,11 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
 !                                                                       
       external func 
 !                                                                       
-      logical sqwght,sqwbuf 
-      logical autox1,autox2 
       logical found, folgt 
       logical final_thc, lbuffer 
-      common/cfunc/iprt,sqwght,x1,x2,autox1,autox2,ferror(msmpl) 
+
                                                                         
-       real    fcssq 
-       logical lerrel, lwrtfitdat 
-       common/cfunce/ lerrel, lwrtfitdat, fcssq 
-                                                                        
-                                                                        
+
 ! ---- OH: additional parameters for minpack and lapack                 
        double precision xdoub1 
        real xreal1 
@@ -438,13 +434,14 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
        subroutine qand(f,c,alim,blim,erraec,errrec,                     &
      &                 maxint,result, errest)                           
 !      calculates the echo form                                         
+       use partran
+       use wlntran
+       use sqtran
+
        integer minpts, maxpts, key,restar, ifail, neval, c 
        parameter (numfun=1, nw=5000) 
        integer abserr(numfun) 
        real work(nw), resu(numfun) 
-       common/partran/j1echo,j2echo,j0delta,cdelta 
-       common/wlntran/alam0, dalam 
-       common/sqtran/tau 
        external f, funsub 
                                                                         
                                                                         
@@ -463,12 +460,13 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
        subroutine funsub(c, x, numfun, funvls) 
+       
+       use partran
+       use wlntran
+       use sqtran
        integer c, numfun 
        dimension x(c), funvls(numfun) 
        external fecho 
-       common/partran/j1echo,j2echo,j0delta,cdelta 
-       common/wlntran/alam0, dalam 
-       common/sqtran/tau 
                                                                         
        funvls=fecho(c,x) 
 !       funvls=1.0                                                      
@@ -479,11 +477,11 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
                                                                         
        function fecho(n,x) 
-!      ---------------                                                  
+ 
+       use partran
+
 ! --- integrand ---                                                     
        implicit real*4 (a-h,o-z) 
-       real*4 j1echo,j2echo,j0delta 
-       common/partran/j1echo,j2echo,j0delta,cdelta 
        dimension x(n) 
 !                                                                       
 !      x(1) = lambda                                                    
@@ -507,8 +505,9 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
        function wlambda1( alam ) 
 !      ------------------------                                         
 ! --- repraesentiert die wellenlaengenverteilung                        
+      use wlntran
+
        implicit real*4 (a-h,o-z) 
-       common/wlntran/alam0, dalam 
           arg     = ( (alam-alam0)/dalam )**2 
           if(arg.lt.50.e0) then 
             wlambda1 =  exp( -arg ) 
@@ -520,8 +519,8 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
        function sofqom1( omega ) 
 !      ------------------------                                         
 ! --- repraesentiert die streufunktion, omega in s**-1                  
+       use sqtran
        implicit real*4 (a-h,o-z) 
-       common/sqtran/tau 
 !      tau in sekunden                                                  
                                                                         
        x      = omega * tau 

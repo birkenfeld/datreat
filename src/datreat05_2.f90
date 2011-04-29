@@ -45,26 +45,13 @@ INCLUDE "commons.h"
       use cfc
       use cfunc
       use cfunce
+      use partran
+      use wlntran
+      use sqtran
       use constants
 
        real*8 rparf, getval, valnxt, get1, get2, get3, dble
 
-      logical sqwbuf 
-! --- echoform related parameters ( nse-programs ) ----                 
-      real*4 j1echo,j2echo,j0delta 
-                                                                        
-      common/partran/j1echo,j2echo,j0delta,cdelta 
-!     j1, j2  = feldintegrale in gauss*meter                            
-!     j0delta = feldintegralvariation unabh&a.ngig von j1,j2            
-!     cdelta  = koeffizient der feldintegralabh&a.ngigkeit von j1,j2    
-                                                                        
-      common/wlntran/alam0, dalam 
-!     alam0   = mittlere wellenlaenge in a                              
-!     dalam   = wellenla.ngenbreite in a                                
-                                                                        
-      common/sqtran/tau 
-!     tau in sekunden, relaxationszeit des streuers                     
-                                                                        
       common/ergsum/bcut1,rcoef1,slope1,bcut2,rcoef2,slope2,yint 
 ! --- ergebnisse der sum-auswertung                                     
 !     bcut1,2 --- y-achsschittpunkte der high u. low-freq. geraden      

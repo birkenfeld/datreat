@@ -351,6 +351,30 @@
 		real fcssq
 	end module cfunce 
 
+! --- echoform related parameters ( nse-programs ) ----                 
+!     j1, j2  = feldintegrale in gauss*meter                            
+!     j0delta = feldintegralvariation unabh&a.ngig von j1,j2            
+!     cdelta  = koeffizient der feldintegralabh&a.ngigkeit von j1,j2    
+ 
+	module partran
+		real*4 j1echo
+		real*4 j2echo
+		real*4 j0delta
+		real*4 cdelta
+	end module partran 
+
+!     alam0   = mittlere wellenlaenge in a                              
+!     dalam   = wellenla.ngenbreite in a                                
+
+	module wlntran
+		real alam0
+		real dalam 
+	end module wlntran
+
+!     tau in sekunden, relaxationszeit des streuers
+	module sqtran
+		real tau
+	end module sqtran 
 
 	module constants
 		save

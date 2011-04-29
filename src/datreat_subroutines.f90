@@ -3749,12 +3749,11 @@
       END                                           
 !*ds                                                                    
 !*ds                                                                    
-       function f(n,x) 
-!      ---------------                                                  
+       function f(n,x)
+ 
+      use partran
 ! --- integrand ---                                                     
        implicit real*4 (a-h,o-z) 
-       real*4 j1echo,j2echo,j0delta 
-       common/partran/j1echo,j2echo,j0delta,cdelta 
        dimension x(n) 
 !                                                                       
 !      x(1) = lambda                                                    
