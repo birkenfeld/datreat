@@ -213,16 +213,13 @@
        use selist
        use thparc
        use cfunc
+       use thiadd
        use constants
 
        character*8 dum  
        real*8 getval, dble 
 
-
        LOGICAL imu 
-                                                                        
-       integer iadda 
-       common /thiadd/iadda 
 !                                                                       
        sum = 0 
 !      here we call the function value with all neccessary to calc it   it only needs params from current dataset not from all
@@ -755,15 +752,11 @@
        use theory
        use selist
        use cfunc
+       use thiadd
        use constants
+
        character*8 dum 
        real*8 getval, dble  
-!                                                                       
-       common /thiadd/iadda 
-! ---> transfer der addresse der gerade bearbeiteten kurve nach thdatr1 
-!      damit koennen dann ggf. weitere parameter ueber parget gewonnen  
-!      werden                                                           
-!                                                                       
        dimension dq(4),q2(4) 
        logical convolute/.false./, found, folgt 
        logical imu 
@@ -1056,8 +1049,8 @@
 !                                                                       
        use constants
        use cdata
-!                                                                       
-       common /thiadd/iadda 
+       use thiadd
+
        character*8 pname 
 !                                                                       
 ! ----------- look for the parameter -----------------------------------
@@ -1134,10 +1127,8 @@
        use theorc
        use therrc
        use thparc
+       use formul
        use constants
-!                                                                       
-       character*1024 xformel,yformel,yfitform 
-       common/formul/xformel,yformel,yfitform 
 !                                                                       
        character*1024  rlibuf 
        integer       iocbuf 
@@ -1492,14 +1483,11 @@
        use theorc
        use therrc
        use thparc
+       use formul
        use constants
                                                                          
         
        character*8 combinam,cha*1  
-!                                                                       
-       character*1024 xformel,yformel,yfitform 
-       common/formul/xformel,yformel,yfitform  
-                                                                        
        character*30 buf1 
        character*60 buf2 
        integer i, ith, kk 
@@ -3581,10 +3569,9 @@
        use fslist
        use cfc
        use cfunc
+       use thiadd
        use constants 
 
-       common /thiadd/iadda 
- 
       character*1 nam(*) 
       character*8 pname 
       logical compare 

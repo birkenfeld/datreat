@@ -315,6 +315,7 @@
 !     nwspl  length of splined data vectors                             
 
 	module cfc
+		save
 		real qziel
 		real cscoef(4,__MWERT)
 		real break(__MWERT)
@@ -334,6 +335,7 @@
 
 
 	module cfunc
+		save
 		integer iprt
 		logical sqwght
 		real x1
@@ -346,6 +348,7 @@
 
 ! ---  if lerrel=.true. the fiterrors are take as relative errors 
 	module cfunce
+		save
 		logical lerrel
 		logical lwrtfitdat
 		real fcssq
@@ -357,6 +360,7 @@
 !     cdelta  = koeffizient der feldintegralabh&a.ngigkeit von j1,j2    
  
 	module partran
+		save
 		real*4 j1echo
 		real*4 j2echo
 		real*4 j0delta
@@ -367,6 +371,7 @@
 !     dalam   = wellenla.ngenbreite in a                                
 
 	module wlntran
+		save
 		real alam0
 		real dalam 
 	end module wlntran
@@ -383,6 +388,7 @@
 !     rcoef1,2 -- r-parameter                                           
 !     yint     -- abgeleitete intensitaet                               
 	module ergsum
+		save
 		real bcut1
 		real rcoef1
 		real slope1
@@ -403,6 +409,7 @@
 !     ic1,2,3 : die letzten 3 angesprochenen kurven                     
 
 	module ergfil
+		save
 		real ymx
 		real sigma
 		real ymaxf
@@ -415,6 +422,22 @@
 		integer ic2
 		integer ic3
 	end module ergfil
+
+ 
+	module formul
+		save
+		character*1024 xformel
+		character*1024 yformel
+		character*1024 yfitform
+	end module formul 
+
+! ---> transfer der addresse der gerade bearbeiteten kurve nach thXX    
+!      damit koennen dann ggf. weitere parameter ueber parget gewonnen  
+!      werden                                                           
+	module thiadd
+		save
+		integer iadda
+	end module thiadd
 
 	module constants
 		save
