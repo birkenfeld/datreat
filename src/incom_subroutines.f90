@@ -2324,10 +2324,12 @@
 !     -------------------------------                                   
       use constants
       use usevar
+      use imargs
+
+      implicit none
+      integer i, ier
       character*1 nam(*) 
       real*8 val 
-      common/imargs/iargvs,ipmlst(mdepth),kanal(0:mdepth),ktop 
-                                                                        
       logical compare 
                                                                         
       ier = 0 
