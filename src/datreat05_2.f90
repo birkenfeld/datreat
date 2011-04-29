@@ -42,19 +42,11 @@ INCLUDE "commons.h"
       use theorc
       use therrc
       use thparc
+      use cfc
       use constants
 
        real*8 rparf, getval, valnxt, get1, get2, get3, dble
 
-!                                                                       
-                                                                        
-       common/cfc/qziel,cscoef(4,mwert),break(mwert),weight(mwert),     &
-     &            numspl,nwspl                                          
-! --- parameters of last spline smoothing + value qziel                 
-!     qziel is the value at witch the spline should be evaluated        
-!     numspl numor of spline fitted data                                
-!     nwspl  length of splined data vectors                             
-!                                                                       
 ! ---- communication with subr. func ---                                
       logical sqwght,sqwbuf 
       logical autox1,autox2 

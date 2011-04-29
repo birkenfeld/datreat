@@ -2346,9 +2346,9 @@
 ! --- spline interpolated data evaluation ---                           
 !     spline coefficients are taken from the last call of spline        
        use outlev
+       use cfc
        use constants 
-       common/cfc/qziel,cscoef(4,mwert),break(mwert),weight(mwert),     &
-     &            numspl,nwspl                                          
+
 !                                                                       
          nn  = nwspl 
          do 2705 j=1,nn 
@@ -2379,8 +2379,7 @@
 ! --- integrand for desmearing ---                                      
        use outlev
        use constants 
-       common/cfc/qziel,cscoef(4,mwert),break(mwert),weight(mwert),     &
-     &            numspl,nwspl                                           
+       use cfc
 !                                                                       
          nn  = nwspl 
          xx = sqrt(qziel**2 + x**2) 
@@ -3308,15 +3307,9 @@
        use selist
        use fslist
        use therrc
+       use cfc
        use constants
-!                                                                       
-       common/cfc/qziel,cscoef(4,mwert),break(mwert),weight(mwert),     &
-     &            numspl,nwspl                                          
-! --- parameters of last spline smoothing + value qziel                 
-!     qziel is the value at witch the spline should be evaluated        
-!     numspl numor of spline fitted data                                
-!     nwspl  length of splined data vectors                             
-!                                                                       
+
 ! ---- communication with subr. func ---                                
       logical sqwght,sqwbuf 
       logical autox1,autox2 
@@ -3609,15 +3602,9 @@
        use outlev
        use selist
        use fslist
+       use cfc
        use constants 
-!                                                                       
-       common/cfc/qziel,cscoef(4,mwert),break(mwert),weight(mwert),     &
-     &            numspl,nwspl                                          
-! --- parameters of last spline smoothing + value qziel                 
-!     qziel is the value at witch the spline should be evaluated        
-!     numspl numor of spline fitted data                                
-!     nwspl  length of splined data vectors                             
-!                                                                       
+
        common /thiadd/iadda 
                                                                         
 ! ---- communication with subr. func ---                                

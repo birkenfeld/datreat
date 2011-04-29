@@ -309,6 +309,20 @@
 	end module formch
 
 
+! --- parameters of last spline smoothing + value qziel                 
+!     qziel is the value at witch the spline should be evaluated        
+!     numspl numor of spline fitted data                                
+!     nwspl  length of splined data vectors                             
+
+	module cfc
+		real qziel
+		real cscoef(4,__MWERT)
+		real break(__MWERT)
+		real weight(__MWERT)
+		integer numspl
+		integer nwspl
+	end module cfc
+
  
 
 	module constants
