@@ -3718,8 +3718,9 @@
        function wlambda( alam ) 
 !      ------------------------                                         
 ! --- repraesentiert die wellenlaengenverteilung                        
-       implicit real*4 (a-h,o-z) 
-       common/wlntran/alam0, dalam 
+	use wlntran
+        implicit none 
+	real*4 arg, alam, wlambda 
           arg     = ( (alam-alam0)/dalam )**2 
           if(arg.lt.50.e0) then 
             wlambda =  exp( -arg ) 
