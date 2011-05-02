@@ -1134,10 +1134,9 @@
        use theorc
        use therrc
        use thparc
+       use formul
        use constants
-!                                                                       
-       character*1024 xformel,yformel,yfitform 
-       common/formul/xformel,yformel,yfitform 
+ 
 !                                                                       
        character*1024  rlibuf 
        integer       iocbuf 
@@ -1492,14 +1491,10 @@
        use theorc
        use therrc
        use thparc
+       use formul
        use constants
                                                                          
-        
        character*8 combinam,cha*1  
-!                                                                       
-       character*1024 xformel,yformel,yfitform 
-       common/formul/xformel,yformel,yfitform  
-                                                                        
        character*30 buf1 
        character*60 buf2 
        integer i, ith, kk 

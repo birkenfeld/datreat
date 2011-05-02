@@ -42,6 +42,7 @@ INCLUDE "commons.h"
       use theorc
       use therrc
       use thparc
+      use formul
       use cfc
       use cfunc
       use cfunce
@@ -83,8 +84,6 @@ INCLUDE "commons.h"
        character fname*25,fnam*8,ftyp*8,fmode*1,fpnam*8,xpnam*8,ypnam*8 
        character fsname*1024 
        character*1 csel 
-       character*1024 xformel,yformel,yfitform 
-       common/formul/xformel,yformel,yfitform 
        real*8 val8x,val8y 
                                                                         
        complex ca(mwert), cb(mwert), cmplx, conjg 

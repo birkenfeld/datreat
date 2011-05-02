@@ -309,6 +309,12 @@
 	end module formch
 
 
+	module formul
+		character*1024 xformel
+		character*1024 yformel
+		character*1024 yfitform
+	end module formul
+
 ! --- parameters of last spline smoothing + value qziel                 
 !     qziel is the value at witch the spline should be evaluated        
 !     numspl numor of spline fitted data                                
