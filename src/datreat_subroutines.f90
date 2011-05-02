@@ -3736,15 +3736,12 @@
 !*ds                                                                    
 !*ed                                                                    
        function sofqom( omega ) 
-!      ------------------------                                         
+	use sqtran
 ! --- repraesentiert die streufunktion, omega in s**-1                  
-       implicit real*4 (a-h,o-z) 
-       common/sqtran/tau 
-!      tau in sekunden                                                  
-                                                                        
+       implicit none 
+       real*4 x, omega, sofqom 
        x      = omega * tau 
        sofqom = tau /(1.e0+x*x) 
-                                                                        
        return 
       END                                           
 !*ds                                                                    
