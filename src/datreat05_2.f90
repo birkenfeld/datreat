@@ -52,9 +52,6 @@ INCLUDE "commons.h"
 ! since all vars were declarec implicitely, we could just delete those 2? 
       use ergsum 
       use ergfil
-!
-      use formul
-      use thiadd
       use constants
 
        real*8 rparf, getval, valnxt, get1, get2, get3, dble
@@ -73,7 +70,8 @@ INCLUDE "commons.h"
        character fname*25,fnam*8,ftyp*8,fmode*1,fpnam*8,xpnam*8,ypnam*8 
        character fsname*1024 
        character*1 csel 
-
+       character*1024 xformel,yformel,yfitform 
+       common/formul/xformel,yformel,yfitform 
        real*8 val8x,val8y 
                                                                         
        complex ca(mwert), cb(mwert), cmplx, conjg 
@@ -85,6 +83,12 @@ INCLUDE "commons.h"
                                                                         
        parameter( mcut=200 ) 
        dimension rrv(0:mcut) 
+                                                                    
+! ---> transfer der addresse der gerade bearbeiteten kurve nach thXX    
+!      damit koennen dann ggf. weitere parameter ueber parget gewonnen  
+!      werden                                                           
+       common /thiadd/iadda                                                                  
+                                                                        
        double precision qortho_0, qortho_1,qz_0, qz_1 
        integer          nz, northo, iortho, iz, ith 
        character*40     filnam 
