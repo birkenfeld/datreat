@@ -310,6 +310,7 @@
 
 
 	module formul
+		save
 		character*1024 xformel
 		character*1024 yformel
 		character*1024 yfitform
@@ -321,6 +322,7 @@
 !     nwspl  length of splined data vectors                             
 
 	module cfc
+		save
 		real qziel
 		real cscoef(4,__MWERT)
 		real break(__MWERT)
@@ -340,6 +342,7 @@
 
 
 	module cfunc
+		save
 		integer iprt
 		logical sqwght
 		real x1
@@ -352,6 +355,7 @@
 
 ! ---  if lerrel=.true. the fiterrors are take as relative errors 
 	module cfunce
+		save
 		logical lerrel
 		logical lwrtfitdat
 		real fcssq
@@ -363,6 +367,7 @@
 !     cdelta  = koeffizient der feldintegralabh&a.ngigkeit von j1,j2    
  
 	module partran
+		save
 		real*4 j1echo
 		real*4 j2echo
 		real*4 j0delta
@@ -373,12 +378,14 @@
 !     dalam   = wellenla.ngenbreite in a                                
 
 	module wlntran
+		save
 		real alam0
 		real dalam 
 	end module wlntran
 
 !     tau in sekunden, relaxationszeit des streuers
 	module sqtran
+		save
 		real tau
 	end module sqtran 
 
