@@ -48,23 +48,36 @@ INCLUDE "commons.h"
       use partran
       use wlntran
       use sqtran
-! these 2 seem to bee only existant in the main program ... still needed?
-! since all vars were declarec implicitely, we could just delete those 2? 
-      use ergsum 
-      use ergfil
       use constants
 
        real*8 rparf, getval, valnxt, get1, get2, get3, dble
 
-
-! obolete and commented out!?!
+      common/ergsum/bcut1,rcoef1,slope1,bcut2,rcoef2,slope2,yint 
+! --- ergebnisse der sum-auswertung                                     
+!     bcut1,2 --- y-achsschittpunkte der high u. low-freq. geraden      
+!     slope1,2 -- steigungen              "          "                  
+!     rcoef1,2 -- r-parameter                                           
+!     yint     -- abgeleitete intensitaet                               
+                                                                        
+      common/ergfil/ymx,sigma,ymaxf,yminf,                              &
+     &              imx,imx2,imaxf,iminf,ic1,ic2,ic3                    
+! --- filter-sektion (parameter & ergebnisse) ---                       
+!  -- ymx : wert des maximums im spektrum                               
+!     imx : kanal des spektralen max.                                   
+!     imx2: spiegel kanal (imx)                                         
+!     ymaxf: maximum in der gefilterten huellkurve                      
+!     imaxf: kanallage des maximums ymaxf                               
+!     yminf: minimum in der gefilterten huellkurve                      
+!     iminf: kanallage des maximums ymaxf                               
+!     ic1,2,3 : die letzten 3 angesprochenen kurven                     
+                                                                        
 ! ------------ imsl-version 10 workspace -------------------------------
 !                                                                       
 !      parameter (iwklen=11*mfit+2*msmpl-1)                             
-!       parameter (iwklen=200000) 
+       parameter (iwklen=200000) 
 !      wrklen for unlsf                                                 
 !      the system must be told about this length by calling iwkin(wrklen
-!       common/worksp/ rwksp(iwklen) 
+       common/worksp/ rwksp(iwklen) 
 ! ----------------------------------------------------------------------
 !                                                                       
        character fname*25,fnam*8,ftyp*8,fmode*1,fpnam*8,xpnam*8,ypnam*8 
