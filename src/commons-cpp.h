@@ -15,6 +15,7 @@
 #define __MUSRFSTACK 50
 #define __NODELIMS 7
 #define __MSMPL 4000
+#define __MDIM 1024
 ! ---- communication common block containig the analysed inputline       
 !      comand   = actual command keyword                               
 !      vname(*) = names stack                                           
@@ -432,6 +433,23 @@
 		integer ic3
 	end module ergfil
 
+!             ---> this common saves storage by use of ca in fftrmx also
+	module fftwrk
+		save
+		complex*8 ca(__MDIM+1,__MDIM+1) 
+	end module fftwrk
+	module fftwr1
+		save
+		real ca(__MDIM,__MDIM) 
+                real yinter(__MDIM)
+	end module fftwr1
+
+	module fftwr2
+		save
+		real ca(__MDIM+1,__MDIM+1) 
+	end module fftwr2
+
+
 	module constants
 		save
 		! --- minc = incom stack depth                                          
@@ -458,4 +476,6 @@
 		integer, parameter :: klammerinc=10 
  	        integer, parameter :: iplusprio=1, minusprio=1, multprio=2, idivprio=2 
  	        integer, parameter :: iexpprio=3, iuprio=7,komprio=0 
+		parameter(mdim=__MDIM) 
+	        integer, parameter :: lda=__MDIM+1
 	end module constants

@@ -77,8 +77,7 @@ lib/slatec/libslatec.a lib/sminpack/libsminpack.a
 	$(FC) -c $(FFLAGS) $(LDFLAGS) $< 
 
 
-
-datreat: $(OBJS) $(LIBS) $(OBJ_GR)
+datreat: CPP $(OBJS) $(LIBS) $(OBJ_GR)
 	$(FC) -o datreat $(FFLAGS) $(OBJS) $(LIBS) $(LDFLAGS) -L$(GRACE) $(OBJ_GR) -l$(GRACENP)  -L/usr/local/psh/lib $(ADDLIBGR) $(ADDLIBGKS)
 	@/bin/mv datreat ../bin
 	@/bin/ln -sf $(LOCAL)/bin/datreat ~/bin
@@ -94,6 +93,8 @@ datreat: $(OBJS) $(LIBS) $(OBJ_GR)
 	@head CHANGES.log
 	@echo "___________________________________________________________________"
 
+CPP:	
+	@cpp commons-cpp.h -o commons.h
 intel:
 	make datreat FC=ifort FFLAGS="-g -O2" \
 	LDFLAGS="-Wl,-rpath,/usr/local/intel/fc/stable/lib"
@@ -137,6 +138,7 @@ cleanall:
 	make -C lib/sminpack cleanall
 	make -C theos clean
 	rm -f *.o
+	rm -f *.mod
 	rm -f unused_theos/*.o
 
 

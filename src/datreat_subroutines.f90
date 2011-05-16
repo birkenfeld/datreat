@@ -2413,12 +2413,10 @@
 ! ----------------------------------------------------------------------
 ! --- fft-dimensioning -------------------------------------------------
        use outlev
+       use constants
+       use fftwrk
 
-       parameter(mdim=1024) 
-       parameter(lda = mdim+1) 
-       complex*8  ca,cexp,clog,cabs 
-       common/fftwrk/ca(lda,lda) 
-!             ---> this common saves storage by use of ca in fftrmx also
+       complex*8  cexp,clog,cabs 
        dimension x(*),y(*) 
 ! ----------------------------------------------------------------------
        data pi/3.1415926535897/ 
@@ -2545,14 +2543,10 @@
 !      ai0 ........ : primary intensity varaible as assumed (i0)        
 ! ----------------------------------------------------------------------
        use outlev 
+       use fftwr2
+       use constants
 !                                                                       
 ! --- fft-dimensioning -------------------------------------------------
-       parameter(mdim=1024) 
-       parameter(lda = mdim+1) 
-!cc    complex*8  ca,cexp,clog                                          
-                                  !! aix                                
-       common/fftwr2/ca(lda,lda) 
-!             ---> this common saves storage by use of ca in fftrmx also
        dimension x(*),y(*) 
 ! ----------------------------------------------------------------------
        data pi/3.1415926535897/ 
@@ -2693,8 +2687,8 @@
 !      ai0 ........ : primary intensity varaible as assumed (i0)        
 ! ----------------------------------------------------------------------
        use outlev
-! --- fft-dimensioning -------------------------------------------------
-       parameter(mdim=1024) 
+       use constants
+! --- fft-dimensioning ------------------------------------------------- 
        dimension  ca(mdim)   ,cb(mdim) 
 !             ---> this common saves storage by use of ca in fftrmx also
        dimension x(*),y(*) 
@@ -2898,13 +2892,12 @@
 ! ----------------------------------------------------------------------
 !                                                                       
 ! ---- dimensioning ----------------------------------------------------
+       use fftwr1
+       use constants
        parameter(pi=3.1415926535897) 
-       parameter(mdim=1024) 
        real xin (nin) ,yin (nin) 
        real xout(nfft),yout(nfft) 
                                                        !! k--> 1 aix !! 
-       common/fftwr1/  ca(mdim,mdim), yinter(mdim) 
-! ----------------------------------------------------------------------
        ier = 0 
        if(nfft.eq.0)       nfft = mdim 
        if(nfft.gt.mdim)    nfft = mdim 
@@ -3111,12 +3104,13 @@
 ! ----------------------------------------------------------------------
 !                                                                       
 ! ---- dimensioning ----------------------------------------------------
+       use constants
+       use fftwr1
        parameter(pi=3.1415926535897) 
-       parameter(mdim=1024) 
+   
        real xin (nin) ,yin (nin) 
        real xout(nfft),yout(nfft) 
                                                        !! k--> 1 aix !! 
-       common/fftwr1/  ca(mdim,mdim), yinter(mdim) 
 ! ----------------------------------------------------------------------
        ier = 0 
        if(nfft.eq.0)       nfft = mdim 
