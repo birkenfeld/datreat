@@ -368,9 +368,7 @@
 
        implicit real*8 (a-h,o-z) 
        character*8 pname 
-       character*16 pnamc 
 !-----------------------------------------------------------------------
-!                                                                       
        inew      = 0 
        wert      = defval 
        getval    = defval 
@@ -532,9 +530,7 @@
        implicit real*8 (a-h,o-z) 
 
        character*8 pname 
-       character*16 pnamc 
 !-----------------------------------------------------------------------
-!                                                                       
        inew      = 0 
        intval    = idef 
        call setudf(pname//' ',wert,ier) 
@@ -852,7 +848,7 @@
 !-----------------------------------------------------------------------
        character*16 pnamc
        character*8 pname 
-       dimension defvec(3), vec(3) 
+       dimension vec(3) 
 !-----------------------------------------------------------------------
 !                                                                       
        inew      = 0 
@@ -972,7 +968,6 @@
 !                                                                       
       dimension  x(3), y(3) 
       dimension  xyorig(3), rotvec(3), r(3,3) 
-      logical cray 
       data    degtor /0.017453292d0/ 
 !                                                                       
       y(1) = x(1) - xyorig(1) 
@@ -1404,7 +1399,7 @@
 !    mode  =    'new' oder 'old' oder 'mod'                             
 !    irc   =    return code                                             
 !                                                                       
-      character*24  file, fili, fm*1,cnum*4, line*80, mode*3 
+      character*24  file, fili, cnum*4, line*80, mode*3 
       line = ' ' 
 !                                                                       
       fili = file 
@@ -1460,7 +1455,7 @@
        character*4 op 
        integer     prio 
        real*8      val 
-       logical     yesno,compare 
+       logical     yesno 
                                                                         
 ! ---- inits -----------------------------------------------------------
        ok          = .true. 
@@ -2136,7 +2131,7 @@
       use usevar
       use constants
       character*16 nam 
-      real*8 val 
+
       logical compare 
                                                                         
       if(nam(1:3).eq.'all') then 
@@ -2164,10 +2159,8 @@
 !     -----------------                                                 
       use usevar
       use constants
-      character*16 nam 
-      real*8 val 
-      logical compare 
-                                                                        
+
+
       if(nousev.eq.0) then 
         write(6,*)'no uservars defined!' 
       else 

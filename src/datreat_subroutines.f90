@@ -215,12 +215,6 @@
        use cfunc
        use constants
 
-       character*8 dum  
-       real*8 getval, dble 
-
-
-       LOGICAL imu 
-                                                                        
        integer iadda 
        common /thiadd/iadda 
 !                                                                       
@@ -255,7 +249,7 @@
        real*8 getval
       dimension iparam(6),rparam(7),x(mfit),f(msmpl),xjac(msmpl,mfit),  &
      &          xguess(mfit),xscale(mfit),fscale(msmpl)                 
-      dimension numv(minc),numn(minc) 
+      dimension numv(minc)
       dimension ermat(mfit,msmpl), gmat(mfit,mfit), ginv(mfit,mfit) 
 !                                                                       
       dimension   xcenter(mfit), xstepsc(mfit) 
@@ -264,8 +258,8 @@
       external func 
 !                                                                       
       logical sqwbuf 
-      logical found, folgt 
-      logical final_thc, lbuffer 
+      logical found
+      logical final_thc 
        real*8 ssq 
 !                                                                       
 !                                                                       
@@ -627,6 +621,8 @@
 !                                                                       
 ! ----- calculates deviation data theory for zxssq ----                 
 !                                                                       
+! compiler complains about nff unsused!!!!
+
        use cdata
        use outlev
        use theory
@@ -634,13 +630,9 @@
        use cfunc
        use cfunce
        use constants
-       character*8 dum 
 
        real      x(mfit),f(msmpl) 
-       dimension xp(mtpar),q2(3) 
-!                                                                       
        data icall/0/ 
-!                                                                       
 !                                                                       
 ! ---- restore startvalues & parameters ----                            
 !                                                                       
@@ -756,7 +748,7 @@
        use selist
        use cfunc
        use constants
-       character*8 dum 
+ 
        real*8 getval, dble  
 !                                                                       
        common /thiadd/iadda 
@@ -764,10 +756,7 @@
 !      damit koennen dann ggf. weitere parameter ueber parget gewonnen  
 !      werden                                                           
 !                                                                       
-       dimension dq(4),q2(4) 
        logical convolute/.false./, found, folgt 
-       logical imu 
-!                                                                       
        data extup/0./,extlow/0./ 
                                                                         
 !                                                                       
@@ -1142,7 +1131,7 @@
        integer       iocbuf 
        character*4   label 
        character*8   pname, chrval 
-       real*8        dble, getval 
+       real*8        getval 
        logical       found 
 !                                                                       
 !                                                                       
@@ -1571,8 +1560,7 @@
        use theory
        use theorc
        use constants 
-!                                                                       
-       character*8 thenax,thpanx(mtpar) 
+
        character*4   label 
 
 ! ----------------------------------------------------------------------
@@ -1641,16 +1629,13 @@
 !       character*8  infile                                             
        character*80 rline 
        logical*4    fileda 
-       dimension sq(3),ihkl(3),xh(3) 
-                                                                        
        real*8       xshift, yshift, getval 
                                                                         
 !  neu fuer pfad                                                        
-       integer iz,file_len 
        character*1024 uspfad 
        character*1024 tempfad
        character*1024 X_datpath 
-       character*8 shortinf,ignoreline,nextset
+       character*8 ignoreline,nextset
        integer     il
                                                                         
        data tempfad /'./'/ 
@@ -1892,9 +1877,8 @@
        use outlev
        use constants
 !                                                                       
-       character*8  infile,intyp,inmode 
+       character*8  infile
        character*131 rline 
-       dimension sq(3),ihkl(3),xh(3) 
        dimension ah(mwert),ak(mwert),al(mwert),anue(mwert),atemp(mwert),&
      &           afeld(mwert),acounts(mwert),acorrcnt(mwert),           &
      &           amonitor(mwert),extramon(mwert),atime(mwert)           
@@ -2278,7 +2262,7 @@
        use fslist
        use constants 
 
-       character*1024 fname,finame, savepath, pathbuf, outfile
+       character*1024 fname,savepath, pathbuf, outfile
                                                                         
 ! first write data selected:                                            
          pathbuf = savepath() 
@@ -2416,7 +2400,7 @@
        use constants
        use fftwrk
 
-       complex*8  cexp,clog,cabs 
+       complex*8  cexp,cabs 
        dimension x(*),y(*) 
 ! ----------------------------------------------------------------------
        data pi/3.1415926535897/ 
@@ -3289,7 +3273,7 @@
       character*20 nam 
       character*8 pname 
       real*8 x(*)
-      real*8 xh, yh , dx
+      real*8 xh, dx
       logical compare 
                                                                         
       ier = 0 
