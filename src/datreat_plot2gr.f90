@@ -15,10 +15,9 @@
        use therrc
        use thparc
        use constants
-!                                                                       
-       character*6 cnum 
-       dimension x(mwert),y(mwert),yl(mwert),yh(mwert),irecv(minc),     &
-     &          isymb(minc),irecn(minc),icolo(minc),ifrec(minc)         
+
+       dimension x(mwert),y(mwert),irecv(minc),     &
+     &          isymb(minc),icolo(minc),ifrec(minc)         
        dimension e(mwert) 
                                                                         
        logical found 
@@ -35,7 +34,7 @@
        real    log10 
                                                                         
 !      --- doplo = false  means: set parameters only ---                
-       character*80 option,xtext,ytext,tbuf 
+       character*80 option,xtext,ytext
        character*8  dirnam(4),opart(8) 
                                                                         
        character*12 tag, stunde 
@@ -585,10 +584,8 @@
        use constants
 !                                                                       
        character*12 infile 
-       character*80 rline 
        logical*4    fileda 
-       dimension sq(3),ihkl(3),xh(3) 
-!                                                                       
+
 ! -- open the file -----------------------------------------------------
        if(inames.eq.0) then 
          ierrs = 1 
@@ -643,15 +640,14 @@
                                                                         
        logical ptex 
        logical paplo 
-       logical doplo 
        logical fitplo 
        logical paxis 
        logical taxis 
 !      --- doplo = false  means: set parameters only ---                
        character*80 option,xtext,ytext,tbuf,ttext,txtv,fmt,ttout 
-       character*8  dirnam(4),opart(8) 
-       character*8  codena, codefn, chrval 
-       logical      found, folgt 
+       character*8  opart(8) 
+       character*8  codena, codefn
+       logical      found
        dimension isymb(minc), icolo(minc) 
        real*8 xdbl(*), ydbl(*), xcode(*) 
        real*8 dble, getval, val 

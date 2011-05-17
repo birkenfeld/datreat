@@ -53,19 +53,9 @@ INCLUDE "commons.h"
       use ergfil
       use constants
 
-       real*8 rparf, getval, valnxt, get1, get2, get3, dble
+       real*8 getval, dble
 
-! Unneeded????
-! ------------ imsl-version 10 workspace -------------------------------
-!                                                                       
-!      parameter (iwklen=11*mfit+2*msmpl-1)                             
-!       parameter (iwklen=200000) 
-!      wrklen for unlsf                                                 
-!      the system must be told about this length by calling iwkin(wrklen
-!       common/worksp/ rwksp(iwklen) 
-! ----------------------------------------------------------------------
-!                                                                       
-       character fname*25,fnam*8,ftyp*8,fmode*1,fpnam*8,xpnam*8,ypnam*8 
+       character ftyp*8,fmode*1,fpnam*8,xpnam*8,ypnam*8 
        character fsname*1024 
        character*1 csel 
        real*8 val8x,val8y 
@@ -73,33 +63,31 @@ INCLUDE "commons.h"
        complex ca(mwert), cb(mwert), cmplx, conjg 
        dimension alim(2), blim(2) 
 !                                                                       
-       dimension qq(3),par(10),qt(3),sqt(3),iqt(3) 
        dimension nnumi(minc) 
-       logical withmo,fonpla,found,folgt,compare 
-                                                                        
+       logical withmo,fonpla,found
+
        parameter( mcut=200 ) 
        dimension rrv(0:mcut) 
-                                                                    
+
 ! ---> transfer der addresse der gerade bearbeiteten kurve nach thXX    
 !      damit koennen dann ggf. weitere parameter ueber parget gewonnen  
 !      werden                                                           
-       common /thiadd/iadda                                                                  
-                                                                        
+       common /thiadd/iadda
+
        double precision qortho_0, qortho_1,qz_0, qz_1 
        integer          nz, northo, iortho, iz, ith 
        character*40     filnam 
        character*8      filext, chrval 
        character*8      selparna 
-                                                                        
+
                                       ! dir-command --> comment-length  
        integer          len_comm 
-                                                                        
+
        character*420    pastring 
        character*80     fostring 
        character*8      dirpan(20) 
        real*4           dirpav(20) 
-        character*1024  get_argvals                                                   
-                                                                        
+
 !                                                                       
        external fdes 
        external f 

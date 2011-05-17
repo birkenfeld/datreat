@@ -11,10 +11,6 @@ subroutine gplot ()
   use therrc
   use constants
   !      ================  scan-plotting
-  character*6 cnum
-  !
-  dimension x(mwert),y(mwert),yl(mwert),yh(mwert),irecv(minc),isymb(minc),irecn(minc),icolo(minc),ifrec(minc)
-  dimension e(mwert)
   ! ###################################################Anfang RB
   logical fitplo,errplo,legend,closeGrace,noautoscale,gsave,clearplo
   logical comon,writefit

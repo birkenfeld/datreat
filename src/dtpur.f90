@@ -35,27 +35,11 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
        use cfunce
        use constants
 
-	character*8 ci 
-	real*8 getval 
-!                                                                       
       dimension iparam(6),rparam(7),x(mfit),f(msmpl),xjac(msmpl,mfit),  &
-     &          xguess(mfit),xscale(mfit),fscale(msmpl)                 
-      dimension numv(minc),numn(minc) 
-      dimension ermat(mfit,msmpl), gmat(mfit,mfit), ginv(mfit,mfit) 
-!                                                                       
-      dimension   xcenter(mfit), xstepsc(mfit) 
-      character*8 xpname(mfit) 
+     &          xguess(mfit),xscale(mfit),fscale(msmpl)
 !                                                                       
       external func 
-!                                                                       
-      logical found, folgt 
-      logical final_thc, lbuffer 
-
-                                                                        
-
 ! ---- OH: additional parameters for minpack and lapack                 
-       double precision xdoub1 
-       real xreal1 
        integer icode 
                                                                         
        integer nfev, mode, iflag 
@@ -367,8 +351,7 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
       external fdes 
       real*8 gunten, goben, errabs, errel,errret, work(limit*4), result 
       real*8 d01ahf
-      integer lim1
-                                                                         
+
 !      errel = 0.1
 !      neval = 1000
 !      lim1 = 5000
@@ -418,7 +401,7 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
       subroutine qdag(fdes,gunten,goben,errabs,errel,                   &
      &                irule, result,errret)                             
       parameter(lenw=2000, limit=500) 
-      integer ier, neval, last, iwork(limit), irule 
+      integer neval, last, iwork(limit), irule
       external fdes 
       real gunten, goben, errabs, errel,errret, work(lenw) 
                                                                         
@@ -535,6 +518,10 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
                                                                         
       subroutine erset(a,b,c) 
       write(*,*)'subroutine erset not needed in this version...' 
+      !to silence the compiler
+      a=1
+      b=1
+      c=1
       return 
       END                                           
                                                                         
@@ -545,7 +532,8 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
                                                                         
       write(*,*)'rnset: not extensively tested...' 
       CALL RANDOM_SEED 
-                                                                        
+      !to silence the compiler
+      iseed=1
       return 
       END                                           
                                                                         
@@ -708,9 +696,9 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine csscv(nn,x,y,iequal,brk,cscoef) 
-      integer ier, m, k, cn 
+      integer ier, k, cn 
       real wk(nn*13+6), c0(nn), c(nn-1,3) 
-      dimension weight(nn), wy(1),x(nn),y(nn), brk(nn), cscoef(4,nn) 
+      dimension weight(nn),x(nn),y(nn), brk(nn), cscoef(4,nn) 
                                                                         
       cn=nn-1 
       write(*,*)'cubic spline smoothing,' 
@@ -740,9 +728,9 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
                                                                         
       subroutine cssmh(nn,x,y,weight,smpar,brk,cscoef) 
-      integer ier, m, k, cn 
+      integer ier, k, cn 
       real wk(nn*13+6), c0(nn), c(nn-1,3) 
-      dimension weight(nn), wy(1),x(nn),y(nn), brk(nn), cscoef(4,nn) 
+      dimension weight(nn), x(nn),y(nn), brk(nn), cscoef(4,nn) 
                                                                         
       cn=nn-1 
       write(*,*)'cubic spline smoothing,' 
@@ -787,49 +775,49 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
                                                                         
       write(*,*)'IMSL routine u4lsf called,' 
       write(*,*)'not used with minpack...' 
-                                                                        
+      !to silence the compiler
+      a=1
+      b=1
       return 
-      END                                           
-                                                                        
-                                                                        
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-                                                                        
-                                                                        
+      END
+
       subroutine dsvrgp(a,b,c,d) 
                                                                         
       write(*,*)'IMSL routine dsvrgp called,' 
       write(*,*)'not replaced yet...' 
       write(*,*)'ERROR!!!!!!!!' 
-                                                                        
-                                                                        
+      !to silence the compiler
+      a=1
+      b=1
+      c=1
+      d=1
+
       return 
-      END                                           
-                                                                        
-                                                                        
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-                                                                        
-                                                                        
+      END
+
       subroutine dpermu(a,b,c,d,e) 
                                                                         
       write(*,*)'IMSL routine dpermu called,' 
       write(*,*)'not replaced yet...' 
       write(*,*)'ERROR!!!!!!!!' 
-                                                                        
+      !to silence the compiler
+      a=1
+      b=1
+      c=1
+      d=1
+      e=1
+
       return 
-      END                                           
-                                                                        
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-                                                                        
+      END
+
       function Dsi(x) 
 ! where is the function in use????                                      
-                                                                        
       write(*,*)'Function Dsi called...' 
       write(*,*)'not yet replaced!!!!!!!!' 
       write(*,*)'ERROR!!!!!!!!' 
       Dsi=0 
+      !to silence the compiler
+      x=1
       return 
       END          
                                  
