@@ -250,7 +250,7 @@
        use cfunc
        use cfunce
        use constants
-
+       
        character*8 ci  
        real*8 getval
       dimension iparam(6),rparam(7),x(mfit),f(msmpl),xjac(msmpl,mfit),  &

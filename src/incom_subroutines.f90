@@ -75,61 +75,8 @@
        a = d 
                                                                         
        return 
-      END                                           
-!                                                                       
-!                                                                       
-!*ds                                                                    
-!*ed                                                                    
-       subroutine oldlowcase( string , l) 
-!      ==============================                                   
-! ---> reverse action for unix system <----                             
-!                                                                       
-       character*1024 string 
-       character*26  upper, lower , c*1 
-       DATA LOWER/'ABCDEFGHIJKLMNOPQRSTUVWXYZ'/ 
-       data upper/'abcdefghijklmnopqrstuvwxyz'/ 
-!                                                                       
-       do 1 i=1,l 
-        c = string(i:i) 
-        do 2 j=1,26 
-          if(c.eq.lower(j:j)) then 
-             c = upper(j:j) 
-             goto 3 
-          endif 
-    2   continue 
-    3   continue 
-        string(i:i) = c 
-    1  continue 
-       return 
-      END                                           
-!*ds                                                                    
-!*ed                                                                    
-       subroutine oldupcase( string , l) 
-!      ==============================                                   
-! ---> uppercase translation <---                                       
-!                                                                       
-       character*1024 string 
-       character*26  upper, lower , c*1 
-       DATA upper/'ABCDEFGHIJKLMNOPQRSTUVWXYZ'/ 
-       data lower/'abcdefghijklmnopqrstuvwxyz'/ 
-!                                                                       
-       do 1 i=1,l 
-        c = string(i:i) 
-        do 2 j=1,26 
-          if(c.eq.lower(j:j)) then 
-             c = upper(j:j) 
-             goto 3 
-          endif 
-    2   continue 
-    3   continue 
-        string(i:i) = c 
-    1  continue 
-       return 
-      END                                           
-!                                                                       
-!                                                                       
-!*ds                                                                    
-!*ed                                                                    
+      END
+
       subroutine scan(ctext,r,ierr) 
 ! ----------------------------------------------------------------------
 !  scan - scannen einer real-zahl (version fuer ibm pc prof. fortran)   
@@ -246,11 +193,7 @@
        use icpathes
        use constants
        implicit real*8 (a-h,o-z) 
-!ray -------------------------------                                    
-!                                                                        
-! --- minc = incom stack depth                                          
-!                                                                       
-        
+
        character*1024 zeile, reslbf 
        character*8   cmd 
 !-----------------------------------------------------------------------
@@ -422,13 +365,8 @@
        use cincom
        use cincoc
        use constants
+
        implicit real*8 (a-h,o-z) 
-!ray -------------------------------                                    
-!                                                                        
-! --- minc = incom stack depth                                          
-!                                                                       
-       
-!-----------------------------------------------------------------------
        character*8 pname 
        character*16 pnamc 
 !-----------------------------------------------------------------------
@@ -472,14 +410,7 @@
        use cincoc
        use constants
        implicit real*8 (a-h,o-z) 
-!ray -------------------------------                                    
-!                                                                        
-! --- minc = incom stack depth                                          
-!                                                                       
-        
-       character*8 pname 
-!-----------------------------------------------------------------------
-!                                                                       
+
        inew      = 0 
        valnxt    = defval 
        if(ipars.le.lstpar) return 
@@ -503,14 +434,8 @@
        use cincoc
        use constants
        implicit real*8 (a-h,o-z) 
-!ray -------------------------------                                    
-!                                                                        
-! --- minc = incom stack depth                                          
-!                                                                       
-        
-       character*8 pname 
-!-----------------------------------------------------------------------
-!                                                                       
+
+
        if(inames.ne.0) return 
        if(ipars.ge.1) p1        = rpar(1) 
        lstpar = 1 
@@ -605,11 +530,7 @@
        use cincoc
        use constants
        implicit real*8 (a-h,o-z) 
-!ray -------------------------------                                    
-!                                                                        
-! --- minc = incom stack depth                                          
-!                                                                       
-       
+
        character*8 pname 
        character*16 pnamc 
 !-----------------------------------------------------------------------
@@ -648,14 +569,7 @@
        use cincoc
        use constants
        implicit real*8 (a-h,o-z)
-!ray -------------------------------                                    
-!                                                                        
-! --- minc = incom stack depth                                          
-!                                                                       
-        
-       character*8 pname 
-!-----------------------------------------------------------------------
-!                                                                       
+
        inew      = 0 
        intnxt    = idef 
        if(ipars.le.lstpar) return 
@@ -679,11 +593,7 @@
        use cincoc
        use constants
        implicit real*8 (a-h,o-z) 
-!ray -------------------------------                                    
-!                                                                        
-! --- minc = incom stack depth                                          
-!                                                                       
-        
+
        character*8 pname, cdef 
 !-----------------------------------------------------------------------
 !                                                                       
@@ -717,7 +627,7 @@
        use constants
        implicit real*8 (a-h,o-z) 
 
-       character*8 pname, cdef 
+       character*8 cdef 
 !-----------------------------------------------------------------------
 !                                                                       
        inew      = 0 
@@ -730,34 +640,7 @@
                                                                         
       return 
 !                                                                       
-      END                                           
-!*ds                                                                    
-!*ed                                                                    
-      character*8 function cmdf() 
-!-----------------------------------------------------------------------
-!  kommando extraktion aus dem incom parametercommon (character)        
-!-----------------------------------------------------------------------
-!                                                                       
-!ray -------------------------------                                    
-       use cincom
-       use cincoc
-       use constants
-       implicit real*8 (a-h,o-z) 
-!ray -------------------------------                                    
-!                                                                        
-! --- minc = incom stack depth                                          
-!                                                                       
-        
-       character*8 pname 
-!-----------------------------------------------------------------------
-!                                                                       
-       cmdf = comand 
-!                                                                       
-      return 
-!                                                                       
-      END                                           
-!*ds                                                                    
-!*ed                                                                    
+      END
       character*8 function vnamef(iaddr) 
 !-----------------------------------------------------------------------
 !  wert extraktion aus dem incom parameterstack  name (character)       
@@ -768,14 +651,7 @@
        use cincoc
        use constants
        implicit real*8 (a-h,o-z) 
-!ray -------------------------------                                    
-!                                                                        
-! --- minc = incom stack depth                                          
-!                                                                       
-        
-       character*8 pname 
-!-----------------------------------------------------------------------
-!                                                                       
+
        vnamef = vname(iaddr) 
        lstnam = iaddr 
 !                                                                       
@@ -794,11 +670,7 @@
        use cincoc
        use constants
        implicit real*8 (a-h,o-z) 
-!ray -------------------------------                                    
-!                                                                        
-! --- minc = incom stack depth                                          
-!                                                                       
-        
+
        character*80 newtit 
 !-----------------------------------------------------------------------
 !                                                                       
@@ -820,11 +692,7 @@
        use cincoc
        use constants
        implicit real*8 (a-h,o-z) 
-!ray -------------------------------                                    
-!                                                                        
-! --- minc = incom stack depth                                          
-!                                                                       
-        
+
        titlef = title(1:80) 
 !                                                                       
       return 
@@ -842,127 +710,14 @@
        use cincoc
        use constants
        implicit real*8 (a-h,o-z) 
-!ray -------------------------------                                    
-!                                                                        
-! --- minc = incom stack depth                                          
-!                                                                       
-        
-       character*8 pname 
-!-----------------------------------------------------------------------
-!                                                                       
+
        rparf = rpar(iaddr) 
        lstpar= iaddr 
 !                                                                       
       return 
 !                                                                       
-      END                                           
-!*ds                                                                    
-!*ed                                                                    
-      function inapf(iaddr) 
-!-----------------------------------------------------------------------
-!  wert extraktion aus dem incom parameterstack  zuordnung inapa        
-!-----------------------------------------------------------------------
-!                                                                       
-!ray -------------------------------                                    
-       use cincom
-       use cincoc
-       use constants
-       implicit real*8 (a-h,o-z) 
-!ray -------------------------------                                    
-!                                                                        
-! --- minc = incom stack depth                                          
-!                                                                       
-        
-       character*8 pname 
-!-----------------------------------------------------------------------
-!                                                                       
-       inapf = inapa(iaddr) 
-!                                                                       
-      return 
-!                                                                       
-!                                                                       
-      END                                           
-!                                                                       
-!                                                                       
-!*ds                                                                    
-!*ed                                                                    
-      function inpaf(iaddr) 
-!-----------------------------------------------------------------------
-!  wert extraktion aus dem incom parameterstack  zuordnung inpar        
-!-----------------------------------------------------------------------
-!                                                                       
-!ray -------------------------------                                    
-       use cincom
-       use cincoc
-       use constants
-       implicit real*8 (a-h,o-z) 
-!ray -------------------------------                                    
-!                                                                        
-! --- minc = incom stack depth                                          
-!                                                                       
-        
-       character*8 pname 
-!-----------------------------------------------------------------------
-!                                                                       
-       inpaf = inpar(iaddr) 
-!                                                                       
-      return 
-      END                                           
-!                                                                       
-!                                                                       
-!*ds                                                                    
-!*ed                                                                    
-      function iparf() 
-!-----------------------------------------------------------------------
-!  wert extraktion aus dem incom parameterstack  zuordnung ipars        
-!-----------------------------------------------------------------------
-!                                                                       
-!ray -------------------------------                                    
-       use cincom
-       use cincoc
-       use constants
-       implicit real*8 (a-h,o-z) 
-!ray -------------------------------                                    
-!                                                                        
-! --- minc = incom stack depth                                          
-!                                                                       
-        
-       character*8 pname 
-!-----------------------------------------------------------------------
-!                                                                       
-       iparf = ipars 
-!                                                                       
-      return 
-      END                                           
-!                                                                       
-!                                                                       
-!*ds                                                                    
-!*ed                                                                    
-      function inamf() 
-!-----------------------------------------------------------------------
-!  wert extraktion aus dem incom parameterstack  zuordnung inames       
-!-----------------------------------------------------------------------
-!                                                                       
-!ray -------------------------------                                    
-       use cincom
-       use cincoc
-       use constants
-       implicit real*8 (a-h,o-z) 
-!ray -------------------------------                                    
-!                                                                        
-! --- minc = incom stack depth                                          
-!                                                                       
-        
-       character*8 pname 
-!-----------------------------------------------------------------------
-!                                                                       
-       inamf = inames 
-!                                                                       
-      return 
-!                                                                       
-      END                                           
-!*ds                                                                    
-!*ed                                                                    
+      END
+
       function ifound(pname) 
 !-----------------------------------------------------------------------
 !  logische optionserkennung  ifound wird=fundstelle sonst 0            
@@ -973,11 +728,7 @@
        use cincoc
        use constants
        implicit real*8 (a-h,o-z) 
-!ray -------------------------------                                    
-!                                                                        
-! --- minc = incom stack depth                                          
-!                                                                       
-        
+
        character*8 pname 
 !-----------------------------------------------------------------------
 !                                                                       
@@ -1002,17 +753,12 @@
 !-----------------------------------------------------------------------
 !  logische optionserkennung                                            
 !-----------------------------------------------------------------------
-!                                                                       
-!ray -------------------------------                                    
        implicit real*8 (a-h,o-z) 
-!ray -------------------------------                                    
-!-----------------------------------------------------------------------
        character*8 pname 
-!-----------------------------------------------------------------------
-!                                                                       
+
       found = ifound(pname) .ne. 0 
       return 
-!                                                                       
+
       END                                           
 !                                                                       
 !                                                                       
@@ -1028,11 +774,7 @@
        use cincoc
        use constants
        implicit real*8 (a-h,o-z) 
-!ray -------------------------------                                    
-!                                                                        
-! --- minc = incom stack depth                                          
-!                                                                       
-        
+
        character*8 popt, pname 
 !-----------------------------------------------------------------------
 !                                                                       
@@ -1058,13 +800,7 @@
        use cincoc
        use constants
        implicit real*8 (a-h,o-z) 
-!ray -------------------------------                                    
-!                                                                        
-! --- minc = incom stack depth                                          
-!                                                                       
-        
-!-----------------------------------------------------------------------
-!                                                                       
+
        inew      = 0 
        intvno    = idef 
        if(ipars.lt.ipnum) return 
@@ -1088,12 +824,7 @@
        use cincoc
        use constants
        implicit real*8 (a-h,o-z) 
-!ray -------------------------------                                    
-!                                                                       
-! --- minc = incom stack depth                                          
-!                                                                       
-        
-!                                                                       
+
        inew      = 0 
        getvno    = adef 
        if(ipars.lt.ipnum) return 
@@ -2446,14 +2177,15 @@
         enddo 
       endif 
       return 
-      END                                           
-!*ds                                                                    
-!*ed                                                                    
-      subroutine adpicn 
-!     -----------------                                                 
-      use xoutxx
+      END
 
-      ibild1 = ibild1 + 1 
-!     -----------------                                                 
+      function inpaf(iaddr) 
+!-----------------------------------------------------------------------
+!  wert extraktion aus dem incom parameterstack  zuordnung inpar        
+!  still needed for one routine in datreat_subroutines
+!-----------------------------------------------------------------------
+       use cincom
+       use cincoc
+       inpaf = inpar(iaddr) 
       return 
       END                                           

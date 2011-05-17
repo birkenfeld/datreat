@@ -466,6 +466,7 @@
 		!     msmpl= max no. of datapoints in fit                               
        		integer, parameter :: mfit=40,msmpl=__MSMPL
 		integer, parameter :: musevar=__MUSEVAR
+        
 		integer, parameter :: maxformlength=__MAXFORMLENGTH
 		integer, parameter :: maxitemlength=__MAXITEMLENGTH
 		integer, parameter :: maxnumstack=__MAXNUMSTACK 
@@ -473,9 +474,11 @@
 		integer, parameter :: musrfstack=__MUSRFSTACK
 		integer, parameter :: nodelims=__NODELIMS
  	        ! do we really need the following constants?
+		! They are only used in one function in incom!
 		integer, parameter :: klammerinc=10 
  	        integer, parameter :: iplusprio=1, minusprio=1, multprio=2, idivprio=2 
  	        integer, parameter :: iexpprio=3, iuprio=7,komprio=0 
-		parameter(mdim=__MDIM) 
+
+		integer, parameter :: mdim=__MDIM 
 	        integer, parameter :: lda=__MDIM+1
 	end module constants
