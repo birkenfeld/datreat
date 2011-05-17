@@ -129,7 +129,7 @@ subroutine gplot ()
         write(*,*)'                    e.g. title "NSE data";subtitle "\xt\N is fouriertime";xaxis label "\xt\N / ns"'
         write(*,*)'                          its a semicolon separated list of xmgrace commands '
         write(*,*)'         fitcol,fc     fits coloured in i   i=1 for black, 0 same color as data'
-        !############################################################    
+        !############################################################
         return
      endif
 
@@ -218,7 +218,7 @@ subroutine gplot ()
            g0s='g'//TRIM(ADJUSTL(buf))//'.s'
            CALL MyGraceCommandf ('with g'//TRIM(ADJUSTL(buf)))
            CALL MyGraceCommandf ('g'//TRIM(ADJUSTL(buf))//' on')
-        else 
+        else
            g0s='g0.s'
            CALL MyGraceCommandf ('with g0')
            CALL MyGraceCommandf ('g0 on')
@@ -246,7 +246,7 @@ subroutine gplot ()
      endif
   enddo
 
-  write(*,*)'  gplot help,h,? for helptext' 
+  write(*,*)'  gplot help,h,? for helptext'
   ! ----- ende parameter retrieving from stack -----
   !       is there something to plot?
   nkurv = nsel       ! number of selected sets , length of table of selected data
@@ -272,10 +272,10 @@ subroutine gplot ()
      enddo
      do i=2,nkurv
         ircu = isels(i)  ! adress of selected set i
-        if (commentar.ne.coment(ircu)) then 
-           commentar='unequal#comment_found'  
+        if (commentar.ne.coment(ircu)) then
+           commentar='unequal#comment_found'
         endif
-        do l=1,nopar(ircu)   ! loop for all params of set 
+        do l=1,nopar(ircu)   ! loop for all params of set
            do ij=1,nopar(ircu1) ! loop for common params
               if (napar_all(ij).eq.napar(l,ircu)) then     ! equal names
                  if (params_all(ij).ne.params(l,ircu)) then ! unequal values
@@ -311,7 +311,7 @@ subroutine gplot ()
      do i=1,nkurv
         ircf = isels(i) ! adress of selected set i
         if (name(ircf)(1:3).eq.'fit') then
-           if (nofitfoundflag.eq.1) then  ! first fit  as init 
+           if (nofitfoundflag.eq.1) then  ! first fit  as init
               ircf1 = isels(i)
               do l=1,nopar(ircf1)  ! initialisierung des Kommentars einfach der erste
                  naparf_all(l)=napar(l,ircf1)
@@ -319,8 +319,8 @@ subroutine gplot ()
                  commentarfit=coment(1)
               enddo
               nofitfoundflag=0
-           else   
-              do l=1,nopar(ircf)   ! loop for all params of set 
+           else
+              do l=1,nopar(ircf)   ! loop for all params of set
                  do ij=1,nopar(ircf1) ! loop for common params
                     if (naparf_all(ij).eq.napar(l,ircf)) then     ! equal names
                        if (paramsf_all(ij).ne.params(l,ircf)) then ! unequal values
@@ -331,7 +331,7 @@ subroutine gplot ()
               enddo
            endif
         endif
-        !corresponding fits  
+        !corresponding fits
         if (ifits(i) .gt. 0) then
            ircf = ifits(i)       ! adress of fit corresponding to selected set i
            if (name(ircf)(1:3).eq.'fit') then ! sollte immer erfüllt sein aber gut...
@@ -343,8 +343,8 @@ subroutine gplot ()
                     commentarfit=coment(1)
                  enddo
                  nofitfoundflag=0
-              else   
-                 do l=1,nopar(ircf)   ! loop for all params of set 
+              else
+                 do l=1,nopar(ircf)   ! loop for all params of set
                     do ij=1,nopar(ircf1) ! loop for common params
                        if (naparf_all(ij).eq.napar(l,ircf)) then     ! equal names
                           if (paramsf_all(ij).ne.params(l,ircf)) then ! unequal values
@@ -376,8 +376,8 @@ subroutine gplot ()
         ij=ij+1
      enddo
   endif
-  !			
-  !          now we have alist of equal parameters from data also present in fits in 
+  !
+  !          now we have alist of equal parameters from data also present in fits in
   !          and a list of equal fit parameters only present in fits
   !#############################################################################
   !      Start Grace with a buffer size of 2048 and open the pipe
@@ -423,9 +423,9 @@ subroutine gplot ()
      CALL MyGraceCommandf (g0si//' on')
      CALL MyGraceCommandf ('kill '//g0si)        ! Falls noch Daten drinstanden
 
-     if  (npic < 50) then ! !write data to grace 
+     if  (npic < 50) then ! !write data to grace
         CALL MyGraceCommandf (g0si//' type xydy')
-        do  j=1,npic       
+        do  j=1,npic
            write(jj,"(I8)") j-1
            WRITE (buf, "(E12.4,' , ',E12.4)") xwerte(j,ircu),ywerte(j,ircu)
            CALL MyGraceCommandf (g0si//' point '//buf)
@@ -446,14 +446,14 @@ subroutine gplot ()
         ! datreat is faster than xmgrace so dont delete the files
         ! clean files with q (exit grace))
 
-     endif! !write data to grace 				
+     endif! !write data to grace
 
      write(buf,"(I8)") sets-10*(sets/10)+1
      if (name(ircu)(1:3).eq.'fit') then
         CALL MyGraceCommandf (g0si//' symbol 0')
         CALL MyGraceCommandf (g0si//' line type 1')
-     else 
-        CALL MyGraceCommandf (g0si//' symbol '//buf)          
+     else
+        CALL MyGraceCommandf (g0si//' symbol '//buf)
         CALL MyGraceCommandf (g0si//' line type 0')
      endif
      write(buf,"(I8)") sets-12*(sets/12)+1
@@ -523,9 +523,9 @@ subroutine gplot ()
            CALL MyGraceCommandf ('kill '//g0si)        ! Falls noch Daten drinstanden
 
            npicf = nwert(ircf)   ! number of fittpointsc
-           if  (npicf < 30) then ! !write data to grace 
+           if  (npicf < 30) then ! !write data to grace
               CALL MyGraceCommandf (g0si//' type xy')
-              do  j=1,npicf       
+              do  j=1,npicf
                  write(jj,"(I8)") j-1
                  WRITE (buf, "(E12.4,' , ',E12.4)") xwerte(j,ircf),ywerte(j,ircf)
                  CALL MyGraceCommandf (TRIM(g0si)//' point '//buf)
@@ -542,19 +542,19 @@ subroutine gplot ()
               CALL MyGraceCommandf ('MOVE S_ TO '//TRIM(g0si)//' ')
               CALL MyGraceCommandf ('S_ HIDDEN FALSE')
               ! see above comment datreat to fast for grace
-           endif! !write data to grace 
+           endif! !write data to grace
 
            CALL MyGraceCommandf (g0si//' symbol 0')
            CALL MyGraceCommandf (g0si//' line type 1')
            if (fb.eq.0) then
               write(buf,"(I8)") (sets-1)-12*((sets-1)/12)+1
               CALL MyGraceCommandf (g0si//' line color '//buf)
-              CALL MyGraceCommandf (g0si//' symbol color '//buf)            
+              CALL MyGraceCommandf (g0si//' symbol color '//buf)
               CALL MyGraceCommandf (g0si//' symbol fill color '//buf)
            else
               write(buf,"(I8)") int(fb)
               CALL MyGraceCommandf (g0si//' line color '//buf)
-              CALL MyGraceCommandf (g0si//' symbol color '//buf)            
+              CALL MyGraceCommandf (g0si//' symbol color '//buf)
               CALL MyGraceCommandf (g0si//' symbol fill color '//buf)
            endif
            CALL MyGraceCommandf (g0si//' errorbar off')
@@ -623,7 +623,7 @@ subroutine gplot ()
            exit
         endif
      enddo
-     if (iflag.eq.0) then              
+     if (iflag.eq.0) then
         write(buf,"(A,' ',A,'=',E11.5,'\n')") TRIM(buf(:1800)),TRIM(naparf_all(ij)),paramsf_all(ij)
      endif
   enddo
@@ -690,7 +690,7 @@ subroutine gplot ()
   !
 
   !c ---- ende   plot datarecords ----#####################
-  !       close pipe  and leave Grace alone			
+  !       close pipe  and leave Grace alone
 
   CALL MyGraceCommandf ('redraw')
   CALL MyGraceCommandf ('updateall')
