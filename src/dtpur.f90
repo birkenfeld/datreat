@@ -516,24 +516,18 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
                                                                         
-      subroutine erset(a,b,c) 
+      subroutine erset() 
       write(*,*)'subroutine erset not needed in this version...' 
-      !to silence the compiler
-      a=1
-      b=1
-      c=1
       return 
       END                                           
                                                                         
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
                                                                         
-      subroutine rnset(iseed) 
+      subroutine rnset
                                                                         
       write(*,*)'rnset: not extensively tested...' 
       CALL RANDOM_SEED 
-      !to silence the compiler
-      iseed=1
       return 
       END                                           
                                                                         
@@ -771,53 +765,35 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
                                                                         
                                                                         
-      subroutine u4lsf(a,b) 
+      subroutine u4lsf() 
                                                                         
       write(*,*)'IMSL routine u4lsf called,' 
       write(*,*)'not used with minpack...' 
-      !to silence the compiler
-      a=1
-      b=1
       return 
       END
 
-      subroutine dsvrgp(a,b,c,d) 
+      subroutine dsvrgp() 
                                                                         
       write(*,*)'IMSL routine dsvrgp called,' 
       write(*,*)'not replaced yet...' 
       write(*,*)'ERROR!!!!!!!!' 
-      !to silence the compiler
-      a=1
-      b=1
-      c=1
-      d=1
-
       return 
       END
 
-      subroutine dpermu(a,b,c,d,e) 
+      subroutine dpermu() 
                                                                         
       write(*,*)'IMSL routine dpermu called,' 
       write(*,*)'not replaced yet...' 
       write(*,*)'ERROR!!!!!!!!' 
-      !to silence the compiler
-      a=1
-      b=1
-      c=1
-      d=1
-      e=1
-
-      return 
+       return 
       END
 
-      function Dsi(x) 
+      function Dsi() 
 ! where is the function in use????                                      
       write(*,*)'Function Dsi called...' 
       write(*,*)'not yet replaced!!!!!!!!' 
       write(*,*)'ERROR!!!!!!!!' 
       Dsi=0 
-      !to silence the compiler
-      x=1
       return 
       END          
                                  
