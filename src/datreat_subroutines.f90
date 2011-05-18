@@ -15,6 +15,9 @@
 !          itcal= theory adress
 !          ierr = errorindicator ( 0=ok  1=not found)
 !
+       implicit none
+       integer jpar, itcal, ierr
+       integer i, j, ict, icz, ith, np
        character*8      vnameF
        double precision rparF
        integer          inpaF
@@ -81,8 +84,10 @@
        use outlev
        use selist
        use fslist
-!      parameter(mkurv=minc)
-!                ---------> max. no of curves to be selected
+
+      implicit none
+      integer irecv,nkurv
+      integer i, ic, inum1, inum2, irecn1, l, num
       dimension irecv(minc),irecn1(minc)
 !
       l = 0
@@ -146,7 +151,10 @@
        use outlev
        use fslist
        use constants
-!
+
+      implicit none
+      integer ifrec,nfkurv
+      integer i, ic, inum1, inum2, irecn1, l, nkurv, num
       dimension ifrec(minc),irecn1(minc)
 !
       l = 0
@@ -215,8 +223,13 @@
        use cfunc
        use constants
 
+       implicit none
+       real x
        integer iadda
        common /thiadd/iadda
+
+       integer sum
+       real theory_x
 !
        sum = 0
 !      here we call the function value with all neccessary to calc it   it only needs params from current dataset not from all
@@ -244,6 +257,14 @@
        use cfunc
        use cfunce
        use constants
+
+       implicit none
+       integer i, it, icode, ier, iopt, ifalt, igo, inew, iparam, ip, iprint, iru,l, map
+       integer irecse, iercd, ll, j, j1, j2, j3, ith, ixjac
+       integer nsig, npar, numv, nfit, nff, n, m, maxit, maxfn, ngood, nspf
+       real trure, thperr, sum, rparam, stpsz
+       real x, xscale, xjac, xcenter, xguess, x2i, x1i, xerr, xstepsc
+       real eps, divis, delta, ermat, f, gmat, fscale, ginv
 
        character*8 ci
        real*8 getval
@@ -631,11 +652,16 @@
        use cfunce
        use constants
 
+       implicit none
+       integer m, nff
        real      x(mfit),f(msmpl)
-       data icall/0/
+       integer npar, nfit, n, mn, ith, isel, ipt, it, ip, ier, icall, iad1, iad2, i
+       real xx, ssq, ferr
+
 !
 ! ---- restore startvalues & parameters ----
 !
+          icall = 0
           nfit = 0
           do 10 it =1,ntheos
             ith = nthtab(it)

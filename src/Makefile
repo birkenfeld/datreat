@@ -53,7 +53,8 @@ endif
 SRCSTHEO=  $(wildcard theos/*.f) $(wildcard theos/*.f90) $(wildcard theos/*.i90)
 
 FC=gfortran
-FFLAGS=-g -O2 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -msse4a -mfpmath=sse -Wunused-function -Wunused-variable
+FFLAGS=-g -O2 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -msse4a -mfpmath=sse
+# -Wunused-function -Wunused-variable
 
 #-fbounds-check
 LDFLAGS = -DPATH_TO_LOCAL_DATREAT=\"$(LOCAL)\"
