@@ -1994,7 +1994,10 @@
 
        subroutine cappend( a, b, c)
 !      ----------------------------
+       implicit none
        character*16 a,b,c
+
+       integer i,j,l
        c = ' '
        do i=1,16
          if(a(i:i).ne.' ') then
@@ -2022,7 +2025,9 @@
 
        integer function lclen( string, m)
 !      ----------------------------------
-       character*1 string(0:m)
+      implicit none
+      integer m 
+      character*1 string(0:m)
        do lclen=m,0,-1
          if(string(lclen).ne.' ') return
        enddo
@@ -2030,7 +2035,10 @@
 
        logical function compare( s1, s2 )
 !      ----------------------------------
+       implicit none
        character*1 s1(*),s2(*)
+       
+       integer i
        compare = .true.
        do i=1,255
          if(s1(i).ne.s2(i)) then
@@ -2048,7 +2056,6 @@
 !*ed
       subroutine extract(nam,val,ier)
 !     -------------------------------
-      use constants
       use usevar
       use imargs
 
@@ -2083,9 +2090,13 @@
       use xoutxx
       use usevar
       use constants
+      implicit none
       character*16 nam
       real*8 val
+      integer ier
+
       logical compare
+      integer i,j
 
       ier = 0
 ! --- look in uservars ---
@@ -2129,7 +2140,8 @@
       subroutine clrudf(nam)
 !     ----------------------
       use usevar
-      use constants
+      implicit none
+      integer i,j
       character*16 nam
 
       logical compare
@@ -2158,8 +2170,8 @@
       subroutine shwudf
 !     -----------------
       use usevar
-      use constants
-
+      implicit none
+      integer i
 
       if(nousev.eq.0) then
         write(6,*)'no uservars defined!'
@@ -2178,7 +2190,8 @@
 !  still needed for one routine in datreat_subroutines
 !-----------------------------------------------------------------------
        use cincom
-       use cincoc
+       implicit none
+       integer iaddr, inpaf
        inpaf = inpar(iaddr)
       return
       END

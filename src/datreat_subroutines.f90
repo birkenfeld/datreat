@@ -3750,18 +3750,19 @@
 
       use partran
 ! --- integrand ---
-       implicit real*4 (a-h,o-z)
+       implicit none
+       integer n
+       real*4 x
        dimension x(n)
 !
 !      x(1) = lambda
 !      x(2) = omega
 !
-       data gamma/18303.33e0/
 ! ---- larmorkonstante in rad/s/gauss
-       data xmh  /2.50607e-4/
 ! ---- neutronenmasse durch h in 2/m/angstroem
-       data zpi  /6.283185307e0/
 
+       real*4 :: gamma=18303.33e0, xmh = 2.50607e-4, zpi = 6.283185307e0
+       real*4 a,b,f,del, wlambda, sofqom
        a  = gamma*xmh*x(1)/(1.d0+xmh*x(1)*x(1)*x(2)*1d-10/zpi)
        b  = gamma*xmh*x(1)
        del= j0delta**2 + ( (j1echo+j2echo)*0.5e0*cdelta )**2
