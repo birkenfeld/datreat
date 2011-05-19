@@ -1,14 +1,8 @@
-!
-!
-!*ds
-!*ed
        subroutine lsearch( jpar, itcal, ierr)
 !      ======================================
        use outlev
        use theory
-       use theorc
-       use constants
-!
+
 !  ---- search for a theory parameter specification by the commandline
 !       cmd  theoryname <n-th occ> parametername
 !  output: jpar = parameter-adress
@@ -83,7 +77,6 @@
        use cdata
        use outlev
        use selist
-       use fslist
 
       implicit none
       integer irecv,nkurv
@@ -211,16 +204,9 @@
 !
 ! ---- compute the value of the active set of theories at value x
 !
-       use cincom
-       use cincoc
-       use xoutxx
-       use xroxxx
        use cdata
-       use outlev
        use theory
-       use selist
        use thparc
-       use cfunc
        use constants
 
        implicit none
@@ -247,8 +233,6 @@
 !
        use cincom
        use cincoc
-       use xoutxx
-       use xroxxx
        use cdata
        use outlev
        use theory
@@ -644,8 +628,10 @@
 !
 ! compiler complains about nff unsused!!!!
 
+       use cincom
+       use cincoc
+
        use cdata
-       use outlev
        use theory
        use selist
        use cfunc
@@ -766,15 +752,13 @@
 !
        use cincom
        use cincoc
-       use xoutxx
-       use xroxxx
+
        use cdata
-       use outlev
        use theory
        use selist
        use cfunc
+       use cfunce
        use constants
-
        real*8 getval, dble
 !
        common /thiadd/iadda

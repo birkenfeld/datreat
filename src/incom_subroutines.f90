@@ -13,9 +13,12 @@
 ! ersetzten von string b durch c in string a
 ! strings werden durch den character s begrenzt !
 !----------------------------------------------------
-       parameter(mclen=1024)
+       implicit none
+       integer, parameter :: mclen=1024
        character*(mclen) a,b,c,d
        character*1 s
+
+       integer i, j, l, jj, ld, istart, iend, len
 !
 ! ---  look for occurence of substring b in a ---
        i = 1
@@ -82,28 +85,24 @@
 !  scan - scannen einer real-zahl (version fuer ibm pc prof. fortran)
 !  autor: g. egerer, datum: 26. 9.85, letzte aenderung: 31. 7.87
 ! ----------------------------------------------------------------------
-
 !                           * eingabeparameter:
 !                           * ctext  - textzeile (64 zeichen)
-!ray -------------------------------
-       implicit real*8 (a-h,o-z)
-!ray -------------------------------
-      integer   ctxtle
-      parameter (ctxtle = 64)
-      character*(ctxtle) ctext
-      character*10       form
-
 !                           * ausgabeparameter:
 !                           * r      - real-zahl
 !                           * ierr   - fehlercode
-!     real    r
+      implicit none 
+      real*8 r
       integer ierr
+      integer, parameter :: ctxtle = 64
+      character*(ctxtle) ctext
+      character*10       form
+
 
 !                           * benamte programmkonstanten:
-      integer   cnil
-      parameter (cnil = -32766)
+      integer, parameter :: cnil = -32766
 
 !                           * programmvariablen:
+      integer i,j
       integer   icur, iscntb(9,0:7), istate, isymbl
 
 
@@ -190,12 +189,11 @@
 !ray -------------------------------
        use cincom
        use cincoc
-       use icpathes
-       use constants
-       implicit real*8 (a-h,o-z)
+       implicit none 
 
        character*1024 zeile, reslbf
        character*8   cmd
+       integer ioldbf
 !-----------------------------------------------------------------------
 !
        reslbf = reslin
@@ -215,6 +213,7 @@
       character*1024 function X_datpath()
 !     =================================
       use icpathes
+      implicit none
 
       X_datpath(1:1024) = data_path
 
@@ -224,6 +223,8 @@
       character*1024 function savepath()
 !     =================================
       use icpathes
+      implicit none
+
       savepath = save_path
 
       return
@@ -232,6 +233,8 @@
       character*1024 function makropath()
 !     =================================
       use icpathes
+      implicit none
+
       makropath = makro_path
 
       return
@@ -240,39 +243,38 @@
       character*1024 function homepath()
 !     =================================
       use icpathes
+      implicit none
+
       homepath = home
 
       return
       end
 
-	  character*1024 function get_argvals(ii)
-        use imargs
-        use cmargs
-	use constants
+	character*1024 function get_argvals(ii)
 !     =================================
+        use cmargs
+        implicit none
+        integer ii
 
 ! --- variables for makro-parameter-passing ---  see incom for details
-		integer ii
       get_argvals =argvals(ii)(:)
 
       return
       end
 !
 
-!*ds
-!*ed
-      function iout()
+      integer function iout()
 !     ===============
-       use xoutxx
+      use xoutxx
+      implicit none
          iout = iot
       return
       END
-!
-!*ds
-!*ed
-      function ierrs()
+
+      integer function ierrs()
 !     ===============
-       use xoutxx
+      use xoutxx
+      implicit none
          ierrs = ierrr
       return
       END
@@ -282,7 +284,9 @@
 !*ed
       subroutine errsig(ierr,say)
 !     ================================
-       use xoutxx
+      use xoutxx
+      implicit none
+      integer ierr, laenge, lsay
       character*128 say, sayit
 ! ----------------------------------------------------------------------
 !  error signalisierung
@@ -293,38 +297,32 @@
       write(6,*)'error:',ierr,' ',trim(sayit)
       return
       END
-!
-!
-!*ds
-!*ed
+
+
       subroutine clean
 !     ================
-       use xoutxx
+      use xoutxx
+      implicit none
           if(ierrr.ne.0) then
             write(6,*)'error condition:',ierrr,' cleaned'
             ierrr = 0
           endif
       return
       END
-!
-!
-!*ds
-!*ed
+
+
       subroutine pushn(pname)
-       use cincom
-       use cincoc
-       use constants
 !-----------------------------------------------------------------------
 !  wert eintrag in den namensstack
 !-----------------------------------------------------------------------
-!
-!ray -------------------------------
-       implicit real*8 (a-h,o-z)
-!ray -------------------------------
-!-----------------------------------------------------------------------
+       use cincom
+       use cincoc
+       use constants
+       implicit none 
+
        character*8 pname
-!-----------------------------------------------------------------------
-!
+       real*8 rx
+
        if(inames.ge.minc) then
          call errsig(-1,'pushn failed, too many items! '//pname//' $')
          return
