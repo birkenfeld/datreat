@@ -1126,19 +1126,20 @@
 !
        use cincom
        use cincoc
-       use xoutxx
-       use xroxxx
        use outlev
        use theory
        use theorc
        use therrc
        use thparc
-       use formul
        use constants
 
+       implicit none
 !
+       integer iopt 
+ 
        character*1024  rlibuf
-       integer       iocbuf
+       integer       i,j,iocbuf,inew,inaml,ilook,ip,itt,it,ith
+       integer       kk,npar,npars,mtca,ncc,nthn,lp
        character*4   label
        character*8   pname, chrval
        real*8        getval
@@ -1479,24 +1480,19 @@
 !
        subroutine theo_out(kk)
 !      -----------------------
-!
-       use cincom
-       use cincoc
-       use xoutxx
-       use xroxxx
-       use outlev
+
        use theory
        use selist
        use theorc
        use therrc
        use thparc
        use formul
-       use constants
 
+       implicit none
        character*8 combinam,cha*1
        character*30 buf1
        character*60 buf2
-       integer i, ith, kk
+       integer i, ith, kk, ier,l,j,lf
 
           if(ntheos.le.0) return
 
@@ -1627,16 +1623,14 @@
 !
        use cincom
        use cincoc
-       use imargs
        use cmargs
-       use xoutxx
-       use xroxxx
        use cdata
        use outlev
        use constants
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!111
+
+       implicit none
+       integer ln, le, la, lx, ly, j, inew, i
        character*1024  infile
-!       character*8  infile
        character*80 rline
        logical*4    fileda
        real*8       xshift, yshift, getval
@@ -1881,12 +1875,14 @@
 !
        use cincom
        use cincoc
-       use xoutxx
-       use xroxxx
        use cdata
        use outlev
        use constants
+
+       implicit none
 !
+       integer nscn, ndd, j, i
+       real tavera, extramon, atemp, atime, ah, amonitor, al, anue, acounts, afeld, ak, acorrcnt
        character*8  infile
        character*131 rline
        dimension ah(mwert),ak(mwert),al(mwert),anue(mwert),atemp(mwert),&
@@ -2016,12 +2012,11 @@
 !
        use cincom
        use cincoc
-       use xoutxx
-       use xroxxx
        use outlev
-       use constants
-!
+
+       implicit none
        character*80 tline
+       integer i,j
 !
 !
        if(iout.gt.2)  write(6,*)'Decode :',trim(tline),'#-------------'
@@ -2063,7 +2058,7 @@
       END
 !
 !
-       function smirro(y,y2,xk0,k1,k2,n)
+       real function smirro(y,y2,xk0,k1,k2,n)
 !      =================================
 ! --- computes the mirrorimage on the k1 to k2 region mirrored at xk0
 !     onto the k1 to k2 region of y2 ( y2 is set to zero for the rest)
@@ -2072,7 +2067,13 @@
 !     n is the total number of valid points
 !
        use constants
+       implicit none
 !
+       real y,y2,xk0
+       integer k1,k2,n
+
+       integer i,kp, km
+       real xmirro, smirru, sum, t
        dimension y(mwert),y2(mwert)
 !
         do 10 i=1,n
@@ -2821,20 +2822,20 @@
 !*ds
 !*ed
 !
-       function yinterp(x)
+       real function yinterp(x)
 !      ---------------------
 ! --> interpolates y-value at x for the file on top of the
 !     selection list
-!
-       use cincom
-       use cincoc
-       use xoutxx
-       use xroxxx
+
        use cdata
        use selist
-       use fslist
-       use constants
-! ----------------------------------------------------------------
+
+
+       implicit none
+
+       real x
+       integer i, ia, n
+
        ia = isels(1)
        n  = nwert(ia)
        if(x.lt.xwerte(1,ia).or.x.gt.xwerte(n,ia)) then
@@ -3227,18 +3228,18 @@
        subroutine pushda(y,x0,dx,n)
 !      ----------------------------
 ! --> pushes data y-values to the datafiles
-!
-       use cincom
-       use cincoc
-       use xoutxx
-       use xroxxx
+
        use cdata
-       use selist
-       use fslist
+
        use constants
 !
+       implicit none
+       real y,x0,dx
+       integer n
+
        dimension y(n)
-       data  num/9000/
+       integer :: num=9000
+       integer i, ierrs
 ! ----------------------------------------------------------------
        if(nbuf.ge.mbuf) then
          write(6,*)'pushda unsuccessful: no room on stack !'
@@ -3267,22 +3268,23 @@
 !*ed
       subroutine usrfun(nam,x,nx,ier)
 !     -------------------------------
-!
-       use xoutxx
-       use xroxxx
+
        use cdata
        use outlev
        use theory
        use selist
-       use fslist
        use therrc
-       use cfc
        use cfunc
-       use constants
-
+ 
+      implicit none
       character*20 nam
-      character*8 pname
       real*8 x(*)
+      integer ier, nx
+
+      real sum, pvalue, x3
+      integer i, iwert, iwert2, itheo, iparn, ibuf, iadr, iaddr, iiadr, inumr, l, myfun
+      character*8 pname
+
       real*8 xh, dx
       logical compare
 
@@ -3555,23 +3557,26 @@
 !*ds
 !*ed
       subroutine usrextr(nam,val,ier)
-!
-       use xoutxx
-       use xroxxx
+!     -------------------------------
        use cdata
        use outlev
        use selist
-       use fslist
-       use cfc
        use cfunc
-       use constants
+
+	implicit none
+        integer iadda
 
        common /thiadd/iadda
 
       character*1 nam(*)
+      real*8 val
+      integer ier
+
       character*8 pname
       logical compare
-      real*8 val
+      integer i, ibuf
+      real pvalue, sum, sumy, sumyy, xh
+
       ier = 0
       if(compare(nam,'sel ')) then
         val = isels(1)

@@ -1931,7 +1931,6 @@
        subroutine evaluate( f, val, ierr)
 !      ----------------------------------
 
-       use xoutxx
        use formnu
        use formch
        use outlev !for iout
