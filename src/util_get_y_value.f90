@@ -5,13 +5,10 @@
 !          which corresponds to xvalue
 !          used in backscattering background determination
 !
-!       implicit none
-      use cincom
-      use cincoc
-      use xoutxx
-      use xroxxx
+
       use cdata
       use constants
+      implicit none
 	   real*4            :: getyval
 	   real*4            :: xvalue
 	   integer           :: specnum, i

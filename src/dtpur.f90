@@ -22,32 +22,24 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
      &                   x,f,xjac,ixjac)
 !      Fitting with minpack instead of imsl...
 
-       use cincom
-       use cincoc
-       use xoutxx
-       use xroxxx
-       use cdata
-       use outlev
-       use theory
-       use selist
-       use therrc
-       use cfunc
-       use cfunce
        use constants
+       implicit none
 
-      dimension iparam(6),rparam(7),x(mfit),f(msmpl),xjac(msmpl,mfit),  &
-     &          xguess(mfit),xscale(mfit),fscale(msmpl)
+       integer m,n, iparam
+       real xguess, xscale, xjac, rparam, fscale, x, f
 !
       external func
 ! ---- OH: additional parameters for minpack and lapack
        integer icode
 
-       integer nfev, mode, iflag
+       integer nfev, mode, iflag, nsig, iprint, iopt, maxfn, ixjac
        integer iwa(mfit)
        real qtf(mfit),wa1(mfit)
        real wa2(mfit),wa3(mfit),wa4(msmpl)
-       real epsfcn, zero, ftol, gtol, xtol
-       data zero/0.0d0/
+       real epsfcn, ftol, gtol, xtol, delta, eps
+       real :: zero=0.0d0
+      dimension iparam(6),rparam(7),x(mfit),f(msmpl),xjac(msmpl,mfit),  &
+     &          xguess(mfit),xscale(mfit),fscale(msmpl)
 
        data nsig/6/,eps/1.d-5/,delta/1.d-5/,maxfn/50/,iopt/0/
 

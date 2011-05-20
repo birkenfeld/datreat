@@ -1575,8 +1575,6 @@
       END
 
 
-!*ds
-!*ed
        subroutine getitem
 !      ------------------
 
@@ -1591,16 +1589,6 @@
        logical compare
        logical anklam
 
-       character*(maxitemlength+1) citem
-
-       !needed since common-block conversion - maybe this could be simpliefied
-       !equivalence is the problem here
-       character*1 tempitem(0:maxitemlength)
-
-       equivalence(citem,tempitem(0))
-
-       !the assignment hast to follow equivalence or else the compiler will explode!
-       tempitem=item
        if(actchar.gt.len) then
           typ = 'end '
           call putopstack('end ',0)
@@ -1669,8 +1657,7 @@
           goto 100
        endif
 ! ---  suche bis zum naechsten delimiter ---
-       citem = ' '
-       item=tempitem
+       citemx = ' '
 	call getword
 ! --- ist item ein unaerer operator ? ---
        if( compare(item,'sin ') ) then
@@ -1738,7 +1725,7 @@
             error = .true.
             write(6,*)'userfuncstack exceeded'
          endif
-         usrfstack(tusrfstack) = citem(1:19)//' '
+         usrfstack(tusrfstack) = citemx(1:19)//' '
          goto 100
        endif
 ! --- ist item eine zahl ? ----

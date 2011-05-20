@@ -306,7 +306,10 @@
 		character*1 delims(0:__NODELIMS)
 		character*4 typ
 		character*4 opstack(__MAXOPSTACK) 
-		character*20 usrfstack(__MUSRFSTACK) 
+		character*20 usrfstack(__MUSRFSTACK)
+                !needed in subroutine getitem - dirty!
+                character*(__MAXITEMLENGTH+1) citemx
+                equivalence(citemx,item(0))
 	end module formch
 
 

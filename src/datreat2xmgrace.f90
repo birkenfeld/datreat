@@ -1,15 +1,17 @@
 subroutine gplot ()
   use cincom
   use cincoc
-  use xoutxx
-  use xroxxx
   use cdata
-  use outlev
   use theory
   use selist
   use fslist
   use therrc
   use constants
+  implicit none
+
+   integer i, inallend, iend, iflag, ik, istart, innapar_all, inallendf, ircu
+   integer ip, ircf1, ircf, ircu1, npic, npicf, npar, nkurv, nofitfoundflag, ll
+   integer l, nfkurv, it, j, ith, irfcu, ij
   !      ================  scan-plotting
   ! ###################################################Anfang RB
   logical fitplo,errplo,legend,closeGrace,noautoscale,gsave,clearplo

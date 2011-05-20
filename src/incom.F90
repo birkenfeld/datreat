@@ -18,6 +18,7 @@
        use xoutxx
        use xroxxx
        use constants
+       implicit none
 !      -----------------------
 !
 ! ---- command line decoder ----
@@ -31,13 +32,6 @@
 ! ---- parameter separator is blank !!!
 ! ---- command separator is ;
 !
-!
-!
-!ray -------------------------------
-       implicit real*8 (a-h,o-z)
-!ray -------------------------------
-!
-!
 ! ---- outputlevel
 !
 !
@@ -49,12 +43,14 @@
        logical       name, lmakro, found, fileda
 
        character*1024 ma_fil
-       integer       ilma
+       integer       ilma, i, j, k, l, ii, irc, ipmlen, isum
+       integer       ier, ierrs, ierr, ioldna, inew, iival
 
        integer       init_run
        data          init_run /1/
        data          lmakro /.false./
-	real*8 val
+       real*8 val
+       real getval
 !
 ! ---- initialisations & conventions ----
 !
