@@ -2119,8 +2119,7 @@
       return
       END
 
-!*ds
-!*ed
+
       subroutine clrudf(nam)
 !     ----------------------
       use usevar
@@ -2149,8 +2148,7 @@
       return
       END
 
-!*ds
-!*ed
+
       subroutine shwudf
 !     -----------------
       use usevar

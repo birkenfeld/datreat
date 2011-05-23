@@ -1,12 +1,8 @@
-!*ds
        subroutine splot (doplo)
 !      ================  scan-plotting
-!
-!
+
        use cincom
        use cincoc
-       use xoutxx
-       use xroxxx
        use cdata
        use outlev
        use theory
@@ -15,55 +11,54 @@
        use therrc
        use thparc
        use constants
+       implicit none
 
+       real e, x, y
+       integer icolo, irecv, isymb, ifrec
        dimension x(mwert),y(mwert),irecv(minc),     &
      &          isymb(minc),icolo(minc),ifrec(minc)
        dimension e(mwert)
+       data icolo/minc * 0/
 
        logical found
-       logical ptex
-       logical paplo
+       logical :: ptex=.true.
+       logical :: paplo=.true.
        logical doplo
-       logical fitplo
-       logical errplo
-       logical paxis
-       logical taxis
+       logical :: fitplo=.true.
+       logical :: errplo=.false.
+       logical :: paxis=.true.
+       logical :: taxis=.true.
 
-       logical log_x
-       logical log_y
+       logical :: log_x=.false.
+       logical :: log_y=.false.
        real    log10
 
 !      --- doplo = false  means: set parameters only ---
        character*80 option,xtext,ytext
        character*8  dirnam(4),opart(8)
+       data dirnam/'qx      ','qy      ','qz      ','en / thz'/
+       data opart/'x=1     ','y=1     ','i       ','a       ',           &
+      &           'f=(3,1) ','m=2.0   ','u=1     ','        '/
 
        character*12 tag, stunde
        character*12 tx,sx
-!
-      data xmin/0./,xmax/1./,ymin/0./,ymax/1./,nkurv/0/
+
+      real :: xmin=0.,xmax=1.,ymin=0.,ymax=1.
+      integer :: nkurv=0
       data isymb/4,5,23,6,16,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21  &
      &          ,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41  &
      &          ,42,43/
-      data ixmode/1/,txsize/.45/,sysize/.1/
-      data framx/23./,framy/23./,yensca/0./,frlux/4./,frluy/4./
-      data dirnam/'qx      ','qy      ','qz      ','en / thz'/
-      data epscl/0.001/
-      data ptex/.true./
-      data icolo/minc * 0/,ifont/1/
-      data icol0/1/
-      data paplo/.true./
-      data paxis/.true./
-      data taxis/.true./
-      data fitplo/.true./
-      data errplo/.false./
-      data log_x/.false./
-      data log_y/.false./
-      data opart/'x=1     ','y=1     ','i       ','a       ',           &
-     &           'f=(3,1) ','m=2.0   ','u=1     ','        '/
-      data txsizt/.23/,xtshft/0./,ytshft/0./
-!
-!
-!
+      real :: txsize=.45,sysize=.1
+      real :: framx=23.,framy=23.,yensca=0.,frlux=4.,frluy=4.
+      real :: epscl=0.001
+      integer :: ifont=1, icol0=1, ixmode=1
+      real :: txsizt=.23,xtshft=0.,ytshft=0.
+
+      real frxx, fryy, ytxs, yma_s, ymi_s, xh, xtxs, sysiz, ytx
+      real yepl, yeml, xtx, xmi_s,xma_s
+      integer irfcu, i, j, icco, ik, ip, ircu, laenge, nsy, npic, nnpi, it
+      integer npicf, npar, nfkurv, nco, ltext, lopt, lxx, lyy, l, ith, ircf
+
 ! ----- parameter retrieving from stack -----
       nkurv  = 0
       nfkurv = 0
@@ -575,16 +570,15 @@
 !
        use cincom
        use cincoc
-       use xoutxx
-       use xroxxx
        use cdata
        use outlev
        use selist
-       use fslist
-       use constants
-!
+       implicit none
+
        character*12 infile
        logical*4    fileda
+       integer i,j
+       real xxx
 
 ! -- open the file -----------------------------------------------------
        if(inames.eq.0) then
@@ -635,42 +629,41 @@
 !
        use cincom
        use cincoc
-       use xoutxx
        use constants
+       implicit none
 
-       logical ptex
-       logical paplo
-       logical fitplo
-       logical paxis
-       logical taxis
+       logical :: ptex=.true.
+       logical :: paplo=.true.
+       logical :: fitplo=.true.
+       logical :: paxis=.true.
+       logical :: taxis=.true.
 !      --- doplo = false  means: set parameters only ---
        character*80 option,xtext,ytext,tbuf,ttext,txtv,fmt,ttout
        character*8  opart(8)
        character*8  codena, codefn
        logical      found
+       integer icolo, isymb
        dimension isymb(minc), icolo(minc)
        real*8 xdbl(*), ydbl(*), xcode(*)
        real*8 dble, getval, val
 !
-      data xmin/0./,xmax/4./,ymin/0./,ymax/2./,nkurv/0/
+      real :: xmin=0.,xmax=4.,ymin=0.,ymax=2.
+      integer :: nkurv=0, ifont=1, icol0=1, ixmode=1
       data isymb/4,5,23,6,16,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21  &
      &          ,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41  &
      &          ,42,43/
-      data ixmode/1/,txsize/.45/,sysize/.1/
-      data framx/23./,framy/23./,yensca/0./,frlux/4./,frluy/4./
-      data epscl/0.001/
-      data ptex/.true./
-      data paxis/.true./
-      data taxis/.true./
-      data icolo/minc * 1/,ifont/1/
-      data icol0/1/
-      data paplo/.true./
-      data fitplo/.true./
+      real :: txsize=.45,sysize=.1
+      real :: framx=23.,framy=23.,yensca=0.,frlux=4.,frluy=4.
+      real :: epscl=0.001
+      data icolo/minc * 1/
       DATA OPART/'X=1     ','Y=1     ','I       ','A       ',           &
      &           'F=(3,1) ','M=2.0   ','U=1     ','        '/
-      data txsizt/.3/,xtshft/0./,ytshft/0./
-      data ttscrx/39.5/, ttscry/28.7/
-!
+      real :: txsizt=.3,xtshft=0.,ytshft=0.
+      real :: ttscrx=39.5, ttscry=28.7
+
+      integer laenge, intval, i, j, ltext, lfmt, icoln, ndbl, ncode, ibild, ico, inew, isy
+      integer iout, isycc, isycnt, ltt, l, lopt, ltxtv, lxtxt, lytxt, nco, nsy 
+      real ytx, xtx, frxx, fryy, xtshtf, ytshtf
 !
 !
 ! ----- parameter retrieving from stack -----

@@ -976,10 +976,6 @@
 !
 
 
-
-!
-!*ds
-!*ds
        subroutine parset (pname,pvalue,iadd)
 !
 ! ---- this routine changes or adds a parameter ----
@@ -3264,8 +3260,8 @@
        write(6,*)'pushda: created item:',nbuf,' with numor:',num
        return
       END
-!*ds
-!*ed
+
+
       subroutine usrfun(nam,x,nx,ier)
 !     -------------------------------
 
@@ -3554,8 +3550,8 @@
 
       return
       END
-!*ds
-!*ed
+
+
       subroutine usrextr(nam,val,ier)
 !     -------------------------------
        use cdata
@@ -3722,12 +3718,13 @@
           endif
        return
       END
-!*ds
-!*ed
+
+
        function sofqom( omega )
-	use sqtran
 ! --- repraesentiert die streufunktion, omega in s**-1
+       use sqtran
        implicit none
+
        real*4 x, omega, sofqom
        x      = omega * tau
        sofqom = tau /(1.e0+x*x)
