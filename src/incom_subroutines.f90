@@ -173,10 +173,8 @@
          ierr = icur
       endif
       END
-!
-!
-!*ds
-!*ed
+
+
       subroutine parse( zeile )
 !     =========================
 ! ----------------------------------------------------------------------
@@ -185,8 +183,7 @@
 ! eine ggf. vorhandene restzeile bleibt erhalten
 ! restzeilen (; ...) beim parsen werden vollstaendig ignoriert !
 ! ----------------------------------------------------------------------
-!
-!ray -------------------------------
+
        use cincom
        use cincoc
        implicit none 
@@ -219,7 +216,7 @@
 
       return
       end
-!
+
       character*1024 function savepath()
 !     =================================
       use icpathes
@@ -230,38 +227,6 @@
       return
       end
 
-      character*1024 function makropath()
-!     =================================
-      use icpathes
-      implicit none
-
-      makropath = makro_path
-
-      return
-      end
-
-      character*1024 function homepath()
-!     =================================
-      use icpathes
-      implicit none
-
-      homepath = home
-
-      return
-      end
-
-	character*1024 function get_argvals(ii)
-!     =================================
-        use cmargs
-        implicit none
-        integer ii
-
-! --- variables for makro-parameter-passing ---  see incom for details
-      get_argvals =argvals(ii)(:)
-
-      return
-      end
-!
 
       integer function iout()
 !     ===============
@@ -271,17 +236,7 @@
       return
       END
 
-      integer function ierrs()
-!     ===============
-      use xoutxx
-      implicit none
-         ierrs = ierrr
-      return
-      END
-!
-!
-!*ds
-!*ed
+
       subroutine errsig(ierr,say)
 !     ================================
       use xoutxx
@@ -295,18 +250,6 @@
       lsay = laenge(say,80,'$')
       sayit = say(1:lsay)
       write(6,*)'error:',ierr,' ',trim(sayit)
-      return
-      END
-
-
-      subroutine clean
-!     ================
-      use xoutxx
-      implicit none
-          if(ierrr.ne.0) then
-            write(6,*)'error condition:',ierrr,' cleaned'
-            ierrr = 0
-          endif
       return
       END
 

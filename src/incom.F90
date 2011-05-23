@@ -58,7 +58,7 @@
 			data_path =  './'
 			save_path =  './'
 			makro_path = './'
-			call getenv('HOME', home)
+!			call getenv('HOME', home)
             call getenv('PWD', PWD)
 			datreat_path = PATH_TO_LOCAL_DATREAT//'/'
 !           datreat_path = PWD(:index(PWD,'/',BACK = .TRUE.))
