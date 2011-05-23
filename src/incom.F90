@@ -43,7 +43,7 @@
        logical       name, lmakro, found, fileda
 
        character*1024 ma_fil
-       integer       ilma, i, j, k, l, ii, irc, ipmlen, isum
+       integer       ilma, i, j, k, l, ii, irc, ipmlen, isum, ioold
        integer       ier, ierrs, ierr, ioldna, inew, iival
 
        integer       init_run
@@ -99,7 +99,6 @@
 ! ---- error-response -----------------------------------------
        if(ierrr.ne.0) then
          write(6,*)' error return code:',ierrr
-         if(cray) stop  !cray
          ioldc = 0 !-----> if error forget rest of commandline (reslin)
            if(ktop.ne.0) then
              do k=ktop,1,-1
@@ -449,21 +448,6 @@
          write(6,*)'outputlevel is now ',iot
          goto 8888
        endif
-!
-!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-! cray-flag setzen: (toggle)                          | cray
-!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-       if(comand.eq.'cray    ') then
-!                    ----
-         cray = .not. cray
-         if(cray) then
-           write(6,*)'cray execution mode'
-         else
-           write(6,*)'cms  execution mode'
-         endif
-         goto 8888
-       endif
-!
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ! if                                                  |
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

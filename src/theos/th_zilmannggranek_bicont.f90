@@ -263,18 +263,19 @@
 !                                                                       
 !      lokal adaptives integrationsverfahren 2te ver. wg. rekur.        
 !                                                                       
+       use outlev
        implicit real*8 (a-h,o-z) 
 !                                                                       
        parameter( maxstack = 200 ) 
 !                 --------------->  stacktiefe                          
        dimension s(0:maxstack), xa(0:maxstack), xb(0:maxstack) 
 !                                                                       
-       logical cray 
+!       logical cray 
 !!     common/outlev/iot,ibild,ierrs,inka, cray                         
                                                                      !! 
-       real*4 xxxx,yyyy,ptxf 
+!       real*4 xxxx,yyyy,ptxf 
                                                                      !! 
-       common/outlev/iot ,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20) 
+!       common/outlev/iot ,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20) 
 !                                                                       
        external f 
 !                                                                       
@@ -374,19 +375,20 @@
 !      =================================================                
 !                                                                       
 !      lokal adaptives integrationsverfahren 2te ver. wg. rekur.        
-!                                                                       
+!      
+       use outlev                                                                 
        implicit real*8 (a-h,o-z) 
 !                                                                       
        parameter( maxstack = 200 ) 
 !                 --------------->  stacktiefe                          
        dimension s(0:maxstack), xa(0:maxstack), xb(0:maxstack) 
 !                                                                       
-       logical cray 
+!       logical cray 
 !!     common/outlev/iot,ibild,ierrs,inka, cray                         
                                                                      !! 
-       real*4 xxxx,yyyy,ptxf 
+!       real*4 xxxx,yyyy,ptxf 
                                                                      !! 
-       common/outlev/iot ,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20) 
+!       common/outlev/iot ,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20) 
 !                                                                       
        external f 
 !                                                                       

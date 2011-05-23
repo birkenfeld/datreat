@@ -9,7 +9,7 @@ OBJF90=$(SRCF90:.f90=.o)
 OBJ=$(OBJF) $(OBJF90)
 .SUFFIXES:
 .SUFFIXES: .f90 .f .o
-
+FFLAGS=-g -O2 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -msse4a -mfpmath=sse -I../
 THEOS := $(shell grep -h "^ *[Ff][Uu][Nn][Cc][Tt][Ii][Oo][nN] .*( *x *, *pa *, *.*, *.*, *.*, *.*)" *.f *.f90 | sed 's>[Ff]......[Nn] *\(.*\)( *x.*)>\1>'|sort )
 DOUBLE := $(shell grep -h "^ *[Ff][Uu][Nn][Cc][Tt][Ii][Oo][nN] .*( *x *, *pa *, *.*, *.*, *.*, *.*)" *.f *.f90  | sed 's>[Ff]......[Nn] *\(.*\)( *x.*)>\1>'|sort |uniq -d)
 

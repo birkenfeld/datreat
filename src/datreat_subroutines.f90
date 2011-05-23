@@ -2313,15 +2313,18 @@
 !
 !*ds
 !*ds
-       function fsplin(x)
+       real function fsplin(x)
 !      ==================
 ! --- spline interpolated data evaluation ---
 !     spline coefficients are taken from the last call of spline
        use outlev
        use cfc
-       use constants
 
-!
+       implicit none 
+
+       real x, xx, yd, zn
+       integer j, nn
+
          nn  = nwspl
          do 2705 j=1,nn
            if(break(j).ge.x) goto 2707
@@ -2346,13 +2349,15 @@
 !
 !*ds
 !*ds
-       function fdes(x)
+       real function fdes(x)
 !      ================
 ! --- integrand for desmearing ---
-       use outlev
-       use constants
        use cfc
-!
+       implicit none
+
+       real x, xx, yd, zn
+       integer nn, j
+
          nn  = nwspl
          xx = sqrt(qziel**2 + x**2)
          do 2705 j=1,nn

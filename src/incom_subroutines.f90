@@ -1585,6 +1585,11 @@
 
 ! --- internal use ---
        implicit none
+
+       integer, parameter :: klammerinc=10 
+       integer, parameter :: iplusprio=1, minusprio=1, multprio=2, idivprio=2 
+       integer, parameter :: iexpprio=3, iuprio=7,komprio=0 
+
        integer j, intn, ier, ierr, l, ll, lit
        logical compare
        logical anklam
@@ -2067,8 +2072,7 @@
       return
       END
 
-!*ds
-!*ed
+
       subroutine setudf(nam,val,ier)
 !     ------------------------------
       use xoutxx

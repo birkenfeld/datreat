@@ -47,8 +47,6 @@ INCLUDE "commons.h"
       use partran
       use wlntran
       use sqtran
-      use ergsum
-      use ergfil
       use constants
 
        real*8 getval, dble
@@ -2938,7 +2936,7 @@ INCLUDE "commons.h"
        if(comand.eq.'plot    '.or.comand.eq.'p       ') then
 !                    -----> plot selected curves
          call splot(.true.)
-         ibild1 = ibild
+!         ibild1 = ibild
          goto 2000
        endif
 !
@@ -2947,7 +2945,7 @@ INCLUDE "commons.h"
        if(comand.eq.'plot0   '.or.comand.eq.'p0      ') then
 !                    -----> set parameters for plot
          call splot(.false.)
-         ibild1 = ibild
+!         ibild1 = ibild
          goto 2000
        endif
 !

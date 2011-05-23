@@ -49,7 +49,7 @@
 	    integer inapa(__MINC)
 	    integer iargs
 	    integer ipmls
-	    integer iolbuf
+	    integer iolbuf !Can we delete this and put in a local var?
 	    integer lstpar
 	    integer lstnam
 	end module cincom
@@ -113,16 +113,10 @@
 
        	module xoutxx
 		save
-		integer iot
-		integer ioold
-		integer ibild1
-		integer ierrr
-		integer inka1
-		logical cray 
-		data cray/.false./
-		data iot/0/, inka1/5/, ierrr/0/, ibild1/0/, ioold/0/
+		integer :: iot=0
+		integer :: ierrr=0
 	end module xoutxx
-	
+
 	module xroxxx
 		save
 		real*8 xyorig(3)
@@ -282,7 +276,7 @@
 	module formnu
 		save
 		real*8 numstack(__MAXNUMSTACK)
-		real*8 degree
+		real*8 :: degree=1.d0
 		real*8 valnum
 		integer priostack(0:__MAXOPSTACK)
 		integer topnumstack
@@ -294,9 +288,7 @@
 		integer litem
 		logical ok
 		logical error
-		logical say
-		data degree  /1.d0/ 
-                data say     /.false./ 
+		logical :: say=.false.
 	end module formnu
 
 	module formch
@@ -393,54 +385,13 @@
 		real tau
 	end module sqtran 
 
-!only user: main
-! --- ergebnisse der sum-auswertung                                     
-!     bcut1,2 --- y-achsschittpunkte der high u. low-freq. geraden      
-!     slope1,2 -- steigungen              "          "                  
-!     rcoef1,2 -- r-parameter                                           
-!     yint     -- abgeleitete intensitaet                               
-	module ergsum
-		save
-		real bcut1
-		real rcoef1
-		real slope1
-		real bcut2
-		real rcoef2
-		real slope2
-		real yint 
-	end module ergsum
-
-!Only used in main
-! --- filter-sektion (parameter & ergebnisse) ---                       
-!  -- ymx : wert des maximums im spektrum                               
-!     imx : kanal des spektralen max.                                   
-!     imx2: spiegel kanal (imx)                                         
-!     ymaxf: maximum in der gefilterten huellkurve                      
-!     imaxf: kanallage des maximums ymaxf                               
-!     yminf: minimum in der gefilterten huellkurve                      
-!     iminf: kanallage des maximums ymaxf                               
-!     ic1,2,3 : die letzten 3 angesprochenen kurven                     
-                                                                        
-	module ergfil
-		save
-		real ymx
-		real sigma
-		real ymaxf
-		real yminf
-		integer imx
-		integer imx2
-		integer imaxf
-		integer iminf
-		integer ic1
-		integer ic2
-		integer ic3
-	end module ergfil
 
 !             ---> this common saves storage by use of ca in fftrmx also
 	module fftwrk
 		save
 		complex*8 ca(__MDIM+1,__MDIM+1) 
 	end module fftwrk
+
 	module fftwr1
 		save
 		real ca(__MDIM,__MDIM) 
@@ -469,19 +420,12 @@
 		!     msmpl= max no. of datapoints in fit                               
        		integer, parameter :: mfit=40,msmpl=__MSMPL
 		integer, parameter :: musevar=__MUSEVAR
-        
 		integer, parameter :: maxformlength=__MAXFORMLENGTH
 		integer, parameter :: maxitemlength=__MAXITEMLENGTH
 		integer, parameter :: maxnumstack=__MAXNUMSTACK 
 		integer, parameter :: maxopstack=__MAXOPSTACK
 		integer, parameter :: musrfstack=__MUSRFSTACK
 		integer, parameter :: nodelims=__NODELIMS
- 	        ! do we really need the following constants?
-		! They are only used in one function in incom!
-		integer, parameter :: klammerinc=10 
- 	        integer, parameter :: iplusprio=1, minusprio=1, multprio=2, idivprio=2 
- 	        integer, parameter :: iexpprio=3, iuprio=7,komprio=0 
-
 		integer, parameter :: mdim=__MDIM 
 	        integer, parameter :: lda=__MDIM+1
 	end module constants
