@@ -48,6 +48,38 @@ INCLUDE "commons.h"
       use wlntran
       use sqtran
       use constants
+      implicit none
+
+      integer iadda
+      common /thiadd/iadda
+
+
+       integer isigint, ifound
+       real yyy, zpar, ywr, yw2, yy, ysum, ynno, yval, ymm2, ymaxf,ymax
+       real yw1, yminf, ym1, yfamp, yerr, yer, yampf, y3, yctab, y11, y1
+       real y00, y2, xz, y, y0, xx, xval, xsum, yinterp, xr, xnc, xmon2
+       real xmonitor, xmon1, xn, xmax, xk00, fsplin, xm, ximaxf, xi, ximaxq
+       real xcut, x1raster, xk0, x2raster, x, val, tt, wl4, thval, x01, x02
+       real theta2, thick, temp_z, trans, t1, sump, sumb, sx, slope, smpar
+       real t2, sy, sigma, selpartol, r0, selparval, ri, result, qend, qstart
+       real pkave, pi, pfkave, pfave, qz, qrs, qmax, pxxd, pkqave, qortho
+       real pfqave, p3qave, p3ave, parval_x, gunten, fy, fwid, laenge, goben
+       real fia, famp, facto2, eta_s, f1, errmx, facto1, errrec, errmax
+       real erraec, echo, dxx, fx, smirro, fai, esum, errest, errret, df
+       real delqv, ddj, delqh, dj, draster, d0, d1, d, d2, blim, bklen, a2
+       real a, alam, aa, akb_z, ai0, ampli, amp, apar, alim, an0, bfave, bkgr
+       real bkqave, bkave, dq, dt, dx, bpar, bfkave, aver, bqkave, detdis, rrv
+       integer nw, nx, ntyp, numr,  num2, num1, nra, npp, npoint, nraster
+       integer npk, npay, npl, npax, np, nold, nnpar, nnn, nnumi, nn4, nn3
+       integer nnw, nn1, nn, nn2, nfits, newadd, nneu, ncp, ncpl, ncut, nech
+       integer nbuff, newnum, nb, n1, n2, n3, n0, nfft, n, msel, mpk, modeqc
+       integer maxint, m, lyy, lxx, ll, kk, mcut, k1, k2, kz, k, jpar, jl, l
+       integer j, j2, ival, kan1, ithc, iy, j1, iss, ispc, isl, ira, iseed, ir
+       integer intval, ito, isel, ip, imx, imaxf, iminf, ikz, ilas, inew, ii
+       integer ifunx, ifuny, ik, iery, ies, idimux, ier, iprs, ifrom, ierr
+       integer ierx, iequal, ides, icut, id, ib, ileng, ic, iauto, iaddp 
+       integer iaddf, iad2, iadd, iad1, ia1, ia2, ia3, ia4, ia5, ia6, i, ia
+       integer itcal, ias, igrand
 
        real*8 getval, dble
 
@@ -68,7 +100,7 @@ INCLUDE "commons.h"
 ! ---> transfer der addresse der gerade bearbeiteten kurve nach thXX
 !      damit koennen dann ggf. weitere parameter ueber parget gewonnen
 !      werden
-       common /thiadd/iadda
+
 
        double precision qortho_0, qortho_1,qz_0, qz_1
        integer          nz, northo, iortho, iz, ith
@@ -90,7 +122,7 @@ INCLUDE "commons.h"
 !
 !
        data fmode/'a'/,ftyp/'scn     '/,withmo/.true./,fonpla/.false./
-       data errabs/1.0/,errel/1.e-2/
+       real :: errabs=1.0,errel=1.e-2
 !
 ! ---- initialisations ----
 !!!!   call iwkin(iwklen)

@@ -2,14 +2,14 @@
 !      ======================================
        use outlev
        use theory
-
+       implicit none
 !  ---- search for a theory parameter specification by the commandline
 !       cmd  theoryname <n-th occ> parametername
 !  output: jpar = parameter-adress
 !          itcal= theory adress
 !          ierr = errorindicator ( 0=ok  1=not found)
 !
-       implicit none
+
        integer jpar, itcal, ierr
        integer i, j, ict, icz, ith, np
        character*8      vnameF
@@ -77,8 +77,8 @@
        use cdata
        use outlev
        use selist
+       implicit none
 
-      implicit none
       integer irecv,nkurv
       integer i, ic, inum1, inum2, irecn1, l, num
       dimension irecv(minc),irecn1(minc)
@@ -144,8 +144,8 @@
        use outlev
        use fslist
        use constants
+       implicit none
 
-      implicit none
       integer ifrec,nfkurv
       integer i, ic, inum1, inum2, irecn1, l, nkurv, num
       dimension ifrec(minc),irecn1(minc)
@@ -208,8 +208,8 @@
        use theory
        use thparc
        use constants
-
        implicit none
+
        real x
        integer iadda
        common /thiadd/iadda
@@ -249,6 +249,7 @@
        real trure, thperr, sum, rparam, stpsz
        real x, xscale, xjac, xcenter, xguess, x2i, x1i, xerr, xstepsc
        real eps, divis, delta, ermat, f, gmat, fscale, ginv
+       real*8 ssq
 
        character*8 ci
        real*8 getval
@@ -256,24 +257,20 @@
      &          xguess(mfit),xscale(mfit),fscale(msmpl)
       dimension numv(minc)
       dimension ermat(mfit,msmpl), gmat(mfit,mfit), ginv(mfit,mfit)
-!
+
       dimension   xcenter(mfit), xstepsc(mfit)
       character*8 xpname(mfit)
-!
+
       external func
-!
-      logical sqwbuf
+
       logical found
-      logical final_thc
-       real*8 ssq
-!
-!
+      logical :: final_thc=.false., sqwbuf=.false.
+
 ! ---- defaults for parameters -----
        data nsig/6/,eps/1.d-5/,delta/1.d-5/,maxfn/50/,iopt/0/
        data ngood/0/,maxit/0/,stpsz/0.0/,trure/0.0/
        data ifalt/0/,iprint/1/,irecse/0/
-       data sqwbuf/.false./,x1i/-1.e30/,x2i/1.e30/
-       data final_thc/.false./
+       data x1i/-1.e30/,x2i/1.e30/
 !
 ! ---- take parameters from stack ----
        sqwght= sqwbuf
@@ -982,9 +979,13 @@
 !
        use cdata
        use constants
+       implicit none
+
        character*8 pname
-!
-!
+       real pvalue
+
+       integer i,np, iadd
+
        np = nopar(iadd)
        do 100 i=1,np
          if (napar(i,iadd).eq.pname) then
@@ -1014,9 +1015,14 @@
 !
 ! ---- this routine gets the value of a parameter ----
 !
-       use constants
        use cdata
+       implicit none
+
        character*8 pname
+       real pvalue
+       integer iadd,ier
+
+       integer i, np, iout
 !
 ! ----------- look for the parameter -----------------------------------
        if (iadd .lt. 1) then
@@ -1049,12 +1055,16 @@
 ! ---- this routine gets the value of a parameter ----
 !      besser gekapselte Routine zur Kommunikation mit th-Routinen
 !
-       use constants
        use cdata
-!
+       implicit none
+
+       integer iadda
        common /thiadd/iadda
+
        character*8 pname
-!
+
+       integer i, np, ier
+
 ! ----------- look for the parameter -----------------------------------
        np = nopar(iadda)
        do i=1,np
@@ -1065,28 +1075,27 @@
          endif
        enddo
 ! ------------- if not found .. ---------------------------------------
-
-
        dparam = 0.0
 
        return
-!
-!
+
       END
-!
-!
-!*ds
-!*ds
+
+
        subroutine fpaget(pname,value,nothe,ier)
 !      ========================================
-!
+
 ! ----- get value of the parameter pname of the nothe-th theory -----
-!
+
        use theory
-       use constants
-!
+       implicit none
+
        character*8 pname
-!
+       real value
+       integer nothe,ier
+
+       integer i, npar, nth
+
        if(nothe.gt.ntheos) then
          write(6,*)'only ',ntheos,' theories activated !!'
          ier = 1
@@ -1128,11 +1137,10 @@
        use therrc
        use thparc
        use constants
-
        implicit none
-!
+
        integer iopt 
- 
+
        character*1024  rlibuf
        integer       i,j,iocbuf,inew,inaml,ilook,ip,itt,it,ith
        integer       kk,npar,npars,mtca,ncc,nthn,lp
@@ -1140,8 +1148,8 @@
        character*8   pname, chrval
        real*8        getval
        logical       found
-!
-!
+
+
        if(iopt.lt.0.or.iopt.gt.3) then
          write(6,*)' activate invalid option : iopt = ',iopt
          ierrs = 800
@@ -1561,9 +1569,12 @@
        use outlev
        use theory
        use theorc
-       use constants
+
+       implicit none
 
        character*4   label
+       integer iopt, i, ii, n, np, npp, j, jj, ith, ithh, l
+       real y
 
 ! ----------------------------------------------------------------------
 ! ----- go through all couplings ----
@@ -2101,9 +2112,15 @@
 !      for the description of parameters see function smirro
 !
        use constants
+       implicit none
+
+       real y,y2,xk0
+       integer k1,k2,n
+
+       integer i, j, m
+       real f, f1, step, x, x1, xk00, smirro
        dimension y(mwert),y2(mwert)
-!
-!
+
        m  = 2
        f1 = 1.e30
        step = 5
@@ -2134,8 +2151,15 @@
 !      for the description of parameters see function smirro
 !
        use constants
+       implicit none
+
+       real y,y2,xk0,k1,k2
+       integer n
+
        dimension y(mwert),y2(mwert)
-!
+       real a,x1,x2,x3,smirro,xk00,f0,f1,f12,f2,f3,f23
+       integer i
+
         f0 = smirro(y,y2,xk0,k1,k2,n)
         do 100 i=1,10
           xk00 = xk0
@@ -2161,9 +2185,12 @@
        subroutine txfpar(ia,ib)
 !      ========================
 ! --- copies all accompanying infos from data slot ia to slot ib
-!
-       use constants
+! !
        use cdata
+       implicit none
+
+       integer ia, ib
+       integer i, np
 !
        np=nopar(ia)
        nopar(ib)=np
@@ -2187,7 +2214,10 @@
 ! ---- copy the contens of data slot ia into slot ib -----
 !
        use cdata
-       use constants
+       implicit none
+
+       integer ia, ib
+       integer i, np
 
        np=nopar(ia)
        nopar(ib)=np
@@ -2218,8 +2248,10 @@
 ! -- save data on adress ispc onto a file named file fname a --
 !
        use cdata
-       use constants
+       implicit none
+
        character*1024 fname,finame,savepath, pathbuf, outfile
+       integer i, ispc
 
 		 pathbuf = savepath()
 !
@@ -2266,10 +2298,11 @@
 !
        use cdata
        use selist
-       use fslist
-       use constants
+       implicit none
 
        character*1024 fname,savepath, pathbuf, outfile
+
+       integer i, ispc, l
 
 ! first write data selected:
          pathbuf = savepath()
@@ -2411,11 +2444,18 @@
        use outlev
        use constants
        use fftwrk
+       implicit none
+
+       real x,y,t,xmax,dx
+       integer nx,nfft
 
        complex*8  cexp,cabs
        dimension x(*),y(*)
+
+       real xx, yy , x1, y1, x2, y2, xl, xn, fsplin, dy, dd, ai1, ai0, at
+       integer ioold, i, j
 ! ----------------------------------------------------------------------
-       data pi/3.1415926535897/
+       real :: pi=3.1415926535897
 ! ----------------------------------------------------------------------
 !
        if(nfft.eq.0)    nfft = mdim
@@ -2541,11 +2581,17 @@
        use outlev
        use fftwr2
        use constants
-!
+       implicit none
+
+       real x,y,ai0,t,thick,xmax,dx
+       integer nx,nfft
 ! --- fft-dimensioning -------------------------------------------------
        dimension x(*),y(*)
-! ----------------------------------------------------------------------
-       data pi/3.1415926535897/
+
+       real xx,yy, x1,y1,x2,y2,xl,yinterp,rca, dd, at, dy
+       integer ioold, i, j
+
+       real :: pi=3.1415926535897
 ! ----------------------------------------------------------------------
 !
        if(nfft.eq.0)       nfft = mdim
@@ -2684,12 +2730,20 @@
 ! ----------------------------------------------------------------------
        use outlev
        use constants
+       implicit none
+
+       real x,y,ai0,t,thick,xmax,ymax
+       integer nx,nfft
+
+       real xx, qq, sum, dx, dy, ca, cb, bsj0, at, yinterp
+       integer i,j
+
 ! --- fft-dimensioning -------------------------------------------------
        dimension  ca(mdim)   ,cb(mdim)
 !             ---> this common saves storage by use of ca in fftrmx also
        dimension x(*),y(*)
 ! ----------------------------------------------------------------------
-       data pi/3.1415926535897/
+       real :: pi=3.1415926535897
 ! ----------------------------------------------------------------------
 !
        if(nfft.eq.0)         nfft = mdim
@@ -2786,14 +2840,22 @@
       END
 !
 !
-       subroutine rfft2d(n1,n2,a,lda,b,ldb)
+       subroutine rfft2d(n1,n2,a,ldaa,b,ldb)
 !      ==================>==>==>==>==<==>==
 !                              a === b ok.
 !
 ! 2d-reelle cos-fouriertransformation
 ! -----------------------------------
-       parameter (mdim=1024)
-       dimension a(lda,lda)
+       use constants
+       implicit none
+
+       integer n1,n2,ldaa,ldb
+       real a,b
+
+       integer i, j
+       real y
+
+       dimension a(ldaa,ldaa)
        dimension b(ldb,ldb)
        dimension y(mdim)
 
@@ -2830,8 +2892,6 @@
 
        use cdata
        use selist
-
-
        implicit none
 
        real x
@@ -3231,10 +3291,9 @@
 ! --> pushes data y-values to the datafiles
 
        use cdata
-
        use constants
-!
        implicit none
+
        real y,x0,dx
        integer n
 
@@ -3276,8 +3335,8 @@
        use selist
        use therrc
        use cfunc
- 
-      implicit none
+       implicit none
+
       character*20 nam
       real*8 x(*)
       integer ier, nx
@@ -3563,10 +3622,9 @@
        use outlev
        use selist
        use cfunc
+       implicit none
 
-	implicit none
-        integer iadda
-
+       integer iadda
        common /thiadd/iadda
 
       character*1 nam(*)
@@ -3735,13 +3793,13 @@
        sofqom = tau /(1.e0+x*x)
        return
       END
-!*ds
-!*ds
-       function f(n,x)
 
-      use partran
+
+       function f(n,x)
 ! --- integrand ---
+       use partran
        implicit none
+
        integer n
        real*4 x
        dimension x(n)
@@ -3763,13 +3821,17 @@
        return
       END
 
-!*ds
-!*ed
+
        function yintp2 (x,y,n,t)
 !      ------------------------ einfache tabelleninterpolation ----
-       implicit real*4 (a-h,o-z)
+       implicit none 
+       real*4 x,y,t
+       integer n
+
        dimension x(n),y(n)
-!
+       integer i
+       real*4 p,yintp2
+
        if(t.lt.x(1) .or. t.gt.x(n-1) ) then
          yintp2  = 0.e0
          return
@@ -3786,7 +3848,7 @@
        return
       END
 
-       function igrand(an)
+       integer function igrand(an)
 !      ------------------
 ! ---- gaussian approximation to poisson statistics with
 !      expectation value = an
@@ -3794,7 +3856,11 @@
 !      integer result
 !      to mock up counting statistics
 ! ---------------------------------------------------------------------
-       implicit real*4 (a-h,o-z)
+       implicit none 
+       real*4 an
+
+       real*4 y, z, erfi, rnunf
+
     1  continue
         y =  rnunf()*2.0-1.0
         z =  erfi(y)

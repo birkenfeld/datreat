@@ -80,8 +80,6 @@
 		character*1024 history(0:20)
 	end module icpathes
 
-!		character*1024 home
-
 
 ! --- variables for makro-parameter-passing ---                         
 !     argvals(i)  = parameterlist at a call of a makro, only temp.      

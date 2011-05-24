@@ -7,8 +7,6 @@
 !       iff115 @ djukfa11                                              *
 !                                                                      *
 !***********************************************************************
-!*ds
-!*ed
        subroutine incom( cmd )
        use cincom
        use cincoc

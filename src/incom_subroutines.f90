@@ -293,29 +293,29 @@
       iparn(ipars)  =  inames
 !
       END
-!
-!
-!*ds
-!*ed
-      function getval(pname,defval,inew)
+
+
+      real*8 function getval(pname,defval,inew)
 !-----------------------------------------------------------------------
 !  wert extraktion aus dem incom parameterstack
 !-----------------------------------------------------------------------
-!
-!ray -------------------------------
        use cincom
        use cincoc
-       use constants
+       implicit none
 
-       implicit real*8 (a-h,o-z)
+       real*8 defval
+       integer inew
        character*8 pname
+
+       integer i, ier
+       real wert
 !-----------------------------------------------------------------------
        inew      = 0
        wert      = defval
        getval    = defval
        call setudf(pname//' ',wert,ier)
        if(inames.le.0) return
-!
+
        do 10 i=1,inames
          if(vname(i).eq.pname) then
             if(inpar(i).gt.0) wert = rpar(inapa(i))
@@ -326,54 +326,48 @@
          endif
    10  continue
    20  continue
-!
+
       getval = wert
 
-!c-setudf--
-!c-setudf--
 
       return
-!
+
       END
-!
-!
-!*ds
-!*ed
-      function valnxt(defval,inew)
+
+
+      real*8 function valnxt(defval,inew)
 !-----------------------------------------------------------------------
 !  wert extraktion aus dem incom parameterstack
 !-----------------------------------------------------------------------
-!
-!ray -------------------------------
        use cincom
-       use cincoc
-       use constants
-       implicit real*8 (a-h,o-z)
+       implicit none  
+
+       real*8 defval
+       integer inew
 
        inew      = 0
        valnxt    = defval
        if(ipars.le.lstpar) return
-!
+
       valnxt = rpar(lstpar+1)
       inew   = lstpar + 1
       lstpar = inew
 
       return
-!
+
       END
-!*ds
-!*ed
+
+
       subroutine get1(p1)
 !-----------------------------------------------------------------------
 !  wert extraktion aus dem incom parameterstack
 !-----------------------------------------------------------------------
-!
-!ray -------------------------------
        use cincom
-       use cincoc
-       use constants
-       implicit real*8 (a-h,o-z)
+       implicit none 
 
+       real*8 p1
+
+       real*8 p2,p3,p4,p5,p6,p7,p8,p9
 
        if(inames.ne.0) return
        if(ipars.ge.1) p1        = rpar(1)
@@ -455,22 +449,23 @@
        if(ipars.ge.9) p9        = rpar(9)
        lstpar = 9
        return
-!
+
       END
-!*ds
-!*ed
-      function intval(pname,idef,inew)
+
+
+      integer function intval(pname,idef,inew)
 !-----------------------------------------------------------------------
 !  wert extraktion aus dem incom parameterstack  integer
 !-----------------------------------------------------------------------
-!
-!ray -------------------------------
        use cincom
        use cincoc
-       use constants
-       implicit real*8 (a-h,o-z)
+       implicit none
 
        character*8 pname
+       integer idef,inew
+
+       integer i, ier
+       real*8 wert
 !-----------------------------------------------------------------------
        inew      = 0
        intval    = idef
@@ -487,57 +482,57 @@
          endif
    10  continue
    20  continue
-!
-!c-setudf--
+
+
       wert = intval
-!c-setudf--
+
       return
-!
+
       END
-!*ds
-!*ed
-      function intnxt(idef,inew)
+
+
+      integer function intnxt(idef,inew)
 !-----------------------------------------------------------------------
 !  wert extraktion aus dem incom parameterstack  integer
 !-----------------------------------------------------------------------
-!
-!ray -------------------------------
+
        use cincom
-       use cincoc
-       use constants
-       implicit real*8 (a-h,o-z)
+       implicit none 
+
+       integer idef,inew
 
        inew      = 0
        intnxt    = idef
        if(ipars.le.lstpar) return
-!
+
        intnxt = rpar(lstpar+1)*1.0000000001d0
        inew   = lstpar+1
        lstpar = lstpar
 
       return
-!
+
       END
-!*ds
-!*ed
+
+
+
       character*8 function chrval(pname,cdef,inew)
 !-----------------------------------------------------------------------
 !  wert extraktion aus dem incom parameterstack  name (character)
 !-----------------------------------------------------------------------
-!
-!ray -------------------------------                                    \
        use cincom
        use cincoc
-       use constants
-       implicit real*8 (a-h,o-z)
+       implicit none
 
        character*8 pname, cdef
+       integer inew
+
+       integer i
 !-----------------------------------------------------------------------
-!
+
        inew      = 0
        chrval    = cdef
        if(inames.le.0) return
-!
+
        do 10 i=1,inames-1
          if(vname(i).eq.pname) then
             chrval = vname(i+1)
@@ -547,26 +542,24 @@
          endif
    10  continue
    20  continue
-!
+
       return
-!
+
       END
-!*ds
-!*ed
+
+
       character*8 function chrnxt(cdef,inew)
 !-----------------------------------------------------------------------
 !  wert extraktion aus dem incom parameterstack  name (character)
 !-----------------------------------------------------------------------
-!
-!ray -------------------------------
        use cincom
        use cincoc
-       use constants
-       implicit real*8 (a-h,o-z)
+       implicit none 
 
        character*8 cdef
+       integer inew
 !-----------------------------------------------------------------------
-!
+
        inew      = 0
        chrnxt    = cdef
        if(inames.le.lstnam) return
@@ -576,102 +569,96 @@
        lstnam = inew
 
       return
-!
+
       END
+
+
       character*8 function vnamef(iaddr)
 !-----------------------------------------------------------------------
 !  wert extraktion aus dem incom parameterstack  name (character)
 !-----------------------------------------------------------------------
-!
-!ray -------------------------------
        use cincom
        use cincoc
-       use constants
-       implicit real*8 (a-h,o-z)
+       implicit none 
+
+       integer iaddr
 
        vnamef = vname(iaddr)
        lstnam = iaddr
-!
+
       return
-!
+
       END
-!*ds
-!*ed
+
+
       subroutine settit(newtit)
 !-----------------------------------------------------------------------
 !  setzen des titels
 !-----------------------------------------------------------------------
-!
-!ray -------------------------------
-       use cincom
+
        use cincoc
-       use constants
-       implicit real*8 (a-h,o-z)
+       implicit none 
 
        character*80 newtit
+
+       integer laenge, ltit
 !-----------------------------------------------------------------------
-!
+
        ltit  = laenge(newtit,80,'$')
        title = newtit(1:ltit)
-!
+
       return
-!
+
       END
-!*ds
-!*ed
+
+
       character*80 function titlef()
 !-----------------------------------------------------------------------
 !  wert extraktion aus dem incom parameterstack  titel
 !-----------------------------------------------------------------------
-!
-!ray -------------------------------
-       use cincom
        use cincoc
-       use constants
-       implicit real*8 (a-h,o-z)
+       implicit none 
 
        titlef = title(1:80)
-!
+
       return
-!
+
       END
-!*ds
-!*ed
-      function rparf(iaddr)
+
+
+      real*8 function rparf(iaddr)
 !-----------------------------------------------------------------------
 !  wert extraktion aus dem incom parameterstack  real
 !-----------------------------------------------------------------------
-!
-!ray -------------------------------
        use cincom
-       use cincoc
-       use constants
-       implicit real*8 (a-h,o-z)
+       implicit none 
+
+       integer iaddr
 
        rparf = rpar(iaddr)
        lstpar= iaddr
-!
+
       return
-!
+
       END
 
-      function ifound(pname)
+
+      integer function ifound(pname)
 !-----------------------------------------------------------------------
 !  logische optionserkennung  ifound wird=fundstelle sonst 0
 !-----------------------------------------------------------------------
-!
-!ray -------------------------------
        use cincom
        use cincoc
-       use constants
-       implicit real*8 (a-h,o-z)
+       implicit none
 
        character*8 pname
+
+       integer i
 !-----------------------------------------------------------------------
-!
+
        ifound    = 0
        if(inames.le.0) return
-!
+
        do 10 i=1,inames
          if(vname(i).eq.pname) then
             ifound=i
@@ -680,118 +667,117 @@
          endif
    10  continue
    20  continue
-!
+
       return
-!
+
       END
-!*ds
-!*ed
+
+
       logical function found(pname)
 !-----------------------------------------------------------------------
 !  logische optionserkennung
 !-----------------------------------------------------------------------
-       implicit real*8 (a-h,o-z)
+       implicit none
        character*8 pname
+
+        integer ifound
 
       found = ifound(pname) .ne. 0
       return
 
       END
-!
-!
-!*ds
-!*ed
+
+
+
       logical function folgt(popt,pname)
 !-----------------------------------------------------------------------
 !  logische optionserkennung, wahr wenn popt pname folgt
 !-----------------------------------------------------------------------
-!
-!ray -------------------------------
        use cincom
        use cincoc
-       use constants
-       implicit real*8 (a-h,o-z)
+       implicit none 
 
        character*8 popt, pname
+
+       integer j, ifound
 !-----------------------------------------------------------------------
-!
+
        folgt = .false.
        j     = ifound(pname)
        if(j.gt.0 .and. j.lt.inames) then
           folgt = popt .eq. vname(j+1)
        endif
        if(folgt) lstnam = j+1
-!
+
       return
-!
+
       END
-!*ds
-!*ed
-      function intvno(ipnum,idef,inew)
+
+
+      integer function intvno(ipnum,idef,inew)
 !-----------------------------------------------------------------------
 !  wert extraktion aus dem incom parameterstack  integer nach addr
 !-----------------------------------------------------------------------
-!
-!ray -------------------------------
        use cincom
-       use cincoc
-       use constants
-       implicit real*8 (a-h,o-z)
+       implicit none 
+
+       integer ipnum,idef,inew
 
        inew      = 0
        intvno    = idef
        if(ipars.lt.ipnum) return
-!
+
        intvno = rpar(ipnum) * 1.0000000001d0
        inew      = ipnum
        lstpar    = ipnum
 
       return
-!
+
       END
-!*ds
-!*ed
-      function getvno(ipnum,adef,inew)
+
+      real*8 function getvno(ipnum,adef,inew)
 !-----------------------------------------------------------------------
 !  wert extraktion aus dem incom parameterstack  real    nach addr
 !-----------------------------------------------------------------------
-!
-!ray -------------------------------
+
        use cincom
-       use cincoc
-       use constants
-       implicit real*8 (a-h,o-z)
+       implicit none 
+
+       real*8 adef
+       integer ipnum, inew
 
        inew      = 0
        getvno    = adef
        if(ipars.lt.ipnum) return
-!
+
        getvno = rpar(ipnum)
        inew   = ipnum
        lstpar = ipnum
 
       return
-!
+
       END
-!*ds
-!*ed
+
+
       subroutine getvec(pname,def1,def2,def3,vec ,inew)
 !-----------------------------------------------------------------------
 !  vektor-wert extraktion aus dem incom parameterstack mit rotation
 !-----------------------------------------------------------------------
-!
-!ray -------------------------------
        use cincom
        use cincoc
        use xroxxx
-       use constants
-       implicit real*8 (a-h,o-z)
+       implicit none 
+
 !-----------------------------------------------------------------------
-       character*16 pnamc
        character*8 pname
+       real*8 def1, def2, def3, vec
        dimension vec(3)
+       integer inew
+
+       character*16 pnamc
+       integer i, ier
 !-----------------------------------------------------------------------
-!
+
        inew      = 0
        vec(1)    = def1
        vec(2)    = def2
@@ -838,39 +824,37 @@
       call setudf(pnamc//' ',vec(1),ier)
       call cappend(pname//' ','.3 ',pnamc)
       call setudf(pnamc//' ',vec(3),ier)
-!c-setudf--
 
        call rotavc(vec,xyorig,rotvec)
       return
       END
-!
-!
-!*ds
-!*ed
+
+
       subroutine getnva(pname ,pardef ,parout, np, inew)
 !-----------------------------------------------------------------------
 !  extraktion meherere einem namen zugeordneter werte
 !-----------------------------------------------------------------------
-!
-!ray -------------------------------
+
        use cincom
        use cincoc
-       use xroxxx
-       use constants
-       implicit real*8 (a-h,o-z)
-!ray -------------------------------
+       implicit none
+
 !-----------------------------------------------------------------------
        character*8 pname
-       character*8 napp, pnamc*16
+       real*8 pardef, parout
+       integer np, inew
        dimension pardef(np), parout(np)
+
+       character*8 napp, pnamc*16
+       integer i, j, ier, napr
 !-----------------------------------------------------------------------
-!
+
        inew      = 0
        do 1 i=1,np
          parout(i) = pardef(i)
     1  continue
        if(inames.le.0) goto 20
-!
+
        do 10 i=1,inames
          if(vname(i).eq.pname) then
             napr = inpar(i)
@@ -1295,10 +1279,8 @@
 
        return
       END
-!
-!
-!*ds
-!*ed
+
+
       function laenge( string, maxlen, delim)
 !     =======================================
 !     laenge von string, wobei das ende durch delim(1) gekennzeichnet is
@@ -1391,12 +1373,13 @@
        use formnu
        use formch
        use constants
-
+       implicit none
 ! ---- internal use ---
        character*4 op
        integer     prio
        real*8      val
        logical     yesno
+       integer i,j,n,lclen
 
 ! ---- inits -----------------------------------------------------------
        ok          = .true.
@@ -1861,8 +1844,8 @@
 
       END
 
-!*ds
-!*ed
+
+
        subroutine evaluate( f, val, ierr)
 !      ----------------------------------
 
@@ -1870,9 +1853,9 @@
        use formch
        use outlev !for iout
        use constants
-! --- internal use ---
-
        implicit none
+
+! --- internal use ---
        real*8 val
        integer i, ierr
        character*(maxformlength+1) f
