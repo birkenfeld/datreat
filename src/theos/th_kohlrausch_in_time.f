@@ -112,7 +112,7 @@ c ---- calculate theory here -----
        nmg          = pa(12)
 
        if(epsilon.eq.0.0d0) epsilon = 1.0d-8
-       maxit = 1000
+       maxit = 10000
 
         qget = 0.0
         call        parget('q       ',qget,iadda,ier)

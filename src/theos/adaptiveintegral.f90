@@ -3,19 +3,20 @@ RECURSIVE FUNCTION adapint (f, a, b, epsilon, maxiter, erroraccu)
 !                                                                       
 !      lokal adaptives integrationsverfahren 2te ver. wg. rekur.        
 !                                                                       
+      use outlev
       IMPLICIT real (8)(a - h, o - z) 
 !                                                                       
       PARAMETER (maxstack = 200) 
 !                 --------------->  stacktiefe                          
       DIMENSION s (0:maxstack), xa (0:maxstack), xb (0:maxstack) 
 !                                                                       
-      LOGICAL cray 
+!      LOGICAL cray 
 !!     common/outlev/iot,ibild,ierrs,inka, cray                         
                                                                      !! 
-      REAL xxxx, yyyy, ptxf 
+!      REAL xxxx, yyyy, ptxf 
                                                                      !! 
-      COMMON / outlev / iot, ibild, ierrs, inka, iibuf, xxxx, yyyy,     &
-      ptxf (20)                                                         
+!      COMMON / outlev / iot, ibild, ierrs, inka, iibuf, xxxx, yyyy,     &
+!      ptxf (20)                                                         
 !                                                                       
       EXTERNAL f 
 !                                                                       
@@ -51,10 +52,10 @@ RECURSIVE FUNCTION adapint (f, a, b, epsilon, maxiter, erroraccu)
          s (itop) = gaus8a (f, xa (itop), xb (itop) ) 
          error = dabs ( (s (itop) + s (itop - 1) ) - s (itop - 2) ) 
                                                                         
-         IF (iot.gt.2) then 
-            WRITE (6, '(1x,i3,i5,4e13.6)') itop, iterationcounter, xa ( &
-            itop) , xb (itop) , (s (itop) + s (itop - 1) ) , error      
-         ENDIF 
+!         IF (iot.gt.2) then 
+!            WRITE (6, '(1x,i3,i5,4e13.6)') itop, iterationcounter, xa ( &
+!            itop) , xb (itop) , (s (itop) + s (itop - 1) ) , error      
+!         ENDIF 
                                                                         
          IF (error.lt.epsilon) then 
             erg = erg + s (itop) + s (itop - 1) 
@@ -86,18 +87,19 @@ RECURSIVE  FUNCTION a2dapint (f, a, b, epsilon, maxiter, erroraccu)
 !                                                                       
 !      lokal adaptives integrationsverfahren 2te ver. wg. rekur.        
 !                                                                       
+      use outlev
       IMPLICIT real (8)(a - h, o - z) 
 !                                                                       
       PARAMETER (maxstack = 200) 
 !                 --------------->  stacktiefe                          
       DIMENSION s (0:maxstack), xa (0:maxstack), xb (0:maxstack) 
 !                                                                       
-      LOGICAL cray 
+!      LOGICAL cray 
                                                       !! aix            
-      REAL xxxx, yyyy, ptxf 
+!      REAL xxxx, yyyy, ptxf 
                                                                     !! a
-      COMMON / outlev / iot, ibild, ierrs, inka, iibuf, xxxx, yyyy,     &
-      ptxf (20)                                                         
+!      COMMON / outlev / iot, ibild, ierrs, inka, iibuf, xxxx, yyyy,     &
+!      ptxf (20)                                                         
 !                                                                       
       EXTERNAL f 
 !                                                                       
@@ -133,10 +135,10 @@ RECURSIVE  FUNCTION a2dapint (f, a, b, epsilon, maxiter, erroraccu)
          s (itop) = g2aus8a (f, xa (itop), xb (itop) ) 
          error = dabs ( (s (itop) + s (itop - 1) ) - s (itop - 2) ) 
                                                                         
-         IF (iot.gt.2) then 
-            WRITE (6, '(1x,i3,i5,4e13.6)') itop, iterationcounter, xa ( &
-            itop) , xb (itop) , (s (itop) + s (itop - 1) ) , error      
-         ENDIF 
+!         IF (iot.gt.2) then 
+!            WRITE (6, '(1x,i3,i5,4e13.6)') itop, iterationcounter, xa ( &
+!            itop) , xb (itop) , (s (itop) + s (itop - 1) ) , error      
+!         ENDIF 
                                                                         
          IF (error.lt.epsilon) then 
             erg = erg + s (itop) + s (itop - 1) 

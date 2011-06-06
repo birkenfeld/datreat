@@ -1,3 +1,5 @@
+FFLAGS=-O2 -march=core2 -msse4a -mfpmath=sse
+FC = gfortran
 
 .SUFFIXES:
 .SUFFIXES: .f .o

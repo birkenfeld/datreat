@@ -418,7 +418,7 @@
 		! ---  fit dimensions ---                                               
 		!  -- mfit = max no. of fitted parameters                               
 		!     msmpl= max no. of datapoints in fit                               
-       		integer, parameter :: mfit=40,msmpl=__MSMPL
+       		integer, parameter :: mfit=100,msmpl=__MSMPL
 		integer, parameter :: musevar=__MUSEVAR
 		integer, parameter :: maxformlength=__MAXFORMLENGTH
 		integer, parameter :: maxitemlength=__MAXITEMLENGTH

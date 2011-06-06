@@ -267,7 +267,7 @@
       logical :: final_thc=.false., sqwbuf=.false.
 
 ! ---- defaults for parameters -----
-       data nsig/6/,eps/1.d-5/,delta/1.d-5/,maxfn/50/,iopt/0/
+       data nsig/6/,eps/1.d-5/,delta/1.d-5/,maxfn/500/,iopt/0/
        data ngood/0/,maxit/0/,stpsz/0.0/,trure/0.0/
        data ifalt/0/,iprint/1/,irecse/0/
        data x1i/-1.e30/,x2i/1.e30/
@@ -614,10 +614,9 @@
 !
       return
       END
-!
-!
-!*ds
-!*ds
+
+
+
        subroutine func(m,nff,x,f)
 !      ==========================
 !
@@ -734,10 +733,9 @@
 
        return
       END
-!
-!
-!*ds
-!*ds
+
+
+
        subroutine thc(npunkt)
 !      ----------------------
 !
@@ -766,8 +764,7 @@
        logical convolute/.false./, found, folgt
        data extup/0./,extlow/0./
 
-!
-!
+
        npoint = IABS(npunkt)
        npk    = npunkt
 !
@@ -967,10 +964,10 @@
 ! -------------------------------------------------------------------
 !
  1001  continue
-!
+
        return
       END
-!
+
 
 
        subroutine parset (pname,pvalue,iadd)
@@ -1006,10 +1003,9 @@
        return
 !
       END
-!
-!
-!*ds
-!*ds
+
+
+
        subroutine parget (pname,pvalue,iadd,ier)
 !      =========================================
 !
@@ -1047,8 +1043,28 @@
 !
 !
       END
-!*ds
-!*ds
+
+       subroutine outputparams
+!      =========================================
+!
+! ---- this outputs all parametera ----
+!
+       use cdata
+       implicit none
+
+       integer iadda
+       common/thiadd/iadda
+
+       integer i, np, iout
+!
+! ----------- look for the parameter -----------------------------------
+       np = nopar(iadda)
+       do 100 i=1,np
+           write(*,*) napar(i,iadda), params(i,iadda)
+  100  continue
+
+      END
+
        real*4 function dparam (pname)
 !      ==============================
 !
@@ -1116,10 +1132,9 @@
        ier = 1
        return
       END
-!
-!
-!*ds
-!*ds
+
+
+
        subroutine activa(iopt)
 !      =======================
 ! --- activate a theory
@@ -1872,8 +1887,6 @@
         close(20)
        return
       END   ! input
-!*ds
-!*ds
 
 
 
@@ -2006,10 +2019,9 @@
        close(20)
        return
       END
-!
-!
-!*ds
-!*ds
+
+
+
        subroutine decode(tline)
 !      ========================
 !
@@ -2239,10 +2251,9 @@
 !
        return
       END
-!
-!
-!*ds
-!*ds
+
+
+
        subroutine savdat(fname,ispc)
 !      =============================
 ! -- save data on adress ispc onto a file named file fname a --
@@ -2290,8 +2301,9 @@
        call errsig(999,'file open failed...$')
        return
       END
-!*ds
-!*ds
+
+
+
        subroutine msavdat(fname)
 !      =========================
 ! -- MULTI save data on adress ispc onto a file named file fname a --
@@ -2342,10 +2354,9 @@
        call errsig(999,'file open failed...$')
        return
       END
-!
-!
-!*ds
-!*ds
+
+
+
        real function fsplin(x)
 !      ==================
 ! --- spline interpolated data evaluation ---
@@ -2378,10 +2389,9 @@
 !        -----------
        return
       END
-!
-!
-!*ds
-!*ds
+
+
+
        real function fdes(x)
 !      ================
 ! --- integrand for desmearing ---
@@ -2409,10 +2419,8 @@
 !        --------------
        return
       END
-!
-!
-!*ds
-!*ed
+
+
        subroutine fftmx(x,y,t,xmax,dx,nx,nfft)
 !      =======================================
 !  --- small angle multiple scattering evaluator (test-version) ---
@@ -2544,8 +2552,9 @@
 !
        return
       END
-!*ds
-!*ed
+
+
+
        subroutine fftrmx(x,y,ai0,t,thick,xmax,dx,nx,nfft)
 !      ==============================================
 !  --- small angle multiple scattering inverse evaluator ----
@@ -2693,8 +2702,9 @@
 !
        return
       END
-!*ds
-!*ed
+
+
+
        subroutine rmx1d(x,y,ai0,t,thick,xmax,ymax,nx,nfft)
 !      =================================================
 !  ---> like fftrmx but using 1d-fourier-transforms <---
@@ -2882,9 +2892,8 @@
 
        return
       END
-!*ds
-!*ed
-!
+
+
        real function yinterp(x)
 !      ---------------------
 ! --> interpolates y-value at x for the file on top of the
@@ -2915,8 +2924,8 @@
        yinterp = 0.0
        return
       END
-!*ds
-!*ed
+
+
        subroutine demux(xin,yin,nin,t,xmax,nfft,iout,xout,yout,ier)
 !      ============================================================
 !  --- small angle multiple scattering inverse evaluator ----
@@ -3127,8 +3136,8 @@
 !
        return
       END
-!*ds
-!*ed
+
+
        subroutine mux(xin,yin,nin,t,xmax,nfft,iout,xout,yout,ier)
 !      ==========================================================
 !  --- small angle multiple scattering evaluator ----
@@ -3284,8 +3293,8 @@
 !
        return
       END
-!
-!
+
+
        subroutine pushda(y,x0,dx,n)
 !      ----------------------------
 ! --> pushes data y-values to the datafiles

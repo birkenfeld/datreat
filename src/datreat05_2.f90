@@ -2742,6 +2742,11 @@ INCLUDE "commons.h"
          call fit
          goto 2000
        endif
+
+       if(comand.eq.'paraout     ') then
+         call outputparams
+         goto 2000
+       endif
 !
         if(comand.eq.'th_init  ') then
 				write(*,*) 'not yet implemented, sorry will coming soon'
