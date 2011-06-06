@@ -373,11 +373,11 @@ C     MACHINE CONSTANTS FOR THE IBM PC
 C     ASSUMES THAT ALL ARITHMETIC IS DONE IN DOUBLE PRECISION
 C     ON 8088, I.E., NOT IN 80 BIT FORM FOR THE 8087.
 C
-C     DATA SMALL(1) / 2.23D-308  /
-C     DATA LARGE(1) / 1.79D+308  /
-C     DATA RIGHT(1) / 1.11D-16   /
-C     DATA DIVER(1) / 2.22D-16   /
-C     DATA LOG10(1) / 0.301029995663981195D0 /
+c      DATA SMALL(1) / 2.23D-308  /
+c      DATA LARGE(1) / 1.79D+308  /
+c      DATA RIGHT(1) / 1.11D-16   /
+c      DATA DIVER(1) / 2.22D-16   /
+c      DATA LOG10(1) / 0.301029995663981195D0 /
 C
 C     MACHINE CONSTANTS FOR THE IBM RS 6000
 C
@@ -389,11 +389,11 @@ C     DATA DMACH(5) / Z'3FD34413509F79FF' /
 C
 C     MACHINE CONSTANTS FOR THE INTEL i860
 C
-      DATA DMACH(1) / Z'0010000000000000' /
-      DATA DMACH(2) / Z'7FEFFFFFFFFFFFFF' /
-      DATA DMACH(3) / Z'3CA0000000000000' /
-      DATA DMACH(4) / Z'3CB0000000000000' /
-      DATA DMACH(5) / Z'3FD34413509F79FF' /
+!      DATA DMACH(1) / Z'0010000000000000' /
+!      DATA DMACH(2) / Z'7FEFFFFFFFFFFFFF' /
+!      DATA DMACH(3) / Z'3CA0000000000000' /
+!      DATA DMACH(4) / Z'3CB0000000000000' /
+!      DATA DMACH(5) / Z'3FD34413509F79FF' /
 C
 C     MACHINE CONSTANTS FOR THE PDP-10 (KA PROCESSOR)
 C
@@ -496,7 +496,27 @@ C***FIRST EXECUTABLE STATEMENT  D1MACH
       IF (I .LT. 1 .OR. I .GT. 5) CALL XERMSG ('SLATEC', 'D1MACH',
      +   'I OUT OF BOUNDS', 1, 2)
 C
-      D1MACH = DMACH(I)
+c      D1MACH = DMACH(I)
+      
+
+      select case (i)
+             case (1)
+                  D1MACH = tiny(D1MACH)
+             case (2)
+                  D1MACH = huge(D1MACH)
+             case (3)
+                  D1MACH = epsilon(D1MACH)
+             case (4)
+                  D1MACH = epsilon(D1MACH)
+                  D1MACH = 2*D1MACH
+             case (5)
+                  D1MACH = 2d0
+                  D1MACH = log10(D1MACH)
+             case default
+             CALL XERMSG ('SLATEC', 'D1MACH','I OUT OF BOUNDS', 1, 2)
+      end select
+
+
       RETURN
 C
       END
