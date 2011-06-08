@@ -81,7 +81,7 @@ INCLUDE "commons.h"
 
        real*8 getval, dble
 
-       character ftyp*8,fmode*1,fpnam*8,xpnam*8,ypnam*8
+       character :: fpnam*8,xpnam*8,ypnam*8
        character fsname*1024
        character*1 csel
        real*8 val8x,val8y
@@ -90,7 +90,7 @@ INCLUDE "commons.h"
        dimension alim(2), blim(2)
 !
        dimension nnumi(minc)
-       logical withmo,fonpla,found
+       logical :: withmo = .true.,fonpla = .false.,found
 
        parameter( mcut=200 )
        dimension rrv(0:mcut)
@@ -119,7 +119,6 @@ INCLUDE "commons.h"
        external f
 !
 !
-       data fmode/'a'/,ftyp/'scn     '/,withmo/.true./,fonpla/.false./
        real :: errabs=1.0,errel=1.e-2
 !
 ! ---- initialisations ----

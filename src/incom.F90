@@ -16,6 +16,7 @@
        use xoutxx
        use xroxxx
        use constants
+       use outlev
        implicit none
 !      -----------------------
 !
@@ -38,15 +39,13 @@
        character*1   blank,csep,numtst(14),numeqv*14,inread*1024
        character*8   cmd
        equivalence  (numeqv,numtst(1))
-       logical       name, lmakro, found, fileda
+       logical :: name, lmakro = .false., found, fileda
 
        character*1024 ma_fil
        integer       ilma, i, j, k, l, ii, irc, ipmlen, isum, ioold
-       integer       ier, ierrs, ierr, ioldna, inew, iival
+       integer       ier, ierr, ioldna, inew, iival
 
-       integer       init_run
-       data          init_run /1/
-       data          lmakro /.false./
+       integer :: init_run = 1
        real*8 val
        real getval
 !

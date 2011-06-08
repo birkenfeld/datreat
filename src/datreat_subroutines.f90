@@ -240,12 +240,12 @@
        use constants
 
        implicit none
-       integer i, it, icode, ier, iopt, ifalt, igo, inew, iparam, ip, iprint, iru,l, map
-       integer irecse, iercd, ll, j, j1, j2, j3, ith, ixjac
-       integer nsig, npar, numv, nfit, nff, n, m, maxit, maxfn, ngood, nspf
-       real trure, thperr, sum, rparam, stpsz
-       real x, xscale, xjac, xcenter, xguess, x2i, x1i, xerr, xstepsc
-       real eps, divis, delta, ermat, f, gmat, fscale, ginv
+       integer i, it, icode, ier, igo, inew, iparam, ip, iru,l, map
+       integer iercd, ll, j, j1, j2, j3, ith, ixjac
+       integer npar, numv, nfit, nff, n, m, nspf
+       real thperr, sum, rparam
+       real x, xscale, xjac, xcenter, xguess, xerr, xstepsc
+       real divis, ermat, f, gmat, fscale, ginv
        real*8 ssq
 
        character*8 ci
@@ -264,11 +264,9 @@
       logical :: final_thc=.false., sqwbuf=.false.
 
 ! ---- defaults for parameters -----
-       data nsig/6/,eps/1.d-5/,delta/1.d-5/,maxfn/500/,iopt/0/
-       data ngood/0/,maxit/0/,stpsz/0.0/,trure/0.0/
-       data ifalt/0/,iprint/1/,irecse/0/
-       data x1i/-1.e30/,x2i/1.e30/
-!
+       integer :: maxfn = 500, ngood = 0, maxit = 0, iprint = 1, irecse = 0
+       real :: stpsz = 0.0, trure = 0.0
+
 ! ---- take parameters from stack ----
        sqwght= sqwbuf
       igo = 0
@@ -621,9 +619,6 @@
 !
 ! compiler complains about nff unsused!!!!
 
-       use cincom
-       use cincoc
-
        use cdata
        use theory
        use selist
@@ -744,23 +739,27 @@
 !
        use cincom
        use cincoc
-
+       use outlev
        use cdata
-       use theory
        use selist
        use cfunc
-       use cfunce
        use constants
+
+       implicit none
+
        real*8 getval, dble
 !
+       integer :: iadda
        common /thiadd/iadda
 ! ---> transfer der addresse der gerade bearbeiteten kurve nach thdatr1
 !      damit koennen dann ggf. weitere parameter ueber parget gewonnen
 !      werden
 !
-       logical convolute/.false./, found, folgt
-       data extup/0./,extlow/0./
-
+       logical :: convolute = .false., found, folgt
+!       real :: extup = 0. ,extlow = 0.
+       integer :: iadd, i, j, ier, m, n, np, npk, npoint, intval, isigint, nconvo, isel, inew
+       integer :: inbuf, im, npunkt
+       real :: da, dx, sum, x, xmax, xmin, xc1, xc2, thval, xxx, xnconvo
 
        npoint = IABS(npunkt)
        npk    = npunkt
@@ -1656,13 +1655,11 @@
 
 !  neu fuer pfad
        character*1024 uspfad
-       character*1024 tempfad
+
        character*1024 X_datpath
        character*8 ignoreline,nextset
        integer     il
 
-       data tempfad /'./'/
-       save tempfad
        save uspfad
 
         uspfad = X_datpath()     ! this is simply the datapath   Why so complicate?
@@ -1744,7 +1741,7 @@
 			.or.	trim(rline).eq.trim(nextset))       then
 			if (lx .gt.0 ) then    !if we have already some data
 				if(lx.ne.ly) then
-               		write(6,*)'number of x-values=',lx,' does not match ly=',ly
+!                		write(6,*)'number of x-values=',lx,' does not match ly=',ly
 				endif
 		  		nwert(nbuf)=lx       ! we tell the nwert buf how much
 				write(6,"(I2,':lx',I4,' para',I4,' Comment: ',a)") nbuf,lx,nopar(nbuf),trim(coment(nbuf))
@@ -3293,6 +3290,7 @@
 
        use cdata
        use constants
+       use outlev
        implicit none
 
        real y,x0,dx
@@ -3300,7 +3298,7 @@
 
        dimension y(n)
        integer :: num=9000
-       integer i, ierrs
+       integer i
 ! ----------------------------------------------------------------
        if(nbuf.ge.mbuf) then
          write(6,*)'pushda unsuccessful: no room on stack !'
