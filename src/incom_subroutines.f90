@@ -997,9 +997,12 @@
 !      3x3 matrixmultiplikation
 !      a * b ---> c
 !-----------------------------------------------------------------------
-       implicit real*8 (a-h,o-z)
-       dimension a(3,3), b(3,3), c(3,3)
-       dimension h(3,3)
+       implicit none 
+
+       real*8 :: a(3,3), b(3,3), c(3,3)
+       real*8 :: h(3,3)
+       real*8 :: s 
+       integer :: i,j,l
 
        do 10 i=1,3
           do 10 j=1,3
@@ -1025,9 +1028,12 @@
 !      3x3 matrix - vector - multiplikation
 !      a * x ---> y
 !-----------------------------------------------------------------------
-       implicit real*8 (a-h,o-z)
-       dimension a(3,3), x(3), y(3)
-       dimension h(3)
+       implicit none 
+
+       real*8 :: a(3,3), x(3), y(3)
+       real*8 :: h(3)
+       real*8 :: s 
+       integer :: i,l
 
        do 10 i=1,3
              s = 0.d0
@@ -1051,8 +1057,10 @@
 !      3x3 matrix - transposition
 !      a(t)  ---> at
 !-----------------------------------------------------------------------
-       implicit real*8 (a-h,o-z)
-       dimension a(3,3), at(3,3)
+       implicit none
+
+       real*8 :: a(3,3), at(3,3)
+       real*8 :: xd, xu
 
        at(1,1) = a(1,1)
        at(2,2) = a(2,2)
@@ -1083,8 +1091,10 @@
 !      3x3 matrix - kopie
 !      a     --->   b
 !-----------------------------------------------------------------------
-       implicit real*8 (a-h,o-z)
-       dimension a(3,3), b(3,3)
+       implicit none 
+
+       real*8 :: a(3,3), b(3,3)
+       integer :: i, j
 
        do 10 i=1,3
          do 10 j=1,3
@@ -1100,8 +1110,10 @@
 !-----------------------------------------------------------------------
 !      3x3 matrix ---> einheitsmatrix
 !-----------------------------------------------------------------------
-       implicit real*8 (a-h,o-z)
-       dimension a(3,3)
+       implicit none 
+
+       real*8 :: a(3,3)
+       integer :: i, j
 
        do 10 i=1,3
          do 20 j=1,3
@@ -1120,10 +1132,13 @@
 !      rotationsachsendarstellung aus rmat
 !      rmat ==~==> ax
 !-----------------------------------------------------------------------
-       implicit real*8 (a-h,o-z)
-       dimension rmat(3,3), ax(3), rtest(3,3)
-       dimension d1(3), d2(3), d3(3) , x1(3), x2(3), x3(3)
-       dimension tx(3), ty(3)
+       implicit none 
+
+       real*8 :: rmat(3,3), ax(3), rtest(3,3)
+       real*8 :: d1(3), d2(3), d3(3) , x1(3), x2(3), x3(3)
+       real*8 :: tx(3), ty(3)
+       real*8 :: angdeg, ang, err, co, s1, s2, s3, sn, smax
+       integer :: imax = 1
 
        d1(1) = rmat(1,1) - 1.d0
        d1(2) = rmat(2,1)
@@ -1229,8 +1244,9 @@
 !
 ! ** cross product of   v1 x v2  ==> vc
 !
-       real*8 v1,v2,vc, vch
-       dimension v1(3),v2(3),vc(3),vch(3)
+       implicit none
+
+       real*8 :: v1(3),v2(3),vc(3),vch(3)
 !
        vch(1) = v1(2)*v2(3) - v1(3)*v2(2)
        vch(2) = v1(3)*v2(1) - v1(1)*v2(3)
@@ -1247,8 +1263,12 @@
        subroutine norm( xin, xout, n)
 !      ==============================
 ! --- vektor norm nach skalarprodukt ---
-       implicit real*8 (a-h,o-z)
-       dimension xin(n), xout(n)
+       implicit none
+
+       integer :: n
+       real*8 :: xin(n), xout(n)
+       real*8 :: s
+       integer :: i
 
        s = 0.d0
        do 1 i=1,n
@@ -1264,12 +1284,15 @@
       END
 
 
-      function laenge( string, maxlen, delim)
+      integer function laenge( string, maxlen, delim)
 !     =======================================
 !     laenge von string, wobei das ende durch delim(1) gekennzeichnet is
 !     ------------------------------------------------------------------
-      character*1024 string
-      character*1  delim
+      implicit none
+      character*1024 :: string
+      integer :: maxlen
+      character*1 :: delim
+      integer :: i, n
 
       if(maxlen.gt.1024) then
          n = 1024
@@ -2021,14 +2044,14 @@
       return
       END
 
-      function inpaf(iaddr)
+      integer function inpaf(iaddr)
 !-----------------------------------------------------------------------
 !  wert extraktion aus dem incom parameterstack  zuordnung inpar
 !  still needed for one routine in datreat_subroutines
 !-----------------------------------------------------------------------
        use cincom
        implicit none
-       integer iaddr, inpaf
+       integer iaddr
        inpaf = inpar(iaddr)
       return
       END

@@ -1044,7 +1044,7 @@
        subroutine outputparams
 !      =========================================
 !
-! ---- this outputs all parametera ----
+! ---- this outputs all parameters ----
 !
        use cdata
        implicit none
@@ -1052,7 +1052,7 @@
        integer iadda
        common/thiadd/iadda
 
-       integer i, np, iout
+       integer i, np
 !
 ! ----------- look for the parameter -----------------------------------
        np = nopar(iadda)
@@ -2089,7 +2089,7 @@
        integer k1,k2,n
 
        integer i,kp, km
-       real xmirro, smirru, sum, t
+       real xmirro, sum, t
        dimension y(mwert),y2(mwert)
 !
         do 10 i=1,n
@@ -2457,12 +2457,10 @@
        complex*8  cexp,cabs
        dimension x(*),y(*)
 
-       real xx, yy , x1, y1, x2, y2, xl, xn, fsplin, dy, dd, ai1, ai0, at
+       real xx, yy , x1, x2, xl, xn, fsplin, dy, dd, ai1, ai0, at
        integer ioold, i, j
 ! ----------------------------------------------------------------------
-       real :: pi=3.1415926535897
-! ----------------------------------------------------------------------
-!
+
        if(nfft.eq.0)    nfft = mdim
        if(nfft.gt.mdim) nfft = mdim
        if(nx.gt.nfft/2) nx   = nfft/2
@@ -2594,10 +2592,9 @@
 ! --- fft-dimensioning -------------------------------------------------
        dimension x(*),y(*)
 
-       real xx,yy, x1,y1,x2,y2,xl,yinterp,rca, dd, at, dy
+       real xx,yy, x1,x2,xl,yinterp,rca, dd, at, dy
        integer ioold, i, j
 
-       real :: pi=3.1415926535897
 ! ----------------------------------------------------------------------
 !
        if(nfft.eq.0)       nfft = mdim
@@ -2750,9 +2747,7 @@
 !             ---> this common saves storage by use of ca in fftrmx also
        dimension x(*),y(*)
 ! ----------------------------------------------------------------------
-       real :: pi=3.1415926535897
-! ----------------------------------------------------------------------
-!
+
        if(nfft.eq.0)         nfft = mdim
        if(nfft.gt.mdim     ) nfft = mdim
        if(nx.gt.mdim  )      nx   = mdim
