@@ -31,14 +31,12 @@ INCLUDE "commons.h"
       use cincom
       use cincoc
       use xoutxx
-      use xroxxx
       use cdata
       use outlev
       use theory
       use selist
       use fslist
       use theorc
-      use therrc
       use thparc
       use formul
       use cfc
@@ -69,7 +67,7 @@ INCLUDE "commons.h"
        real delqv, ddj, delqh, dj, draster, d0, d1, d, d2, blim, bklen, a2
        real a, alam, aa, akb_z, ai0, ampli, amp, apar, alim, an0, bfave, bkgr
        real bkqave, bkave, dq, dt, dx, bpar, bfkave, aver, bqkave, detdis, rrv
-       integer nw, nx, ntyp, numr,  num2, num1, nra, npp, npoint, nraster
+       integer nw, nx, numr,  num2, num1, nra, npp, npoint, nraster
        integer npk, npay, npl, npax, np, nold, nnpar, nnn, nnumi, nn4, nn3
        integer nnw, nn1, nn, nn2, nfits, newadd, nneu, ncp, ncpl, ncut, nech
        integer nbuff, newnum, nb, n1, n2, n3, n0, nfft, n, msel, mpk, modeqc
@@ -125,8 +123,6 @@ INCLUDE "commons.h"
        real :: errabs=1.0,errel=1.e-2
 !
 ! ---- initialisations ----
-!!!!   call iwkin(iwklen)
-!!!!   ------------------> inform imsl programs about the workspacesize
 ! ---- error-set ----------
        call erset (0,1,0)
 
@@ -171,25 +167,10 @@ INCLUDE "commons.h"
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
        pi   = 4 * atan(1.0)
-       iout = 0
-       inka = 5
-       ibild= 0
-       numpls = 10000
+
        facto1 = 1
        facto2 = 2
-! ---- zero the commons ----
-       nbuf = 0
-       ntyp  = 0
-       numspl= 0
-       nwspl = 0
-! ---- fit and calculation limit determination -------------------------
-       autox1 = .true.
-       autox2 = .true.
-       lerrel = .false.
-       lwrtfitdat = .false.
-! ---- dummy formulae ----
-       xformel = '(xx)'
-       yformel = '(yy)'
+
 ! ---- noise amplitude ----
        ampli   = 1.0
        iseed   = 12347897
@@ -247,7 +228,7 @@ INCLUDE "commons.h"
 !
 
 !--------------------------------------
-                                     ! comment-length in dir (display)
+       ! comment-length in dir (display)
        len_comm = 30
 
        title='Datreat Plot'
@@ -263,7 +244,7 @@ INCLUDE "commons.h"
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!1   Anfang der Hauptschleife
+!!   Anfang der Hauptschleife
  2000  continue
        call sig_Reset()
        if(ierrs.ne.0) then

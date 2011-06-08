@@ -59,8 +59,8 @@
 !
        return
       END
-!*ds
-!*ds
+
+
       subroutine search(irecv,nkurv)
 !     ------------------------------------
 !
@@ -129,10 +129,8 @@
 !
        return
       END
-!
-!
-!*ds
-!*ds
+
+
       subroutine fsrch(ifrec,nfkurv)
 !     ------------------------------------
 ! this subroutine is analogous to search, it will select the scans of
@@ -216,7 +214,7 @@
 
        integer sum
        real theory_x
-!
+
        sum = 0
 !      here we call the function value with all neccessary to calc it   it only needs params from current dataset not from all
 !       this will make it easier for future releases to incorporate C without all these commonblocks RB
@@ -224,8 +222,7 @@
        return
       END
 
-!*ds
-!*ds
+
        subroutine fit
 !      ==============
 !

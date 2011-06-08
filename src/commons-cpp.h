@@ -160,7 +160,7 @@
 		character*80 name(__MBUF)
 		integer nwert(__MBUF)
 		integer numor(__MBUF)
-		integer nbuf
+		integer :: nbuf = 0
 		character*80 coment(__MBUF)*80
 		real params(__MPAR,__MBUF)
 		character*80 napar(__MPAR,__MBUF)
@@ -173,10 +173,10 @@
 !
 	module outlev 
 		save
-		integer iout
-		integer ibild
+		integer :: iout = 0 
+		integer :: ibild = 0
 		integer ierrs
-		integer inka
+		integer :: inka = 5
 		integer iibuf
 		real xxxx
 		real yyyy
@@ -218,7 +218,7 @@
 		integer isels(__MBUF)
 		integer ifits(__MBUF)
 		integer nsel
-		integer numpls
+		integer :: numpls = 10000
 	end module selist
  
 	!  isfits    = address (/spectr/) of selected fits                      
@@ -307,8 +307,8 @@
 
 	module formul
 		save
-		character*1024 xformel
-		character*1024 yformel
+		character*1024 :: xformel = '(xx)'
+		character*1024 :: yformel = '(yy)'
 		character*1024 yfitform
 	end module formul
 
@@ -323,8 +323,8 @@
 		real cscoef(4,__MWERT)
 		real break(__MWERT)
 		real weight(__MWERT)
-		integer numspl
-		integer nwspl
+		integer :: numspl = 0
+		integer :: nwspl = 0
 	end module cfc
 
 ! ---- communication with subr. func ---                                
@@ -336,15 +336,14 @@
 !      ferror   : fehler des zu vergleichenden datenfeldes              
 ! ----------------------------------------------------------------------
 
-
 	module cfunc
 		save
 		integer iprt
 		logical sqwght
 		real x1
 		real x2
-		logical autox1
-		logical autox2
+		logical :: autox1 = .true.
+		logical :: autox2 = .true.
 		real ferror(__MSMPL)
 	end module cfunc
 
@@ -352,8 +351,8 @@
 ! ---  if lerrel=.true. the fiterrors are take as relative errors 
 	module cfunce
 		save
-		logical lerrel
-		logical lwrtfitdat
+		logical :: lerrel = .false.
+		logical :: lwrtfitdat = .false.
 		real fcssq
 	end module cfunce 
 
