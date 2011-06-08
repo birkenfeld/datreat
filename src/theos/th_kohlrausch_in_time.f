@@ -272,7 +272,7 @@ c ---- calculate theory here -----
        dwf  = exp(-u_sqr*qz*qz/3.0d0)
 
        eisf = (1.0/3.0)*(1.0+2.0*(sin(qz*1.78)/(qz*1.78)))
- 
+
        th_kohl_q = a0*dwf*(1-nmg+(nmg*eisf))*sum + bkgr
 
        th_kohl_q =  th_kohl_q + bgr_level + bgr_slope*o0

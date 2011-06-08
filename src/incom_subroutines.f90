@@ -882,19 +882,18 @@
 !
       return
       END
-!*ds
-!*ed
+
+
       subroutine rotavc( x, xyorig, rotvec )
 !     ======================================
 !     unterwirft den koordinatenvector x einer drehung um xyorigin
 !     um den winkel rotang
 !-----------------------------------------------------------------------
-      implicit real*8   (a-h,o-z)
-!
-      dimension  x(3), y(3)
-      dimension  xyorig(3), rotvec(3), r(3,3)
-      data    degtor /0.017453292d0/
-!
+      implicit none 
+      real*8 :: x(3), y(3), xyorig(3), rotvec(3), r(3,3)
+      real*8 :: degtor=0.017453292d0
+      real*8 :: angdeg
+
       y(1) = x(1) - xyorig(1)
       y(2) = x(2) - xyorig(2)
       y(3) = x(3) - xyorig(3)
@@ -903,22 +902,22 @@
       x(1) = y(1) + xyorig(1)
       x(2) = y(2) + xyorig(2)
       x(3) = y(3) + xyorig(3)
-!
+
       return
       END
-!*ds
-!*ed
+
+
       subroutine unrot( x, xyorig, rotvec )
 !     =====================================
 !     unterwirft den koordinatenvector x einer drehung um xyorigin
 !     um die drehung         rotang**-1
 !-----------------------------------------------------------------------
-      implicit real*8   (a-h,o-z)
-!
-      dimension x(3), y(3)
-      dimension  xyorig(3), rotvec(3), r(3,3)
-      data    degtor /0.017453292d0/
-!
+      implicit none 
+
+      real*8 :: x(3), y(3), xyorig(3), rotvec(3), r(3,3)
+      real*8 :: degtor=0.017453292d0
+      real*8 :: angdeg
+
       y(1) = x(1) - xyorig(1)
       y(2) = x(2) - xyorig(2)
       y(3) = x(3) - xyorig(3)
@@ -933,10 +932,8 @@
 !
       return
       END
-!
-!
-!*ds
-!*ed
+
+
        subroutine rotax( ax, scale, rmat, angdeg )
 !      ===========================================
 !                       -->  ---->  <---   <---
@@ -945,10 +942,10 @@
 ! die laenge wird zur bestimmung des drehwinkels mit scale multipliziert
 !-----------------------------------------------------------------------
 
-       implicit real*8 (a-h,o-z)
-       dimension ax(3), rmat(3,3)
-       dimension en(3)
-
+       implicit none 
+       real*8 :: ax(3), rmat(3,3), en(3)
+       integer :: i, j
+       real*8 :: angdeg, scale, ang, co, si, s
 !-----------------------------------------------------------------------
 
        do 1 i=1,3
@@ -992,10 +989,8 @@
 
        return
       END
-!
-!
-!*ds
-!*ed
+
+
        subroutine matmux( a, b, c )
 !      ============================
 !-----------------------------------------------------------------------
@@ -1295,61 +1290,7 @@
 
       return
       END
-!
-!
-!=======================================================================
-!
-!=================== io-add-ons for kfa-ibm-use =======================*
 
-
-      subroutine openkfa(file,ikan,mode,irc)
-!     ======================================
-!
-!    subroutine for cms filedef command
-!    file  =    filename filetyp   oder filename.filetyp
-!    ikan  =    fortran io-kanal
-!    mode  =    'new' oder 'old' oder 'mod'
-!    irc   =    return code
-!
-      character*24  file, fili, cnum*4, line*80, mode*3
-      line = ' '
-!
-      fili = file
-      do 10 i=1,24
-        if (fili(i:i).eq.'.') fili(i:i)=' '
-   10 continue
-      ll    = laenge(fili,24,'$')
-      fili  = fili(1:ll)
-!
-      write(cnum,'(i4)') ikan
-!
-      if(mode.ne.'new') then
-         line = 'estate '//fili
-         write(6,*)line
-         call system(line)
-         if (irc .ne. 0) then
-            write(6,*)'openkfa file:',file,' not found!'
-            return
-         endif
-      endif
-!
-      line = 'filedef '//cnum//' '//'disk '//fili
-      if (mode.eq.'new') then
-          line = 'filedef '//cnum//' '//'disk '//fili                   &
-     &           //' ( recfm f lrecl 132 '
-      endif
-      if (mode.eq.'mod') then
-          line = 'filedef '//cnum//' '//'disk '//fili//' ( disp mod'
-      endif
-!
-      write(6,*)'mode=',mode
-      write(6,*)line
-      call system(line)
-      open (ikan)
-!
-      return
-      END
-!
 !***********************************************************************
 !---------- formula-interpreter-section --------------------------------
 !***********************************************************************
@@ -1492,7 +1433,6 @@
 
        subroutine getitem
 !      ------------------
-
 
        use formnu
        use formch
@@ -1956,8 +1896,6 @@
       END
 
 
-!*ds
-!*ed
       subroutine extract(nam,val,ier)
 !     -------------------------------
       use usevar
