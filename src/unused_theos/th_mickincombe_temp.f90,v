@@ -1,4 +1,27 @@
-       function th_mickincomb(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
+head	1.1;
+access;
+symbols;
+locks
+	monk:1.1; strict;
+comment	@# @;
+
+
+1.1
+date	2012.06.28.06.58.29;	author monk;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@       function th_mickincomb(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
 !     =====================================================      
 !
 ! -------> micellkinetics: mickin  <--------
@@ -526,12 +549,8 @@
        common/cpar4/ tau_t1, tau_t2, tauscal
        common/cpar5/gamma0, temp_t, tau_off, amp_T 
 
-       double precision :: xh
-       common/cpx/xh
 
        double precision :: y1, y2, y1e, y2e
-
-       xh = x
 
        y1 = (-(x -tau_off)/tau_t1)
        if(y1.gt.0d0)    y1 = 0d0
@@ -767,7 +786,7 @@
 !    REIDAR: ka_pN(k) From Halperin & Alexander 22, 2403 (1989)/ !       
 !    Dormidontova MM 32 7630 (1999)                                     
                                                                         
-       double precision function previous_ka_pN(k) 
+       double precision function ka_pN(k) 
 !      -------------------------------                                  
        implicit none 
        double precision tau0
@@ -796,7 +815,7 @@
                                                                         
 !       ka_pN = 1.d0/tau0*exp(-beta*k**(0.5d0)) 
 
-  previous_ka_pN = 1.d0/tau0*4*3.14159265*k**(1.0d0/3.0d0)  
+  ka_pN = 1.d0/tau0*4*3.14159265*k**(1.0d0/3.0d0)  
 
 ! TO BE ACTIVATED
 
@@ -822,82 +841,6 @@
 
        return 
       END                                           
-
-
-
-
-  double precision function ka_pN(k) 
-!      -------------------------------                                  
-       implicit none 
-       double precision tau0
-
-        
-       integer k 
-       double precision gamma, beta, alpha, f1, coscal, kd_p 
-       double precision gamma0
-       double precision :: y1, y2, y1e, y2e
-       double precision :: a1, a2, a3, ax, pdep   
-
-
-       integer kmax 
-        
-       double precision tau_t1, tau_t2, tau_off, temp_t
-       double precision tx, tauscal, amp_T
-       double precision eta
-
-       common/cpar/ gamma, beta, alpha, f1, coscal, kd_p, kmax
-       common/cpar4/ tau_t1, tau_t2, tauscal
-       common/cpar5/gamma0, temp_t, tau_off, amp_T 
-
-       double precision :: xh
-       common/cpx/xh
-
-                                                                       
-!!! set the timescale !!!!!!!!!!!!!!!!!!!!!!!!!!!                       
-                     ! set the timescale                                
-       tau0 = 1.0d-6 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                       
-                                                                        
-!       ka_pN = 1.d0/tau0*exp(-beta*k**(0.5d0)) 
-
-
-
-! Temperature dependence
-
-
-       y1 = (-(xh -tau_off)/tau_t1)
-       if(y1.gt.0d0)    y1 = 0d0
-       if(y1.lt.-50d0)  y1 = -50d0
-       
-       y2 = (-(xh-tau_off)/tau_t2)
-       if(y2.gt.0d0)    y2 = 0d0
-       if(y2.lt.-50d0)  y2 = -50d0
-       
-
-       
-   temp_t = amp_T*(1 - exp(y2))**4.2*(exp(y1)) + 298.0d0
-   
-    
-    ax =  temp_t - 273.0d0 !! viscosity expressed in C rather than K
-    eta = 0.01066*ax**(7.166*ax**(-0.454))*1.0d-3   !!0.01066*Col(T)^(7.166*Col(T)^(-0.454) )// in Pas
-    pdep = (1.0 + k**(1.0d0/3.0d0))**2/(k**(1.0d0/3.0d0))
-    
-       
-       if (amp_T.ne.0.0) then                            !! SIAM J. APPL. MAT Vol. 72, No. 1, pp. 201
-      ka_pN = 1.0d0/tau0*2.0*8.314*temp_t/(3.0*eta)*pdep !! Insertion constant scales with 1/viscosity, proportional to T 
-       else
-      ka_pN = 1.d0/tau0*4*3.14159265*k**(1.0d0/3.0d0)  
-       end if
-
-
-       return 
-      END         
-
-
-
-
-
-
                                                                         
                                                                            
        double precision function JkN(k,rho) 
@@ -1323,3 +1266,4 @@
 
          return
          end
+@

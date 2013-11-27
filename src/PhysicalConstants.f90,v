@@ -1,0 +1,206 @@
+head	1.2;
+access;
+symbols;
+locks
+	monk:1.2; strict;
+comment	@# @;
+
+
+1.2
+date	2012.12.19.12.50.44;	author monk;	state Exp;
+branches;
+next	1.1;
+
+1.1
+date	2011.06.10.08.13.31;	author monk;	state Exp;
+branches;
+next	;
+
+
+desc
+@@
+
+
+1.2
+log
+@*** empty log message ***
+@
+text
+@Module PhysConstants
+
+!**** Physikalische Konstanten ******************************/
+! Larmorkonstante       2913.06598e+4  /* Hz/Tesla    */
+! Mue0                  1.25663706e-6  /* Tesla/(A/m) */
+! Neutronenmasse        1.6747e-27     /* kg          */
+! Planckkonstante       6.626176e-34   /* Js          */
+! Erdbeschleunigung     9.80665        /* m/s^2       */
+! Boltzmannkonstante    1.380662e-23   /* J/K         */
+! RaDeg                 57.29577951    /* Konversion rad in grad*/
+
+    double precision, parameter :: Pi                  =     3.141592653589793238462643d0
+    
+    
+    double precision, parameter :: Larmorkonstante     =     2913.06598d+4
+    double precision, parameter :: Mue0                =     1.25663706d-6
+    double precision, parameter :: Neutronenmasse      =     1.6747d-27 
+    double precision, parameter :: Planckkonstante     =     6.626176d-34
+    double precision, parameter :: Erdbeschleunigung   =     9.80665d0       
+    double precision, parameter :: Boltzmannkonstante  =     1.380662d-23 
+    double precision, parameter :: Elektronenladung    =     1.6021892d-19
+    double precision, parameter :: Avogadrozahl        =     6.022045d+23
+    double precision, parameter :: Molvolumen_Gas      =     0.02241383d0
+    double precision, parameter :: Elektronenmasse     =     9.109534d-31
+    double precision, parameter :: amu                 =     1.6605655d-27
+    double precision, parameter :: Epsilon0            =     8.854187818d-12  ! Vakuumdielktrizitaetskonstante
+    double precision, parameter :: Lichtgeschwindigkeit=     299792458.0d0
+    double precision, parameter :: Gaskonstante        =     8.31441d0
+    
+    
+    double precision, parameter :: unit_Angstroem      =     1d-10
+    double precision, parameter :: unit_cm             =     1d-2
+    double precision, parameter :: unit_eV             =     1.6021892d-19
+    double precision, parameter :: unit_barn           =     1d-28
+    
+    
+    double precision, parameter :: Elimit_classical    =     1d-17            ! Limit Neutron energy for relativistic
+
+
+
+
+
+
+CONTAINS
+
+
+
+
+
+double precision function NeutronWavelength_fromE(Energy)
+!--------------------------------------------------------
+    implicit none
+
+    double precision, intent(in) :: Energy 
+
+    if(Energy < Elimit_classical) then
+
+      ! in non-relativistic approximation
+
+      NeutronWavelength_fromE =  Planckkonstante /sqrt(2*Energy*Neutronenmasse)
+    
+!      write(6,*)'wlc =', NeutronWavelength_fromE
+
+    else
+
+    ! relativistic expression
+
+       NeutronWavelength_fromE =  Planckkonstante * Lichtgeschwindigkeit / &
+       sqrt((Energy+Neutronenmasse*Lichtgeschwindigkeit**2)**2-(Neutronenmasse*Lichtgeschwindigkeit**2)**2)
+
+
+!       write(6,*)'wlr =', NeutronWavelength_fromE
+    endif
+    
+end function NeutronWavelength_fromE
+
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+
+double precision function NeutronEnergy_fromLambda(Lambda)
+!---------------------------------------------------------
+    implicit none
+
+    double precision, intent(in) :: Lambda
+    double precision             :: E0, hc
+
+     ! in non-relativistic approximation
+   
+     if(Lambda >  Planckkonstante /sqrt(2*Elimit_classical*Neutronenmasse)) then
+
+       NeutronEnergy_fromLambda =  Planckkonstante**2 /(2d0*Lambda**2*Neutronenmasse)
+
+!       write(6,*)'Ecl = ',NeutronEnergy_fromLambda
+
+    else
+
+
+    ! relativistic expression
+
+     hc = Planckkonstante*Lichtgeschwindigkeit
+     E0 = Neutronenmasse * Lichtgeschwindigkeit**2     
+
+     NeutronEnergy_fromLambda = -E0+sqrt(E0**2+(hc/Lambda)**2)  
+
+!     write(6,*)'Erl = ',NeutronEnergy_fromLambda
+
+    endif    
+
+
+end function NeutronEnergy_fromLambda
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+double precision function NeutronVelocity_fromLambda(Lambda)
+!-----------------------------------------------------------
+    implicit none
+
+    double precision, intent(in) :: Lambda
+    double precision             :: E0, hc, E
+
+! in non-relativistic approximation
+!   
+     if(Lambda >  Planckkonstante /sqrt(2*Elimit_classical*Neutronenmasse)) then
+
+       E =  Planckkonstante**2 /(2d0*Lambda**2*Neutronenmasse)
+       NeutronVelocity_fromLambda = sqrt(2*E/Neutronenmasse)
+
+!       write(6,*)'vcl = ',NeutronVelocity_fromLambda
+
+    else
+!
+
+! relativistic expression
+!------------------------
+     hc = Planckkonstante*Lichtgeschwindigkeit
+     E0 = Neutronenmasse * Lichtgeschwindigkeit**2     
+     E  = -E0+sqrt(E0**2+(hc/Lambda)**2)
+     NeutronVelocity_fromLambda = Lichtgeschwindigkeit*sqrt(1d0-(E0/(E+E0))**2)  
+!
+!     
+!     write(6,*)'vrl = ',NeutronVelocity_fromLambda
+
+    endif    
+
+
+end function NeutronVelocity_fromLambda
+
+
+
+
+
+
+end Module PhysConstants
+@
+
+
+1.1
+log
+@Initial revision
+@
+text
+@d12 1
+a12 1
+    double precision, parameter :: Pi                  =     3.141592654d0
+@

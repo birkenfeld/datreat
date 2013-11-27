@@ -1,18 +1,17 @@
                                                       
                                                         
                                                                         
-      FUNCTION th_undulend (x, pa, thnam, parnam, npar, ini, nopar ,params,napar,mbuf) 
+      FUNCTION th_unrou_inc (x, pa, thnam, parnam, npar, ini, nopar ,params,napar,mbuf) 
 !     ===================================================               
 !                                                                       
-! -------> triblock undulation incoherent approximation 
-!          end modifying factor
-!          +                          
+! -------> triblock undulation incoherent approximation see EPL (Montes et al)  <------    
+!          + orthogonal 2D Rouse Segment motion   ... Factor 1/2 u**2 check older Version                         
 !                                                                       
 !
       
       IMPLICIT NONE
       
-      real th_undulend, pa, zpi, qq, x
+      real th_unrou_inc, pa, zpi, qq, x
       integer npar, ini, nparx
                                                                  
       CHARACTER(8) thnam, parnam (20) 
@@ -24,11 +23,11 @@
 			      
 
       integer ier
-      double precision a0, sq , qf2, sigma
+      double precision a0, a01, sq 
       real   temp
 
 !      double precision s13aaf, s15aff, s15aef
-      double precision de1, ddaws, derf
+      double precision   de1, ddaws, derf
 
       double precision qexp, qoffs, const, frac
                        
@@ -52,13 +51,13 @@
 !                                                                       
 ! ----- initialisation -----                                            
       IF (ini.eq.0) then 
-         thnam = 'undulen2' 
-         nparx = 7
+         thnam = 'unrouin2' 
+         nparx = 9
          IF (npar.lt.nparx) then 
             WRITE (6, 1) thnam, nparx, npar 
     1 FORMAT     (' theory: ',a8,' no of parametrs=',i8,                &
      &      ' exceeds current max. = ',i8)                              
-            th_undulend = 0 
+            th_unrou_inc = 0 
             RETURN 
          ENDIF 
          npar = nparx 
@@ -68,27 +67,31 @@
          parnam (3) = 'xi'         ! correlation length  [SI]
          parnam (4) = 'l0'         ! minimal length      [SI]
          parnam (5) = 'eta'        ! effective viscosity [SI]  
-         parnam (6) = 'sigma'      ! influence length in fraction of chainlength
-         parnam (7) = 'wl4'        ! in A*4/ns  !!!!!!   [A,ns]
+         parnam (6) = 'wl4'        ! in A*4/ns  !!!!!!   [A,ns]
+         parnam (7) = 'const'      ! Anteil Konstante (Multiplikator)
+         parnam (8) = 'qexp'       ! Qexp des Konstante Anteils
+         parnam (9) = 'qoffs'      ! qoffset
 !                                                                       
-         th_undulend  = 0
+         th_unrou_inc = 0
          RETURN 
       ENDIF 
 !                                                                       
 ! ---- calculate theory here -----                                      
       t     = x*1e-9 
-      a0    = pa (1)
+      a01   = pa (1)
+      a0    = 1
       gam   = pa (2) 
       xi    = pa (3) 
       l0    = pa (4) 
       eta   = pa (5)
       
-      sigma = pa (6)
-      wl4   = pa (7)
+      wl4   = pa (6)
 
+      const = pa(7)
+      qexp  = pa(8)
+      qoffs = pa(9)
 
       IFAIL = 0 
-
                                                                         
 ! extract parameter !                                                   
       CALL getpar ('q       ', qp,nopar ,params,napar,mbuf, ier)  
@@ -117,8 +120,8 @@
 !      f = f*(log(xi/l0)-DEI(-v1)+DEI(-v2))
 
 !      f = kb*temp/(4*pi*gam) !! Falsch, KORR
-       f =  2 * kb*temp/(2*pi*gam) !! 6.8.09+14.6.
-
+       f = 2* kb*temp/(2*pi*gam) !! 6.8.09 und 14.6
+  
 !      f = f*(log(xi/l0) -S13AAF(v1,IFAIL) +S13AAF(v2,IFAIL))                              
       f = f*(log(xi/l0) -de1(v1) +de1(v2))                              
       ifail = 0
@@ -134,19 +137,46 @@
       uux = 2.0d0/3.0d0*sqrt(x*wl4/Pi)*1d-20     !! --> damit ist uux in m**2
 
 
-!!      qf2 = (uux+uuz)*q*q/2 --> inkonsistent da nur 1 der 2D richtungen uux mus 2 mal kommen ...
-      qf2 = (2*uux+uuz)*q*q/2
+!      write(6,*)uuz,uux
 
+! Winkelmittelung
 
       ifail = 0
-   
 
-!      th_undulend = -sigma*S13AAF(qf2,IFAIL)+sigma*S13AAF(qf2*exp(-1.0d0/sigma),IFAIL)
-      th_undulend = -sigma*de1(qf2)+sigma*de1(qf2*exp(-1.0d0/sigma))
-      th_undulend = a0* th_undulend
+      if(abs((uuz-uux)*q*q).lt.1d-6) then
+        th_unrou_inc = a0*exp(-q*q*uuz/2.0d0)
+        goto 200
+      endif
 
+      if(uuz.gt.uux) then
+        sq = q*sqrt(uuz/2-uux/2)
+!        write(6,*)'sq=',sq
+!        th_unrou_inc = a0*S15AEF(sq,ifail)*sqrt(Pi)*exp(-q*q*uux/2d0)/(2*sq)
+        th_unrou_inc = a0*derf(sq)*sqrt(Pi)*exp(-q*q*uux/2d0)/(2*sq)
+!                         Erf
+        goto 200
+      endif
+
+      if(uuz.lt.uux) then
+        sq = q*sqrt(-uuz/2+uux/2)
+!        th_unrou_inc = a0* S15AFF(sq,ifail)*2*exp(sq**2-q*q*uux/2d0)/(2*sq)
+        th_unrou_inc = a0* ddaws(sq)*2*exp(sq**2-q*q*uux/2d0)/(2*sq)
+!                          Dawson, wegen erf(i*x)=2*i*exp(x**2)*Dawson(x)/sqrt(Pi)
+        goto 200
+      endif
+
+200   continue
+
+
+      frac = (q+qoffs)**qexp/(const+(q+qoffs)**qexp)
+                           
+      th_unrou_inc = frac*th_unrou_inc +(1-frac)
+
+      th_unrou_inc = th_unrou_inc * a01
+
+      call  parset('frac    ',sngl(frac),iadda,ier) 
  
 !                                    
       RETURN 
-      END FUNCTION th_undulend
+      END FUNCTION th_unrou_inc
 !               
