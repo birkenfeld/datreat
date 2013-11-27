@@ -1,9 +1,6 @@
- theory   hohdiff                                                                         
-      amplitu    0.6952E+00  0.1E+01  0.68E-02
-      u_quadra  -0.3210E+00  0.1E+01  0.10E+01
-      self_dif   0.3691E+02  0.1E+01  0.36E+00
-      tau0_dif  -0.7187E-02  0.1E+01  0.42E-03
-      a_rot      0.8720E+00  0.1E+01  0.16E+01
-      d_rot      0.0000E+00  0.0E+00  0.00E+00
-      shiftt     0.0000E+00  0.0E+00  0.00E+00
+ theory   strexpo                                                                         
+      amplitu    0.1000E-01  0.0E+00  0.00E+00
+      tau        0.1000E+02  0.0E+00  0.00E+00
+      beta       0.7000E+00  0.0E+00  0.00E+00
+      qexp       0.0000E+00  0.0E+00  0.00E+00
  end

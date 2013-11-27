@@ -1,9 +1,9 @@
 #define __MINC 40
 #define __MDEPTH 20
 #define __MUSEVAR 100
-#define __MBUF 200
-#define __MWERT 1024
-#define __MPAR 200
+#define __MBUF 1200
+#define __MWERT 2048
+#define __MPAR 400
 #define __MTH 40
 #define __MTPAR 40
 #define __MTCAL 40
@@ -12,10 +12,10 @@
 #define __MAXITEMLENGTH 80
 #define __MAXNUMSTACK 50
 #define __MAXOPSTACK 50
-#define __MUSRFSTACK 50
+#define __MUSRFSTACK 500
 #define __NODELIMS 7
-#define __MSMPL 4000
-#define __MDIM 1024
+#define __MSMPL 10000
+#define __MDIM 2048
 ! ---- communication common block containig the analysed inputline       
 !      comand   = actual command keyword                               
 !      vname(*) = names stack                                           
@@ -138,7 +138,7 @@
 !     ywerte(i,j)   y-values on buffer j                                
 !     yerror(i,j)   error of y-values   (only supported by some fktn)   
 !     xname(j)      name of x-values (x-axis) for buffer j              
-!     yname(j)       "   "  y-   "    y-  "    "    "    "              
+!     yname(j)              y-        y-                            
 !     name(j)       short text-identifier for data on buffer j          
 !     nwert(j)      no. of valid points on buffer j                     
 !     nbuf          no. of filled buffers                               
@@ -150,7 +150,7 @@
 !                                                                       
 
 
-	module cdata
+	MODULE cdata
 		save
 		real xwerte(__MWERT,__MBUF)
 		real ywerte(__MWERT,__MBUF)
@@ -165,7 +165,101 @@
 		real params(__MPAR,__MBUF)
 		character*80 napar(__MPAR,__MBUF)
 		integer nopar(__MBUF)
-	end module cdata
+
+
+        CONTAINS
+
+        subroutine DataCopy( isource, idestination)
+!       -------------------------------------------
+        implicit none
+        integer, intent(inout) :: isource, idestination
+        integer                :: i
+        
+        if(isource.le.0 .or. isource.gt.__MBUF) then
+          write(6,*)'cdata:DataCopy: isource out of range: ',isource,' NO ACTION '
+          return
+        endif
+        if(idestination.eq.0) idestination = nbuf+1
+        if(idestination.le.0 .or. idestination.gt.__MBUF) then
+          write(6,*)'cdata:DataCopy: idestination out of range: ',idestination,' NO ACTION '
+          return
+        endif
+
+        xwerte(1:__MWERT,idestination) =  xwerte(1:__MWERT,isource)
+        ywerte(1:__MWERT,idestination) =  ywerte(1:__MWERT,isource)
+        yerror(1:__MWERT,idestination) =  yerror(1:__MWERT,isource)
+        xname(idestination)            =  xname(isource)
+        yname(idestination)            =  yname(isource)
+        name(idestination)             =  name(isource)
+        nwert(idestination)            =  nwert(isource)
+        numor(idestination)            =  numor(isource)
+        coment(idestination)           =  coment(isource)
+        params(1:__MPAR,idestination)  =  params(1:__MPAR,isource)
+        napar(1:__MPAR,idestination)   =  napar(1:__MPAR,isource)
+        nopar(idestination)            =  nopar(isource)
+
+        if(idestination.gt.nbuf) nbuf=idestination
+
+        end subroutine DataCopy
+!       -------------------------------------------
+
+
+        subroutine DataGet( isource, x, y, dy, n)
+!       -----------------------------------------
+        implicit none
+        integer, intent(in)           :: isource
+        integer, intent(out)          :: n
+        double precision, intent(out) :: x(__MWERT), y(__MWERT), dy(__MWERT)
+        
+        if(isource.le.0 .or. isource.gt.nbuf) then
+          write(6,*)'cdata:DataGet: isource out of range: ',isource,' NO ACTION '
+          return
+        endif
+
+        n             =  nwert(isource)
+        x (1:n)       =  xwerte(1:n,isource)
+        y (1:n)       =  ywerte(1:n,isource)
+        dy(1:n)       =  yerror(1:n,isource)
+ 
+        return
+
+        end subroutine DataGet
+!       -------------------------------------------
+
+
+        subroutine DataPut( idestination, x, y, dy, n)
+!       ----------------------------------------------
+        implicit none
+        integer, intent(inout)        :: idestination
+        integer, intent(in)           :: n
+        double precision, intent(out) :: x(__MWERT), y(__MWERT), dy(__MWERT)
+        
+        if(idestination.eq.0 .and. nbuf .lt. __MBUF) then
+          nbuf         = nbuf+1 
+          idestination = nbuf
+        endif
+
+        if(idestination.le.0 .or. idestination.gt.__MBUF) then
+          write(6,*)'cdata:DataPut: idestination out of range: ',idestination,' NO ACTION '
+          return
+        endif
+
+        xwerte(1:__MWERT,idestination)  =  x (1:__MWERT) 
+        ywerte(1:__MWERT,idestination)  =  y (1:__MWERT) 
+        yerror(1:__MWERT,idestination)  =  dy(1:__MWERT)
+
+        nwert(idestination)             =  n
+          
+        return
+
+        end subroutine DataPut
+!       -------------------------------------------
+
+
+        !! call parset (vname(1),sngl(rpar(1)),iaddp)
+        !! call parget('thick   ',thick,ia,ier)
+
+	END MODULE cdata
 
 
 ! ---- outputlevel                                                      
@@ -189,7 +283,7 @@
 !  thparn(j,i)= name of j-th parameter of i-th theory                   
 !  nthpar(i)  = no of parameters required for i-th theory               
 !  thparx(j,l)= parameters for the l-th activated theory                
-!  thpsca(j,l)= corresponding fit scales   "                            
+!  thpsca(j,l)= corresponding fit scales                              
 !  nthtab(l)  = no. of l-th activated theory                            
 !  ntheos     = total no. of activated theories                         
 !  multflg    = flag indicating a multiplicative theory                 
@@ -428,3 +522,5 @@
 		integer, parameter :: mdim=__MDIM 
 	        integer, parameter :: lda=__MDIM+1
 	end module constants
+
+
