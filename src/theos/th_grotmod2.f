@@ -1,17 +1,21 @@
-      function th_kohl_q(x,pa,thnam,parnam,npar,idum,ini)
+      function th_grotmod2(x,pa,thnam,parnam,npar,idum,ini)
 c     ===================================================
 !
-!      kohlrausch in time
-!      kww-function with DWF and EISF
-!      Perez Aparcio, Arbe, Colmenro, Macromolecules 2006, 1060
+!     model to describe the combined effect of rotational diffusion
+!     1D local motion  (domain)
+!     and a 3D Gaussian confined motion  
+!     
+!     
+!     
 !
-
-
+!    
+!   
+!    
        implicit none
        
        character*8 thnam,parnam(20)
    
-       real*4    x, pa, qq, th_kohl_q
+       real*4    x, pa, qq, th_grotmod2
        dimension pa(20),qq(3)
        integer   npar, ini, nparx,idum
 
@@ -23,7 +27,7 @@ c     ===================================================
        
 
        real*8    tau, tau0, beta, a0, epsilon
-       real*8    qz
+       real*8    qz, dummy
        real*4    tget, temp, qget
 
        real*4    bgr_level, bgr_slope
@@ -53,65 +57,82 @@ c     ===================================================
 
        real*8 a,b, domega, o0
        real*8 adapint, sum, result, result2, err, erraccu
-       real*8 strex_kernel
-       external strex_kernel
+       real*8 strex_kernel_gm2
+       external strex_kernel_gm2
 
 ! communication with Kernel
  
 
-       real*8 Omega, str_beta, str_tau0, str_delta
-       common /cstrex1/Omega, str_beta, str_tau0, str_delta
+       real*8 Omega, xwidth, str_delta, qc, 
+     *       diffcm, rotdiff,r1i,r1o,amp1d,tau1d,rconfine,diffconf 
+     *       , frac_ch3, tau_ch3, beta_ch3
+       integer lmax
+       common /cstgrot2/Omega, xwidth, str_delta, qc,
+     *       diffcm, rotdiff,r1i,r1o,amp1d,tau1d,rconfine,diffconf  
+     *       , frac_ch3, tau_ch3, beta_ch3
+
 
 
 
 c
 c ----- initialisation -----
        if(ini.eq.0) then
-         thnam = 'kohl_q'
-         nparx = 12
+         thnam = 'grotmod2'
+         nparx = 16
          if(npar.lt.nparx) then
            write(6,1)thnam,nparx,npar
 1          format(' theory: ',a8,' no of parametrs=',i8,
      *      ' exceeds current max. = ',i8)
-           th_kohl_q = 0
+           th_grotmod2 = 0
            return
          endif
          npar = nparx
 c        --------------> set the number of parameters
          parnam(1) = 'intensit'          ! prefactor
-         parnam(2) = 'tau0'              ! KWW time-constant, prefactor in front of q-dependence
-         parnam(3) = 'beta'              ! streched exp, prefactor in front of-q-dependence
-         parnam(4) = 'epsilon '          ! accuracy parameter for FT-integrations (DO NOT FIT)
-         parnam(5) = 'omega0'            ! omega scale zero shift
-         parnam(6) = 'u_sqr'             ! <u**2> value for Debye-Waller-Factor
-         parnam(7) = 'j0'                ! jump length (if applicable)
-         parnam(8) = 'beta0'             ! beta offset
-         parnam(9) = 'qexp_t0'           ! q-exponent for tau0
-         parnam(10)= 'qexp_bet'          ! beta-exponent 
-         parnam(11)= 'bkgr'              ! constant background 
-	 parnam(12)= 'n_mg'              ! fraction of hydrogen in side chains
+         parnam(2) = 'diffcm'            ! diffusion constant  
+         parnam(3) = 'rotdiff'           ! rotational diffusion constant
+         parnam(4) = 'r1i'               ! first shell inner radius
+         parnam(5) = 'r1o'               ! frist shell outer radius
+         parnam(6) = 'amp1d'             ! amplitude of 1D motion
+         parnam(7) = 'tau1d'             ! time constant fo 1D motion
+         parnam(8) = 'rconfine'          ! Gaussian confinement radius
+         parnam(9) = 'diffconf'          ! effective Diffusion in confined Volume
+         parnam(10)= 'frac_ch3'          ! fraction of CH3 groups
+         parnam(11)= 'tau_ch3'           ! tau of CH3 groups relaxation
+         parnam(12)= 'beta_ch3'          ! stretching exponentof CH3 groups relaxation
+        
 
+
+         parnam(13) = 'epsilon '          ! accuracy parameter for FT-integrations (DO NOT FIT)
+         parnam(14) = 'omega0'            ! omega scale zero shift
+         parnam(15) = 'u_sqr'             ! <u**2> value for Debye-Waller-Factor
+         parnam(16) = 'xwidth'            ! channel integration witdth (see gauss2)
 
 c
-         th_kohl_q = 0
+         th_grotmod2 = 0
          return
        endif
 c
 c ---- calculate theory here -----
-       o0           = x   -   pa(5)
        a0           = pa(1)
-       str_tau0     = abs(pa(2))
-       str_beta     = abs(pa(3))
-       epsilon      = abs(pa(4))
-       u_sqr        = abs(pa(6))
-       jlen         = pa(7)
-       beta0        = pa(8)
-       qexpt0       = pa(9)
-       qexpbeta     = pa(10)
-       bkgr         = pa(11)
-       nmg          = pa(12)
+       diffcm       = abs(pa(2))
+       rotdiff      = abs(pa(3))
+       r1i          = abs(pa(4))   
+       r1o          = abs(pa(5))   
+       amp1d        = abs(pa(6))   
+       tau1d        = abs(pa(7))    
+       rconfine     = abs(pa(8))   
+       diffconf     = abs(pa(9))   
+       frac_ch3     = abs(pa(10))   
+       tau_ch3      = abs(pa(11))   
+       beta_ch3     = abs(pa(12))   
 
-       if(epsilon.eq.0.0d0) epsilon = 1.0d-8
+       epsilon      = abs(pa(13))
+       o0   = x   -   pa(14)
+       u_sqr        = abs(pa(15))
+       xwidth       = pa(16)
+
+       if(epsilon.eq.0.0d0) epsilon = 1.0d-10
        maxit = 10000
 
         qget = 0.0
@@ -126,15 +147,17 @@ c ---- calculate theory here -----
        endif
 
 
-! Apply the q-scalings
-       if(qz.gt.0.0d0) then
-         str_tau0 = str_tau0 * (1+jlen*qz**qexpt0)/(qz**qexpt0)
-         str_beta = str_beta * (qz**qexpbeta + beta0)
+       if(xwidth.eq.0.0d0) then
+         call        parget('_xwidth ',tget,iadda,ier)
+         xwidth = tget
        endif
+
+       if(xwidth.eq.0.0d0) then
+         write(6,*)'ATTENTION XWIDTH = 0 set 0.1 to avoud crash'
+         xwidth = 0.1
+       endif
+
 !
-! push these into the parameter section
-       call parset('tau0_q  ',sngl(str_tau0),iadda)
-       call parset('beta_q  ',sngl(str_beta),iadda)
 
 
 
@@ -252,7 +275,8 @@ c ---- calculate theory here -----
 
  100   continue
 
-        sum = 0 
+        qc   = qz
+        sum  = 0 
         do i=1,ng
     
          Omega     = o0 - gcenter(i)
@@ -260,7 +284,7 @@ c ---- calculate theory here -----
 
          a = 0
          b = 9.0d0/str_delta
-         result  = adapint(strex_kernel,a,b,epsilon,maxit,erraccu)*2
+         result  = adapint(strex_kernel_gm2,a,b,epsilon,maxit,erraccu)*2
 
          sum = sum + gampli(i)*result/(2*Pi)*sqrt(Pi)         
 
@@ -271,11 +295,8 @@ c ---- calculate theory here -----
 
        dwf  = exp(-u_sqr*qz*qz/3.0d0)
 
-       eisf = (1.0/3.0)*(1.0+2.0*(sin(qz*1.78)/(qz*1.78)))
+       th_grotmod2 = a0*dwf*sum
 
-       th_kohl_q = a0*dwf*(1-nmg+(nmg*eisf))*sum + bkgr
-
-       th_kohl_q =  th_kohl_q + bgr_level + bgr_slope*o0
 c
        return
        end
@@ -283,18 +304,78 @@ c
 
 
 
-       function strex_kernel(t)
-!      ------------------------
+       function strex_kernel_gm2(t)
+!      ---------------------------
        implicit none
 
-       real*8 strex_kernel, t
+       real*8 strex_kernel_gm2, t
 
-       real*8 Omega, str_beta, str_tau0, str_delta
-       common /cstrex1/Omega, str_beta, str_tau0, str_delta
+       double precision :: u1d, u2d, u3d, uuz, uux, sq, ddaws, sumtf
+       double precision :: eisf, sch3
+       double precision, parameter :: rhh=1.2d0
+       double precision, parameter :: Pi=3.141592654d0
+  
 
-       strex_kernel= 
-     *  exp(-(t/str_tau0)**str_beta) * 
-     *  exp(-1d0/4d0*(str_delta*t)**2) * cos(t*Omega)*str_delta    
+       real*8 Omega, xwidth, str_delta, qc, 
+     *       diffcm, rotdiff,r1i,r1o,amp1d,tau1d,rconfine,diffconf 
+     *       , frac_ch3, tau_ch3, beta_ch3
+
+       integer lmax
+       common /cstgrot2/Omega, xwidth, str_delta, qc,
+     *       diffcm, rotdiff,r1i,r1o,amp1d,tau1d,rconfine,diffconf  
+     *       , frac_ch3, tau_ch3, beta_ch3
+
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! computing the time function                                             !!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+       u1d = amp1d**2*(1-exp(-t/tau1d))
+       u2d = rotdiff*(r1i/2+r1o/2)**2*t
+       u3d = (rconfine**2)/5*(1-exp(-t*diffconf/((rconfine**2)/5)))
+
+!!! hier die Dimesionsfaktoren ueberpruefen!!!!! !!!! 
+
+       uuz = u1d+u3d
+       uux = u2d+u3d
+     
+
+       if(uuz.gt.uux) then
+         sq = qc*sqrt(uuz-uux)
+         if(sq.lt.1d-4) sq=1d-4
+!         write(6,*)'sq=',sq
+!         th_unrou_inc = a0*S15AEF(sq,ifail)*sqrt(Pi)*exp(-q*q*uux/2d0)/(2*sq)
+          sumtf = derf(sq)*sqrt(Pi)*exp(-qc*qc*uux)/(2*sq)
+!                         Erf
+       else
+         sq = qc*sqrt(-uuz+uux)
+         if(sq.lt.1d-4) sq=1d-4
+!         th_unrou_inc = a0* S15AFF(sq,ifail)*2*exp(sq**2-q*q*uux/2d0)/(2*sq)
+         sumtf = ddaws(sq)*2*exp(sq**2-qc*qc*uux)/(2*sq)
+!                          Dawson, wegen erf(i*x)=2*i*exp(x**2)*Dawson(x)/sqrt(Pi)
+       endif
+
+       
+        sumtf = sumtf * exp(-diffcm*qc*qc*t)
+
+!      include the effect of ch3-groups
+        if(frac_ch3.gt.0d0) then
+          eisf  = (1d0+2d0*sin(qc*rhh)/(qc*rhh))/3d0
+        
+          sch3  =(eisf+(1-eisf)*exp(-(t/tau_ch3)**beta_ch3))
+          sumtf = sumtf * ((1-frac_ch3)+frac_ch3*sch3)
+        endif
+
+
+        strex_kernel_gm2= 
+     *  sumtf * 
+     *  exp(-1d0/4d0*(str_delta*t)**2) * 
+     *  (sin(-t*Omega+0.5d0*t*xwidth)+sin(t*Omega+0.5d0*t*xwidth))/    !! this replaces cos(t*Omega)
+     *  (t*xwidth) * str_delta                                         !! in order to yield the integral
+                                                                       !! over one channel width in omega
+
 
        return
        end

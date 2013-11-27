@@ -203,7 +203,7 @@
        real function thval(x)
 !      ----------------------
 !
-! ---- compute the value of the active set of theories at value x 
+! ---- compute the value of the active set of theories at value x
 !
        use cdata
        use theory
@@ -884,15 +884,6 @@
              endif
    20     continue
    10   continue
-
-! ==============================================================
-!
-!  initialize random number generator to the same value each time
-!  in order to enable fitting with gradients
-!
-       call srand(75251)
-
-
 !
 ! ----- calculate theory-values ------
 !
@@ -1213,7 +1204,6 @@
 
 
        subroutine parset (pname,pvalue,iadd)
-!      =====================================
 !
 ! ---- this routine changes or adds a parameter ----
 !
@@ -1245,37 +1235,7 @@
        napar(np,iadd) = pname
        return
 !
-      END  subroutine parset
-
-
-
-       subroutine parscale (pname,svalue,iadd)
-!      =======================================
-!
-! ---- this routine scales a parameter ----
-!
-       use cdata
-       use constants
-       implicit none
-
-       character*8 pname
-       real svalue
-
-       integer i,np, iadd
-
-       np = nopar(iadd)
-       do 100 i=1,np
-         if (napar(i,iadd).eq.pname) then
-           params(i,iadd) = params(i,iadd) * svalue
-           return
-         endif
-  100  continue
-
-       return
-!
-      END subroutine parscale
-
-
+      END
 
 
 
@@ -1315,45 +1275,7 @@
          return
 !
 !
-      END subroutine parget
-
-
-
-       subroutine par_gaint_scale(svalue, iadd)
-!      ----------------------------------------
-!
-! scale gauss-convolution parameters intensity values
-! to cope with data scaing 
-!
-       use cdata
-       implicit none
-
-       real    :: svalue, xsc
-       integer :: iadd, ier
-
-       call parscale('ga1inten',svalue,iadd)
-       call parscale('ga2inten',svalue,iadd)
-       call parscale('ga3inten',svalue,iadd)
-       call parscale('ga4inten',svalue,iadd)
-       call parscale('ga5inten',svalue,iadd)
-       call parscale('ga6inten',svalue,iadd)
-       call parscale('ga7inten',svalue,iadd)
-       call parscale('ga8inten',svalue,iadd)
-       call parscale('ga9inten',svalue,iadd)
-! we assume 9 is the maximum of gaussians !
-       xsc = 1.0
-       call parget('_gai_scal',xsc   ,iadd,ier)
-       xsc = xsc * svalue
-       call parset('_gai_scal',xsc   ,iadd)
-              
-       return
-
-       end subroutine par_gaint_scale
-
-
-
-
-
+      END
 
        subroutine outputparams
 !      =========================================
@@ -1856,10 +1778,6 @@
                call parset(combinam,thparx(j,i),ifits(lf))
                call parset('e'//combinam(1:7),therro(j,i),ifits(lf))
               endif
-              if(isels(lf).gt.0) then
-               call parset(combinam,thparx(j,i),isels(lf))
-!!??               call parset('e'//combinam(1:7),therro(j,i),isels(lf))
-              endif
              enddo
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -1966,13 +1884,13 @@
        use constants
 
        implicit none
-       integer ln, le, la, lx, ly, j, inew, i,ier
+       integer ln, le, la, lx, ly, j, inew, i
        character*1024  infile
        character*80 rline
        logical*4    fileda
        real*8       xshift, yshift, getval
 
-       logical      :: is_inx, is_ins 
+       logical      :: is_inx
 
 
 !  neu fuer pfad
@@ -2015,9 +1933,7 @@
          il = LEN_TRIM(infile)
          write(6,*)'opening: >',infile(1:il),'<'
          is_inx = (infile(il-2:il).eq.'inx').or.(infile(il-2:il).eq.'INX')
-         is_ins = (infile(il-2:il).eq.'ins').or.(infile(il-2:il).eq.'INS')
-         if(is_inx) write(6,*)' assuming inx format.... '
-         if(is_ins) write(6,*)' assuming ins = SPHERES inx format.... '
+         write(6,*)' assuming inx format.... '
  
 !
        inquire(file=infile(1:il),exist=fileda)
@@ -2030,26 +1946,10 @@
        open(20,file=infile(1:il),status='UNKNOWN')
 ! -- main input loop !!!!!!!!!!!!!!!!!
 
-
-!! --> Save the start address to a user-variable
-     
-      call setudf('read1    ',dble(nbuf+1),ier)                        
-      call setudf('readlast ',dble(0),ier)
-
-
-
 ! -- and use a new subroutine for inx reading (clearer and more efficient) ---
       if(is_inx) then
-        call inx_reading(20,infile)
+        call inx_reading(20)
         close(20)
-        call setudf('readlast ',dble(nbuf),ier)
-        return
-      endif
-
-      if(is_ins) then  ! spheres inx format
-        call ins_reading(20,infile)
-        close(20)
-        call setudf('readlast ',dble(nbuf),ier)
         return
       endif
 
@@ -2063,8 +1963,7 @@
 
 	if(nbuf.gt.mbuf) then
         write(6,*)'cdata buffer is full!'
-        close(20)        
-        call setudf('readlast ',dble(mbuf),ier)
+        close(20)
         return
       endif
       name(nbuf)  = infile
@@ -2096,7 +1995,7 @@
 !                		write(6,*)'number of x-values=',lx,' does not match ly=',ly
 				endif
 		  		nwert(nbuf)=lx       ! we tell the nwert buf how much
-				write(6,"(I4,':lx',I4,' para',I4,' Comment: ',a)") nbuf,lx,nopar(nbuf),trim(coment(nbuf))
+				write(6,"(I2,':lx',I4,' para',I4,' Comment: ',a)") nbuf,lx,nopar(nbuf),trim(coment(nbuf))
 				goto 20000             !and start a nes set
 			else
 				goto 2000      !it was only an empty line btween params and data next line
@@ -2112,7 +2011,7 @@
 				endif
 		  		nwert(nbuf)=lx       ! we tell the nwert buf how much data
 				!######################
-				write(6,"(I4,':lx',I4,' para',I4,' Comment: ',a)") nbuf,lx,nopar(nbuf),trim(coment(nbuf))
+				write(6,"(I2,':lx',I4,' para',I4,' Comment: ',a)") nbuf,lx,nopar(nbuf),trim(coment(nbuf))
 				nbuf = nbuf + 1
 				nopar(nbuf) = 0                          ! Anzahl der parameter in dataset nbuf
 				lx = 0   ! anzahl x y ey werte
@@ -2120,8 +2019,7 @@
 				le = 0
 				if(nbuf.gt.mbuf) then
 				write(6,*)'cdata buffer is full!'
-				close(20)        
-                                call setudf('readlast ',real(nbuf),ier)
+				close(20)
 				return
 				endif
 				name(nbuf) = infile
@@ -2141,8 +2039,8 @@
 			le = le + 1
 			if(lx.gt.mwert.or.ly.gt.mwert) then
         		write(6,*)'too many x-y values'
-        		close(20)        
-		        return
+        		close(20)
+				return
          	endif
          	xwerte(lx,nbuf) = rpar(1) + xshift
          	ywerte(ly,nbuf) = rpar(2) + yshift
@@ -2216,33 +2114,29 @@
         endif
         nwert(nbuf) = lx
 
-       if (nwert(nbuf).eq.0) then ! keine Daten in letztem datensatz
-	  nbuf=nbuf -1             ! nbuf  =>reset
-   	 write (6,*) 'appended comments found and ignored '
-       endif
-
+		  if (nwert(nbuf).eq.0) then ! keine Daten in letztem datensatz
+		  	 nbuf=nbuf -1             ! nbuf  =>reset
+			 write (6,*) 'appended comments found and ignored'
+			endif
         if(xshift.ne.0.0) then
           call parset ('xshift  ',sngl(xshift),nbuf)
         endif
         if(yshift.ne.0.0) then
           call parset ('yshift  ',sngl(yshift),nbuf)
         endif
-      
-
+!!
         ierrs = 0
         close(20)
-        call setudf('readlast ',dble(nbuf),ier)
         return
   999  continue
         close(20)
-        call setudf('readlast ',dble(nbuf),ier)
        return
       END   ! input
 
 
 
-       subroutine inx_reading(ikan,filnam)
-!      ===================================
+       subroutine inx_reading(ikan)
+!      =============================
 !
        use cincom
        use cincoc
@@ -2250,37 +2144,22 @@
        use cdata
        use outlev
        use constants
-       use PhysConstants
 
        implicit none
        integer ln, le, la, lx, ly, ji, inew, i, ier
        character*1024  infile
-       character*80 rline, cline, filnam
+       character*80 rline, cline
        logical*4    fileda
        real*8       xshift, yshift, getval
 
+       integer, parameter :: mvec=2048 ! Hier muss eigentlich ___MWERT oder __MDIM stehen 
        integer      :: ikan            ! Fortran Lesekanal
        integer      :: nk_tot, idum1, idum2, idum3, idum4,idum5,idum6, nk_act
        double precision :: angle, E_incident_meV, q_Ain, temperature, xdum1, xdum2
        double precision :: channel_width_musec
-       double precision :: xvector(mwert), yvector(mwert), yervector(mwert)
-
-       double precision :: Ein_Joule, Lambda_in_m, velocity_in_m, Q_elastic, lambda_in_A
-       integer          :: numor0
-       double precision :: xnum
-       logical          :: found
-
-       double precision :: t0, tx, kell, ejoule, lam_kina, ymx, velocx
-       double precision :: flpath=4d0
-!       double precision :: NeutronWavelength_fromE
-
+       double precision :: xvector(mvec), yvector(mvec), yervector(mvec)
 
 ! --und nun hier das Einlesen 
-
-     xnum = 0
-     call extract('numor0 ',xnum,ier)
-     numor0 = NINT(xnum)
-     Write(6,*)'adding ',numor0,' to autogenerated numors..'
 
      do ji=1,mbuf
 
@@ -2313,24 +2192,16 @@
 !
 !     und nun die eigentlichen Daten
 !
-      if(nk_act.gt.mwert) then
+      if(nk_act.gt.mvec) then
         write(6,*)'too many channels...'
         return
       endif
        
-
-      kell = 0
-      ymx  = 0
       do lx=1,nk_act
         read(ikan,'(a)',end=999,err=999) rline
 !        write(6,*)':',rline
         read(rline,*) xvector(lx),yvector(lx),yervector(lx)
-        if(yvector(lx).gt.ymx) then
-           ymx  = yvector(lx)
-           kell = lx
-        endif
       enddo
-      write(6,*)'  Maximum channel kell    = ', kell
 !
       write(6,*)'------------------------------------------------------'
 ! und nun auf den internen Speicher ...
@@ -2341,57 +2212,15 @@
         return
       endif
       nopar(nbuf)   = 0                          ! Anzahl der parameter in dataset nbuf
-      name(nbuf)    = filnam(1:8)
-      infile        = trim(cline)//':'//trim(filnam)
-      coment(nbuf)  = infile(1:80)
-      numor(nbuf)   = ji + numor0
+      name(nbuf)    = cline(1:8)
+      coment(nbuf)  = cline
+      numor(nbuf)   = ji
+      xname(nbuf)   = 'meV     '
+      yname(nbuf)   = 'int     '
       call parset('angle   ',sngl(angle),nbuf)
-      call parset('q_par   ',sngl(Q_Ain),nbuf)
+      call parset('q       ',sngl(Q_Ain),nbuf)
       call parset('temp    ',sngl(temperature),nbuf)
       call parset('Ein     ',sngl(E_incident_meV),nbuf)
-      call parset('binmusec',sngl(channel_width_musec),nbuf)
- 
-      Ein_Joule     =  E_incident_meV*1d-3*Elektronenladung
-      lambda_in_m   =  NeutronWavelength_fromE(Ein_Joule)
-      lambda_in_A   =  lambda_in_m*1d10
-      velocity_in_m =  NeutronVelocity_fromLambda(lambda_in_m)
-      Q_elastic     =  4*Pi/(lambda_in_A)*sin(Pi*angle/180.0d0/2)
-      call parset('q       ',sngl(Q_elastic),nbuf)
-      call parset('lambda  ',sngl(lambda_in_A),nbuf)
-      call parset('veloc   ',sngl(velocity_in_m),nbuf)
-
-      kell = getval('kell    ',kell,inew)
-      call parset('kell    ',sngl(kell),nbuf)
-
-
-      if(abs(xvector(2)-xvector(1)-1.0).lt.1e-5) then
-        if(found('lambda  ')) then
-          xname(nbuf)   = 'lambda'
-          flpath = getval('flpath  ',flpath,inew)
-          call parset('flpath  ',sngl(flpath),nbuf)
-          do lx=1,nk_act
-             t0       = flpath/velocity_in_m
-             tx       = (lx-kell)*channel_width_musec*1d-6+t0
-             velocx   = flpath/tx
-             ejoule   = 0.5d0*Neutronenmasse*velocx**2
-             lam_kina = NeutronWavelength_fromE(ejoule)*1d10
-             xvector(lx) = lam_kina
-          enddo
-        else
-          xname(nbuf)   = 'tof_bin#'
-        endif
-        yname(nbuf)   = 'tof_int '
-      else
-        xname(nbuf)   = 'meV     '
-        if(found('GHz     '))then    ! omega = Kreisfrequenz
-          xvector = xvector *1d-3*Elektronenladung*2*Pi/Planckkonstante/1d9
-          xname(nbuf) = 'GHz     '
-        endif
-        yname(nbuf)   = 'sqw     '
-      endif
-
-
-
 ! und noch die eigentlichen Daten
       if(nk_act.gt.mwert) then
         nk_act = mwert
@@ -2403,12 +2232,6 @@
         yerror(lx,nbuf) = yervector(lx)
       enddo
       nwert(nbuf) = nk_act
-
-
-      call parset('_xwidth ',xwerte(kell+1,nbuf)-xwerte(kell,nbuf),nbuf)
-
-
-      write(6,*)'sum of record ',nbuf,' = ',sum(yvector(1:nk_act))
       write(6,*)'next record ....'
       
      enddo
@@ -2419,200 +2242,6 @@
      write(6,*)'end of reading'
        return
       END   ! inx_reading
-
-
-       subroutine ins_reading(ikan,filnam)
-!      ===================================
-!
-! read that what SPHERES produces as inx 
-!
-       use cincom
-       use cincoc
-       use cmargs
-       use cdata
-       use outlev
-       use constants
-       use PhysConstants
-
-       implicit none
-       integer ln, le, la, lx, ly, ji, inew, i, ier
-       integer :: idum
-       character*1024  infile
-       character*80 rline, cline, filnam
-       logical*4    fileda
-       real*8       xshift, yshift, getval
-
-       integer      :: ikan            ! Fortran Lesekanal
-       integer      :: nk_tot, idum1, idum2, idum3, idum4,idum5,idum6, nk_act
-       double precision :: angle, E_incident_meV, q_Ain, temperature, xdum1, xdum2
-       double precision :: channel_width_musec
-       double precision :: xvector(mwert), yvector(mwert), yervector(mwert)
-
-       double precision :: Ein_Joule, Lambda_in_m, velocity_in_m, Q_elastic, lambda_in_A
-       integer          :: numor0
-       double precision :: xnum
-       logical          :: found
-
-       double precision :: t0, tx, kell, ejoule, lam_kina, ymx, velocx
-       double precision :: flpath=4d0
-!       double precision :: NeutronWavelength_fromE
-
-
-! --und nun hier das Einlesen 
-
-     xnum = 0
-     call extract('numor0 ',xnum,ier)
-     numor0 = NINT(xnum)
-     Write(6,*)'adding ',numor0,' to autogenerated numors..'
-
-     do ji=1,mbuf
-
-      write(6,*)'inx reading record # ',ji, ' (',mbuf,')'
-
-!     Nb tot channels, -, -, -, -, nb channels actually used
-      read(ikan,'(a)',end=999,err=999) rline
-!      write(6,*)':',rline
-      read(rline,*) nk_tot,idum1,idum2,idum3,idum4,idum5,idum6,nk_act
-      write(6,*)'  actual no of channels = ',nk_act
-
-!     COMMENTLINE
-      read(ikan,'(a)',end=999,err=999) rline
-      cline = rline
-      write(6,*)'  comment               = ',cline(1:60)
-!     Angle, incident energy, transfered wave-vector (Q), mean temperature, -, -,
-      read(ikan,'(a)',end=999,err=999) rline
-!      write(6,*)':',rline
-!     read(rline,*) angle, E_incident_meV, q_Ain, temperature, xdum1, xdum2    ! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-      read(rline,*) q_Ain, E_incident_meV, angle, temperature, xdum1, xdum2    ! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-      if(angle.eq.0) then   ! try to reconstruct it from the other data
-        Ein_Joule     =  E_incident_meV*1d-3*Elektronenladung
-        lambda_in_m   =  NeutronWavelength_fromE(Ein_Joule)
-        lambda_in_A   =  lambda_in_m*1d10
-        velocity_in_m =  NeutronVelocity_fromLambda(lambda_in_m)
-        angle         = 2*180/Pi*asin(lambda_in_A*q_Ain/4/Pi)
-      endif
-
-      write(6,*)'  angle                 = ',angle
-      write(6,*)'  incident energy       = ',E_incident_meV,' meV'
-      write(6,*)'  Q                     = ',q_Ain
-      write(6,*)'  Temperature           = ',temperature,' K' 
-
-      read(ikan,'(a)',end=999,err=999) rline
-!      write(6,*)':',rline 
-      read(rline,*) xdum1, channel_width_musec, xdum2 
-      write(6,*)'  Channel width         = ', channel_width_musec,' musec' 
-      
-!
-!     und nun die eigentlichen Daten
-!
-      if(nk_act.gt.mwert) then
-        write(6,*)'too many channels...'
-        return
-      endif
-       
-
-      kell = 0
-      ymx  = 0
-      do lx=1,nk_act
-        read(ikan,'(a)',end=999,err=999) rline
-!        write(6,*)':',rline
-!        read(rline,*) xvector(lx),yvector(lx),yervector(lx)
-        read(rline,*) idum, xvector(lx),yvector(lx),yervector(lx)
-        if(yvector(lx).gt.ymx) then
-           ymx  = yvector(lx)
-           kell = lx
-        endif
-      enddo
-      write(6,*)'  Maximum channel kell    = ', kell
-!
-      write(6,*)'------------------------------------------------------'
-! und nun auf den internen Speicher ...
-      nbuf = nbuf + 1
-      if(nbuf.gt.mbuf) then
-         nbuf = nbuf - 1
-         write(6,*)'cdata buffer is full!'
-        return
-      endif
-      nopar(nbuf)   = 0                          ! Anzahl der parameter in dataset nbuf
-      name(nbuf)    = filnam(1:8)
-      infile        = trim(cline)//':'//trim(filnam)
-      coment(nbuf)  = infile(1:80)
-      numor(nbuf)   = ji + numor0
-      call parset('angle   ',sngl(angle),nbuf)
-      call parset('q_par   ',sngl(Q_Ain),nbuf)
-      call parset('temp    ',sngl(temperature),nbuf)
-      call parset('Ein     ',sngl(E_incident_meV),nbuf)
-      call parset('binmusec',sngl(channel_width_musec),nbuf)
- 
-      Ein_Joule     =  E_incident_meV*1d-3*Elektronenladung
-      lambda_in_m   =  NeutronWavelength_fromE(Ein_Joule)
-      lambda_in_A   =  lambda_in_m*1d10
-      velocity_in_m =  NeutronVelocity_fromLambda(lambda_in_m)
-      Q_elastic     =  4*Pi/(lambda_in_A)*sin(Pi*angle/180.0d0/2)
-      call parset('q       ',sngl(Q_elastic),nbuf)
-      call parset('lambda  ',sngl(lambda_in_A),nbuf)
-      call parset('veloc   ',sngl(velocity_in_m),nbuf)
-
-      kell = getval('kell    ',kell,inew)
-      call parset('kell    ',sngl(kell),nbuf)
-
-
-      if(abs(xvector(2)-xvector(1)-1.0).lt.1e-5) then
-        if(found('lambda  ')) then
-          xname(nbuf)   = 'lambda'
-          flpath = getval('flpath  ',flpath,inew)
-          call parset('flpath  ',sngl(flpath),nbuf)
-          do lx=1,nk_act
-             t0       = flpath/velocity_in_m
-             tx       = (lx-kell)*channel_width_musec*1d-6+t0
-             velocx   = flpath/tx
-             ejoule   = 0.5d0*Neutronenmasse*velocx**2
-             lam_kina = NeutronWavelength_fromE(ejoule)*1d10
-             xvector(lx) = lam_kina
-          enddo
-        else
-          xname(nbuf)   = 'tof_bin#'
-        endif
-        yname(nbuf)   = 'tof_int '
-      else
-        xname(nbuf)   = 'micro_eV'
-        if(found('GHz     '))then    ! omega = Kreisfrequenz
-          xvector = xvector *1d-6*Elektronenladung*2*Pi/Planckkonstante/1d9
-          xname(nbuf) = 'GHz     '
-        endif
-        yname(nbuf)   = 'sqw     '
-      endif
-
-
-
-! und noch die eigentlichen Daten
-      if(nk_act.gt.mwert) then
-        nk_act = mwert
-        write(6,*)'number of channels too high: truncated'
-      endif
-      do lx=1,nk_act
-        xwerte(lx,nbuf) = xvector(lx)
-        ywerte(lx,nbuf) = yvector(lx)
-        yerror(lx,nbuf) = yervector(lx)
-      enddo
-      nwert(nbuf) = nk_act
-
-
-      call parset('_xwidth ',xwerte(kell+1,nbuf)-xwerte(kell,nbuf),nbuf)
-
-
-      write(6,*)'sum of record ',nbuf,' = ',sum(yvector(1:nk_act))
-      write(6,*)'next record ....'
-      
-     enddo
-     write(6,*)'end of loop'
-     return
-
-999  continue
-     write(6,*)'end of reading'
-       return
-      END   ! ins_reading
 
 
 
@@ -2745,203 +2374,6 @@
        close(20)
        return
       END
-
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!! TOF routines                                                                   !!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-       subroutine tof_dos(isource,idest,OMmax,Nom,ierrr)
-!      =================================================
-!
-       use cincom
-       use cincoc
-       use cmargs
-       use cdata
-       use outlev
-       use constants
-       use PhysConstants
-
-
-       implicit none
-
-       integer                :: isource       ! record number of source data
-       integer                :: idest         ! record number of destination data (must be different)
-       double precision       :: OMmax         ! maximum Frequency of linear scale in result
-       integer                :: Nom           ! number of bins in result
-       integer                :: ierrr         ! error return value
-
-
-       integer       :: ierr, inew, i, ier
-
-       real*4        ::  xh
-
-       integer      :: ikan            ! Fortran Lesekanal
-
-       double precision :: angle, E_incident_meV, q_Ain, temperature, xdum1, xdum2
-
-       double precision :: Ein_Joule, Lambda_in_m, velocity_in_m, Q_elastic, lambda_in_A
-       double precision :: lambda0_angstroem, lambda_scale, omega_scale, E_elastic
-       double precision :: lambda_1, lambda_2, lam_inc
-       integer          :: numor0
-       double precision :: xnum
-       logical          :: found
-
-
-      double precision :: k_i, k_f, qq
-      double precision :: p_index_1, p_index_2, p1, p2, yval, yerr
-      double precision :: Eom, bet, nbose, EomGHz, Eomega_start, Eomega_end
-      double precision :: dosconv
-      integer          :: index_1, index_2, ji
-
-
-
-      write(6,*)'tofdos ', isource, idest, OMmax, Nom
-
-
-
-      ierrr = 0
-!!    first check   !!
-      if(idest.eq.isource) then
-        write(6,*)'source = destination is not possible', idest
-        ierrr = 10
-        return
-      endif    
-
-      if(idest.lt.1 .or. idest.gt.mbuf) then
-        write(6,*)'destination is out of range', idest
-        ierrr = 1
-        return
-      endif    
-
-      if(isource.lt.1 .or. isource.gt.mbuf) then
-        write(6,*)'source data address is out of range', isource
-        ierrr = 2
-        return
-      endif    
-
-      if(xname(isource).ne.'lambda  ') then
-        write(6,*)'x-values are not lambda but',xname(isource)
-        ierrr = 3
-        return
-      endif    
-
-!! try to extract necessary parameters
-      call parget('lambda  ', xh ,isource ,ier)
-      if(ier.ne.0) then
-       write(6,*)'Parameter lambda (incident lambda) not found'
-       ierrr =4
-       return 
-      endif
-      lambda0_angstroem = xh   ! assuming value is in Angstroem
-
-      call parget('temp    ', xh ,isource ,ier)
-      if(ier.ne.0) then
-       write(6,*)'Parameter temp not found'
-       ierrr =5
-       return 
-      endif
-      temperature = xh   
-
-      call parget('q       ', xh ,isource ,ier)
-      if(ier.ne.0) then
-       write(6,*)'Parameter q    not found'
-       ierrr =6
-       return
-      endif
-      Q_Elastic   = xh   
-
-!! create destination
-      call txfera(isource, idest)
-      call txfpar(isource, idest)
-
-      numor(idest) = numor(idest) + 2000000
-      xname(idest) = 'GHz     '
-      yname(idest) = 'DOS(om) '
-      if(Nom.lt.mwert .and. Nom.gt.0) then
-        nwert(idest) = Nom
-      else
-        nwert(idest) = mwert
-      endif
-! ..omega scale
-      omega_scale = 1d9
-      do i=1,nwert(idest)
-        xwerte(i,idest) = i*OMmax/nwert(idest)     ! ok here we create a GHz scale
-      enddo 
-! .. and we assume lambda in A
-      lambda_scale = 1d-10
-
-! .. fill the histogram from tof data with energy gain
-!    determine the lambda limits of the omega bin
-!
-     E_elastic =  NeutronEnergy_fromLambda(lambda0_angstroem*lambda_scale)
-!     write(6,*)':4  E=',E_elastic
-     Eomega_start = E_elastic
-     do i=1,nwert(idest)
-       Eomega_end = xwerte(i,idest)*omega_scale*Planckkonstante/2d0/Pi + E_elastic
-       lambda_1 = NeutronWavelength_fromE(Eomega_end)   / lambda_scale               ! lambda and Q
-       lambda_2 = NeutronWavelength_fromE(Eomega_start) / lambda_scale               ! in Angstroem units ! 
-       k_i      = 2*Pi/(lambda0_angstroem)     
-       k_f      = 4*Pi/(lambda_1+lambda_2)     
-       qq       = k_i**2+k_f**2-2*k_i*k_f*(1d0-Q_Elastic**2/(2*k_i**2))
-!
-!      .. and now get the data range in the TOF spectrum ..
-!
-       lam_inc = (xwerte(nwert(isource),isource)-xwerte(1,isource))/(nwert(isource)-1)      ! also here we assume A units
-       p_index_1 = (lambda_1-xwerte(1,isource))/lam_inc
-       p_index_2 = (lambda_2-xwerte(1,isource))/lam_inc
-       index_1   = INT(p_index_1)
-       index_2   = INT(p_index_2)
-       p1        = p_index_1-index_1
-       p2        = p_index_2-index_2
-
-!       write(6,*)': Eomega_start = ',Eomega_start  
-!       write(6,*)': Eomega_en    = ',Eomega_end  
-!       write(6,*)': lambda_1     = ',lambda_1  
-!       write(6,*)': lambda_2     = ',lambda_2  
-!       write(6,*)':6 ',i,p_index_1,p_index_2,index_1,index_2
-     
-       if(index_1.eq.index_2) then
-         yval = (p2-p1)*ywerte(index_1,isource)
-         yerr = (p2-p1)*yerror(index_1,isource)**2   ! this assumes counting error for a fraction of a bin!
-       else
-         yval = (1d0-p1)*ywerte(index_1,isource)+p2*ywerte(index_2,isource)
-         yerr = (1d0-p1)*yerror(index_1,isource)**2+p2*yerror(index_2,isource)**2
-         if(index_2-index_1 .gt. 1) then
-          do ji=index_1+1, index_2-1
-           yval = yval + ywerte(ji,isource)
-           yerr = yerr + yerror(ji,isource)**2
-          enddo
-         endif
-       endif
-       yerr = sqrt(yerr)
-    
-       Eom      = E_elastic-(Eomega_start+Eomega_end)/2
-       bet      = Eom/(temperature*Boltzmannkonstante)
-       nbose    = 1d0/(exp(bet)-1d0)
-
-       EomGHz   = 2*Pi*Eom/Planckkonstante/omega_scale
-
-       dosconv = (k_i/k_f)/qq*EomGHz/(nbose+1d0)  ! * exp(2*W)
-
-       ywerte(i,idest) = yval * dosconv
-       yerror(i,idest) = yerr * dosconv
-
-       Eomega_start = Eomega_end
-     enddo
-
-      return
-
-      END
-
-
-
-
-
-
-
-
-
 
 
 
@@ -3159,7 +2591,7 @@
        do 5 i=1,nwert(ia)
           xwerte(i,ib) = xwerte(i,ia)
           ywerte(i,ib) = ywerte(i,ia)
-          yerror(i,ib) = yerror(i,ia) 
+          yerror(i,ib) = yerror(i,ia) ! OH: eingefuegt, damit auch Fehler auf neuen Kanal kopiert werden
     5  continue
        do 10 i=1,np
          params(i,ib)=params(i,ia)
@@ -3275,86 +2707,6 @@
        return
 999    continue
        call errsig(999,'file open failed...$')
-       return
-      END
-
-
-       subroutine sumseldat
-!      ====================
-! -- Summation of data in sellist
-!
-       use cdata
-       use selist
-       use constants
-
-       implicit none
-
-       character*1024 fname,savepath, pathbuf, outfile
-
-       integer i, ispc, l, j, nn
-
-       double precision :: xh, deltax, sumy, sumyerq
-
-       if(nsel.le.0) then
-         call errsig(999,'no data selected..$')
-         return
-       endif
-
-       if(nbuf.ge.mbuf) then
-         call errsig(999,'maximum number of data records ...$')
-       endif
- 
-       write(6,*)'Summation of ',nsel,' selected records...'
-! first write data selected:
-       nbuf = nbuf + 1
-
-       ispc = isels(1)
-       nn   = nwert(ispc)
-!      (xwerte(i,ispc),ywerte(i,ispc),yerror(i,ispc),i=1,nwert(ispc))
-       do j=1,nn
-         sumy    = 0
-         sumyerq = 0
-         xh      = xwerte(j,ispc)
-         deltax  = abs(xwerte(nn,ispc)-xwerte(1,ispc))/(5.0*nn)
-         do i=1,nsel
-           sumy     =     sumy    + ywerte(j,isels(i))
-           sumyerq  =     sumyerq + yerror(j,isels(i))**2
-           if(abs(xwerte(j,isels(i))-xwerte(j,ispc)).gt.deltax) then
-              write(6,*)i,':',isels(i),'  xpoint:',j
-              write(6,*)xwerte(j,isels(i)), xwerte(j,ispc)
-              call errsig(999,'x-values are different...$')
-              nbuf = nbuf-1
-              return
-           endif
-          enddo
-          xwerte(j,nbuf) = xh
-          ywerte(j,nbuf) = sumy
-          yerror(j,nbuf) = sqrt(sumyerq)
-       enddo
-     
-! transfer of parameters
-       call txfpar(ispc,nbuf)
-
-! set average parameters where appropriate
-! ... yet to be done properly
-! ... for now take the parameters from center of range
-!
-      if(nsel.gt.1) then
-        j = nsel/2
-      else
-        j = 1
-      endif
-      call txfpar(isels(j),nbuf)
-  
-     
-      Write(6,*)' sum stored at position: ', nbuf
-      Write(6,*)' attention: parameters are copied from element',j,' at position ',isels(j)
-     
-      nsel     = 1
-      isels(1) = nbuf
-
-     
-
        return
       END
 
@@ -4334,85 +3686,6 @@
       END
 
 
-
-      double precision function tof_omega(irec,ikan)
-!     ----------------------------------------------
-!  Extract Omega (in Rad/sec) for a inx tof record
-!
-       use cdata
-       use outlev
-       use theory
-       use selist
-       use therrc
-       use cfunc
-       use physconstants
-       implicit none
-
-       integer            :: irec 
-       integer            :: ikan
-
-       integer            :: i, j, ier
-       real*4             :: xh
-       double precision   :: ymax, kell, br, flpath, lambda
-       double precision   :: veloc0, velocx, ejoul, omega, t0, tx
-
-
-       call parget('binmusec', xh ,irec ,ier)
-       if(ier.eq.0) then
-         br = xh*1d-6
-       else
-         write(6,*)'tof_omega: channelwidth binmusec not found! ',irec
-         br = 1
-       endif
-
-       call parget('kell    ', xh ,irec ,ier)
-       if(ier.eq.0) then
-         kell = xh
-       else      
-         ymax = ywerte(1,irec)
-         kell = 1
-         do i= 1, nwert(irec)
-          if(ywerte(i,irec).gt.ymax) then
-             ymax = ywerte(i,irec)
-             kell = i
-          endif
-         enddo
-         call  parset('kell    ',sngl(kell),irec)
-       endif
-
-       call parget('flpath  ', xh ,irec ,ier)
-       if(ier.eq.0) then
-         flpath = xh
-       else      
-         flpath = 4d0
-         call  parset('flpath  ',sngl(flpath),irec)
-       endif
-
-       call parget('lambda  ', xh ,irec ,ier)
-       if(ier.eq.0) then
-         lambda = xh*1d-10
-       else      
-         write(6,*)' >>>>>>>> enter lambda/A >>>>>> '
-         read(5,*) lambda
-         call  parset('lambda   ',sngl(lambda),irec)
-         lambda = lambda*1d-10
-       endif
-
-       veloc0 = NeutronVelocity_fromLambda(Lambda)
-       t0     = flpath/veloc0
-       tx     = (ikan-kell)*br+t0
-       velocx = flpath/tx
-       ejoul  = 0.5d0*Neutronenmasse*(velocx**2-veloc0**2)
-       omega  = 2*Pi*ejoul/Planckkonstante
-       tof_omega = omega
-
-       return
-       end function tof_omega
-
-
-
-
-
       subroutine usrfun(nam,x,nx,ier)
 !     -------------------------------
 
@@ -4422,7 +3695,6 @@
        use selist
        use therrc
        use cfunc
-       use physconstants
        implicit none
 
       character*20 nam
@@ -4435,8 +3707,6 @@
 
       real*8 xh, dx
       logical compare
-
-      double precision :: tof_omega
 
       ier = 0
       if(compare(nam,'myfun3 ')) then
@@ -4495,30 +3765,6 @@
         ibuf = x(nx-1)+0.01
         iwert= x(nx)  +0.01
         x(nx-1) = yerror(iwert,ibuf)
-        nx = nx-1
-        return
-      endif
-
-      if(compare(nam,'om ')) then  ! TOF channel frequency
-        if(nx.lt.2) then
-          ier =1
-          return
-        endif
-        ibuf = x(nx-1)+0.01
-        iwert= x(nx)  +0.01
-        x(nx-1) = tof_omega(iwert,ibuf)
-        nx = nx-1
-        return
-      endif
-
-      if(compare(nam,'en ')) then   ! TOF channel energy in meV
-        if(nx.lt.2) then
-          ier =1
-          return
-        endif
-        ibuf = x(nx-1)+0.01
-        iwert= x(nx)  +0.01
-        x(nx-1) = tof_omega(iwert,ibuf)*Planckkonstante/2/Pi/Elektronenladung*1d3
         nx = nx-1
         return
       endif
@@ -4643,7 +3889,7 @@
           return
         endif
 
-        do i=1,nwert(ibuf)
+        do i=i,nwert(ibuf)
           if(xwerte(i,ibuf).ge.xh) then
            x(nx-1) = i
            nx = nx-1
@@ -4669,7 +3915,7 @@
           return
         endif
 
-        do i=1,nwert(ibuf)
+        do i=i,nwert(ibuf)
           if(xwerte(i,ibuf).ge.xh) then
            if(i.le.1) then
             dx=xwerte(i+1,ibuf)-xwerte(i,ibuf)
@@ -4969,413 +4215,16 @@
 !      second moment     = an
 !      integer result
 !      to mock up counting statistics
-! update to use Sim_Add_Noise to fix inconsistencies
 ! ---------------------------------------------------------------------
        implicit none 
        real*4 an
 
        real*4 y, z, erfi, rnunf
-       double precision :: Sim_Add_Noise
-       double precision :: averd
 
-       averd  = an
-       igrand = Sim_Add_Noise( averd )
-
+    1  continue
+        y =  rnunf()*2.0-1.0
+        z =  erfi(y)
+        igrand = an + sqrt(2.0*an)*z + 0.5
+        if(igrand.ge.0) return
+       goto 1
       END
-
-
- double precision function Sim_Add_Noise( average ) 
-!--------------------------------------------------
-
-  implicit none
-  double precision, intent(in)   :: average 
- 
-
-  double precision ::  r1, r2, r, f, grand1, grand2, now
-  real   rnunf
- 
-    do 
-      r1 = rnunf()*2.d0-1.d0
-      r2 = rnunf()*2.d0-1.d0
-      r  = r1*r1 +r2*r2
-      if(( (r<1.d0) .and. (r .ne. 0.d0) )) exit
-    enddo
- 
-    f = sqrt(-2.d0*log(r)/r)
-    grand1 = r1*f
-!   grand2 = r2*f;  */ /* verwerfe 2te um keine Korrelationen zu haben */
- 
-    now    = average + grand1*sqrt(average)
- 
-    if(now < 0.d0) now = 0.d0
- 
-    Sim_Add_Noise = now
- 
-  end function Sim_Add_Noise 
-
-
-
-
-
-
-       FUNCTION BSJN(M,X)                                               
-!      ==================                                               
-!                                                                       
-! ----- SPHERICAL BESSELFUNCTION OF ORDER M>=0 -------------------------
-!                                                                       
-!                                                                       
-!                                                                       
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!                                                                       
-	IMPLICIT NONE
-!                                                                       
-        DOUBLE PRECISION :: bsjn, x, eps, f, fmn, fmnm1, fmnp1, fn, fnm1, fnp1, z, zzt
-!                                                                       
-        INTEGER          :: i, m, maxm, n
-!                                                                       
-!                                                                       
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!                                                                       
-       DATA EPS/1.0D-6/                                        
-!                          
-!
-       z = x
-       if(z.eq.0d0) z = 1d-8
-!                                                   
-! --- LOOK FOR BAD M VALUE ---                                          
-       IF(M.LT.-2) THEN                                                  
-        WRITE(6,*)' ERROR: BSJN CALLED M =',M,' < -2 --> BSJN = 0'      
-        BSJN = 0.0D0
-        RETURN   
-       else if(m.eq.-2) then
-         BSJN = -cos(z)/(z*z)-sin(z)/z
-         return
-       else if(m.eq.-1) then          
-         BSJN =  cos(z)/z
-         return                                                      
-       ENDIF                                                            
-!                                                                       
-       IF(Z.EQ.0.0D0) THEN 
-         BSJN = 1.00D0
-         IF(M.GT.0) BSJN = 0.0D0
-         RETURN                                                         
-       ENDIF                                                            
-! --- PREPARE FACTORIAL FOR LIMITING FORMULA ---                        
-       F = 1.00D0
-       DO 101 I=1,2*M+1,2                                               
-         F = F * I                                                      
-101    CONTINUE                                                         
-!                                                                       
-! ---- TREAT CASE Z SMALL ----                                          
-       ZZT = (Z**M) / F                                                 
-       IF(ABS(ZZT).LT.EPS) THEN                                         
-!        -----> USE LIMITING FORMULA                                    
-           BSJN = (Z**M / F ) * (1.0D0-Z**2/(2*(2*M+3)) +     &
-                                 Z**4/(8*(2*M+3)*(2*M+5)) )             
-!        WRITE(6,*)' ASYMPTOTIC FORMULA'                                
-         RETURN                                                         
-       ENDIF                                                            
-!                                                                       
-! --- TREAT CASES M=0 AND M=1 ---                                       
-       IF(M.LT.2) THEN                                                  
-        IF(M.EQ.0) THEN                                                 
-          BSJN = SIN(Z) / Z                                             
-          RETURN                                                        
-        ENDIF                                                           
-        IF(M.EQ.1) THEN                                                 
-          BSJN = ( SIN(Z) / Z  - COS(Z) ) / Z                           
-          RETURN                                                        
-        ENDIF                                                           
-      ENDIF                                                             
-!                                                                       
-! --- TREAT CASES M >= 2 ---                                            
-!                                                                       
-      FNM1 = 1.00D0/Z   
-      FN   = FNM1**2                                                    
-      FMN  = 0.0D0
-      FMNP1= FNM1                                                       
-      MAXM = M - 1                                                      
-!                                                                       
-      DO 1 N=1,MAXM                                                     
-        FNP1   = (2*N+1) * FN/Z - FNM1                                  
-        FMNM1  = (1-2*N) * FMN/Z- FMNP1                                 
-        FNM1   = FN                                                     
-        FN     = FNP1                                                   
-        FMNP1  = FMN                                                    
-        FMN    = FMNM1                                                  
-1     CONTINUE                                                          
-      FMNM1 = (1-2*M) * FMN/Z - FMNP1                                   
-      BSJN  = FN*SIN(Z) - (-1)**M * FMNM1*COS(Z)                        
-!                                                                       
-      RETURN                                                            
-      END  function bsjn                                                
-
-
-
-      function radial_bsjn2_integral(n,q,r1,r2)
-!     -----------------------------------------
-!
-!     Integral over a shell from r1..r2 of bsjn(n,q*r)**2  as is needed in the rotational diffusion
-!     modelling for a rotating protein in incoherent approximation
-!     The integral is normalized to the shell volume
-!
-!     i.e. integral_[r1..r2](bsjn(x,q*r)**2 *r**2 * dr) / integral_[r1..r2](r**2 *dr) 
-!
-      implicit none
-      double precision              :: radial_bsjn2_integral
-      double precision, intent(in)  :: q, r1, r2
-      integer         , intent(in)  :: n
-    
-      double precision              :: bsjn
-
-      radial_bsjn2_integral = -(0.5d0)*R1**3*bsjn(n  , R1*q)**2                 &
-                              +(0.5d0)*R1**3*bsjn(n-1, R1*q)  *bsjn(n+1, R1*q)  &
-                              +(0.5d0)*R2**3*bsjn(n  , R2*q)**2                 &
-                              -(0.5d0)*R2**3*bsjn(n-1, R2*q)  *bsjn(n+1, R2*q) 
-
-
-!     normalizing to volume
-      
-      radial_bsjn2_integral =  radial_bsjn2_integral*3/(r2**3-r1**3)
-
-      return
-      end function  radial_bsjn2_integral
-
-
-!                                                                       
-!                                                                       
-!                                                                       
-! ---- SCATTERING LAW OF A DIFFUSION INSIDE A SPHERE ----    
-!      time domain: intermediate scattering function           
-!      ACCORDING TO F.VOLINO & A.J. DIANOUX MOL.PHYS (1980),VOL41,271   
-!                                                                       
-       FUNCTION DINSPH_t(Q,t,D,A,LX,ZX)                                  
-!      --------------------------------                                  
-!                                                                       
-!   Q   = MOMENTUM TRANSFER                                             
-!   OM  = FREQUENCY (ENERGY TRANSFER)                                   
-!   D   = DIFFUSION CONSTANT                                            
-!   A   = RADIUS OF SPHERE                                              
-!   LX  = MAX L TO BE USED                                              
-!   ZX  = MAX VALUE OF ZERO TO BE USED                                  
-!                                                                       
-!   ZEROS(I) = VALUE OF I-TH ZERO = XNL                                 
-!   LOFZ (I) = L-VALUE FOR THIS ZERO                                    
-!   NOFZ (I) = NO OF THIS ZERO                                          
-!   NZERO    = TOTAL NO OF ZEROS                                        
-!                                                                       
-!                                                                       
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!                                                                       
-	IMPLICIT NONE
-!                                                                       
-!        INCLUDE  'th1_vdzero_comdef.f'
-
-        DOUBLE PRECISION        zeros
-        INTEGER*4               lofz, nofz, nzero, maxz
-        PARAMETER               (maxz = 5000)
-        DIMENSION               zeros(maxz), lofz(maxz), nofz(maxz)
-!                                                                           !
-        COMMON /vdzero/         zeros, lofz, nofz, nzero
-
-        DOUBLE PRECISION        zmx
-        INTEGER*4               lmx
-!                                                                           !
-        COMMON /dinbuf/         zmx, lmx
-
-
-!        INCLUDE  'th1_dinbuf_comdef.f'
-!        INCLUDE 'natur_konstanten_defs.f'
-!                                                                       
-        DOUBLE PRECISION a, aq, d, da, delta, dinsph_t, dom, om, oml, &
-                         q, qa, sum, x, xx, zx, t
-        DOUBLE PRECISION bsjn
-
-        double precision, parameter :: pi=3.141592654d0
-!                                                                       
-        INTEGER*4        i, l, lx, n
-!                                                                       
-!        DATA             OML/1.0D50/
-!                                                                       
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!                                                                       
-!                                                                       
-       DELTA = 1.0D-6
-!      -------------> LIMIT FOR AVOIDING SINGULARITY                    
-! ---- OML IS NEEDED TO IDENTIFY THE ZERO POSITION & GET THE FACTOR FOR 
-!      THE DELTA FUNCTION                                               
-!       IF(OML.GT.OM) OML = OM                                           
-!                    --------> RESETS OML IF A NEW DETECTOR IS TAKEN    
-!                                                                       
-! ---- GENERATE ZEROS IF NECESSARY ----                                 
-!                                                                       
-       IF(LX.NE.LMX.OR.DABS(ZX-ZMX).GT.0.2D0.OR.NZERO.EQ.0) THEN        
-         LMX = LX                                                       
-         ZMX = ZX                                                       
-         CALL VDCOEF(ZMX,LMX)                                           
-         WRITE(6,*)' .....',NZERO,' NEW VDCOEFFS GENERATED'             
-       ENDIF                                                            
-!                                                                       
-! ---- DO THE SUMMATION ----                                            
-!                                                                       
-       QA = Q*A                                                         
-       DA = D / A**2                                                    
-       SUM= 0.0D0
-!                                                                       
-       DO 10 I=1,NZERO                                                  
-        N = NOFZ(I)                                                     
-        L = LOFZ(I)  
-        if(l.eq.0 .and.n.eq.0) cycle                                                   
-        X = ZEROS(I)                                                    
-        XX= X**2                                                        
-        IF(DABS(QA-ZEROS(I)).GT.DELTA) THEN                             
-          AQ = ( QA * BSJN(L+1,QA) - L * BSJN(L,QA) ) / (QA**2-XX)
-          AQ = AQ**2 * 6.0D0 * XX / ( XX - L*(L+1) )
-        ELSE                                                            
-          AQ = 1.5D0 * BSJN(L,X)**2 * (XX - L*(L+1) ) / XX 
-        ENDIF                                                           
-!                                                                       
-!        SUM = SUM + (2*L+1)*AQ *    XX*DA / ( (XX*DA)**2 + OM**2 )       ! hier Zeitfunktion einsetzen  
-        SUM = SUM + (2*L+1)*AQ *    Pi*exp(-XX*DA*abs(t))
-!
-!   write(6,*)'1: ',i,n,l,qa,aq,xx,sum                                                                       
-10     CONTINUE                                                         
-       SUM = SUM / PI  
-!   write(6,*)'1a: ',sum                                                 
-!                                                                       
-! ---- ADD THE DELTA FUNCTION ----                                      
-!                                                                       
-!       IF(OM*OML.LT.0.0D0.OR.OM.EQ.0.0D0) THEN 
-!        DOM = DABS(OM-OML)                                              
-!        SUM = SUM + (3.0D0*BSJN(1,QA)/QA)**2 / DOM 
-!       ENDIF                                                            
-!
-        SUM = SUM + (3.0D0*BSJN(1,QA)/QA)**2 
-!    write(6,*)'2: ',qa,aq,xx,sum   
-       DINSPH_t = SUM                           
-!      --------------  
-!   write(6,*)'2a: ',sum                                  
-       RETURN                                
-       END                                  
-
-
-
-       DOUBLE PRECISION FUNCTION BLJ(Z,L)  
-!      ==================================
-!                                                                       
-!                                                                       
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!                                                                       
-	IMPLICIT NONE
-!                                                                       
-        DOUBLE PRECISION z 
-        DOUBLE PRECISION bsjn
-!                                                                       
-        INTEGER*4       l
-!                                                                       
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!                                                                       
-!                                                                       
-       IF(L.EQ.0) THEN                                                  
-         BLJ = BSJN(1,Z)  
-         RETURN                                                         
-       ENDIF                                                            
-!                                                                       
-       BLJ = L*BSJN(L,Z) - Z * BSJN(L+1,Z)    
-!      -------------------------------------
-       RETURN                                                           
-       END                                                              
-!                                                                       
-!                                                                       
-!                                                                       
-
-!                                                                       
-! ---- DETERMINE COEFFICIENTS XNL FOR VOLINO DIANOUX THEORY FOR         
-!      THE SCATTERING OF DIFFUSION IN A SPHERICAL POTENTIAL WELL ----   
-!                                                                       
-       SUBROUTINE VDCOEF(ZMX,LMX)                                       
-!      --------------------------                                       
-!                                                                       
-! ---- ZMX = UPPER LIMIT FOR ZEROES ----                                
-!      LMX = UPPER LIMIT FOR L                                          
-!                                                                       
-!                                                                       
-!                                                                       
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!                                                                       
-	IMPLICIT NONE
-!                                                                       
-!       INCLUDE  'outlev_comdef.f'
-!       INCLUDE  'th1_vdzero_comdef.f'
-        DOUBLE PRECISION        zeros
-        INTEGER*4               lofz, nofz, nzero, maxz
-        PARAMETER               (maxz = 5000)
-        DIMENSION               zeros(maxz), lofz(maxz), nofz(maxz)
-!                                                                           !
-        COMMON /vdzero/         zeros, lofz, nofz, nzero
-!                                                                       
-        DOUBLE PRECISION dz, dz0, eps, f, f0, f1, z0, zmx
-        DOUBLE PRECISION blj
-!                                                                       
-        INTEGER*4        i, j, l, lmx, maxit, ncnt, nl
-        integer  :: ierrs
-!                                                                       
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!                                                                       
-!                                                                       
-!                                                                       
-! ---- SET PARAMETER-VALUES ---                                         
-       MAXIT = 50                                                       
-!      -----------> MAX NO. OF NEWTON ITERATIONS                        
-       DZ    = 0.001D0
-!      -----------> SETP FOR NEWTON DIFFERENTIATION                     
-       EPS   = 1.0D-9  
-!      -----------> REQUIRED ACCURACY FOR NEWTON ITERATION              
-       DZ0   = 0.2D0
-!      -----------> INCREMENT FOR EXHAUSTIVE ZERO SEARCH                
-!                                                                       
-       WRITE(6,*)' VDCOEF GENERATING COEFFICIENTS FOR ',LMX,ZMX,' ...'  
-!                                                                       
-       NL = ZMX / DZ0                                                   
-       NZERO = 0                                                        
-!                                                                       
-       DO 5 L = 0,LMX                                                   
-         NCNT = 0                                                       
-         DO 10 J = 1,NL                                                 
-          Z0 = (J-1) * DZ0                                              
-          F  = BLJ(Z0,L) * BLJ(Z0-DZ0,L)                                
-          IF(F.LT.0) THEN                                               
-!                                                                       
-! ---- NEWTON-ITERATION ----                                            
-            DO 100 I=1,MAXIT                                            
-             F0 = BLJ(Z0,L)                                             
-             F1 = BLJ(Z0+DZ,L)                                          
-             Z0 = Z0 - F0 * DZ / (F1-F0)                                
-!            WRITE(6,*)I,F0,Z0                                          
-             IF(DABS(F0).LT.EPS) GOTO 101                               
-100         CONTINUE                                                    
-            WRITE(6,*)' WARNING BAD CONVERGENCE , RESIDUAL=',F0         
-            IERRS = 55                                                  
-!                                                                       
-101         CONTINUE                                                    
-            NZERO = NZERO + 1                                           
-            IF(NZERO.GT.MAXZ) THEN                                      
-              WRITE(6,*)' NO OF ZEROS EXCEEDS MAX DIMENSION = ',MAXZ    
-              IERRS = 777                                               
-              NZERO = MAXZ                                              
-            ENDIF                                                       
-!                                                                       
-            ZEROS(NZERO) = Z0                                           
-            LOFZ(NZERO)  = L                                            
-            NOFZ(NZERO)  = NCNT                                         
-!                                                                       
-!       WRITE(6,*)L,NCNT, Z0                          
-            NCNT = NCNT + 1                                             
-          ENDIF                                                         
-10       CONTINUE                                                       
-5      CONTINUE                                                         
-!                                                                       
-       RETURN                                                           
-!                                                                       
-       END                                                              
-

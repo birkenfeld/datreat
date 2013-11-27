@@ -1,13 +1,17 @@
-      function eval (x, pa, thnam, parnam, npar,idum, ini) 
+      function th_eval (x, pa, thnam, parnam, npar,idum, ini) 
 !     ===================================================               
 !      user function in datreat
 ! only working in datreat                                                                 
 
 
 ! -------> evaluate from function-buffer <-----                         
-      COMMON / outlev / iout, ibild, ierrs, inka, iibuf, xxxx, yyyy, ptxf (20)                                                         
-      CHARACTER(132) xformel, yformel, yfitform 
-      COMMON / formul / xformel, yformel, yfitform 
+!      COMMON / outlev / iout, ibild, ierrs, inka, iibuf, xxxx, yyyy, ptxf (20)
+!      CHARACTER(132) xformel, yformel, yfitform 
+!      COMMON / formul / xformel, yformel, yfitform 
+
+      use outlev  
+      use formul 
+
 !                                                                       
       CHARACTER(8) thnam, parnam (20) 
       DIMENSION pa (20), qq (3) 
@@ -44,13 +48,18 @@
 !                                                                       
 ! ---- calculate theory here -----                                      
       DO i = 1, nparx 
-      	ptxf (i) = pa (i) 
+      	ptxf(i) = pa(i) 
       enddo 
       xxxx = x 
-      iout = iout - 5 
+      iout = iout - 5
+
+!      write(6,*)'ev1: ',yfitform
+ 
       CALL evaluate (yfitform, val8y, iery) 
       iout = iout + 5 
-      eval = val8y 
+      th_eval = val8y 
+
+!      write(6,*)val8y,ierry
 !                                                                       
       RETURN 
-      END FUNCTION eval                              
+      END FUNCTION th_eval                              

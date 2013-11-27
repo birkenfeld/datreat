@@ -1,4 +1,4 @@
-INCLUDE "commons.h"
+! INCLUDE "commons.h"
 
 ! **********************************************************************
 ! *    treating any data                                               *
@@ -28,6 +28,7 @@ INCLUDE "commons.h"
 ! **********************************************************************
 !
   program datreat
+      use dimensions
       use cincom
       use cincoc
       use xoutxx
@@ -46,6 +47,9 @@ INCLUDE "commons.h"
       use wlntran
       use sqtran
       use constants
+!      use physconstants
+      use physconstants
+      use unift
       implicit none
 
       integer iadda
@@ -60,7 +64,7 @@ INCLUDE "commons.h"
        real xcut, x1raster, xk0, x2raster, x, val, tt, wl4, thval, x01, x02
        real theta2, thick, temp_z, trans, t1, sump, sumb, sx, slope, smpar
        real t2, sy, sigma, selpartol, r0, selparval, ri, result, qend, qstart
-       real pkave, pi, pfkave, pfave, qz, qrs, qmax, pxxd, pkqave, qortho
+       real pkave, pfkave, pfave, qz, qrs, qmax, pxxd, pkqave, qortho
        real pfqave, p3qave, p3ave, parval_x, gunten, fy, fwid, laenge, goben
        real fia, famp, facto2, eta_s, f1, errmx, facto1, errrec, errmax
        real erraec, echo, dxx, fx, smirro, fai, esum, errest, errret, df
@@ -114,13 +118,34 @@ INCLUDE "commons.h"
        character*8      dirpan(20)
        real*4           dirpav(20)
 
+       real          :: y_scaling
+
+
 !
        external fdes
        external f
 !
 !
        real :: errabs=1.0,errel=1.e-2
+
 !
+! lokale Hilfsvariablen fuer arit2 (geht noch besser) !
+!
+       integer :: nout
+       integer, parameter :: mwork=c_MWERT
+       real :: yout1(mwork), yerout1(mwork), yout2(mwork), yerout2(mwork)
+
+
+
+       real    :: x1int, x2int, sum, sumer
+       integer :: i1int, i2int
+
+!
+       double precision :: Ommax = 1000d0
+       integer          :: nomega = 100
+
+
+
 ! ---- initialisations ----
 ! ---- error-set ----------
        call erset (0,1,0)
@@ -129,10 +154,10 @@ INCLUDE "commons.h"
        call sigset(-1)
                         !! Clears Signals
        call sig_Reset()
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 			write(6,*)
 			write(6,*)'======================================================='
-			write(6,*)'=   datreat11_1     Version: Jan.2011                 ='
+			write(6,*)'=   datreat12_2     Version: jan.2013   RCS:1.11      ='
 			write(6,*)'=   -----------     -----------------                 ='
 			write(6,*)'=   changed to fortran 90 format and gfortran         ='
 			write(6,*)'=   gplot ?  shows help for plotting in xmgrace       ='
@@ -162,10 +187,10 @@ INCLUDE "commons.h"
 			write(6,*)'=  use the 5.1.20 version of grace_np to have a       ='
 			write(6,*)'=      single grace plot after system calls           ='
 			write(6,*)'======================================================='
-			write(6,*)
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			write(6,*)' Pi = ',pi
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
-       pi   = 4 * atan(1.0)
+!       pi   = 4 * atan(1.0)
 
        facto1 = 1
        facto2 = 2
@@ -247,7 +272,7 @@ INCLUDE "commons.h"
  2000  continue
        call sig_Reset()
        if(ierrs.ne.0) then
-         write(6,*)' error return code:',ierrs
+         write(6,*)' Final: error return code:',ierrs
          ioldc = 0
 !        ----------> if error forget rest of commandline (reslin)
          if(inka.ne.5) then
@@ -884,6 +909,42 @@ INCLUDE "commons.h"
          goto 2000
        endif
 
+       if(comand.eq.'uni_ft   ') then
+!                    -------
+
+         if(nsel.le.0) then
+           write(6,*)'error: no data records selected: no action !'
+           write(6,*)
+           write(6,*)'select the data record and the resolution record '
+           write(6,*)'using the sel command; sequence of selcted items matters! '
+           write(6,*)'if only one record is selected, only simple FT without '
+           write(6,*)'deconvolution si performed'
+           ierrs = 1
+           goto 2000
+         endif 
+  
+         if(nsel.gt.2) then
+           write(6,*)'error: too many data records selected: no action !'
+           write(6,*)
+           write(6,*)'select only the data record and the resolution record '
+           write(6,*)' ... for the rest its not clear what to do... '
+           write(6,*)' ... in order to process several q-values reiterate '
+           write(6,*)' ... directly or by using a makro '
+           ierrs = 2
+           goto 2000
+         endif   
+
+         ia1 = nbuf+1
+         ia1 = intval('store_at',ia1,inew)
+
+         write(6,*)'uni_ft: selected records and store data beginning from recordnr.:',ia1
+         if (nsel.eq.1) then 
+           isels(2) = 0
+         endif
+         call uni_ft(isels(1), isels(2), ia1)
+
+         goto 2000
+       endif
 
 !
        if(comand.eq.'arit    ') then
@@ -1060,6 +1121,235 @@ INCLUDE "commons.h"
        endif
 !
 !
+       if(comand.eq.'arit2   ') then  ! deals better with interpolation at boundaries of range !
+!                    ----
+         newnum = 777777
+         idimux = 0
+
+         num1 = 0
+         num2 = 0
+         do i=1,inames
+          j = inapa(i)
+          if(vname(i).eq.'norm    ') withmo = .true.
+          if(vname(i).eq.'nonorm  ') withmo = .false.
+          if(vname(i).eq.'div     ') idimux = 1
+          if(vname(i).eq.'mult    ') idimux = 2
+          if(vname(i).eq.'to      ') newnum = rpar(j) * 1.0000001
+          if(vname(i).eq.'sc      ') then
+            num1 = rpar(j) * 1.0000001
+            num2 = rpar(j+1)*1.0000001
+          endif
+          if(vname(i).eq.'factor1 '.or.vname(i).eq.'f1      ')          &
+     &                                                 facto1 = rpar(j)
+          if(vname(i).eq.'factor2 '.or.vname(i).eq.'f2      ')          &
+     &                                                 facto2 = rpar(j)
+        enddo
+! --- figuer out the adresses ---
+         if(nsel.eq.2) then
+           iad1 = isels(1)
+           iad2 = isels(2)
+         else
+           iad1 = 0
+           iad2 = 0
+         endif
+         do i=1,nbuf
+          if(numor(i).eq.num1) iad1 = i
+          if(numor(i).eq.num2) iad2 = i
+         enddo
+         if(iad1.eq.0) then
+           write(6,*)'file :',num1,' not found'
+           goto 2000
+         endif
+         if(iad2.eq.0) then
+           write(6,*)'file :',num2,' not found'
+           goto 2000
+         endif
+! --- if result is already there , replace it ---
+         newadd = nbuf+1
+         do i=1,nbuf
+          if(numor(i).eq.newnum) newadd = i
+         enddo
+         if(newadd.gt.nbuf) nbuf = newadd
+         if(nbuf.ge.mbuf) then
+           write(6,*)'no storage for the result'
+           nbuf = nbuf - 1
+           goto 2000
+         endif
+! ---- normalize to monitor-values ----
+         if(withmo) then
+           write(6,*)'normalizing to monitor-values ....'
+           write(6,*)'use option nonorm to switch off, norm to swit. on'
+! ---- extract monitorvalues ----
+            xmon1 = 0
+           do i=1,nopar(iad1)
+             if(napar(i,iad1).eq.'monitor  ') xmon1 = params(i,iad1)
+           enddo
+           xmon2 = 0
+           do i=1,nopar(iad2)
+             if(napar(i,iad2).eq.'monitor  ') xmon2 = params(i,iad2)
+           enddo
+           if(xmon1.eq.0) then
+             write(6,*)'monitor of first file is lacking take 1'
+             xmon1 = 1
+           endif
+           if(xmon2.eq.0) then
+             write(6,*)'monitor of 2nd   file is lacking take 1'
+             xmon2 = 1
+           endif
+         else
+           xmon1 =1
+           xmon2 =1
+         endif
+!        ------> of if(withmo ..
+! --- start the computation ---
+         n1 = nwert(iad1)
+         n2 = nwert(iad2)
+         n3 = n1
+         if(n3.gt.mwork) then
+           write(6,*)'arit2 workspace insufficient'
+           goto 2000
+         endif
+         call get_pair_of_points(xwerte(1,iad1),ywerte(1,iad1),yerror(1,iad1),n1, &
+    &                            xwerte(1,iad2),ywerte(1,iad2),yerror(1,iad2),n3, &
+    &                            xwerte(1,newadd), yout1, yerout1, yout2, yerout2, nout)
+
+         nwert(newadd) = nout
+         do i=1,nout
+          x1 = xwerte(i,newadd)
+          y0 = yout1(i)
+          y1 = yout2(i)
+          y00 = y0
+          y11 = y1
+           if(idimux.eq.0 ) y  = facto1 * y0/xmon1 +                    &
+     &          facto2 * y1 / xmon2
+           if(idimux.eq.1 ) y  = (facto1 * y0/xmon1) /                  &
+     &        (  facto2 *y1 / xmon2)
+           if(idimux.eq.2 ) y  = (facto1 * y0/xmon1) *                  &
+     &        (  facto2 * y1 / xmon2)
+           ywerte(i,newadd) = y
+           yyy=y
+! --- and the errors ! ----
+           y0 = yerout1(i)
+           y1 = yerout2(i)
+           if(idimux.eq.0) y = (facto1 * y0/xmon1)**2 +                 &
+     &          (facto2 * y1 / xmon2)**2
+           if(idimux.eq.1) y = yyy * ((facto1 * y0/xmon1)/y00) *        &
+     &          ((facto2 * y1 / xmon2)/y11)
+           if(idimux.eq.2) y = yyy * ((facto1 * y0/xmon1)/y00) *        &
+     &          ((facto2 * y1 / xmon2)/y11)
+           yerror(i,newadd) = sqrt(y)
+         enddo
+         call txfpar(iad1,newadd)
+         nwert(newadd) = n3
+         numor(newadd) = newnum
+         xname(newadd) = xname(iad1)
+         yname(newadd) = yname(iad1)
+          name(newadd) =  name(iad1)
+         coment(newadd)= coment(iad1)(1:40)//coment(iad2)(1:40)
+         nnpar=nopar(iad1)
+       if(nnpar.le.mpar-2) then
+         nnpar=nnpar+2
+         nopar(newadd) = nnpar
+         params(1,newadd) = facto1
+         params(2,newadd) = facto2
+         napar(1,newadd)  = name(iad1)
+         napar(2,newadd)  = name(iad2)
+         np=3
+       endif
+         do  i=np,nnpar
+           params(i,newadd)= params(i+1-np,iad1)
+           napar(i,newadd) = napar (i+1-np,iad1)
+         enddo
+         write(6,*)n3,' points resulting from arit are stored as sc',   &
+     &                  newnum
+         if(idimux.eq.0)                                                &
+     &   write(6,*)'<===',facto1,' * ',name(iad1),' + ',facto2,' * ',   &
+     &             name(iad2)
+         if(idimux.eq.1)                                                &
+     &   write(6,*)'<===',facto1,' * ',name(iad1),' / ',facto2,' * ',   &
+     &             name(iad2)
+         if(idimux.eq.2)                                                &
+     &   write(6,*)'<===',facto1,' * ',name(iad1),' * ',facto2,' * ',   &
+     &             name(iad2)
+         isels(1) = newadd
+         ifits(1) = 0
+         nsel     = 1
+         goto 2000
+       endif
+!
+!
+       if(comand.eq.'addval  ') then
+!                    ------
+         if(nsel.eq.1) then
+           iad1 = isels(1)
+         else
+           write(6,*)'select one and only one record'
+           ierrs= 1
+           goto 2000
+         endif
+! --- start the computation ---
+         
+         nwert(iad1) = nwert(iad1)+1
+         xwerte( nwert(iad1), iad1 ) = rpar(1)
+         ywerte( nwert(iad1), iad1 ) = rpar(2)
+         yerror( nwert(iad1), iad1 ) = rpar(2)
+
+         goto 2000
+       endif
+!
+       if(comand.eq.'integrat') then
+!                    --------           approximates integral from binned data
+!                                       by simple summation of data times bin-width
+!                                       there may be better interpolation based schemes
+!                                       but this is clear an simple
+         if(nsel.eq.1) then
+           iad1 = isels(1)
+         else
+           write(6,*)'select one and only one record'
+           ierrs= 1
+           goto 2000
+         endif
+! --- start the computation --- these are the integration limits
+         x1int        = getval('x1      ',dble(x1int),inew)
+         x2int        = getval('x2      ',dble(x2int),inew)
+         
+         i1int = 1
+         i2int = nwert(iad1)
+         
+         do i=1,nwert(iad1)-1
+          if(xwerte(i,iad1).le.x1int .and.xwerte(i+1,iad1).gt.x1int) i1int=i
+          if(xwerte(i,iad1).le.x2int .and.xwerte(i+1,iad1).gt.x2int) i2int=i
+         enddo
+
+         
+         sum   = (xwerte(i1int,iad1)-x1int)*ywerte(i1int,iad1)
+         sumer = ((xwerte(i1int,iad1)-x1int)*yerror(i1int,iad1))**2       
+
+         sum   = sum + (x2int-xwerte(i2int,iad1))*ywerte(i2int,iad1)
+         sumer = sumer + ((x2int-xwerte(i2int,iad1))*yerror(i2int,iad1))**2
+         do i=i1int+1,i2int-1
+           sum   = sum   + (xwerte(i+1,iad1)-xwerte(i,iad1))*ywerte(i+1,iad1)
+           sumer = sumer + ((xwerte(i+1,iad1)-xwerte(i,iad1))*yerror(i+1,iad1))**2
+         enddo
+        
+         sumer = sqrt(sumer)
+
+         write(6,'(a,e13.6,a,e13.6)')'integral from: ',x1int,' (',xwerte(i1int,iad1),' )'
+         write(6,'(a,e13.6,a,e13.6)')'           to: ',x2int,' (',xwerte(i2int,iad1),' )'
+       
+         write(6,*                  )'         ===>: ',sum, '+-', sumer
+!         xwerte( nwert(iad1), iad1 ) = rpar(1)
+!         ywerte( nwert(iad1), iad1 ) = rpar(2)
+!         yerror( nwert(iad1), iad1 ) = rpar(2)
+
+         call parset ('integral',sum        ,iad1 ) 
+         call parset ('x1integ ',x1int      ,iad1 ) 
+         call parset ('x2integ ',x2int      ,iad1 ) 
+
+         goto 2000
+       endif
+!
+
 !
 !
        if(comand.eq.'combine ') then
@@ -1367,7 +1657,7 @@ INCLUDE "commons.h"
        if(comand.eq.'kz      ') then
 !                    -->    kanalzusammenfassung
 ! ---- build now the symmetric average on the right side ---
-         kz = rpar(1)+0.1
+         kz = NINT(rpar(1))
          if(kz.lt.2) goto 2000
          if(nsel.lt.1) then
            write(6,*)'no items selected, use sel !'
@@ -1411,12 +1701,195 @@ INCLUDE "commons.h"
             yerror(j,ia) = sqrt(esum)/ir
          endif
          nwert(ia)=j
+         call parget ('_rebin  ',xx,ia,ier)
+         if(ier.ne.0) xx = 1
+         xx = xx * ikz
+         call parset ('_rebin  ',xx,ia)
+
+         call parget ('_xwidth ',xx,ia,ier)
+         if(ier.ne.0) then
+           xx = xwerte(m/2+1,ia)-xwerte(m/2+1,ia)
+         else
+           xx = xx * ikz
+         endif
+         call parset ('_xwidth ',xx,ia)
+
          write(6,*)'channels contracted for ',ia,' new no. of ch=',j,   &
      &             ' (',ir,')'
          enddo
          goto 2000
        endif
+
+
+
+       if(comand.eq.'rebin   ') then
+!                    ----->    kanalzusammenfassung mit Kopie auf
+!                              neuen Platz
+! 
+         kz = NINT(rpar(1))
+         if(kz.lt.2) goto 2000
+         if(nsel.lt.1) then
+           write(6,*)'no items selected, use sel !'
+           goto 2000
+         endif
+
+!     >  copy first  
+         if(nsel+nbuf.gt.mbuf) then
+           write(6,*)'ERROR: copying selection would exceed max records'
+           goto 2000
+         endif 
+         do i=1,nsel
+           ia = isels(i)
+           ib = nbuf+1
+           write(6,*)'copy record: ',ia,' to record: ',ib
+           call DataCopy(ia,ib)
+           isels(i) = ib
+         enddo
+!     <  end copy
+ 
+         do i=1,nsel
+          ia = isels(i)
+          n  = nwert(ia)
+          ikz=kz
+          if(ikz.gt.n)ikz=n
+          j  = 0
+          m  = n/ikz
+          ir = n-ikz*m
+          do l=1,m
+            xsum=0.0
+            ysum=0.0
+            esum=0.0
+            do k=1,ikz
+              ik=(l-1)*ikz+k
+              xsum = xsum + xwerte(ik,ia)
+              ysum = ysum + ywerte(ik,ia)
+              esum = esum + yerror(ik,ia)**2
+            enddo
+            j = j+1
+            xwerte(j,ia) = xsum/ikz
+            ywerte(j,ia) = ysum/ikz
+            yerror(j,ia) = sqrt(esum)/ikz
+          enddo
+         if(ir.gt.0) then
+            xsum=0.0
+            ysum=0.0
+            esum=0.0
+            do ik=m*ikz+1,n
+              xsum = xsum + xwerte(ik,ia)
+              ysum = ysum + ywerte(ik,ia)
+              esum = esum + yerror(ik,ia)**2
+            enddo
+            j = j+1
+            xwerte(j,ia) = xsum/ir
+            ywerte(j,ia) = ysum/ir
+            yerror(j,ia) = sqrt(esum)/ir
+         endif
+         nwert(ia)=j
+         numor(ia)=numor(ia)+100000
+         call parget ('_rebin  ',xx,ia,ier)
+         if(ier.ne.0) xx = 1
+         xx = xx * ikz
+         call parset ('_rebin  ',xx,ia)
+
+         call parget ('_xwidth ',xx,ia,ier)
+         if(ier.ne.0) then
+           xx = xwerte(m/2+1,ia)-xwerte(m/2+1,ia)
+         else
+           xx = xx * ikz
+         endif
+         call parset ('_xwidth ',xx,ia)
+
+         
+
+         write(6,'(a,i4,a,i4)')'channels of[',ia,'] contracted by ',ikz 
+         enddo
+         goto 2000
+       endif
 !
+
+
+       if(comand.eq.'scale   ') then
+!                    ----->    Skalierung der Intesnitaet          
+!                              
+         if(ipars.ne.1) then
+           write(6,*)'ERROR: need just one value as parameter..'
+           ierrs = 1
+           goto 2000
+         endif
+
+         y_scaling =  rpar(1)
+
+         if(nsel.lt.1) then
+           write(6,*)'no items selected, use sel !'
+           goto 2000
+         endif
+
+!     >  copy first  
+         if(nsel+nbuf.gt.mbuf) then
+           write(6,*)'ERROR: copying selection would exceed max records'
+           goto 2000
+         endif 
+         do i=1,nsel
+           ia = isels(i)
+           ib = nbuf+1
+           write(6,*)'copy record: ',ia,' to record: ',ib
+           call DataCopy(ia,ib)
+           isels(i) = ib
+         enddo
+!     <  end copy
+ 
+         do i=1,nsel
+          ia = isels(i)
+          n  = nwert(ia)
+          do ik=1,n
+              ywerte(ik,ia) = ywerte(ik,ia) *y_scaling
+              yerror(ik,ia) = yerror(ik,ia) *y_scaling
+          enddo
+         numor(ia)=numor(ia)+200000
+
+         call par_gaint_scale(y_scaling,ia)
+
+
+         call parget ('_scale  ',xx,ia,ier)
+         if(ier.ne.0) xx = 1
+         xx = xx * y_scaling
+         call parset ('_scale  ',xx,ia)
+
+         write(6,'(a,i4,a,e13.6)')'values of[',ia,'] scaled by ',y_scaling 
+         enddo
+         goto 2000
+       endif
+!
+!
+!
+!
+       if(comand.eq.'gaiscale') then
+!                    -------->    Skalierung der Aufloesungsparameter
+!                              
+         if(ipars.ne.1) then
+           write(6,*)'ERROR: need just one value as parameter..'
+           ierrs = 1
+           goto 2000
+         endif
+
+         y_scaling =  rpar(1)
+
+         if(nsel.lt.1) then
+           write(6,*)'no items selected, use sel !'
+           goto 2000
+         endif
+ 
+         do i=1,nsel
+           call par_gaint_scale(y_scaling,isels(i))
+           write(6,'(a,i4,a,e13.6)')'ga#inten values of[',isels(i),'] scaled by ',y_scaling 
+         enddo
+         goto 2000
+       endif
+!
+
+
+
+
 !
        if(comand.eq.'interpol') then
 !                    ---->  interpolate
@@ -1437,6 +1910,29 @@ INCLUDE "commons.h"
          nwert(ib) = nn
          isels(1)  = ib
          nsel      = 1
+         goto 2000
+       endif
+!
+!
+       if(comand.eq.'addsels ') then
+!                    ---->  summation over selected records : will become obsolete due to name
+         call sumseldat
+         goto 2000
+       endif
+!
+!
+       if(comand.eq.'recsum  ') then
+!                    ---->  summation over selected records: the new one
+         if(found('from    ')) then
+           ia = intval('from    ',isels(1),inew)
+           ib = intval('to      ',isels(nsel),inew)
+           nsel = ib-ia+1
+           do i=1,nsel
+             isels(i) = ia-1+i
+           enddo
+           write(6,'(a,i4,a,i4)')'sum records from ',ia,' ... ',ib
+         endif
+         call sumseldat
          goto 2000
        endif
 !
@@ -1625,7 +2121,7 @@ INCLUDE "commons.h"
 !
        if(comand.eq.'fftmx   '.or.comand.eq.'fft-ms  ') then
 !                    ---> multiple scattering by fft
-           t1 = second()
+           t1 = 0
            if(numspl.eq.0.or.nwspl.eq.0) then
              write(6,*)'spline must be made prior to fft'
              goto 2000
@@ -1687,14 +2183,14 @@ INCLUDE "commons.h"
          call parset('trans   ',trans,ib)
          nwert(ib) = nx
          isels(1) = ib
-         t2 = second()
-         write(6,*)'done needed ',t2-t1,' sec cpu'
+         t2 = 0
+         write(6,*)'done '
          goto 2000
         endif
 !
        if(comand.eq.'dmx     ') then
 !                    ---> multiple scattering by fft
-           t1 = second()
+           t1 = 0
           ia = isels(1)
           if(nbuf.lt.mbuf)then
             nbuf=nbuf+1
@@ -1724,14 +2220,14 @@ INCLUDE "commons.h"
          call parset('trans   ',trans,ib)
          nwert(ib) = nfft
          isels(1) = ib
-         t2 = second()
-         write(6,*)'done needed ',t2-t1,' sec cpu'
+         t2 = 0
+         write(6,*)'done '
          goto 2000
         endif
 !
        if(comand.eq.'mux     ') then
 !                    ---> multiple scattering by fft
-           t1 = second()
+           t1 = 0
           ia = isels(1)
           if(nbuf.lt.mbuf)then
             nbuf=nbuf+1
@@ -1761,8 +2257,8 @@ INCLUDE "commons.h"
          call parset('trans   ',trans,ib)
          nwert(ib) = nfft
          isels(1) = ib
-         t2 = second()
-         write(6,*)'done needed ',t2-t1,' sec cpu'
+         t2 = 0
+         write(6,*)'done '
          goto 2000
         endif
 !
@@ -2344,7 +2840,7 @@ INCLUDE "commons.h"
              endif
            enddo
             if(ip.gt.0) then
-            write(fostring,'(a,i2,a)')'(',ip,'(1x,a8,f12.6))'
+            write(fostring,'(a,i4,a)')'(',ip,'(1x,a8,f12.6))'
             write(pastring,fostring)(dirpan(j),dirpav(j),j=1,ip)
             endif
            endif
@@ -2353,7 +2849,7 @@ INCLUDE "commons.h"
            if(iy.ne.0) then
            write(6,171) csel,i,numor(i),name(i),xname(i),yname(i)       &
      &    ,coment(i)(1:len_comm),pastring(1:ip*21)
-  171    format(1x,a1,i3,':#',i14,' : ',a8,':',a8,' vs ',a8,'>',a,' ',a)
+  171    format(1x,a1,i4,':#',i14,' : ',a8,':',a8,' vs ',a8,'>',a,' ',a)
            endif
   170    continue
 
@@ -2594,10 +3090,64 @@ INCLUDE "commons.h"
 !
        if(comand.eq.'dispsel '.or.comand.eq.'dsl     ') then
 !                    --------                ---
-          write(6,390)nsel,(isels(i),numor(isels(i)),ifits(i),i=1,nsel)
-  390     format(' selected items: ',i5/                                &
-     &           ' scan-address:  numor:      fit-address:'/            &
-     &           (1x,i8,5x,i8,5x,i8))
+!          write(6,390)nsel,(isels(i),numor(isels(i)),ifits(i),i=1,nsel)
+   390     format(' selected items: ',i5/                                &
+      &           ' scan-address:  numor:      fit-address:'/            &
+      &           (1x,i8,5x,i8,5x,i8))
+
+
+!
+!!============ this section is nearly identical to dir an should be cast into a subroutine
+
+         len_comm = intval('clength ',len_comm,inew)
+         if(len_comm.lt.1 ) len_comm=1
+         if(len_comm.gt.80) len_comm=80
+         if(inew.ne.0) then
+           jl=2
+         else
+           jl=1
+         endif
+
+         do  l=1,nsel
+             i = isels(l)
+            csel = ' '
+!           do j=1,nsel
+!             if(i.eq.isels(j)) csel = '!'
+!             if(i.eq.ifits(j)) csel = '-'
+!           enddo
+
+           ip = 0
+           iy = 1
+           pastring = ' '
+           fostring = ' '
+           if(inames.ge.jl) then
+           do j=jl,min(inames,20)
+             call parget(vname(j),pxxd,i,ier)
+             if(ier.eq.0) then
+               ip = ip+1
+               dirpan(ip) = vname(j)
+               dirpav(ip) = pxxd
+             else
+              iy=0
+             endif
+           enddo
+            if(ip.gt.0) then
+            write(fostring,'(a,i4,a)')'(',ip,'(1x,a8,f12.6))'
+            write(pastring,fostring)(dirpan(j),dirpav(j),j=1,ip)
+            endif
+           endif
+
+
+           if(iy.ne.0) then
+           write(6,'(1x,a1,i4,2H [,i4,1H],2H:#,i14,3H : ,a8,1H:,a8,4H vs ,a8,1H>,a,1x,a)') &
+     &     csel,i,ifits(l),numor(i),name(i),xname(i),yname(i)       &
+     &    ,coment(i)(1:len_comm),pastring(1:ip*21)
+           endif
+         enddo
+
+         if(numspl.ne.0)write(6,1711)numspl
+ 
+
          goto 2000
        endif
 !
@@ -2719,7 +3269,20 @@ INCLUDE "commons.h"
        endif
 !
        if(comand.eq.'fit     ') then
-         call fit
+         if(nsel.ge.1) then
+           call fit
+         else
+           write(*,*) 'No datarecord selected!'
+         endif
+         goto 2000
+       endif
+
+       if(comand.eq.'ga_fit  ') then
+         if(nsel.ge.1) then
+           call ga_fit
+         else
+           write(*,*) 'No datarecord selected!'
+         endif
          goto 2000
        endif
 
@@ -2870,7 +3433,7 @@ INCLUDE "commons.h"
       endif
 
       if(comand.eq.'chgthpar') then
-!                   --------> change singel theory parameters
+!                   --------> change single theory parameters
          call lsearch(jpar,itcal,ierr)
          if(ierr .eq. 0) then
            ithc  = nthtab(itcal)
@@ -3084,6 +3647,54 @@ INCLUDE "commons.h"
          goto 2000
        endif
 !
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! TOF-Stuff !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+       if(comand.eq.'tofdos  ') then
+!                    ---> remove points
+         if(nsel.eq.0) then
+           write(6,*)'no curve selected'
+           goto 2000
+         endif
+
+         Ommax  = getval('omegamax',Ommax,inew)
+         Nomega = intval('nomega  ',Nomega,inew)       
+
+         write(6,*)'Preparing Pseudo Density of states on grid'
+         write(6,*)'with ', Nomega,' points'
+         write(6,*)'spanning to: ',Ommax,' GHz '
+
+         do i=1,nsel
+          ia = isels(i)
+          if(nbuf.lt.mbuf) then 
+            nbuf = nbuf+1
+          else
+            Write(6,*)'max. number of buffers reached .. '
+            goto 2000   
+          endif
+
+          call  tof_dos(ia,nbuf,Ommax,Nomega,ierrr)
+          if(ierrr.ne.0) goto 2000
+          
+          isels(i) = nbuf
+           
+         enddo
+
+         goto 2000
+        endif
+!
+
+
+
+
+
+
+
+
+
+
+
+
 !
        call makro(comand)
 !
@@ -3092,3 +3703,125 @@ INCLUDE "commons.h"
 !
 !
       END ! Ende der Hauptschleife
+
+
+
+
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+       subroutine get_pair_of_points(xin1,yin1,yer1,n1, xin2,yin2,yer2,n2, xout, yout1, yerout1, yout2, yerout2, nout)
+!      ===============================================================================================================
+!
+       implicit none
+
+       real, intent(in)     :: xin1(n1), yin1(n1), yer1(n1)
+       real, intent(in)     :: xin2(n2), yin2(n1), yer2(n2)
+       integer, intent(in)  :: n1, n2
+
+       real, intent(out)    :: xout(nout), yout1(nout), yerout1(nout), yout2(nout), yerout2(nout) 
+       integer              :: nout
+         
+
+       integer              :: i, j, jc, ii
+       real                 :: x, xx, y1, y2, e1, e2, dist,p,y,ye
+ 
+       nout = 0
+! assuming nontrivial length check
+       if(n1.lt.2 .or. n2.lt.2) then
+         write(6,*)'at least one of the vectors has too few components:',n1,n2
+         return
+       endif
+! assuming equal length check
+       if(n1.ne.n2) then
+         write(6,*)'vectors have different number of components:',n1,n2
+         return
+       endif
+! assuming ordered vectors CHECK
+       do i=1,n1-1
+        if(xin1(i).ge.xin1(i+1)) then
+          write(6,*)'vector 1 is not ordered '
+          return
+        endif
+       enddo
+       do i=1,n2-1
+        if(xin2(i).ge.xin2(i+1)) then
+          write(6,*)'vector 2 is not ordered '
+          return
+        endif
+       enddo
+
+! do the assignments !
+       do i=1,n1
+!      search for matching points       
+!      1. closest mate
+         dist = abs(xin1(i)-xin2(1))
+         jc   = 1
+         do j=2,n2
+           xx = abs(xin1(i)-xin2(j))
+           if(xx.lt.dist) then
+              dist = xx
+              jc   = j
+           endif
+         enddo
+
+
+!        now our closest neighbour pair is i<-->jc
+!        if they are equal we are done
+         if(xin1(i).eq.xin2(jc)) then
+           nout = nout + 1
+           xout(nout)    = xin1(i)
+           yout1(nout)   = yin1(i)
+           yerout1(nout) = yer1(i)
+           yout2(nout)   = yin2(jc) 
+           yerout2(nout) = yer2(jc)
+           cycle
+        endif
+
+        if(xin1(i).lt.xin2(jc)) then
+          do ii=1,n1
+            if(xin1(ii).gt.xin2(jc)) then
+             exit
+            endif
+          enddo
+          p  = (xin2(jc)-xin1(i))/(xin1(ii)-xin1(i))
+          x  = xin2(jc)
+          y  = yin1(ii)*p + yin1(i)*(1d0-p)
+          ye = sqrt((yer1(ii)*p)**2+(yer1(i)*(1d0-p))**2)  !! this would be good if full statistical independeence
+                                                           !! is assumed, however interpolation creates correlation
+          nout = nout+1
+          xout(nout)    = x
+          yout1(nout)   = y
+          yerout1(nout) = ye
+          yout2(nout)   = yin2(jc)
+          yerout2(nout) = yer2(jc)
+          cycle
+        endif
+
+        if(xin1(i).gt.xin2(jc)) then
+          do ii=n1,1,-1
+            if(xin1(ii).lt.xin2(jc)) then
+             exit
+            endif
+          enddo
+          p  = (xin2(jc)-xin1(i))/(xin1(ii)-xin1(i))
+          x  = xin2(jc)
+          y  = yin1(ii)*p + yin1(i)*(1d0-p)
+          ye = sqrt((yer1(ii)*p)**2+(yer1(i)*(1d0-p))**2)
+          nout = nout+1
+          xout(nout)    = x
+          yout1(nout)   = y
+          yerout1(nout) = ye
+          yout2(nout)   = yin2(jc)
+          yerout2(nout) = yer2(jc)
+          cycle
+        endif
+         
+       enddo
+       
+
+       return
+       end subroutine get_pair_of_points

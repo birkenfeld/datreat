@@ -1805,6 +1805,8 @@
        use constants
        implicit none
 
+       integer :: ierrx
+
 ! --- internal use ---
        real*8 val
        integer i, ierr
@@ -1850,8 +1852,8 @@
 
        val = numstack(1)
 
-       call scan(formula,valnum,ierrs)
-       if(ierrs.ne.0 .and. iout.ge.1) write(6,*)'evaluate: ',(formula(i),i=0,len),' to ',val
+       call scan(formula,valnum,ierrx)
+       if(ierrx.ne.0 .and. iout.ge.1) write(6,*)'evaluate: ',(formula(i),i=0,len),' to ',val
 			 return
       END
 

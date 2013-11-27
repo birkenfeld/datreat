@@ -1,9 +1,10 @@
       FUNCTION thlorenz (x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
 !     ===================================================               
-!                                                                       
-! -------> lorenzian <----
-!                                                                       
-!                                                                       
+!     lorenzian 
+!        amp= pa (1)
+!        XX = (x - pa (3) )
+!        g =  pa (2)                                                           
+!        thlorenz = amp/pi *(g/2)**2/(XX**2+(g/2)**2)
       CHARACTER(8) thnam, parnam (20) 
       DIMENSION pa (20)
 		integer     , intent(inout) :: mbuf

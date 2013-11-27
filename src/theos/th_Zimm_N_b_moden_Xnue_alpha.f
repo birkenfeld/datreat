@@ -1,4 +1,4 @@
-      function nzimm_pna(x,pa,thnam,parnam,npar,idum,ini)
+      function th_nzimm_pna(x,pa,thnam,parnam,npar,idum,ini)
 c     ========================================
 c
 c      nzimm_pna 
@@ -11,6 +11,7 @@ c
        real*8    a0, sum, sumnorm, q_width, dqw, qzz, fn
        real*8    epsilon, diff, dr
        real*4    qget, tget
+       real*4    th_nzimm_pna
        integer   n,idum
        real*8    pmax, pwidth, nue, alpha 
  
@@ -20,13 +21,13 @@ c
 c
 c ----- initialisation -----
        if(ini.eq.0) then
-         thnam = 'nzimm_pna'
+         thnam = 'nzimm_pn'
          nparx = 11
          if(npar.lt.nparx) then
            write(6,1)thnam,nparx,npar
 1          format(' theory: ',a8,' no of parametrs=',i8,
      *      ' exceeds current max. = ',i8)
-           nzimm_pna = 0
+           th_nzimm_pna = 0
            return
          endif
          npar = nparx
@@ -34,17 +35,17 @@ c        --------------> set the number of parameters
          parnam(1) = 'intensit'    ! Intensität tau=0
          parnam(2) = 'etasolv'     ! Viscosität 
          parnam(3) = 'n_segmnt'    !number Chain elements
-         parnam(4) = 're      '   ! : re**2 = N * b**2 in Angstroem
+         parnam(4) = 're      '    ! : re**2 = N * b**2 in Angstroem
          parnam(5) = 'temp    '    ! temp 
          parnam(6) = 'com_diff'    ! Diffusion coefficient
          parnam(7) = 'q_width '    ! q width of detector (width for an averaging in q )
-         parnam(8) = 'p_max   '   ! : maximum mode that may move > 0
-         parnam(9) = 'p_width '   ! : width of transition regime f=1/(1+exp((p-pmax)/p_width))
-         parnam(10)= 'nue     '   ! : chain expansion parameter (Gaussian=1/2)
-         parnam(11)= 'alpha   '   ! : chain stiffness descriptor alpha*p**4
+         parnam(8) = 'p_max   '    ! : maximum mode that may move > 0
+         parnam(9) = 'p_width '    ! : width of transition regime f=1/(1+exp((p-pmax)/p_width))
+         parnam(10)= 'nue     '    ! : chain expansion parameter (Gaussian=1/2)
+         parnam(11)= 'alpha   '    ! : chain stiffness descriptor alpha*p**4
 
 c
-         nzimm_pna = 0
+         th_nzimm_pna = 0
          return
        endif
 c
@@ -79,7 +80,7 @@ c ---- calculate theory here -----
        endif
 
 
-      nzimm_pna     = 0
+      th_nzimm_pna     = 0
       sum     = 0
       sumnorm = 0
       nqw     = 15
@@ -102,13 +103,14 @@ c ---- calculate theory here -----
          sum = sum + fn*Sqt       
          sumnorm = sumnorm + Sq*fn
 
+
         endif
        enddo
 
        if(sumnorm.gt.0.0d0) then
-          nzimm_pna = a0*sum/sumnorm
+          th_nzimm_pna = a0*sum/sumnorm
        else
-          nzimm_pna = 0
+          th_nzimm_pna = 0
        endif 
 
        dr        = dr /( 1d-9 / 1d-16 ) ! in cm**2/s
@@ -196,7 +198,7 @@ c
 !         ff2  = -2*N*(l*q)**2/(3*pi**2)
 !         ff2  = -2*(dfloat(N)**(2*nue))*(l*q)**2/(3*pi**2)
           ff2  = -2*(R*q)**2/(3*pi**2)
-    
+!!!!!!!!!!!!!!!!!      write(6,*)'nm=',nn,mm,t
           arg2 = 0
 !         arg20= 0
           do p = 1,N
@@ -216,6 +218,8 @@ c
             
             ffc   = cos((pi*p*nn)/dfloat(N)) * cos((pi*p*mm)/dfloat(N))
             ffc   = ffc/(dfloat(p)**(2*nue+1.0d0)+alpha*dfloat(p)**(4))
+
+ !!!!!!!!!!!!!!!!!!          write(6,*)'p:',p,tau_p,rate_p
 
             arg2  = arg2  + ffc*e0
 !           arg20 = arg20 + ffc

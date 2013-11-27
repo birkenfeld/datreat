@@ -1,17 +1,21 @@
-      function th_kohl_q(x,pa,thnam,parnam,npar,idum,ini)
+      function th_ddiavo(x,pa,thnam,parnam,npar,idum,ini)
 c     ===================================================
 !
-!      kohlrausch in time
-!      kww-function with DWF and EISF
-!      Perez Aparcio, Arbe, Colmenro, Macromolecules 2006, 1060
+!      rotationl diffusion and translational diffusion
+!      see quasielastic models and paper: PHYSICAL REVIEW A VOLUME 38, NUMBER 5 SEPTEMBER 1, 1988
+!      Effect of rotational diffusion on quasielastic light scattering from fractal colloid aggregates
+!      H. M. Lindsay R. Klein et al
 !
+!      There is one zone of defined undrgoing rotational diffusion
+!      This zone may contain groups that diffuse according to dianoux volino inside a sphere
+!      if fraction is set to zero only dionoux volino is computed
 
 
        implicit none
        
        character*8 thnam,parnam(20)
    
-       real*4    x, pa, qq, th_kohl_q
+       real*4    x, pa, qq, th_ddiavo
        dimension pa(20),qq(3)
        integer   npar, ini, nparx,idum
 
@@ -53,63 +57,79 @@ c     ===================================================
 
        real*8 a,b, domega, o0
        real*8 adapint, sum, result, result2, err, erraccu
-       real*8 strex_kernel
-       external strex_kernel
+       real*8 strex_kernel_dd
+       external strex_kernel_dd
 
 ! communication with Kernel
  
 
-       real*8 Omega, str_beta, str_tau0, str_delta
-       common /cstrex1/Omega, str_beta, str_tau0, str_delta
+       real*8 Omega, xwidth, str_delta, qc, 
+     *       diffcm, rotdiff, 
+     *       r1i,r1o,frac1, r2i,r2o,frac2, r3i,r3o,frac3
+       integer lmax
+       common /cstkd0/Omega, xwidth, str_delta, qc,
+     *       diffcm, rotdiff, 
+     *       r1i,r1o,frac1, r2i,r2o,frac2, r3i,r3o,frac3, lmax
+
+       double precision rdivo, ddivo, zmxdivo
+       integer          lmxdivo
+       common /cstdivo/rdivo, ddivo, zmxdivo, lmxdivo
 
 
 
 c
 c ----- initialisation -----
        if(ini.eq.0) then
-         thnam = 'kohl_q'
-         nparx = 12
+         thnam = 'ddiavo'
+         nparx = 15
          if(npar.lt.nparx) then
            write(6,1)thnam,nparx,npar
 1          format(' theory: ',a8,' no of parametrs=',i8,
      *      ' exceeds current max. = ',i8)
-           th_kohl_q = 0
+           th_ddiavo = 0
            return
          endif
          npar = nparx
 c        --------------> set the number of parameters
          parnam(1) = 'intensit'          ! prefactor
-         parnam(2) = 'tau0'              ! KWW time-constant, prefactor in front of q-dependence
-         parnam(3) = 'beta'              ! streched exp, prefactor in front of-q-dependence
-         parnam(4) = 'epsilon '          ! accuracy parameter for FT-integrations (DO NOT FIT)
-         parnam(5) = 'omega0'            ! omega scale zero shift
-         parnam(6) = 'u_sqr'             ! <u**2> value for Debye-Waller-Factor
-         parnam(7) = 'j0'                ! jump length (if applicable)
-         parnam(8) = 'beta0'             ! beta offset
-         parnam(9) = 'qexp_t0'           ! q-exponent for tau0
-         parnam(10)= 'qexp_bet'          ! beta-exponent 
-         parnam(11)= 'bkgr'              ! constant background 
-	 parnam(12)= 'n_mg'              ! fraction of hydrogen in side chains
+         parnam(2) = 'diffcm'            ! diffusion constant  
+         parnam(3) = 'rotdiff'           ! rotational diffusion constant
+         parnam(4) = 'r1i'               ! first shell inner radius
+         parnam(5) = 'r1o'               ! frist shell outer radius
+         parnam(6) = 'frac1'             ! proton fraction in first shell
+         parnam(7) = 'rdivo'             ! radius of diffuion inside sphere
+         parnam(8) = 'ddivo'             ! diffusion constant inside sphere
+         parnam(9) = 'lmxdivo'           ! lmax for dianous volino
+         parnam(10)= 'zmxdivo'           ! zmax (for zeroes in Dianoux Volino
 
+         parnam(11) = 'epsilon '          ! accuracy parameter for FT-integrations (DO NOT FIT)
+         parnam(12) = 'omega0'            ! omega scale zero shift
+         parnam(13) = 'u_sqr'             ! <u**2> value for Debye-Waller-Factor
+         parnam(14) = 'xwidth'            ! channel integration witdth (see gauss2)
+         parnam(15) = 'lmax'              ! max l-summation limit for rotdiff
 
 c
-         th_kohl_q = 0
+         th_ddiavo = 0
          return
        endif
 c
 c ---- calculate theory here -----
-       o0           = x   -   pa(5)
+       o0           = x   -   pa(12)
        a0           = pa(1)
-       str_tau0     = abs(pa(2))
-       str_beta     = abs(pa(3))
-       epsilon      = abs(pa(4))
-       u_sqr        = abs(pa(6))
-       jlen         = pa(7)
-       beta0        = pa(8)
-       qexpt0       = pa(9)
-       qexpbeta     = pa(10)
-       bkgr         = pa(11)
-       nmg          = pa(12)
+       diffcm       = abs(pa(2))
+       rotdiff      = abs(pa(3))
+       r1i          = abs(pa(4))   
+       r1o          = abs(pa(5))   
+       frac1        = abs(pa(6))   
+       rdivo        = abs(pa(7))    
+       ddivo        = abs(pa(8))   
+       lmxdivo      = nint(pa(9))   
+       zmxdivo      = abs(pa(10))   
+
+       epsilon      = abs(pa(11))
+       u_sqr        = abs(pa(13))
+       xwidth       = pa(14)
+       lmax         = NINT(pa(15))
 
        if(epsilon.eq.0.0d0) epsilon = 1.0d-8
        maxit = 10000
@@ -126,15 +146,7 @@ c ---- calculate theory here -----
        endif
 
 
-! Apply the q-scalings
-       if(qz.gt.0.0d0) then
-         str_tau0 = str_tau0 * (1+jlen*qz**qexpt0)/(qz**qexpt0)
-         str_beta = str_beta * (qz**qexpbeta + beta0)
-       endif
 !
-! push these into the parameter section
-       call parset('tau0_q  ',sngl(str_tau0),iadda)
-       call parset('beta_q  ',sngl(str_beta),iadda)
 
 
 
@@ -252,15 +264,16 @@ c ---- calculate theory here -----
 
  100   continue
 
-        sum = 0 
+        qc   = qz
+        sum  = 0 
         do i=1,ng
     
          Omega     = o0 - gcenter(i)
          str_delta = abs(gwidth(i))
 
          a = 0
-         b = 9.0d0/str_delta
-         result  = adapint(strex_kernel,a,b,epsilon,maxit,erraccu)*2
+         b = 5.0d0/str_delta
+         result  = adapint(strex_kernel_dd,a,b,epsilon,maxit,erraccu)*2
 
          sum = sum + gampli(i)*result/(2*Pi)*sqrt(Pi)         
 
@@ -271,11 +284,8 @@ c ---- calculate theory here -----
 
        dwf  = exp(-u_sqr*qz*qz/3.0d0)
 
-       eisf = (1.0/3.0)*(1.0+2.0*(sin(qz*1.78)/(qz*1.78)))
+       th_ddiavo = a0*dwf*sum
 
-       th_kohl_q = a0*dwf*(1-nmg+(nmg*eisf))*sum + bkgr
-
-       th_kohl_q =  th_kohl_q + bgr_level + bgr_slope*o0
 c
        return
        end
@@ -283,18 +293,71 @@ c
 
 
 
-       function strex_kernel(t)
-!      ------------------------
+       function strex_kernel_dd(t)
+!      ---------------------------
        implicit none
 
-       real*8 strex_kernel, t
+       real*8 strex_kernel_dd, t
+       double precision dinsph_t
 
-       real*8 Omega, str_beta, str_tau0, str_delta
-       common /cstrex1/Omega, str_beta, str_tau0, str_delta
 
-       strex_kernel= 
-     *  exp(-(t/str_tau0)**str_beta) * 
-     *  exp(-1d0/4d0*(str_delta*t)**2) * cos(t*Omega)*str_delta    
+       real*8 Omega, xwidth, str_delta, qc,
+     *       diffcm, rotdiff, 
+     *       r1i,r1o,frac1, r2i,r2o,frac2, r3i,r3o,frac3
+       integer lmax
+       common /cstkd0/Omega, xwidth, str_delta, qc,
+     *       diffcm, rotdiff, 
+     *       r1i,r1o,frac1, r2i,r2o,frac2, r3i,r3o,frac3, lmax
+
+
+       double precision rdivo, ddivo, zmxdivo
+       integer          lmxdivo
+       common /cstdivo/rdivo, ddivo, zmxdivo, lmxdivo
+
+
+       double precision  sumtf, rri(3), rro(3), fr(3)
+       double precision  radial_bsjn2_integral
+       integer           i, l
+
+!       strex_kernel_k0= 
+!     *  exp(-(t/str_tau0)**str_beta) * 
+!     *  exp(-1d0/4d0*(str_delta*t)**2) * cos(t*Omega)*str_delta    
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! computing the time function                                             !!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+        sumtf = 0
+
+        if(frac1.gt.0d0) then
+!         ---> rotational diffusion of protons in a zone from r1i to r1o  <----    
+        do l=0,lmax
+           sumtf=sumtf + 
+     *             (2*l+1)*radial_bsjn2_integral(l,qc,r1i,r1o)*
+     *             exp(-l*(l+1)*rotdiff*t)
+        enddo
+        endif
+
+        sumtf = (1d0-frac1)+frac1*sumtf
+!       -------------------------------
+!
+        sumtf = sumtf * dinsph_t(qc,t,ddivo,rdivo,lmxdivo,zmxdivo)
+!       ---------------------------------------------------------- ! Multiply with Dianoux Volino
+!            assuming that local bound protons can diffuse inside a limited
+!            'sphere' of radisu rdivo
+        
+
+       
+        sumtf = sumtf * exp(-diffcm*qc*qc*t)
+
+
+        strex_kernel_dd= 
+     *  sumtf * 
+     *  exp(-1d0/4d0*(str_delta*t)**2) * 
+     *  (sin(-t*Omega+0.5d0*t*xwidth)+sin(t*Omega+0.5d0*t*xwidth))/    !! this replaces cos(t*Omega)
+     *  (t*xwidth) * str_delta                                         !! in order to yield the integral
+                                                                       !! over one channel width in omega
+
 
        return
        end

@@ -1,13 +1,10 @@
       FUNCTION fqsheet (x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
 !     ===================================================               
+!  formfactor squared of a multiple square well
 !                                                                       
-! -------> formfactor squared of a multiple square well                 
-!                                                                       
-!!     |-dn-|....|-d2-|--d1--|---d0---|--d1--|-d2-|....|-dn-|           
-!!       bn        b2    b1      b0      b1    b2        bn             
-!!                                                                      
-!!                                                                      
-!                                                                       
+!     |-dn-|....|-d2-|--d1--|---d0---|--d1--|-d2-|....|-dn-|
+!       bn        b2    b1      b0      b1    b2        bn
+!                                                                      
       CHARACTER(8) thnam, parnam (20) 
       DIMENSION pa (20), qq (3) 
       DOUBLEPRECISION d (10), b (10), c (10), sum, q 
@@ -25,7 +22,7 @@
             WRITE (6, 1) thnam, nparx, npar 
     1 FORMAT     (' theory: ',a8,' no of parametrs=',i8,                &
      &      ' exceeds current max. = ',i8)                              
-            fqsheet = 0
+            fqsheet = 0 
             RETURN 
          ENDIF 
          npar = nparx 
@@ -51,7 +48,7 @@
          parnam (19) = 'b8' 
          parnam (20) = 'b9' 
 !                                                                       
-         fqsheet = 0
+         fqsheet = 0 
          RETURN 
       ENDIF 
 !                                                                       
@@ -75,9 +72,9 @@
       sum = sum + b (i) * 2 * cos (c (i) * q) * sin (q * d (i) / 2) 
       enddo 
                                                                         
-      fqsheet = (2 / q) * sum
+      fqsheet = (2 / q) * sum 
                                                                         
-      fqsheet = fqsheet * fqsheet
+      fqsheet = fqsheet * fqsheet 
                                                                         
       RETURN 
-      END FUNCTION fqsheet
+      END FUNCTION fqsheet         

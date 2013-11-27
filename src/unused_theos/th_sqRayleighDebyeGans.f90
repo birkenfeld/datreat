@@ -1,10 +1,10 @@
-     FUNCTION doubsheq (x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf) 
-! formfactor squared of a double square-well
-!      dd = 0.5 * (pa (1) + pa (2) )
-!      doubsheq = (2/x)*(2*pa(3)*cos(dd*x)*sin(pa(1)*x*0.5)+pa(4)*sin(pa(2)*x*0.5))
-!      doubsheq = doubsheq * doubsheq 
-                                                                   
+      FUNCTION sqRDG (x, pa, thnam, parnam, npar, ini, nopar ,params,napar,mbuf) 
+!     ===================================================               
 !                                                                       
+!     RDG formfactor of a sphere 
+!                                                                       
+!                                                                       
+      PARAMETER (pi = 3.141592654) 
       CHARACTER(8) thnam, parnam (20) 
       DIMENSION pa (20), qq (3) 
 			integer :: mbuf
@@ -15,30 +15,32 @@
 !                                                                       
 ! ----- initialisation -----                                            
       IF (ini.eq.0) then 
-         thnam = 'doubsheq' 
-         nparx = 4 
+         thnam = 'sqRDG' 
+         nparx = 3 
          IF (npar.lt.nparx) then 
             WRITE (6, 1) thnam, nparx, npar 
     1 FORMAT     (' theory: ',a8,' no of parametrs=',i8,                &
      &      ' exceeds current max. = ',i8)                              
-            doubsheq = 0 
+            sqRDG = 0 
             RETURN 
          ENDIF 
          npar = nparx 
 !        --------------> set the number of parameters                   
-         parnam (1) = 'd_outer' 
-         parnam (2) = 'd_inner' 
-         parnam (3) = 'b_outer' 
-         parnam (4) = 'b_inner' 
+         parnam (1) = 'density' 
+         parnam (2) = 'r' 
+         parnam (3) = 'drho' 
 !                                                                       
-         doubsheq = 0 
+         sqRDG = 0 
          RETURN 
       ENDIF 
 !                                                                       
 ! ---- calculate theory here -----                                      
-      dd = 0.5 * (pa (1) + pa (2) ) 
-      doubsheq = (2/x)*(2*pa(3)*cos(dd*x)*sin(pa(1)*x*0.5)+pa(4)*sin(pa(2)*x*0.5))
-      doubsheq = doubsheq * doubsheq 
-                                                                        
+      r = pa (2) 
+      drho = pa (3) 
+      z = abs (x * r) 
+      aj1 = (sin (z) - z * cos (z) ) / (z**3) 
+      fj1qr = 4 * pi / 3 * r * r * r * drho * 3 * aj1 
+      sqRDG = fj1qr**2 * pa (1) 
+!                                                                       
       RETURN 
-      END FUNCTION doubsheq        
+      END FUNCTION sqRDG          

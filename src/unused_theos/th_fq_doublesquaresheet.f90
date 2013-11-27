@@ -1,9 +1,8 @@
       FUNCTION doubshee (x, pa, thnam, parnam, npar,  ini, nopar ,params,napar,mbuf)
 !     ===================================================               
+! formfactor squared of a double square-well
 !                                                                       
-! -------> formfactor squared of a double square-well                   
-!                                                                       
-!                                                                       
+      
       CHARACTER(8) thnam, parnam (20) 
       DIMENSION pa (40), qq (3) 
 			integer :: mbuf
@@ -20,7 +19,7 @@
             WRITE (6, 1) thnam, nparx, npar 
     1 FORMAT     (' theory: ',a8,' no of parametrs=',i8,                &
      &      ' exceeds current max. = ',i8)                              
-            doubshee = 0
+            doubshee = 0 
             RETURN 
          ENDIF 
          npar = nparx 
@@ -33,7 +32,7 @@
          parnam (6) = 'chi' 
 !                                                                       
                                                                         
-         doubshee = 0
+         doubshee = 0 
          RETURN 
       ENDIF 
 !                                                                       
@@ -46,15 +45,15 @@
                                                                         
 ! ---- calculate theory here -----                                      
       dd = 0.5 * (pa (1) + pa (2) ) 
-!       doubshee = (2/qz) * (2*pa(3)*cos(dd*qz)*sin(pa(1)*qz*0.5) +
+!       doubshee = (2/qz) * (2*pa(3)*cos(dd*qz)*sin(pa(1)*qz*0.5) +         
 !     *                   pa(4)*sin(pa(2)*qz*0.5) )                     
                                                                         
       hv = (2 / qz) * pa (4) * sin (0.5 * pa (2) * qz) + 2 * pa (3)     &
       * ( (sin (0.5 * (2 * pa (1) + pa (2) ) * qz) ) / qz - sin (0.5 *  &
       pa (2) * qz) / qz)                                                
                                                                         
-      doubshee = hv * hv
+      doubshee = hv * hv 
                                                                         
 !                                                                       
       RETURN 
-      END FUNCTION doubshee
+      END FUNCTION doubshee                           

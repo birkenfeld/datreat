@@ -17,6 +17,13 @@
        integer icolo, irecv, isymb, ifrec
        dimension x(mwert),y(mwert),irecv(minc),     &
      &          isymb(minc),icolo(minc),ifrec(minc)
+
+       real, save       :: p0_scale(minc) = 1.0
+       real             :: p_scale(minc)
+
+       integer          :: inew
+       double precision :: valnxt, getval
+
        dimension e(mwert)
        data icolo/minc * 0/
 
@@ -198,6 +205,20 @@
         return
       endif
 !
+scl:   if(found('scaled  ')) then
+         p0_scale(1) = getval('scaled  ',dble(p0_scale(1)),inew)
+         do i=2,minc
+          p0_scale(i) = valnxt(dble(p0_scale(i)),inew)
+          if(inew.eq.0) exit
+         enddo
+          p_scale(1:minc) = p0_scale(1:minc)
+       else
+          p_scale(1:minc) = 1.0
+       endif scl
+
+
+
+
 !
 !      write(*,*)' entering plot section .....'
 !
@@ -283,7 +304,7 @@
         do 70010 j=1,npicf
           if(xwerte(j,irfcu).ge.xmin.and.xwerte(j,irfcu).le.xmax) then
             nnpi = nnpi + 1
-            y(nnpi) = ywerte(j,irfcu)
+            y(nnpi) = ywerte(j,irfcu) * p_scale(i)
 !!          if(y(nnpi).lt.ymin) y(nnpi) = ymin-(ymax-ymin)*0.02
             if(y(nnpi).lt.ymin) y(nnpi) = ymin
             if(y(nnpi).gt.ymax) y(nnpi) = ymax
@@ -328,7 +349,7 @@
         do 20010 j=1,npicf
           if(xwerte(j,ircf).ge.xmin.and.xwerte(j,ircf).le.xmax) then
             nnpi = nnpi + 1
-            y(nnpi) = ywerte(j,ircf)
+            y(nnpi) = ywerte(j,ircf) * p_scale(i)
             if(y(nnpi).lt.ymin) y(nnpi) = ymin-(ymax-ymin)*0.02
             if(y(nnpi).gt.ymax) y(nnpi) = ymax+(ymax-ymin)*0.02
             x(nnpi) = xwerte(j,ircf)
@@ -359,11 +380,11 @@
         do 2001 j=1,npic
           if(xwerte(j,ircu).ge.xmin.and.xwerte(j,ircu).le.xmax) then
             nnpi = nnpi + 1
-            y(nnpi) = ywerte(j,ircu)
-            x(nnpi) = xwerte(j,ircu)
+            y(nnpi) = ywerte(j,ircu) * p_scale(i)
+            x(nnpi) = xwerte(j,ircu) 
             if(y(nnpi).lt.ymin) y(nnpi) = ymin-(ymax-ymin)*0.02
             if(y(nnpi).gt.ymax) y(nnpi) = ymax+(ymax-ymin)*0.02
-            e(nnpi) = yerror(j,ircu)
+            e(nnpi) = yerror(j,ircu) * p_scale(i)
 
             if(log_x) then
               if(x(nnpi).ne.0.0) then
@@ -441,6 +462,9 @@
          ltext = 20./txsize
          if(ltext.gt.74) ltext=74
          call grtxt(xtx,ytx,ltext,title)
+         if(found('scaled  ')) then
+            call grtxt(xtx,ytx-0.05*(ymax-ymin),6,'SCALED')
+         endif
 ! ---- set textwindow ----
 !
          call grsclc(0.,0.,39.5,28.7)
@@ -490,7 +514,7 @@
 ! ---- plotted items ----
          do 101 i=1,nkurv
            ircu = isels(i)
-           write(xtext,'(a8,i14)') name(ircu),numor(ircu)
+           write(xtext,'(a8,i14,a7,e13.6)') name(ircu),numor(ircu),' scale ',p_scale(i)
            xtxs = xtx - 2*txsizt
            ytxs = ytx + txsizt / 2
            icco=mod(icolo(i),7) + 1
@@ -500,7 +524,7 @@
            else
              call grtxt(xtxs,ytxs,1,'-')
            endif
-           call grtxt(xtx,ytx,22,xtext)
+           call grtxt(xtx,ytx,42,xtext)
            ytx = ytx - 1.7 * txsizt
            call grtxt(xtx,ytx,80,coment(ircu))
            ytx = ytx - 1.7 * txsizt
@@ -523,7 +547,7 @@
 
            ircu = ifits(i)
            if(ircu.gt.0) then
-             write(xtext,'(a8,i14)') name(ircu),numor(ircu)
+             write(xtext,'(a8,i14,a7,e13.6)') name(ircu),numor(ircu),' scale ',p_scale(i)
              xtxs = xtx - 2*txsizt
              ytxs = ytx + txsizt / 2
              icco=mod(icolo(i),7) + 1
@@ -533,7 +557,7 @@
              else
                call grtxt(xtxs,ytxs,1,'-')
              endif
-             call grtxt(xtx,ytx,22,xtext)
+             call grtxt(xtx,ytx,42,xtext)
              ytx = ytx - 1.7 * txsizt
              call grtxt(xtx,ytx,80,coment(ircu))
              ytx = ytx - 1.7 * txsizt

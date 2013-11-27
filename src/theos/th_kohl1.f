@@ -1,17 +1,19 @@
+      function th_kohl1(x,pa,thnam,parnam,npar,idum,ini)
+c     ==================================================
+!
+!      kohlrausch in time
+!      kww-function with DWF and EISF
+!      Perez Aparcio, Arbe, Colmenro, Macromolecules 2006, 1060
+!
 
-      function th_ln_bss(x,pa,thnam,parnam,npar,idum,ini)
-c     ===================================================
-!
-!    lognormal distribution of relaxation in FT with gaussian convolution 
-!
-c
+
        implicit none
        
        character*8 thnam,parnam(20)
    
-       real*4    x, pa, qq, th_ln_bss
+       real*4    x, pa, qq, th_kohl1
        dimension pa(20),qq(3)
-       integer   npar, ini, nparx, idum
+       integer   npar, ini, nparx,idum
 
        integer mgaussians
        parameter(mgaussians=10)
@@ -23,6 +25,8 @@ c
        real*8    tau, tau0, beta, a0, epsilon
        real*8    qz
        real*4    tget, temp, qget
+
+       real*4    bgr_level, bgr_slope
 
        real*4    gampli (mgaussians)
        real*4    gwidth (mgaussians)
@@ -43,75 +47,69 @@ c
        common/thiadd/iadda
 
 
-       real*8 omega0, u_sqr, dwf
-       real*8 qcenter, qband, qexpt0, qexpbeta, bkgr 
-       real*8 jlen, beta0       
+       real*8 omega0, u_sqr, dwf, eisf
+       real*8 qcenter, qband, qexpt0, qexpbeta, bkgr, nmg 
+       real*8 jlen, beta0
 
        real*8 a,b, domega, o0
        real*8 adapint, sum, result, result2, err, erraccu
-       real*8 lognor_kernel
-       external lognor_kernel
+       real*8 strex_kernel_k1
+       external strex_kernel_k1
 
 ! communication with Kernel
  
 
-       real*8 Omega, str_beta, str_tau0, str_delta
-       common /cstrex1/Omega, str_beta, str_tau0, str_delta
+       real*8 Omega, str_beta, str_tau0, str_delta, xwidth
+       real*8 diffcm, qdc
+       common /cstrex11/Omega, str_beta, str_tau0, str_delta, xwidth
+     *                  ,diffcm, qdc
 
-       real*8 ln_tau0, ln_beta, ln_width, cl_t
-       common /clognor/ ln_tau0, ln_beta, ln_width, cl_t
-
-       double precision :: xwidth
-       common /csxwidth/ xwidth
 
 c
 c ----- initialisation -----
        if(ini.eq.0) then
-         thnam = 'ln_bss1'
+         thnam = 'kohl1'
          nparx = 8
          if(npar.lt.nparx) then
            write(6,1)thnam,nparx,npar
 1          format(' theory: ',a8,' no of parametrs=',i8,
      *      ' exceeds current max. = ',i8)
-           th_ln_bss = 0
+           th_kohl1 = 0
            return
          endif
          npar = nparx
 c        --------------> set the number of parameters
          parnam(1) = 'intensit'          ! prefactor
-         parnam(2) = 'lntau0'            ! center of lognormal time constant
-         parnam(3) = 'beta'              ! extra streched exp in kernel relaxation
+         parnam(2) = 'tau0'              ! KWW time-constant, prefactor in front of q-dependence
+         parnam(3) = 'beta'              ! streched exp, prefactor in front of-q-dependence
          parnam(4) = 'epsilon '          ! accuracy parameter for FT-integrations (DO NOT FIT)
          parnam(5) = 'omega0'            ! omega scale zero shift
-         parnam(6) = 'u_sqr'             ! < u*u> value for Debye-Waller-Factor
-         parnam(7) = 'lnwidth'           ! lognormal width
-         parnam(8) = 'xwidth'            ! channel width
-
-
-
+         parnam(6) = 'u_sqr'             ! <u**2> value for Debye-Waller-Factor
+         parnam(7) = 'xwidth'            ! channel integration witdth (see gauss2)
+         parnam(8) = 'diffcm'            ! diffusion on top
 
 c
-         th_ln_bss = 0
+         th_kohl1 = 0
          return
        endif
 c
 c ---- calculate theory here -----
        o0           = x   -   pa(5)
        a0           = pa(1)
-       ln_tau0      = pa(2)
-       ln_beta      = abs(pa(3))
+       str_tau0     = abs(pa(2))
+       str_beta     = abs(pa(3))
        epsilon      = abs(pa(4))
        u_sqr        = abs(pa(6))
-       ln_width     = pa(7)
-       xwidth       = pa(8)
+       xwidth       = pa(7)
+       diffcm       = pa(8)
 
-     
        if(epsilon.eq.0.0d0) epsilon = 1.0d-8
-       maxit = 1000
+       maxit = 10000
 
         qget = 0.0
         call        parget('q       ',qget,iadda,ier)
         qz   = qget
+        qdc  = qz
         if(ier.ne.0) write(6,*)'Warning q not found' 
 
        if(temp.eq.0.0d0) then
@@ -119,7 +117,6 @@ c ---- calculate theory here -----
          call        parget('temp    ',tget,iadda,ier)
          temp = tget
        endif
-
 
        if(xwidth.eq.0.0d0) then
          call        parget('_xwidth ',tget,iadda,ier)
@@ -130,6 +127,11 @@ c ---- calculate theory here -----
          write(6,*)'ATTENTION XWIDTH = 0 set 0.1 to avoud crash'
          xwidth = 0.1
        endif
+       
+!
+! push these into the parameter section
+       call parset('tau0_q  ',sngl(str_tau0),iadda)
+       call parset('beta_q  ',sngl(str_beta),iadda)
 
 
 
@@ -140,6 +142,11 @@ c ---- calculate theory here -----
 !      g = ampli*exp(-((x-center)/width)**2)
 !      -------------------------------------
 
+       bgr_level = 0
+       bgr_slope = 0
+ 
+       call        parget('bk1level',bgr_level ,iadda,ier)
+       call        parget('bk1slope',bgr_slope ,iadda,ier)
 
        gampli(1)   = 1d0
        gwidth(1)   = 1d0
@@ -250,7 +257,7 @@ c ---- calculate theory here -----
 
          a = 0
          b = 9.0d0/str_delta
-         result  = adapint(lognor_kernel,a,b,epsilon,maxit,erraccu)*2
+         result  = adapint(strex_kernel_k1,a,b,epsilon,maxit,erraccu)*2
 
          sum = sum + gampli(i)*result/(2*Pi)*sqrt(Pi)         
 
@@ -260,8 +267,9 @@ c ---- calculate theory here -----
         enddo
 
        dwf  = exp(-u_sqr*qz*qz/3.0d0)
- 
-       th_ln_bss = a0*dwf*sum 
+
+       th_kohl1 = a0*dwf*sum
+
 c
        return
        end
@@ -269,98 +277,31 @@ c
 
 
 
-       function lognor_kernel(t)
-!      ------------------------
+       function strex_kernel_k1(t)
+!      ---------------------------
        implicit none
 
-       real*8 lognor_kernel, t
-       real*8 f_lognor
+       real*8 strex_kernel_k1, t
 
-       real*8 Omega, str_beta, str_tau0, str_delta
-       common /cstrex1/Omega, str_beta, str_tau0, str_delta
+       real*8 Omega, str_beta, str_tau0, str_delta, xwidth
+       real*8 diffcm, qdc
+       common /cstrex11/Omega, str_beta, str_tau0, str_delta, xwidth
+     *                  ,diffcm, qdc
 
-       double precision :: xwidth
-       common /csxwidth/ xwidth
-
-       lognor_kernel= 
-     *  f_lognor(t) * 
+!       strex_kernel_k1= 
+!     *  exp(-(t/str_tau0)**str_beta) * 
 !     *  exp(-1d0/4d0*(str_delta*t)**2) * cos(t*Omega)*str_delta    
-     *  exp(-1d0/4d0*(str_delta*t)**2) *    
+
+        strex_kernel_k1= 
+     *  exp(-(t/str_tau0)**str_beta - diffcm*qdc*qdc*t) * 
+     *  exp(-1d0/4d0*(str_delta*t)**2) * 
      *  (sin(-t*Omega+0.5d0*t*xwidth)+sin(t*Omega+0.5d0*t*xwidth))/    !! this replaces cos(t*Omega)
      *  (t*xwidth) * str_delta                                         !! in order to yield the integral
+                                                                       !! over one channel width in omega
+
 
        return
        end
 
 
 
-       function f_lognor(t)
-!      --------------------
-       implicit none
-
-       real*8 f_lognor, t
-
-       real*8 Omega, str_beta, str_tau0, str_delta
-       common /cstrex1/Omega, str_beta, str_tau0, str_delta
-
-       real*8 ln_tau0, ln_beta, ln_width, cl_t
-       common /clognor/ ln_tau0, ln_beta, ln_width, cl_t
-
-       real*8 a,b
-       real*8 a2dapint, result, err, erraccu, epsilon
-
-       integer maxit
-
-       real*8   lnor_kernel
-       external lnor_kernel
-
-
-       maxit   =  500
-       epsilon =  1d-5
-
-
-       cl_t = t
-       a    = ln_tau0-4*ln_width
-       b    = ln_tau0+4*ln_width
-        
-       f_lognor  = a2dapint(lnor_kernel,a,b,epsilon,maxit,erraccu)
-
-       return
-       end
-
-
-
-       function lnor_kernel(lt)
-!      -----------------------
-       implicit none
-
-       double precision Pi
-       parameter(Pi=3.141592654d0)
-
-
-       real*8 lnor_kernel, lt
-
-       real*8 Omega, str_beta, str_tau0, str_delta
-       common /cstrex1/Omega, str_beta, str_tau0, str_delta
-
-       real*8 ln_tau0, ln_beta, ln_width, cl_t
-       common /clognor/ ln_tau0, ln_beta, ln_width, cl_t
-
-
-       real*8 arg1, arg2, arg
-
-
-       arg1 = -((lt-ln_tau0)/ln_width)**2
-       arg2 = -(cl_t/exp(lt))**ln_beta
- 
-       arg  = arg1+arg2
-
-       if(arg.lt.-50d0) arg = -50d0
-    
-
-       lnor_kernel = exp(arg)/(sqrt(Pi)*ln_width)
-
-
-      
-       return
-       end
