@@ -1,0 +1,89 @@
+makro
+c
+c do the resolution fitting with the genetic-algorithm ga-fit TEST 
+c
+cms cp lastth lastth_x
+c
+set ym (maxy)
+set xc -centerx
+if (ym) > 0 then goto :j1
+  set ym 1
+:j1
+dac
+ac gauss
+chgthpar gauss 1 intensit  par (ym)     scale (ym) 
+chgthpar gauss 1 width     par (1)      scale (1)
+chgthpar gauss 1 center    par 0        scale (0.1)
+
+fit
+
+
+set w1 (width*2)
+set cx (center)
+
+
+dac
+ac gauss
+ac gauss
+ac gauss
+ac gauss
+ac gauss
+ac gauss
+ac gauss
+c ac bkgr
+
+
+
+set rw 1.5
+
+chgthpar gauss 1 intensit  par (ym)     scale (rw*ym) 
+chgthpar gauss 1 width     par (w1/2)     scale (rw*w1)
+chgthpar gauss 1 center    par (cx)     scale (rw*w1/3)
+
+chgthpar gauss 2 intensit  par 0.2*ym   scale (rw*0.4*ym)
+chgthpar gauss 2 width     par (w1/2)     scale (rw*2*w1)
+chgthpar gauss 2 center    par (w1/4)   scale (rw*w1)
+
+chgthpar gauss 3 intensit  par 0.2*ym   scale (rw*0.4*ym)
+chgthpar gauss 3 width     par (w1/2)     scale (rw*2*w1)
+chgthpar gauss 3 center    par (-w1/4)  scale (rw*w1)
+
+chgthpar gauss 4 intensit  par 0.1*ym   scale (rw*0.2*ym)
+chgthpar gauss 4 width     par (w1)   scale (rw*2*w1)
+chgthpar gauss 4 center    par (w1)   scale (rw*2*w1)
+
+chgthpar gauss 5 intensit  par 0.1*ym   scale (rw*0.2*ym)
+chgthpar gauss 5 width     par (w1)   scale (rw*2*w1)
+chgthpar gauss 5 center    par (-w1)  scale (rw*2*w1)
+
+chgthpar gauss 6 intensit  par 0.1*ym   scale (rw*0.2*ym)
+chgthpar gauss 6 width     par (w1)   scale (rw*6*w1)
+chgthpar gauss 6 center    par (-w1)  scale (rw*6*w1)
+
+chgthpar gauss 7 intensit  par 0.1*ym   scale (rw*0.2*ym)
+chgthpar gauss 7 width     par (w1/4)   scale (rw*2*w1/4)
+chgthpar gauss 7 center    par (0)  scale (rw*2*w1/4)
+
+c chgthpar bkgr  1  level     par 0.001*ym scale (rw*0.002*ym)
+c chgthpar bkgr  1  slope     par 0       scale 0
+
+
+ 
+ iout -2
+
+c ga_fit npop 100 ngen 100 mutation 0.001 bits 12 trace -1 x1 -4*w1 x2 4*w1 go
+ ga_fit npop 100 ngen 100 mutation 0.003 bits 10 trace -1 x1 -4*w1 x2 4*w1 go
+
+plot xmin -5*w1 xmax 5*w1 ymin 0.001*ym ymax (1.1*ym) errplo log_y
+
+ fit
+plot xmin -5*w1 xmax 5*w1 ymin 0.001*ym ymax (1.1*ym) errplo log_y
+ ga_fit trace -1  go
+plot xmin -5*w1 xmax 5*w1 ymin 0.001*ym ymax (1.1*ym) errplo log_y
+
+ iout 0
+ fit
+
+ 
+ plot xmin -5*w1 xmax 5*w1 ymin 0.001*ym ymax (1.1*ym) errplo log_y
+ plot lin_y  

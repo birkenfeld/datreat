@@ -215,7 +215,7 @@
       REAL arg_I0 
                                                     !<- IMSL            
       REAL BSI0, BSI0E 
-      REAL(8) DBSI0, DBSI0E 
+      REAL*8 DBSI0, DBSI0E, dbesi0e 
                                                                         
       qs = q / sigmasqr 
       arg_exp = - 0.5 * (q**2 + q0**2) / sigmasqr 
@@ -225,7 +225,7 @@
       IF (arg2.lt. - 15.0) then 
          resker = 0.0 
       ELSE 
-         resker = qs * exp (arg_exp + arg_I0) * BSI0E (arg_I0) 
+         resker = qs * exp (arg_exp + arg_I0) * dBSI0E ( dble(arg_I0)) 
 !         resker = qs*   exp(arg2)                                      
       ENDIF 
 !                                                                       

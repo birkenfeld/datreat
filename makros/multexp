@@ -1,0 +1,48 @@
+makro
+
+dac
+ac strexpo
+ac strexpo
+ac bkgr
+
+set rw 2
+set ya 0.5
+
+set tx 20000
+set wt 20000
+
+set bx 0.7
+set bt 0.3
+
+:j1
+
+chgthpar strexpo 1 amplitu   par (ya)     scale (rw*ya)
+chgthpar strexpo 1 tau       par (tx)     scale (rw*wt)
+chgthpar strexpo 1 beta      par (bx)     scale (rw*bt)
+chgthpar strexpo 1 qexp      par 0        scale 0
+
+chgthpar strexpo 2 amplitu   par (ya)     scale (rw*ya)
+chgthpar strexpo 2 tau       par (tx)     scale (rw*wt)
+chgthpar strexpo 2 beta      par (bx)     scale (rw*bt)
+chgthpar strexpo 2 qexp      par 0        scale 0
+
+chgthpar  bkgr    1 level     par (ya)     scale (rw*ya)
+chgthpar  bkgr    1 slope     par (0)      scale (0)
+
+
+iout -2
+ga_fit npop 200 ngen 100 mutation 0.002 bits 18 trace 0 go
+iout 0
+
+c plot xmin 0 xmax (maxx*1.3) ymin 0 ymax 1 errplo 
+
+?? +ssq
+
+if (ssq) > 2 then goto :j1
+
+c fit
+  plot xmin 0 xmax (maxx*1.3) ymin 0 ymax 1 errplo 
+
+  fit
+  plot xmin 0 xmax (maxx*1.3) ymin 0 ymax 1 errplo 
+

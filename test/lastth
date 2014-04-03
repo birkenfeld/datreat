@@ -1,6 +1,15 @@
- theory   strexpo                                                                         
-      amplitu    0.1000E-01  0.0E+00  0.00E+00
-      tau        0.1000E+02  0.0E+00  0.00E+00
-      beta       0.7000E+00  0.0E+00  0.00E+00
-      qexp       0.0000E+00  0.0E+00  0.00E+00
+ theory   rouse_ap                                                                        
+      intensit   0.1000E+01  0.0E+00  0.00E+00
+      wl4        0.1000E+05  0.0E+00  0.00E+00
+      nsegment   0.1000E+03  0.0E+00  0.00E+00
+      l0         0.1000E+01  0.0E+00  0.00E+00
+      diff       0.1000E-19  0.0E+00  0.00E+00
+ theory   rouse                                                                           
+      intensit   0.0000E+00  0.0E+00  0.00E+00
+      xi_frict   0.3121E+09  0.1E+10  0.14E+09
+      b_segmnt   0.5000E+01  0.0E+00  0.00E+00
+      epsilon    0.0000E+00  0.0E+00  0.00E+00
+      temp       0.3000E+03  0.0E+00  0.00E+00
+      com_diff   0.1000E-09  0.0E+00  0.00E+00
+      q_width    0.0000E+00  0.0E+00  0.00E+00
  end

@@ -1,0 +1,25 @@
+makro
+purge all
+inbulk
+
+set nnn 4
+
+sel (nnn)
+fun y* 1/0.98
+set s1 (sel)
+
+sel (nnn+8)
+fun y* 1/0.95
+set s2 (sel)
+
+sel (nnn+8*2)
+fun y* 1/0.9
+set s3 (sel)
+
+sel (nnn+8*3)
+fun y* 1/0.77
+set s4 (sel)
+
+
+sel +s1 +s2 +s3 +s4
+plot
