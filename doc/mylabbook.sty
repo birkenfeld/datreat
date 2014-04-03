@@ -1,0 +1,90 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% mylabbook.sty %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                            %
+%   adapted from:                                                            %
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ferienschule_067.sty %%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                                            %
+%         LaTeX Style für Manuskripte der IFF Ferienschule 2007              %
+%                                                                            %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%S%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%
+% by R. G. Winkler, Theory II, 27/09/05
+%
+
+
+
+\typeout{Option '!!!!!!!!!!!!! mylabbook !!!!!!!!!!!!'.}                 
+
+\usepackage{times}
+\usepackage{latexsym}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amstext}
+\usepackage{psfig}
+\usepackage{epsfig}
+\usepackage{makeidx}
+\usepackage{graphicx}
+\usepackage{bm}
+
+
+\makeindex
+
+\parindent0pt
+\renewcommand{\arraystretch}{1.1}
+
+\newcommand{\PBS}[1]{\let\temp=\\#1\let\\=\temp} 
+
+%%%% declaration of title part
+
+\newcommand{\MakeTitel}{
+\thispagestyle{empty}
+\renewcommand{\baselinestretch}{1.15}
+%%\sf
+\Large
+\begin{tabular}{@{}p{0.1\linewidth} p{0.85\linewidth}@{}}
+{\LARGE\bf\ThePart \vspace*{2ex} \LARGE\bf\TheChapter} 
+            & \PBS\raggedright  {\LARGE \bf \TheTitle} \\[3ex]
+            & \PBS\raggedright   {\TheAuthor} \\
+            & \PBS\raggedright   {\TheInstitute} \\
+            & \PBS\raggedright   {\TheAddress} \\[17ex]
+\end{tabular} 
+\renewcommand{\baselinestretch}{1.1} %1.0
+\rm
+\normalsize}
+
+
+%%%% figure caption style: bold Fig. and italic figure caption
+
+\renewcommand{\@makecaption}[2]{
+ \vskip\abovecaptionskip
+ \sbox\@tempboxa{#1: #2}%
+    {{\bf #1:} \it #2 \par} 
+ \vskip\belowcaptionskip}
+
+\renewcommand\figurename{Abb.} 
+
+%%%% page layout 
+
+\usepackage{vmargin}
+
+\setpapersize{A4}
+\setmargins{2.6cm}{1.6cm}%     % linker & oberer Rand
+           {16.0cm}{24.0cm}%   % Textbreite und -hoehe
+           {12pt}{25pt}%       % Kopfzeilenhoehe und -abstand
+           {0pt}{30pt}%        % footheight (egal) und Fusszeilenabstand%
+           
+%%\topmargin-0mm
+
+%%%% headings with particular text declared in the file
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhead[ER]{\TheHeading \hskip 5pt   \TheChapter.\thepage}
+\fancyhead[OL]{\TheHeading \hskip 5pt   \TheChapter.\thepage}
+\fancyhead[OR]{\TheAuthor, \TheInstitute}
+\fancyhead[EL]{\TheAuthor, \TheInstitute}
+\fancyfoot[C]{--\thepage--}
+
+\endinput
