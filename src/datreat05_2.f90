@@ -47,8 +47,7 @@
       use wlntran
       use sqtran
       use constants
-!      use physconstants
-      use physconstants
+      use PhysicalConstantsPlus
       use unift
       implicit none
 

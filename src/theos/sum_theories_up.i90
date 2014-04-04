@@ -200,44 +200,44 @@
            goto 250
 29        continue
            if(imu) then
+              sum=sum*th_polym1(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+           else
+               sum=sum+th_polym1(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+           endif
+           goto 250
+30        continue
+           if(imu) then
+              sum=sum*th_polym2(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+           else
+               sum=sum+th_polym2(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+           endif
+           goto 250
+31        continue
+           if(imu) then
               sum=sum*th10(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
            else
                sum=sum+th10(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
            endif
            goto 250
-30        continue
+32        continue
            if(imu) then
               sum=sum*riggch(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
            else
                sum=sum+riggch(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
            endif
            goto 250
-31        continue
-           if(imu) then
-              sum=sum*roused(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
-           else
-               sum=sum+roused(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
-           endif
-           goto 250
-32        continue
+33        continue
            if(imu) then
               sum=sum*rouse(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
            else
                sum=sum+rouse(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
            endif
            goto 250
-33        continue
+34        continue
            if(imu) then
               sum=sum*srouse(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
            else
                sum=sum+srouse(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
-           endif
-           goto 250
-34        continue
-           if(imu) then
-              sum=sum*rouseX(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
-           else
-               sum=sum+rouseX(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
            endif
            goto 250
 35        continue

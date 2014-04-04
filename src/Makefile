@@ -63,13 +63,13 @@ LDFLAGS = -DPATH_TO_LOCAL_DATREAT=\"$(LOCAL)\"
 
 OBJS = datreat05_2.o dataconvolution4.o dtpur.o util_get_y_value.o \
  incom.o utilux.o datreat2xmgrace.o incom_subroutines.o \
-datreat_subroutines.o PhysicalConstants.o commons_mod.o unift.o 
+datreat_subroutines.o PhysicalConstantsPlus.o commons_mod.o unift.o 
 
 LIBS = theos/libtheos.a \
 lib/dtpurcollection/libdtpurcollection.a lib/fftpack5/libfftpack.a \
 lib/slatec/libslatec.a lib/sminpack/libsminpack.a
 
-MODS = PhysicalConstants.f90 commons_mod.f90 unift.f90
+MODS = PhysicalConstantsPlus.f90 commons_mod.f90 unift.f90
 
 .F90.o:
 	$(FC) -c $(FFLAGS) $(LDFLAGS) $(MODS) $<

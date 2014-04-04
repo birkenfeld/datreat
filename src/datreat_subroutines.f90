@@ -2250,7 +2250,7 @@
        use cdata
        use outlev
        use constants
-       use PhysConstants
+       use PhysicalConstantsPlus
 
        implicit none
        integer ln, le, la, lx, ly, ji, inew, i, ier
@@ -2432,7 +2432,7 @@
        use cdata
        use outlev
        use constants
-       use PhysConstants
+       use PhysicalConstantsPlus
 
        implicit none
        integer ln, le, la, lx, ly, ji, inew, i, ier
@@ -2760,7 +2760,7 @@
        use cdata
        use outlev
        use constants
-       use PhysConstants
+       use PhysicalConstantsPlus
 
 
        implicit none
@@ -4345,7 +4345,7 @@
        use selist
        use therrc
        use cfunc
-       use physconstants
+       use PhysicalConstantsPlus
        implicit none
 
        integer            :: irec 
@@ -4422,7 +4422,7 @@
        use selist
        use therrc
        use cfunc
-       use physconstants
+       use PhysicalConstantsPlus
        implicit none
 
       character*20 nam

@@ -1,9 +1,14 @@
-head	1.12;
+head	1.13;
 access;
 symbols;
 locks; strict;
 comment	@# @;
 
+
+1.13
+date	2014.04.03.14.12.39;	author monk;	state Exp;
+branches;
+next	1.12;
 
 1.12
 date	2013.03.04.16.21.23;	author monk;	state Exp;
@@ -70,7 +75,7 @@ desc
 @@
 
 
-1.12
+1.13
 log
 @*** empty log message ***
 @
@@ -124,8 +129,7 @@ text
       use wlntran
       use sqtran
       use constants
-!      use physconstants
-      use physconstants
+      use PhysicalConstantsPlus
       use unift
       implicit none
 
@@ -3902,6 +3906,18 @@ text
 
        return
        end subroutine get_pair_of_points
+@
+
+
+1.12
+log
+@*** empty log message ***
+@
+text
+@d50 1
+a50 2
+!      use physconstants
+      use physconstants
 @
 
 
