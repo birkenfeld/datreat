@@ -91,6 +91,8 @@
          temp = tget 
       ENDIF 
         
+!!!!----> observe sqt0(q=0) is not normalize to one but yields N**2 for a coherent scattering situation with
+!!!!----> uniform b (contrast+select=0) (see implementation in plinear_v1)
 
       if(x_is_tau) then                                                                
         sqt0       =     plinear1_sqt(qz,0d0,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,diff)
@@ -449,7 +451,8 @@ philp2: do i=1,N
            s11 = s11 + 2* exp(-(q*q/6d0)* phi(i,j))*b(i)*b(j)
          enddo
         enddo 
-        plinear1_sqt = (s11)/(N*N)
+!        plinear1_sqt = (s11)/(N*N)
+        plinear1_sqt = (s11)
      else
 
 ! --- independent summation of sections between "heavy" links --> pseudo incoherent approx 
@@ -469,7 +472,8 @@ philp2: do i=1,N
             s11 = s11 +  exp(-(q*q/6d0)* phi(i,j))*b(i)*b(j)
          enddo
         enddo
-        plinear1_sqt = (s11)/(N*n_repeat)
+!        plinear1_sqt = (s11)/(N*n_repeat)
+        plinear1_sqt = (s11)
      endif
 
 
