@@ -95,11 +95,11 @@
 !!!!----> uniform b (contrast+select=0) (see implementation in plinear_v1)
 
       if(x_is_tau) then                                                                
-        sqt0       =     plinear1_sqt(qz,0d0,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,diff)
-        sqt        =     plinear1_sqt(qz,tau,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,diff) 
+        sqt0       =     plinear1_sqt(qz,0d0,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff)
+        sqt        =     plinear1_sqt(qz,tau,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff) 
         th_roufbead=a0 * sqt/sqt0
       else
-        th_roufbead=a0 * plinear1_sqt(qz,tau,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,diff)
+        th_roufbead=a0 * plinear1_sqt(qz,tau,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff)
       endif 
 
       if(diff .ne. 0d0) then
@@ -113,7 +113,7 @@
 
    
    
-double precision function plinear1_sqt(q,t,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,diff)
+double precision function plinear1_sqt(q,t,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff)
 !-------------------------------------------------------------------------------------------------------------
 !! star following the derivation of:
 !!      M. Guenza, M. Mormino and A. Perico, Macromolecules 1991, 24, 6166-6174
@@ -133,6 +133,8 @@ double precision function plinear1_sqt(q,t,n_arm,Re_arm,Wl4,extra_frict,n_repeat
   integer,          intent(in)  :: n_repeat
   integer,          intent(in)  :: contrast_select   ! 0=uniform coherent, 1=-AB- blockwise, 2=pseudo incoherent blockwise
   double precision, intent(in)  :: diff
+  double precision, intent(in)  :: extra_contrast_factor
+
 
   double precision, parameter   :: Pi=3.141592654d0
   integer                       :: N
@@ -154,7 +156,7 @@ double precision function plinear1_sqt(q,t,n_arm,Re_arm,Wl4,extra_frict,n_repeat
  logical, save                :: new_parameters
  logical, save                :: inc_summing 
  integer, save                :: f_arm0, n_arm0, n_repeat0, contrast_select0
- double precision, save       :: extra_frict0   
+ double precision, save       :: extra_frict0, extra_contrast_factor0   
 
  real                         :: U(1+n_arm*f_arm,1+n_arm*f_arm)
  real, allocatable,save       :: H(:,:)
@@ -198,7 +200,7 @@ double precision function plinear1_sqt(q,t,n_arm,Re_arm,Wl4,extra_frict,n_repeat
 !! see: M. Guenza, M. Mormino and A. Perico, Macromolecules 1991, 24, 6166-6174
 !! and  M. Guenza, A. Perico Macromolecules 1993, 26, 4196-4202
 !!
-!! modification with increased friction after each n_repet beads
+!! modification with increased friction after each     forall (i=1:N)  b(i) = b(i)*(-1)**(nint(0.5+(n_repeat/2.0+i-1)/n_repeat))
 !! 
 
 
@@ -207,10 +209,11 @@ double precision function plinear1_sqt(q,t,n_arm,Re_arm,Wl4,extra_frict,n_repeat
     N=1+n_arm*f_arm
 
 
-    new_parameters =    n_arm           .ne. n_arm0                &
-                  .or.  f_arm           .ne. f_arm0                &
-                  .or.  n_repeat        .ne. n_repeat0             &
-                  .or.  contrast_select .ne. contrast_select0      &
+    new_parameters =    n_arm                 .ne. n_arm0                 &
+                  .or.  f_arm                 .ne. f_arm0                 &
+                  .or.  n_repeat              .ne. n_repeat0              &
+                  .or.  contrast_select       .ne. contrast_select0       &
+                  .or.  extra_contrast_factor .ne. extra_contrast_factor0 &
                   .or.  abs(extra_frict-extra_frict0) > 1e-6       
 
    
@@ -219,12 +222,13 @@ eig2: if(  first_run .or. new_parameters ) then
     
 
 !eig2: if(t==0) then
-    first_run        = .false.
-    f_arm0           = f_arm
-    n_arm0           = n_arm
-    n_repeat0        = n_repeat
-    extra_frict0     = extra_frict
-    contrast_select0 = contrast_select
+    first_run              = .false.
+    f_arm0                 = f_arm
+    n_arm0                 = n_arm
+    n_repeat0              = n_repeat
+    extra_frict0           = extra_frict
+    contrast_select0       = contrast_select
+    extra_contrast_factor0 = extra_contrast_factor
 
     if(allocated(Eigenvalues)) then
       deallocate(A)
@@ -268,7 +272,8 @@ eig2: if(  first_run .or. new_parameters ) then
      b = 1
      if(new_parameters) write(6,*)'contrast is uniform, selector coherent'
    case (1)
-     forall (i=1:N)  b(i) = b(i)*(-1)**(nint(0.5+(n_repeat/2.0+i-1)/n_repeat))
+!   forall (i=1:N)  b(i) = b(i)*(-1)**(nint(0.5+(n_repeat/2.0+i-1)/n_repeat))
+    forall (i=1:N)  b(i) = b(i)*(-1)**(int(((i-0.)/n_repeat))) 
      if(new_parameters) write(6,*)'contrast is alternating left right block'
    case (2)
      b = 1
@@ -281,13 +286,16 @@ eig2: if(  first_run .or. new_parameters ) then
 ! loopit: do ilp=1,2
 
  H(1,1) = H(1,1)/extra_frict / 0.5
+ b(1)   = b(1) * extra_contrast_factor * 0.5
  do i=n_repeat,n_arm-n_repeat,n_repeat
       i1 = 1+i
       H(i1,i1) = H(i1,i1)/extra_frict 
+      b(i1)    = b(i1) * extra_contrast_factor
  enddo
 
 !?? new
  H(n,n) = 1.0/extra_frict / 0.5
+ b(n)   = b(n) * extra_contrast_factor * 0.5
 !?? new
 
  forall (i=2:N)   U(i,i) = 1.0
