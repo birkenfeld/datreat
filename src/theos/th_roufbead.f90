@@ -19,9 +19,14 @@
       REAL qget, tget, tauget 
 
       integer :: f_arm, n_arm, n_repeat, contrast_select
-      double precision :: plinear1_sqt, sqt0, sqt
+      integer :: n_arm0, i
+
+      double precision :: plinear1_sqt, sqt0, sqt, re_arm0, wgt, sumw
+      double precision :: xn_faculty, xn_average
        
-      logical :: x_is_tau = .true.                                                                 
+      logical :: x_is_tau = .true.      
+      logical :: distribution = .false. 
+      logical :: verbose                                                          
                                                                         
                                                                         
       DATA zpi / 6.283185 / 
@@ -29,7 +34,7 @@
 ! ----- initialisation -----                                            
       IF (ini.eq.0) then 
          thnam = 'roufbead' 
-         nparx = 9 
+         nparx = 11 
          IF (npar.lt.nparx) then 
             WRITE (6, 1) thnam, nparx, npar 
     1 FORMAT     (' theory: ',a8,' no of parametrs=',i8,                &
@@ -45,9 +50,11 @@
          parnam (4) = 'n_arm '       ! number of beads per arm
          parnam (5) = 'contrast'     ! contrast selsct: 0=full coherent, 1:=-AB-, 2:blockwise pseudo inc.
          parnam (6) = 'extfrict'     ! factor for frictin of each nrepeat bead
-         parnam (7) = 'nrepeat'      ! each nrepeat bead has assigned an extra friction
+         parnam (7) = 'nrepeat'      ! each nrepeat bead has assigned an extra friction (if neg use distribution)
          parnam (8) = 'com_diff'     ! common diffusion in cm**2/s, if =0 use Rouse default
          parnam (9) = 'extcontr'     ! contrast factor for the beads with extrafriction 
+         parnam (10)= 'naverage'     ! average aggregation if 0: n_arm/nrepeat 
+         parnam (11)= 'verbose'      ! output
                                                                         
 !                                                                       
          th_roufbead = 0 
@@ -62,13 +69,25 @@
       n_arm           = nint (pa (4) ) 
       contrast_select = nint (pa (5) )
       extra_frict     = abs(pa(6))
-      n_repeat        = nint(pa(7))
-
+      n_repeat        = nint(abs(pa(7)))
                               ! in cm**2/sec                            
       diff = abs (pa (8) ) 
       diff = diff * 1d-9 / 1d-16 
 
       extra_contrast_factor = pa(9)
+      xn_average      = abs(pa(10))   
+      verbose = (nint(pa(11)) > 0)  
+
+
+! prepare distribution
+      n_arm0  = n_arm
+      Re_arm0 = Re_arm
+      if(xn_average > 1.0) then
+        distribution = .true.
+      else
+        distribution = .false.
+      endif
+
                                                                         
       qget = 0.01 
       CALL getpar ('q       ', qget,nopar ,params,napar,mbuf, ierq)  
@@ -93,13 +112,45 @@
         
 !!!!----> observe sqt0(q=0) is not normalize to one but yields N**2 for a coherent scattering situation with
 !!!!----> uniform b (contrast+select=0) (see implementation in plinear_v1)
+      sqt0    = 0
+      sqt     = 0
+      sumw    = 0
 
-      if(x_is_tau) then                                                                
-        sqt0       =     plinear1_sqt(qz,0d0,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff)
-        sqt        =     plinear1_sqt(qz,tau,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff) 
-        th_roufbead=a0 * sqt/sqt0
+      if(x_is_tau) then
+        if(distribution) then
+          do i=1,nint(xn_average*2)
+            wgt   = xn_faculty(xn_average,i)
+            sumw  = sumw + wgt     
+            n_arm = n_repeat * i + 1  
+            Re_arm= Re_arm0*sqrt(dble(n_arm)/dble(n_arm0))                                                         
+            sqt0  = sqt0+wgt*plinear1_sqt(qz,0d0,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff,verbose)
+            sqt   = sqt +wgt*plinear1_sqt(qz,tau,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff,verbose)
+!          write(6,'(2f12.6,i3,i5,f10.2,f12.3,2e14.7)')tau, qz, i,n_arm,Re_arm,wgt,sqt0,sqt
+          enddo
+          sqt0        = sqt0/sumw
+          sqt         = sqt/sumw
+          th_roufbead = a0 * sqt/sqt0
+          write(6,'(2f12.6,3x,2e14.7,3x,f12.6)')tau, qz, sqt0,sqt, th_roufbead 
+        else
+          sqt0       =     plinear1_sqt(qz,0d0,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff,verbose)
+          sqt        =     plinear1_sqt(qz,tau,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff,verbose)
+          th_roufbead=a0 * sqt/sqt0
+        endif 
       else
-        th_roufbead=a0 * plinear1_sqt(qz,tau,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff)
+        if(distribution) then
+          do i=1,nint(xn_average*2)
+            wgt   = xn_faculty(xn_average,i)
+            sumw  = sumw + wgt 
+            n_arm = n_repeat * i + 1  
+            Re_arm= Re_arm0*sqrt(dble(n_arm)/dble(n_arm0))                                                         
+            sqt   = sqt+wgt*plinear1_sqt(qz,tau,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff,verbose)
+           enddo
+           sqt = sqt/sumw
+           th_roufbead=a0 * sqt
+        else
+          sqt        =     plinear1_sqt(qz,tau,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff,verbose)
+          th_roufbead=a0 * sqt
+        endif
       endif 
 
       if(diff .ne. 0d0) then
@@ -113,7 +164,7 @@
 
    
    
-double precision function plinear1_sqt(q,t,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff)
+double precision function plinear1_sqt(q,t,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff,verbose)
 !-------------------------------------------------------------------------------------------------------------
 !! star following the derivation of:
 !!      M. Guenza, M. Mormino and A. Perico, Macromolecules 1991, 24, 6166-6174
@@ -134,6 +185,7 @@ double precision function plinear1_sqt(q,t,n_arm,Re_arm,Wl4,extra_frict,n_repeat
   integer,          intent(in)  :: contrast_select   ! 0=uniform coherent, 1=-AB- blockwise, 2=pseudo incoherent blockwise
   double precision, intent(in)  :: diff
   double precision, intent(in)  :: extra_contrast_factor
+  logical,          intent(in)  :: verbose
 
 
   double precision, parameter   :: Pi=3.141592654d0
@@ -270,18 +322,21 @@ eig2: if(  first_run .or. new_parameters ) then
  select case(contrast_select) 
    case (0)
      b = 1
-     if(new_parameters) write(6,*)'contrast is uniform, selector coherent'
+     if(new_parameters .and. verbose) write(6,*)'contrast is uniform, selector coherent'
    case (1)
 !   forall (i=1:N)  b(i) = b(i)*(-1)**(nint(0.5+(n_repeat/2.0+i-1)/n_repeat))
     forall (i=1:N)  b(i) = b(i)*(-1)**(int(((i-0.)/n_repeat))) 
-     if(new_parameters) write(6,*)'contrast is alternating left right block'
+     if(new_parameters .and. verbose) write(6,*)'contrast is alternating left right block'
    case (2)
      b = 1
      inc_summing = .true.
-     if(new_parameters) write(6,*)'contrast computation: blockwise incoherent'
+     if(new_parameters .and. verbose) write(6,*)'contrast computation: blockwise incoherent'
    case default
     b = 1
  end select 
+
+
+! if(new_parameters) write(6,'(a,f12.6)')'l0=',l0
 
 ! loopit: do ilp=1,2
 
@@ -387,7 +442,7 @@ enddo
  perm(1:n)    = [(i,i=1,n)]
  call spsort(lambdas,n,perm,sort_x_set_perm_inc,ier)
 
-if(new_parameters) then
+if(new_parameters .and. verbose) then
  write(6,*)'Eigenvalues sorted: '
  write(6,'(i4,2f12.8,10x,2f12.8)') (i,Eigenvalues(perm(i)),cm(perm(i),perm(i)),i=1,n)
  open(10,file='ew.dgli')
@@ -523,3 +578,23 @@ philp2: do i=1,N
 !> enddo loopit
 
 end function plinear1_sqt
+
+
+double precision function xn_faculty(x,n)
+!--------------------------------------
+implicit none
+double precision, intent(in) :: x
+integer,          intent(in) :: n
+
+integer          :: i
+double precision :: xn
+
+xn = 1d0
+do i=1,n
+ xn  = xn*(x/i)
+enddo 
+
+xn_faculty = xn
+
+
+end function xn_faculty
