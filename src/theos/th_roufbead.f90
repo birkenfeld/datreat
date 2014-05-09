@@ -22,8 +22,9 @@
       integer :: n_arm0, i
 
       double precision :: plinear1_sqt, sqt0, sqt, re_arm0, wgt, sumw
-      double precision :: xn_faculty, xn_average
-       
+      double precision :: xn_faculty, xn_average, xn_distribution
+      double precision :: d_scale, d_beta       
+
       logical :: x_is_tau = .true.      
       logical :: distribution = .false. 
       logical :: verbose                                                          
@@ -34,7 +35,7 @@
 ! ----- initialisation -----                                            
       IF (ini.eq.0) then 
          thnam = 'roufbead' 
-         nparx = 11 
+         nparx = 13 
          IF (npar.lt.nparx) then 
             WRITE (6, 1) thnam, nparx, npar 
     1 FORMAT     (' theory: ',a8,' no of parametrs=',i8,                &
@@ -55,6 +56,8 @@
          parnam (9) = 'extcontr'     ! contrast factor for the beads with extrafriction 
          parnam (10)= 'naverage'     ! average aggregation if 0: n_arm/nrepeat 
          parnam (11)= 'verbose'      ! output
+         parnam (12)= 'd_scale'      ! skalierung des Diffusion
+         parnam (13)= 'd_beta'       ! beta der Diffusion
                                                                         
 !                                                                       
          th_roufbead = 0 
@@ -77,7 +80,11 @@
       extra_contrast_factor = pa(9)
       xn_average      = abs(pa(10))   
       verbose = (nint(pa(11)) > 0)  
+      d_scale = abs(pa(12))
+      d_beta  = abs(pa(13))
 
+      if(d_scale == 0d0) d_scale = 1d0
+      if(d_beta  == 0d0) d_beta  = 1d0
 
 ! prepare distribution
       n_arm0  = n_arm
@@ -118,13 +125,13 @@
 
       if(x_is_tau) then
         if(distribution) then
-          do i=1,nint(xn_average*2)
-            wgt   = xn_faculty(xn_average,i)
+          do i=1,15 ! nint(xn_average*2)
+            wgt   = xn_distribution(xn_average,i)
             sumw  = sumw + wgt     
             n_arm = n_repeat * i + 1  
             Re_arm= Re_arm0*sqrt(dble(n_arm)/dble(n_arm0))                                                         
-            sqt0  = sqt0+wgt*plinear1_sqt(qz,0d0,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff,verbose)
-            sqt   = sqt +wgt*plinear1_sqt(qz,tau,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff,verbose)
+            sqt0  = sqt0+wgt*plinear1_sqt(qz,0d0,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff,d_scale,d_beta,verbose)
+            sqt   = sqt +wgt*plinear1_sqt(qz,tau,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff,d_scale,d_beta,verbose)
 !          write(6,'(2f12.6,i3,i5,f10.2,f12.3,2e14.7)')tau, qz, i,n_arm,Re_arm,wgt,sqt0,sqt
           enddo
           sqt0        = sqt0/sumw
@@ -132,29 +139,29 @@
           th_roufbead = a0 * sqt/sqt0
           write(6,'(2f12.6,3x,2e14.7,3x,f12.6)')tau, qz, sqt0,sqt, th_roufbead 
         else
-          sqt0       =     plinear1_sqt(qz,0d0,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff,verbose)
-          sqt        =     plinear1_sqt(qz,tau,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff,verbose)
+          sqt0       =     plinear1_sqt(qz,0d0,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff,d_scale,d_beta,verbose)
+          sqt        =     plinear1_sqt(qz,tau,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff,d_scale,d_beta,verbose)
           th_roufbead=a0 * sqt/sqt0
         endif 
       else
         if(distribution) then
-          do i=1,nint(xn_average*2)
-            wgt   = xn_faculty(xn_average,i)
+          do i=1,15 ! nint(xn_average*2)
+            wgt   = xn_distribution(xn_average,i)
             sumw  = sumw + wgt 
             n_arm = n_repeat * i + 1  
             Re_arm= Re_arm0*sqrt(dble(n_arm)/dble(n_arm0))                                                         
-            sqt   = sqt+wgt*plinear1_sqt(qz,tau,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff,verbose)
+            sqt   = sqt+wgt*plinear1_sqt(qz,tau,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff,d_scale,d_beta,verbose)
            enddo
            sqt = sqt/sumw
            th_roufbead=a0 * sqt
         else
-          sqt        =     plinear1_sqt(qz,tau,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff,verbose)
+          sqt        =     plinear1_sqt(qz,tau,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff,d_scale,d_beta,verbose)
           th_roufbead=a0 * sqt
         endif
       endif 
 
       if(diff .ne. 0d0) then
-        th_roufbead = th_roufbead * exp(-qz*qz*diff*tau)
+        th_roufbead = th_roufbead * exp(-(qz*qz*diff*d_scale*tau)**d_beta)
       endif 
 
       RETURN 
@@ -164,7 +171,7 @@
 
    
    
-double precision function plinear1_sqt(q,t,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff,verbose)
+double precision function plinear1_sqt(q,t,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff,d_scale,d_beta,verbose)
 !-------------------------------------------------------------------------------------------------------------
 !! star following the derivation of:
 !!      M. Guenza, M. Mormino and A. Perico, Macromolecules 1991, 24, 6166-6174
@@ -184,6 +191,8 @@ double precision function plinear1_sqt(q,t,n_arm,Re_arm,Wl4,extra_frict,n_repeat
   integer,          intent(in)  :: n_repeat
   integer,          intent(in)  :: contrast_select   ! 0=uniform coherent, 1=-AB- blockwise, 2=pseudo incoherent blockwise
   double precision, intent(in)  :: diff
+  double precision, intent(in)  :: d_scale
+  double precision, intent(in)  :: d_beta
   double precision, intent(in)  :: extra_contrast_factor
   logical,          intent(in)  :: verbose
 
@@ -212,6 +221,7 @@ double precision function plinear1_sqt(q,t,n_arm,Re_arm,Wl4,extra_frict,n_repeat
 
  real                         :: U(1+n_arm*f_arm,1+n_arm*f_arm)
  real, allocatable,save       :: H(:,:)
+ integer, allocatable,save    :: BeadIndicator(:)
  real                         :: X(1+n_arm*f_arm,1+n_arm*f_arm)
  real                         :: M(1+n_arm*f_arm,1+n_arm*f_arm)
  real, allocatable,save       :: A(:,:)  
@@ -231,6 +241,7 @@ double precision function plinear1_sqt(q,t,n_arm,Re_arm,Wl4,extra_frict,n_repeat
  real                         :: std_diffusion
  real                         :: std_bead_friction
  real                         :: effective_diffusion
+ real                         :: fak
 
  integer                      :: perm(1+n_arm*f_arm)
  real                         :: lambdas(1+n_arm*f_arm)
@@ -285,6 +296,7 @@ eig2: if(  first_run .or. new_parameters ) then
     if(allocated(Eigenvalues)) then
       deallocate(A)
       deallocate(H)
+      deallocate(BeadIndicator)
       deallocate(Eigenvalues)
       deallocate(Eigenvectors)
       deallocate(CM)  
@@ -295,6 +307,7 @@ eig2: if(  first_run .or. new_parameters ) then
     allocate(Eigenvalues(N))
     allocate(A(N,N))
     allocate(H(N,N))
+    allocate(BeadIndicator(N))
     allocate(Eigenvectors(N,N))
     allocate(CM(N,N))
     allocate(r(N))
@@ -309,6 +322,7 @@ eig2: if(  first_run .or. new_parameters ) then
     M = 0            ! bead-to-bond vector transformation matrix
     A = 0            ! A = Mt(U)M   (were the first col and row of U are 0)
     H = 0            ! H = hydrodynamic matrix (so far here 1) friction is lumped in the Wl4 parameter
+    BeadIndicator= 0 ! 1 where heavy beads are
    
     b = 1.0          ! contrast factors  
 
@@ -346,6 +360,10 @@ eig2: if(  first_run .or. new_parameters ) then
       i1 = 1+i
       H(i1,i1) = H(i1,i1)/extra_frict 
       b(i1)    = b(i1) * extra_contrast_factor
+      BeadIndicator(i1) = 1
+      if(inc_summing) then
+        b(i1) = 0
+      endif    
  enddo
 
 !?? new
@@ -467,9 +485,9 @@ if(new_parameters .and. verbose) then
  enddo
 
  write(6,*)'Contrastfactors and frictions: '
- write(6,'(i4,2f12.8)') (i,b(i),1.0/H(i,i),i=1,n)
+ write(6,'(2i4,2f12.8)') (i,BeadIndicator(i),b(i),1.0/H(i,i),i=1,n)
  open(12,file='bfric.dgli')
-   write(12,'(i4,2f12.8)')(i,b(i),1.0/H(i,i),i=1,n)
+   write(12,'(2i4,2f12.8)')(i,BeadIndicator(i),b(i),1.0/H(i,i),i=1,n)
    if(inc_summing)write(12,*)'blockwise incoherent summing!'
    if(inc_summing)write(6 ,*)'blockwise incoherent summing!'
  close(12)
@@ -535,6 +553,24 @@ philp2: do i=1,N
             s11 = s11 +  exp(-(q*q/6d0)* phi(i,j))*b(i)*b(j)
          enddo
         enddo
+!
+! add coherent sum of the heavy beads 
+ol1:   do i=1,n
+        if(BeadIndicator(i) .eq. 1) then 
+          if(i==1 .or. i==n) then
+            fak = 0.5
+          else
+            fak = 1
+          endif
+ol2:      do j=1,n
+           if(BeadIndicator(j) .eq. 1) then
+               if(j==1 .or. j==n) fak = fak/2
+               s11 = s11 +  exp(-(q*q/6d0)* phi(i,j))*extra_contrast_factor**2 * fak
+           endif
+          enddo ol2
+        endif
+       enddo ol1
+
 !        plinear1_sqt = (s11)/(N*n_repeat)
         plinear1_sqt = (s11)
      endif
@@ -562,7 +598,7 @@ philp2: do i=1,N
         std_diffusion       =  wl4/(3*f_arm*n_arm*l0*l0)
         std_bead_friction   =  1/(n*std_diffusion)
         effective_diffusion =  1/(sum([(1.0/H(i,i),i=1,n)])*std_bead_friction)
-        plinear1_sqt = plinear1_sqt * exp( -q*q* effective_diffusion * t)
+        plinear1_sqt = plinear1_sqt * exp( -(q*q* effective_diffusion*d_scale * t)**d_beta)
      endif
 !
 
@@ -598,3 +634,21 @@ xn_faculty = xn
 
 
 end function xn_faculty
+
+double precision function xn_distribution(x,n)
+!---------------------------------------------
+! number distribution of polycondensation
+! x denotes the number average
+!
+implicit none
+double precision, intent(in) :: x
+integer,          intent(in) :: n
+
+integer          :: i
+double precision :: xn, q
+
+q = 1d0-1d0/x
+
+xn_distribution = q**(n-1)*(1.0d0-q)
+
+end function xn_distribution
