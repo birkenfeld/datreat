@@ -49,7 +49,7 @@
          parnam (2) = 'wl4'          ! Rouse Rate W l**4 in A**4/ns
          parnam (3) = 're_arm'       ! Re of one arm     in A
          parnam (4) = 'n_arm '       ! number of beads per arm
-         parnam (5) = 'contrast'     ! contrast selsct: 0=full coherent, 1:=-AB-, 2:blockwise pseudo inc.
+         parnam (5) = 'contrast'     ! contrast selsct: 0=full coherent, 1:=-AB-, 2:blockwise pseudo inc., 3 from file
          parnam (6) = 'extfrict'     ! factor for frictin of each nrepeat bead
          parnam (7) = 'nrepeat'      ! each nrepeat bead has assigned an extra friction (if neg use distribution)
          parnam (8) = 'com_diff'     ! common diffusion in cm**2/s, if =0 use Rouse default
@@ -116,7 +116,19 @@
       CALL getpar ('temp    ', tget,nopar ,params,napar,mbuf, ier) 
          temp = tget 
       ENDIF 
+ 
+      IF ( contrast_select == 3) then 
+         tget = 0
+      CALL getpar ('contrast', tget,nopar ,params,napar,mbuf, ier) 
+         if(ier == 0) then 
+           contrast_select = nint(tget)
+         else
+           write(6,*)'Warning: contrast selection missing'
+           contrast_select = 0
+         endif
+      ENDIF 
         
+       
 !!!!----> observe sqt0(q=0) is not normalize to one but yields N**2 for a coherent scattering situation with
 !!!!----> uniform b (contrast+select=0) (see implementation in plinear_v1)
       sqt0    = 0
