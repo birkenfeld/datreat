@@ -226,7 +226,7 @@ c
     
           arg2 = 0
           arg20= 0
-          do ip = 1,N
+          do ip=1,N
             p = ip+p0fix
             tau_p = 2*W*(1-cos((pi*p)/dfloat(N)))
             a0    = -t*tau_p

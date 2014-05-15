@@ -172,6 +172,8 @@
         endif
       endif 
 
+      if(verbose) write(6,'(2f12.6,3x,2e14.7,3x,f12.6)')tau, qz, sqt0,sqt, th_roufbead 
+
       if(diff .ne. 0d0) then
         th_roufbead = th_roufbead * exp(-(qz*qz*diff*d_scale*tau)**d_beta)
       endif 
@@ -256,10 +258,11 @@ double precision function plinear1_sqt(q,t,n_arm,Re_arm,Wl4,extra_frict,n_repeat
  real                         :: fak
 
  integer                      :: perm(1+n_arm*f_arm)
+ integer, save                :: index_lowest_Ev
  real                         :: lambdas(1+n_arm*f_arm)
  integer                      :: ier, ilp
  character(len=20)            :: fname
-
+ 
 
 
 
@@ -373,9 +376,9 @@ eig2: if(  first_run .or. new_parameters ) then
       H(i1,i1) = H(i1,i1)/extra_frict 
       b(i1)    = b(i1) * extra_contrast_factor
       BeadIndicator(i1) = 1
-      if(inc_summing) then
-        b(i1) = 0
-      endif    
+!?      if(inc_summing) then
+!?        b(i1) = 0
+!?      endif    
  enddo
 
 !?? new
@@ -471,6 +474,8 @@ enddo
  lambdas(1:n) = Eigenvalues(1:n)
  perm(1:n)    = [(i,i=1,n)]
  call spsort(lambdas,n,perm,sort_x_set_perm_inc,ier)
+ 
+ index_lowest_Ev = perm(1)
 
 if(new_parameters .and. verbose) then
  write(6,*)'Eigenvalues sorted: '
@@ -515,7 +520,7 @@ philp2: do i=1,N
   do j=1,N
    csum = 0
    do l=1,N
-    if(abs(CM(l,l)) > 0.0001) then
+    if(l .ne. index_lowest_Ev) then
     csum = csum + &
       ((Eigenvectors(i,l))**2+(Eigenvectors(j,l))**2- &
     2*(Eigenvectors(i,l))*Eigenvectors(j,l)*exp(-wl4/(l0**4)*Eigenvalues(l)*t))/CM(l,l)
@@ -546,25 +551,30 @@ philp2: do i=1,N
         enddo 
 !        plinear1_sqt = (s11)/(N*N)
         plinear1_sqt = (s11)
+
+ 
      else
 
 ! --- independent summation of sections between "heavy" links --> pseudo incoherent approx 
        s11 = 0
+
        do ib=1,n-n_repeat,n_repeat
         do i=ib,ib+n_repeat-1
          do j=ib,ib+n_repeat-1
-            s11 = s11 +  exp(-(q*q/6d0)* phi(i,j))*b(i)*b(j)
+            s11 = s11 +  exp(-(q*q/6d0)* phi(i,j))   ! *b(i)*b(j)
          enddo
         enddo
        enddo
 
 ! ..and the rest
        ib = j
-       do i=ib,n
+       if(ib <= n) then
+        do i=ib,n
          do j=ib,n
-            s11 = s11 +  exp(-(q*q/6d0)* phi(i,j))*b(i)*b(j)
+            s11 = s11 +  exp(-(q*q/6d0)* phi(i,j)) ! *b(i)*b(j)
          enddo
         enddo
+       endif
 !
 ! add coherent sum of the heavy beads 
 ol1:   do i=1,n
