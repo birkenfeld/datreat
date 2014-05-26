@@ -28,7 +28,11 @@
       logical :: x_is_tau = .true.      
       logical :: distribution = .false. 
       logical :: verbose                                                          
-                                                                        
+       
+      integer                      :: iadda
+                   common/thiadd/iadda
+      real                         :: dr
+                                                                  
                                                                         
       DATA zpi / 6.283185 / 
 !                                                                       
@@ -176,6 +180,8 @@
 
       if(diff .ne. 0d0) then
         th_roufbead = th_roufbead * exp(-(qz*qz*diff*d_scale*tau)**d_beta)
+        dr        = diff*d_scale /( 1d-9 / 1d-16 ) ! in cm**2/s
+        call        parset('diff    ',sngl(dr),iadda,ier)
       endif 
 
       RETURN 
@@ -264,6 +270,10 @@ double precision function plinear1_sqt(q,t,n_arm,Re_arm,Wl4,extra_frict,n_repeat
  character(len=20)            :: fname
  
 
+ integer                      :: iadda
+                   common/thiadd/iadda
+
+ real                         :: dr
 
 
   N      = f_arm * n_arm + 1
@@ -621,6 +631,8 @@ ol2:      do j=1,n
         std_bead_friction   =  1/(n*std_diffusion)
         effective_diffusion =  1/(sum([(1.0/H(i,i),i=1,n)])*std_bead_friction)
         plinear1_sqt = plinear1_sqt * exp( -(q*q* effective_diffusion*d_scale * t)**d_beta)
+        dr        = effective_diffusion*d_scale /( 1d-9 / 1d-16 ) ! in cm**2/s
+        call        parset('diff    ',sngl(dr),iadda,ier)
      endif
 !
 
