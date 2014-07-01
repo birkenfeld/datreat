@@ -22,24 +22,20 @@
       integer :: n_arm0, i
 
       double precision :: plinear1_sqt, sqt0, sqt, re_arm0, wgt, sumw
-      double precision :: xn_faculty, xn_average, xn_distribution
+      double precision :: xn_faculty, xn_average, xn_distribution, xsingle
       double precision :: d_scale, d_beta       
 
       logical :: x_is_tau = .true.      
       logical :: distribution = .false. 
       logical :: verbose                                                          
-       
-      integer                      :: iadda
-                   common/thiadd/iadda
-      real                         :: dr
-                                                                  
+                                                                        
                                                                         
       DATA zpi / 6.283185 / 
 !                                                                       
 ! ----- initialisation -----                                            
       IF (ini.eq.0) then 
          thnam = 'roufbead' 
-         nparx = 13 
+         nparx = 14 
          IF (npar.lt.nparx) then 
             WRITE (6, 1) thnam, nparx, npar 
     1 FORMAT     (' theory: ',a8,' no of parametrs=',i8,                &
@@ -62,6 +58,7 @@
          parnam (11)= 'verbose'      ! output
          parnam (12)= 'd_scale'      ! skalierung des Diffusion
          parnam (13)= 'd_beta'       ! beta der Diffusion
+         parnam (14)= 'xsingle'      ! fraction of single segments coesisting with naverage sized aggregates
                                                                         
 !                                                                       
          th_roufbead = 0 
@@ -87,10 +84,12 @@
       d_scale = abs(pa(12))
       d_beta  = abs(pa(13))
 
+      xsingle = abs(pa(14))
+
       if(d_scale == 0d0) d_scale = 1d0
       if(d_beta  == 0d0) d_beta  = 1d0
 
-! prepare distribution
+! prepare distribution  (then nature of distribution is also controlled by xsingle)
       n_arm0  = n_arm
       Re_arm0 = Re_arm
       if(xn_average > 1.0) then
@@ -139,16 +138,17 @@
       sqt     = 0
       sumw    = 0
 
-      if(x_is_tau) then
-        if(distribution) then
-          do i=1,15 ! nint(xn_average*2)
-            wgt   = xn_distribution(xn_average,i)
+xtau:  if(x_is_tau) then
+dis1:   if(distribution) then
+          do i=1,nint(xn_average*2)
+            wgt   = xn_distribution(xsingle,xn_average,i)
+            if(wgt == 0d0) cycle
             sumw  = sumw + wgt     
             n_arm = n_repeat * i + 1  
             Re_arm= Re_arm0*sqrt(dble(n_arm)/dble(n_arm0))                                                         
             sqt0  = sqt0+wgt*plinear1_sqt(qz,0d0,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff,d_scale,d_beta,verbose)
             sqt   = sqt +wgt*plinear1_sqt(qz,tau,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff,d_scale,d_beta,verbose)
-!          write(6,'(2f12.6,i3,i5,f10.2,f12.3,2e14.7)')tau, qz, i,n_arm,Re_arm,wgt,sqt0,sqt
+            if(verbose) write(6,'(2f12.6,i3,i5,f10.2,f12.3,2e14.7)')tau, qz, i,n_arm,Re_arm,wgt,sqt0,sqt
           enddo
           sqt0        = sqt0/sumw
           sqt         = sqt/sumw
@@ -158,11 +158,12 @@
           sqt0       =     plinear1_sqt(qz,0d0,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff,d_scale,d_beta,verbose)
           sqt        =     plinear1_sqt(qz,tau,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff,d_scale,d_beta,verbose)
           th_roufbead=a0 * sqt/sqt0
-        endif 
-      else
-        if(distribution) then
+        endif dis1
+      else 
+dis2:  if(distribution) then
           do i=1,15 ! nint(xn_average*2)
-            wgt   = xn_distribution(xn_average,i)
+            wgt   = xn_distribution(xsingle,xn_average,i)
+            if(wgt == 0d0) cycle
             sumw  = sumw + wgt 
             n_arm = n_repeat * i + 1  
             Re_arm= Re_arm0*sqrt(dble(n_arm)/dble(n_arm0))                                                         
@@ -173,15 +174,13 @@
         else
           sqt        =     plinear1_sqt(qz,tau,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff,d_scale,d_beta,verbose)
           th_roufbead=a0 * sqt
-        endif
-      endif 
+        endif dis2
+      endif  xtau
 
       if(verbose) write(6,'(2f12.6,3x,2e14.7,3x,f12.6)')tau, qz, sqt0,sqt, th_roufbead 
 
       if(diff .ne. 0d0) then
         th_roufbead = th_roufbead * exp(-(qz*qz*diff*d_scale*tau)**d_beta)
-        dr        = diff*d_scale /( 1d-9 / 1d-16 ) ! in cm**2/s
-        call        parset('diff    ',sngl(dr),iadda,ier)
       endif 
 
       RETURN 
@@ -270,10 +269,6 @@ double precision function plinear1_sqt(q,t,n_arm,Re_arm,Wl4,extra_frict,n_repeat
  character(len=20)            :: fname
  
 
- integer                      :: iadda
-                   common/thiadd/iadda
-
- real                         :: dr
 
 
   N      = f_arm * n_arm + 1
@@ -631,8 +626,7 @@ ol2:      do j=1,n
         std_bead_friction   =  1/(n*std_diffusion)
         effective_diffusion =  1/(sum([(1.0/H(i,i),i=1,n)])*std_bead_friction)
         plinear1_sqt = plinear1_sqt * exp( -(q*q* effective_diffusion*d_scale * t)**d_beta)
-        dr        = effective_diffusion*d_scale /( 1d-9 / 1d-16 ) ! in cm**2/s
-        call        parset('diff    ',sngl(dr),iadda,ier)
+        if(t==0.0d0 .and. new_parameters) write(6,*)'effective diffusion = ',effective_diffusion,' A**2/ns'
      endif
 !
 
@@ -669,20 +663,35 @@ xn_faculty = xn
 
 end function xn_faculty
 
-double precision function xn_distribution(x,n)
+double precision function xn_distribution(x1,x,n)
 !---------------------------------------------
 ! number distribution of polycondensation
-! x denotes the number average
+! x1 is the fraction of single segments 
+! if this is set to a value <= 0 then
+! x denotes the number average of polycondesation distriubtion
+! otherwise it is the aggregate number of aggregates that coexist with
+! the fraction of single items
 !
 implicit none
+double precision, intent(in) :: x1
 double precision, intent(in) :: x
 integer,          intent(in) :: n
 
 integer          :: i
 double precision :: xn, q
-
-q = 1d0-1d0/x
-
-xn_distribution = q**(n-1)*(1.0d0-q)
+ 
+if(x1 <= 0d0) then
+  q = 1d0-1d0/x
+  xn_distribution = q**(n-1)*(1.0d0-q)
+  return
+else
+  xn_distribution = 0d0
+  if   (n==1)        then
+     xn_distribution = x1
+  else if(n==nint(x))  then
+     xn_distribution = (1d0 - x1)
+  endif
+  return
+endif
 
 end function xn_distribution
