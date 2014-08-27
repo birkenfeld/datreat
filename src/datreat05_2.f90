@@ -143,6 +143,11 @@
        double precision :: Ommax = 1000d0
        integer          :: nomega = 100
 
+       real             :: He3_pressure_bar = 10.0
+       real             :: Tube_diameter_m  = 0.025
+       real             :: lenfrac          = 1.0
+       real             :: detector_sensitivity, detsens, lambdaA
+
 
 
 ! ---- initialisations ----
@@ -3677,6 +3682,47 @@
           
           isels(i) = nbuf
            
+         enddo
+
+         goto 2000
+        endif
+!
+
+       if(comand.eq.'detsens  ') then
+!                    ---> sensitivity correction
+         if(nsel.eq.0) then
+           write(6,*)'no curve selected'
+           goto 2000
+         endif
+
+
+         He3_pressure_bar  = getval('p       ',dble(He3_pressure_bar) ,inew)
+         Tube_diameter_m   = getval('dtube   ',dble(Tube_diameter_m),inew)       
+         lenfrac           = getval('lenfrac ',dble(lenfrac),inew) 
+
+         write(6,'(a)')'Performing wavelength dependent sensitivy correction on Tof data on lambda scale'
+         write(6,*)' p       = He3-pressure/bar        = ',  He3_pressure_bar 
+         write(6,*)' dtube   = tube diameter/m         = ',  Tube_diameter_m 
+         write(6,*)' lenfrac = projected length factor = ',  lenfrac 
+
+         do i=1,nsel
+          ia      = isels(i)
+          call parget('det_phe3',xx,ia,ier)
+          if(ier .ne. 0 ) then
+            do j=1,nwert(ia)
+              lambdaA =  xwerte(j,ia)
+              if(lambdaA > 0.01 ) then
+                 detsens = detector_sensitivity(lambdaA,lenfrac,He3_pressure_bar,Tube_diameter_m)
+                 ywerte(j,ia) = ywerte(j,ia)/detsens
+                 yerror(j,ia) = yerror(j,ia)/detsens
+ !                write(6,*)xwerte(j,ia), detsens
+              endif
+            enddo
+            call parset ('det_phe3 ', He3_pressure_bar ,ia)
+            call parset ('dtube    ', Tube_diameter_m  ,ia)
+          else
+            write(6,*)'Record: ',ia,' will not be treated a second time, skipped!'
+          endif
          enddo
 
          goto 2000
