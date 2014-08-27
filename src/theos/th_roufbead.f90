@@ -23,7 +23,8 @@
 
       double precision :: plinear1_sqt, sqt0, sqt, re_arm0, wgt, sumw
       double precision :: xn_faculty, xn_average, xn_distribution, xsingle
-      double precision :: d_scale, d_beta       
+      double precision :: d_scale, d_beta  
+      double precision :: markov_par     
 
       logical :: x_is_tau = .true.      
       logical :: distribution = .false. 
@@ -35,7 +36,7 @@
 ! ----- initialisation -----                                            
       IF (ini.eq.0) then 
          thnam = 'roufbead' 
-         nparx = 14 
+         nparx = 15 
          IF (npar.lt.nparx) then 
             WRITE (6, 1) thnam, nparx, npar 
     1 FORMAT     (' theory: ',a8,' no of parametrs=',i8,                &
@@ -59,6 +60,7 @@
          parnam (12)= 'd_scale'      ! skalierung des Diffusion
          parnam (13)= 'd_beta'       ! beta der Diffusion
          parnam (14)= 'xsingle'      ! fraction of single segments coesisting with naverage sized aggregates
+         parnam (15)= 'markov'       ! if contrast=4: -A-B- markov chain alternate contrast, markov=0 => strict alternation, 1=simple contrast 
                                                                         
 !                                                                       
          th_roufbead = 0 
@@ -84,7 +86,8 @@
       d_scale = abs(pa(12))
       d_beta  = abs(pa(13))
 
-      xsingle = abs(pa(14))
+      xsingle    = abs(pa(14))
+      markov_par = abs(pa(15))
 
       if(d_scale == 0d0) d_scale = 1d0
       if(d_beta  == 0d0) d_beta  = 1d0
@@ -146,8 +149,8 @@ dis1:   if(distribution) then
             sumw  = sumw + wgt     
             n_arm = n_repeat * i + 1  
             Re_arm= Re_arm0*sqrt(dble(n_arm)/dble(n_arm0))                                                         
-            sqt0  = sqt0+wgt*plinear1_sqt(qz,0d0,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff,d_scale,d_beta,verbose)
-            sqt   = sqt +wgt*plinear1_sqt(qz,tau,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff,d_scale,d_beta,verbose)
+            sqt0  = sqt0+wgt*plinear1_sqt(qz,0d0,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,markov_par,diff,d_scale,d_beta,verbose)
+            sqt   = sqt +wgt*plinear1_sqt(qz,tau,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,markov_par,diff,d_scale,d_beta,verbose)
             if(verbose) write(6,'(2f12.6,i3,i5,f10.2,f12.3,2e14.7)')tau, qz, i,n_arm,Re_arm,wgt,sqt0,sqt
           enddo
           sqt0        = sqt0/sumw
@@ -155,8 +158,8 @@ dis1:   if(distribution) then
           th_roufbead = a0 * sqt/sqt0
           write(6,'(2f12.6,3x,2e14.7,3x,f12.6)')tau, qz, sqt0,sqt, th_roufbead 
         else
-          sqt0       =     plinear1_sqt(qz,0d0,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff,d_scale,d_beta,verbose)
-          sqt        =     plinear1_sqt(qz,tau,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff,d_scale,d_beta,verbose)
+          sqt0       =     plinear1_sqt(qz,0d0,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,markov_par,diff,d_scale,d_beta,verbose)
+          sqt        =     plinear1_sqt(qz,tau,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,markov_par,diff,d_scale,d_beta,verbose)
           th_roufbead=a0 * sqt/sqt0
         endif dis1
       else 
@@ -167,12 +170,12 @@ dis2:  if(distribution) then
             sumw  = sumw + wgt 
             n_arm = n_repeat * i + 1  
             Re_arm= Re_arm0*sqrt(dble(n_arm)/dble(n_arm0))                                                         
-            sqt   = sqt+wgt*plinear1_sqt(qz,tau,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff,d_scale,d_beta,verbose)
+            sqt   = sqt+wgt*plinear1_sqt(qz,tau,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,markov_par,diff,d_scale,d_beta,verbose)
            enddo
            sqt = sqt/sumw
            th_roufbead=a0 * sqt
         else
-          sqt        =     plinear1_sqt(qz,tau,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff,d_scale,d_beta,verbose)
+          sqt        =     plinear1_sqt(qz,tau,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,markov_par,diff,d_scale,d_beta,verbose)
           th_roufbead=a0 * sqt
         endif dis2
       endif  xtau
@@ -190,7 +193,7 @@ dis2:  if(distribution) then
 
    
    
-double precision function plinear1_sqt(q,t,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,diff,d_scale,d_beta,verbose)
+double precision function plinear1_sqt(q,t,n_arm,Re_arm,Wl4,extra_frict,n_repeat,contrast_select,extra_contrast_factor,markov_par,diff,d_scale,d_beta,verbose)
 !-------------------------------------------------------------------------------------------------------------
 !! star following the derivation of:
 !!      M. Guenza, M. Mormino and A. Perico, Macromolecules 1991, 24, 6166-6174
@@ -208,17 +211,18 @@ double precision function plinear1_sqt(q,t,n_arm,Re_arm,Wl4,extra_frict,n_repeat
   double precision, intent(in)  :: Wl4
   double precision, intent(in)  :: extra_frict
   integer,          intent(in)  :: n_repeat
-  integer,          intent(in)  :: contrast_select   ! 0=uniform coherent, 1=-AB- blockwise, 2=pseudo incoherent blockwise
+  integer,          intent(in)  :: contrast_select   ! 0=uniform coherent, 1=-AB- blockwise, 2=pseudo incoherent blockwise, 4=-AB-blockwise with markov probability
   double precision, intent(in)  :: diff
   double precision, intent(in)  :: d_scale
   double precision, intent(in)  :: d_beta
   double precision, intent(in)  :: extra_contrast_factor
+  double precision, intent(in)  :: markov_par
   logical,          intent(in)  :: verbose
 
 
   double precision, parameter   :: Pi=3.141592654d0
   integer                       :: N
-  integer                       :: i, j, ip, l, i1, i2, job, info
+  integer                       :: i, j, ip, l, i1, i2, job, info, ir
   integer                       :: ib
   double precision              :: l0         ! effective segment length
   double precision              :: tauR       ! basic Rouse-time of a chain of 2 arm lengths
@@ -236,7 +240,7 @@ double precision function plinear1_sqt(q,t,n_arm,Re_arm,Wl4,extra_frict,n_repeat
  logical, save                :: new_parameters
  logical, save                :: inc_summing 
  integer, save                :: f_arm0, n_arm0, n_repeat0, contrast_select0
- double precision, save       :: extra_frict0, extra_contrast_factor0   
+ double precision, save       :: extra_frict0, extra_contrast_factor0, markov_par0   
 
  real                         :: U(1+n_arm*f_arm,1+n_arm*f_arm)
  real, allocatable,save       :: H(:,:)
@@ -261,6 +265,7 @@ double precision function plinear1_sqt(q,t,n_arm,Re_arm,Wl4,extra_frict,n_repeat
  real                         :: std_bead_friction
  real                         :: effective_diffusion
  real                         :: fak
+ real                         :: bsign
 
  integer                      :: perm(1+n_arm*f_arm)
  integer, save                :: index_lowest_Ev
@@ -297,6 +302,7 @@ double precision function plinear1_sqt(q,t,n_arm,Re_arm,Wl4,extra_frict,n_repeat
                   .or.  n_repeat              .ne. n_repeat0              &
                   .or.  contrast_select       .ne. contrast_select0       &
                   .or.  extra_contrast_factor .ne. extra_contrast_factor0 &
+                  .or.  markov_par            .ne. markov_par0            &
                   .or.  abs(extra_frict-extra_frict0) > 1e-6       
 
    
@@ -312,6 +318,7 @@ eig2: if(  first_run .or. new_parameters ) then
     extra_frict0           = extra_frict
     contrast_select0       = contrast_select
     extra_contrast_factor0 = extra_contrast_factor
+    markov_par0            = markov_par
 
     if(allocated(Eigenvalues)) then
       deallocate(A)
@@ -333,8 +340,8 @@ eig2: if(  first_run .or. new_parameters ) then
     allocate(r(N))
     allocate(b(N))
 
-!   CALL init_random_seed()
-!   CALL RANDOM_NUMBER(r)
+    CALL init_random_seed()
+    CALL RANDOM_NUMBER(r)
 
 
 
@@ -365,6 +372,16 @@ eig2: if(  first_run .or. new_parameters ) then
      b = 1
      inc_summing = .true.
      if(new_parameters .and. verbose) write(6,*)'contrast computation: blockwise incoherent'
+   case (4)
+     bsign = -1
+     do ir = 1,N/n_repeat
+      if( r(ir) >= markov_par) bsign = -bsign
+      do j=1,n_repeat
+       i = (ir-1)*n_repeat + j
+       b(i) = bsign
+      enddo
+     enddo
+     if(new_parameters .and. verbose) write(6,*)'contrast is incomplete alternating left right block, markov_par=',markov_par
    case default
     b = 1
  end select 
@@ -695,3 +712,20 @@ else
 endif
 
 end function xn_distribution
+
+
+          SUBROUTINE init_random_seed()
+            INTEGER :: i, n, clock
+            INTEGER, DIMENSION(:), ALLOCATABLE :: seed
+          
+            CALL RANDOM_SEED(size = n)
+            ALLOCATE(seed(n))
+          
+            CALL SYSTEM_CLOCK(COUNT=clock)
+          
+            seed = clock + 37 * (/ (i - 1, i = 1, n) /)
+            CALL RANDOM_SEED(PUT = seed)
+          
+            DEALLOCATE(seed)
+          END SUBROUTINE
+
