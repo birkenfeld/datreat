@@ -143,12 +143,18 @@
        double precision :: Ommax = 1000d0
        integer          :: nomega = 100
 
-       real             :: He3_pressure_bar = 10.0
-       real             :: Tube_diameter_m  = 0.025
+       real             :: He3_pressure_bar = 4.75  ! (IN5 value in 2013)
+       real             :: Tube_diameter_m  = 0.025 ! (IN5 1 inch tubes)
        real             :: lenfrac          = 1.0
        real             :: detector_sensitivity, detsens, lambdaA
 
 
+         real  :: lambda0, lambda1, delta_lambda, temp,angle_2tht 
+         real  :: e0, e1, dE, de0, dee, dbb, omega, om_cm, qrc, qa, q
+         real  :: kinetic_factor, channel_factor,channel_width,channel_width0
+         real  :: sume, sumq
+  
+       integer :: irstp, recstep = 1    
 
 ! ---- initialisations ----
 ! ---- error-set ----------
@@ -3725,6 +3731,121 @@
           endif
          enddo
 
+         goto 2000
+        endif
+!
+!
+       if(comand.eq.'gdos_q  ') then
+!                    ------> see e.g. J.C. Smith et al, J.Chem. Phys. 85, 3636 (1986)
+         if(nsel.eq.0) then
+           write(6,*)'no curve selected'
+           goto 2000
+         endif
+         ia      = isels(1)
+
+         k1                = intval('k1      ', k1,      inew)
+         k2                = intval('k2      ', k2,      inew)
+         recstep           = intval('recstep ', recstep, inew)
+
+         write(6,'(a)')'Creating q-exptrapolation curve for g(omega) deterimation '
+         write(6,'(a)')'see e.g. J.C. Smith et al, J.Chem. Phys. 85, 3636 (1986)  '
+         write(6,*)' from channel ',k1,' to ', k2,'   recstep ',recstep
+         write(6,*)' lambda       ',xwerte(k1,ia),' to ',xwerte(k2,ia)
+
+! use first record as template for energy scaling, parameter extraction etc.
+         call parget('det_phe3',xx,ia,ier)
+         if(ier .ne. 0 ) then
+           write(6,*)'do detector efficiency correction first!'
+           goto 2000
+         endif
+  
+         call parget ('lambda  ',lambdaA ,ia, ier)
+         if(ier.ne.0) then
+            write(6,*)'ERROR: Parameter lambda is missing in parameterlist of record!'
+            goto 2000
+         endif
+
+         call parget ('temp    ', temp ,ia, ier)
+         if(ier.ne.0) then
+            write(6,*)'ERROR: Parameter temp is missing in parameterlist of record!'
+            goto 2000
+         endif
+
+         lambda0      = (xwerte(k1,ia)+xwerte(k2,ia))/2     * 1d-10                      ! das ist lambda_final
+         lambda1      = lambdaA                             * 1d-10                      ! das ist lambda_in
+         delta_lambda = (xwerte(k2+1,ia)-xwerte(k1,ia))     * 1d-10
+         e0           = NeutronEnergy_fromLambda(dble(lambda0))
+         e1           = NeutronEnergy_fromLambda(dble(lambda1))
+         dE           = e1-e0                                    ! hquer*omega = E_in - E_final
+         de0     = NeutronEnergy_fromLambda(dble(lambda1-delta_lambda/2))-NeutronEnergy_fromLambda(dble(lambda1+delta_lambda/2))
+         dee     = NeutronEnergy_fromLambda(dble(lambda0-delta_lambda/2))-NeutronEnergy_fromLambda(dble(lambda0+delta_lambda/2))
+
+         dbb     = exp(dble(dE/(temp*Boltzmannkonstante))) - 1.0
+
+         omega   = dE*2*Pi/Planckkonstante / 1d9
+         om_cm   = dE/Planckkonstante/Lichtgeschwindigkeit/100   ! werte in cm**-1
+
+         kinetic_factor = lambda0/lambda1      ! to be multiplied with the cross setion data to come towards s(q,om)
+         channel_factor = dee/de0
+         channel_width  = dee/Planckkonstante/Lichtgeschwindigkeit/100   ! werte in cm**-1
+         channel_width0 = de0/Planckkonstante/Lichtgeschwindigkeit/100   ! werte in cm**-1
+
+          
+         if(nbuf.lt.mbuf) then 
+            nbuf = nbuf+1
+         else
+            Write(6,*)'max. number of buffers reached .. '
+            goto 2000   
+         endif
+         call txfera(ia,nbuf)
+         numor(nbuf)    = numor(ia)+100000
+         xname(nbuf)    = 'q      '
+         yname(nbuf)    = 'gdos'
+         coment(nbuf)   = coment(nbuf)(1:40)//'gdos extrapolation data '
+         nwert(nbuf) = 0
+
+         call parset ('omega    ', omega            ,nbuf)
+         call parset ('om_cm    ', om_cm            ,nbuf)
+         call parset ('rwidth   ', channel_factor   ,nbuf)
+         call parset ('cwidth   ', channel_width    ,nbuf)
+         call parset ('cwidth0  ', channel_width0   ,nbuf)
+         call parset ('lambda1  ', xwerte(k1,ia)    ,nbuf)
+         call parset ('lambda2  ', xwerte(k2,ia)    ,nbuf)
+         
+         
+         do i=0,nsel-recstep,recstep
+          sumq = 0
+ irs:     do irstp=1,recstep
+           ia      = isels(i+irstp)
+           call parget ('angle   ',angle_2tht, ia, ier)  
+           if(ier.ne.0) then
+             write(6,*)'ERROR: Parameter angle is missing in parameterlist of record!',isels(ia)
+           endif
+
+           q  = sqrt(((2*Pi/lambda0)**2+(2*Pi/lambda1)**2 - 2*COSD(angle_2tht)*(2*Pi/lambda0)*(2*Pi/lambda1)))  
+           qa = q * 1d-10
+          
+           sumq = sumq+qa
+           sum  = 0
+           sume = 0
+     
+           do j=k1,k2
+            sum  = sum  +  6*omega/(qa**2)*dbb* kinetic_factor * ywerte(j,ia)
+            sume = sume + (6*omega/(qa**2)*dbb* kinetic_factor * yerror(j,ia))
+           enddo
+          enddo irs
+
+           nwert(nbuf) =  nwert(nbuf) + 1
+           xwerte(nwert(nbuf), nbuf) = sumq/recstep
+           ywerte(nwert(nbuf), nbuf) = sum
+           yerror(nwert(nbuf), nbuf) = sume
+           write(6,'(2i4,3e14.7)')i, nwert(nbuf), xwerte(nwert(nbuf), nbuf), ywerte(nwert(nbuf), nbuf),  yerror(nwert(nbuf), nbuf)
+         enddo
+
+         nsel     = 1
+         isels(1) = nbuf
+         ifits    = 0
+        
          goto 2000
         endif
 !

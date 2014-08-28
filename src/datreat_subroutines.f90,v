@@ -1,10 +1,14 @@
-head	1.18;
+head	1.19;
 access;
 symbols;
-locks
-	monk:1.18; strict;
+locks; strict;
 comment	@# @;
 
+
+1.19
+date	2014.08.28.12.49.53;	author monk;	state Exp;
+branches;
+next	1.18;
 
 1.18
 date	2014.04.03.14.18.17;	author monk;	state Exp;
@@ -101,7 +105,7 @@ desc
 @@
 
 
-1.18
+1.19
 log
 @*** empty log message ***
 @
@@ -5487,6 +5491,106 @@ text
 !                                                                       
        END                                                              
 
+
+
+
+
+
+
+
+!..............................................................................................
+!. functions pertaining the detector sensitivity: parameters for LET ..........................
+!..............................................................................................
+
+  real function detector_sensitivity(lambdaA,lenfrac,p,dtube)
+! -----------------------------------------------------------
+  implicit none
+  real, intent(in)    :: lambdaA             ! wavelength in Angstroems
+  real, intent(in)    :: lenfrac             ! here the projection strech factor given by distance(i)/distance0
+  real, intent(in)    :: p                   ! detector pressure in bar 
+  real, intent(in)    :: dtube               ! detector diameter in m
+  
+
+  real, parameter     :: sigmaA_He3 = 5333e-28
+  real, parameter     :: sigma_Iron = 20.0                ! absorption per meter (estimated)
+  real, parameter     :: effective_tube_thickness = 0.001 ! default assumption 1mm
+  real, parameter     :: NA         = 6.022045e23
+  real, parameter     :: Vmol       = 0.02241383
+  real, parameter     :: lambda0    = 1.798
+  double precision    :: alpha
+  double precision    :: wcyldet
+
+  alpha = NA/Vmol * p * dtube * lenfrac * sigmaA_He3 * lambdaA/lambda0
+
+  detector_sensitivity = max(0.01, wcyldet(alpha) * exp(-lenfrac*effective_tube_thickness*sigma_Iron) )
+!                                                                                         -> here we may needs some sort of lambda dependence
+  
+!  write(6,*)' p = ',p
+!  write(6,*)' d = ',dtube
+!  write(6,*)' a=  ',alpha
+!  write(6,*)' w=  ',wcyldet(alpha) 
+
+  end function detector_sensitivity
+
+
+
+  double precision function wcyldet(alpha)
+! ----------------------------------------
+!
+! series expansion of integral to estimate the detection efficiency of a cylindrical
+! (elliptical) detector tube
+! alpha is = Diameter x Sigma-abs
+! alpha is   tubediameter * Sigma(He3) * (distance(j)/distance0)
+!
+! Sigma(He3) = numberdensity * absorption-crossection * lambda/lambda0
+!                  = Na / (Vmol) * (p/p0) *  5333barn * lambda/1.798A
+!
+! the expression returned is an approximation to 
+! 
+! W := (1/2)*(int(1-exp(-alpha*sqrt(1-x^2)), x = -1 .. 1))
+! 
+! obtained by the taylor expansion of the integral
+!
+! the exact result would be:
+!
+! W = 1-(-(1/2)*alpha*Pi*BesselI(1, alpha)+(1/2)*alpha*Pi*StruveL(1, alpha)+alpha)/alpha
+!
+
+    implicit none
+    double precision, intent(in)   :: alpha
+    double precision               :: t1, w
+
+
+     t1 = exp(-alpha)
+     w  = 1-t1+alpha*(-0.148562771061958D18/0.6977792621150208D18*t1+ &
+          alpha*(-0.3226622737612121D17/0.6977792621150208D18*t1+     &
+          alpha*(-72378131847533.D0/0.872224077643776D16*t1+          &
+          alpha*(-0.2549005820162231D16/0.2093337786345062D19*t1+     &
+          alpha*(-102518622323707.D0/0.6977792621150208D18*t1+        &
+          alpha*(-32516961685057.D0/0.2220206743093248D19*t1+         &
+          alpha*(-77335696019.D0/0.64044425281536D17*t1+              &
+          alpha*(-44134000963.D0/0.5379731723649024D18*t1+            &
+          alpha*(-1439093561.D0/0.316454807273472D18*t1+              &
+          alpha*(-30269161.D0/0.149899645550592D18*t1+                &
+          alpha*(-4097321.D0/0.58889146466304D18*t1+                  &
+          alpha*(-18013.D0/0.10241590689792D18*t1+                    &
+          alpha*(-467.D0/0.1597688147607552D18*t1-                    &
+          alpha*t1/0.414215445676032D17                   )))))))))))))
+
+          wcyldet = w
+
+   end function wcyldet   
+
+
+@
+
+
+1.18
+log
+@*** empty log message ***
+@
+text
+@d5382 91
 @
 
 
