@@ -3780,7 +3780,7 @@
          de0     = NeutronEnergy_fromLambda(dble(lambda1-delta_lambda/2))-NeutronEnergy_fromLambda(dble(lambda1+delta_lambda/2))
          dee     = NeutronEnergy_fromLambda(dble(lambda0-delta_lambda/2))-NeutronEnergy_fromLambda(dble(lambda0+delta_lambda/2))
 
-         dbb     = exp(dble(dE/(temp*Boltzmannkonstante))) - 1.0
+
 
          omega   = dE*2*Pi/Planckkonstante / 1d9
          om_cm   = dE/Planckkonstante/Lichtgeschwindigkeit/100   ! werte in cm**-1
@@ -3815,6 +3815,8 @@
          
          do i=0,nsel-recstep,recstep
           sumq = 0
+          sum  = 0
+          sume = 0
  irs:     do irstp=1,recstep
            ia      = isels(i+irstp)
            call parget ('angle   ',angle_2tht, ia, ier)  
@@ -3822,23 +3824,33 @@
              write(6,*)'ERROR: Parameter angle is missing in parameterlist of record!',isels(ia)
            endif
 
-           q  = sqrt(((2*Pi/lambda0)**2+(2*Pi/lambda1)**2 - 2*COSD(angle_2tht)*(2*Pi/lambda0)*(2*Pi/lambda1)))  
-           qa = q * 1d-10
-          
-           sumq = sumq+qa
-           sum  = 0
-           sume = 0
-     
-           do j=k1,k2
-            sum  = sum  +  6*omega/(qa**2)*dbb* kinetic_factor * ywerte(j,ia)
-            sume = sume + (6*omega/(qa**2)*dbb* kinetic_factor * yerror(j,ia))
+          do j=k1,k2
+            lambda0      = xwerte(k1,ia)                       * 1d-10                      ! das ist lambda_final
+            lambda1      = lambdaA                             * 1d-10                      ! das ist lambda_in
+            delta_lambda = (xwerte(k2+1,ia)-xwerte(k1,ia))     * 1d-10
+            e0           = NeutronEnergy_fromLambda(dble(lambda0))
+            e1           = NeutronEnergy_fromLambda(dble(lambda1))
+            dE           = e1-e0                                    ! hquer*omega = E_in - E_final
+            q  = sqrt(((2*Pi/lambda0)**2+(2*Pi/lambda1)**2 - 2*COSD(angle_2tht)*(2*Pi/lambda0)*(2*Pi/lambda1)))  
+            qa = q * 1d-10
+            sumq = sumq+qa
+
+            omega   = dE*2*Pi/Planckkonstante / 1d9
+            om_cm   = dE/Planckkonstante/Lichtgeschwindigkeit/100   ! werte in cm**-1
+            kinetic_factor = lambda0/lambda1      ! to be multiplied with the cross setion data to come towards s(q,om)
+!                                                   kinetic_factor=1 if already applied
+            dbb = exp(dble(-dE/(temp*Boltzmannkonstante))) - 1.0
+!                         ! definition of omega in paper
+            sum  = sum  +  6*(-omega)/(qa**2)*dbb* kinetic_factor * ywerte(j,ia)
+            sume = sume + (6*(-omega)/(qa**2)*dbb* kinetic_factor * yerror(j,ia))**2
+!                             ! definition of omega in paper          
            enddo
           enddo irs
 
            nwert(nbuf) =  nwert(nbuf) + 1
-           xwerte(nwert(nbuf), nbuf) = sumq/recstep
-           ywerte(nwert(nbuf), nbuf) = sum
-           yerror(nwert(nbuf), nbuf) = sume
+           xwerte(nwert(nbuf), nbuf) = sumq       / (recstep*(k2-k1+1))
+           ywerte(nwert(nbuf), nbuf) = sum        / (channel_factor*recstep)
+           yerror(nwert(nbuf), nbuf) = sqrt(sume) / (channel_factor*recstep)
            write(6,'(2i4,3e14.7)')i, nwert(nbuf), xwerte(nwert(nbuf), nbuf), ywerte(nwert(nbuf), nbuf),  yerror(nwert(nbuf), nbuf)
          enddo
 
