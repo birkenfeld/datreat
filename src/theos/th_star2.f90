@@ -286,10 +286,10 @@ enddo
    
 
 ! ATTENTION: eigenvalues are not sorted !!!
-!write(6,*)'Eigenvalues, CM(ll): '
-!do i=1,N
-!   write(6,'(i5,2f12.6,5x,2f12.6)') i,eigenvalues(i), CM(i,i)
-!enddo
+ write(6,*)'Eigenvalues, CM(ll): '
+  do i=1,N
+    write(6,'(i5,2f12.6,5x,2f12.6)') i,eigenvalues(i), CM(i,i)
+  enddo
 
 
  endif eig
@@ -297,7 +297,6 @@ enddo
 
 
 ! -- fill the (symmetric) phi(n,m) matrix --
-
 
 philp2: do i=1,N
   do j=1,N
