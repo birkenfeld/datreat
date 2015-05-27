@@ -1,7 +1,7 @@
 ! ---following is created by make_sum_up_include which is called from Makefile----
   
         goto(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,&
-        &33,34,35,36,37,38,39,40,41) , ith
+        &33,34,35,36,37,38,39,40) , ith
 1        continue
            if(imu) then
               sum=sum*th_ddiavo(x ,thparx(:,it),dum,dum,idum,mbuf,1)
@@ -207,82 +207,75 @@
            goto 250
 30        continue
            if(imu) then
-              sum=sum*roused(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
-           else
-               sum=sum+roused(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
-           endif
-           goto 250
-31        continue
-           if(imu) then
               sum=sum*rouse(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
            else
                sum=sum+rouse(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
            endif
            goto 250
-32        continue
+31        continue
            if(imu) then
               sum=sum*srouse(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
            else
                sum=sum+srouse(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
            endif
            goto 250
-33        continue
+32        continue
            if(imu) then
               sum=sum*sofqq(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
            else
                sum=sum+sofqq(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
            endif
            goto 250
-34        continue
+33        continue
            if(imu) then
               sum=sum*th_star2(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
            else
                sum=sum+th_star2(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
            endif
            goto 250
-35        continue
+34        continue
            if(imu) then
               sum=sum*th_star(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
            else
                sum=sum+th_star(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
            endif
            goto 250
-36        continue
+35        continue
            if(imu) then
               sum=sum*strexpo(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
            else
                sum=sum+strexpo(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
            endif
            goto 250
-37        continue
+36        continue
            if(imu) then
               sum=sum*subdiff(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
            else
                sum=sum+subdiff(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
            endif
            goto 250
-38        continue
+37        continue
            if(imu) then
               sum=sum*thick_co(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
            else
                sum=sum+thick_co(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
            endif
            goto 250
-39        continue
+38        continue
            if(imu) then
               sum=sum*th_zglam(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
            else
                sum=sum+th_zglam(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
            endif
            goto 250
-40        continue
+39        continue
            if(imu) then
               sum=sum*th_zgbicbic(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
            else
                sum=sum+th_zgbicbic(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
            endif
            goto 250
-41        continue
+40        continue
            if(imu) then
               sum=sum*zimm(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
            else

@@ -6,7 +6,7 @@ LOCAL:=$(shell cd ..;/bin/pwd)
 ##  To include GR and GKS if installed
 ifneq "$(wildcard /usr/local/lib/libgks.*)" ""
       ADDLIBGKS=-lgks
-else ifneq "$(wildcard /usr/local/psh/lib/libGKS.*)" ""
+else ifneq "$(wildcard /usr/local/gr/lib/libGKS.*)" ""
       ADDLIBGKS=-lgks
 else
       ADDLIBGKS=
@@ -14,7 +14,7 @@ endif
 ifneq "$(wildcard /usr/local/lib/libgr.*)" ""
       ADDLIBGR=-lgr
 	  OBJ_GR=datreat_plot2gr.o
-else ifneq "$(wildcard /usr/local/psh/lib/libgr*.*)" ""
+else ifneq "$(wildcard /usr/local/gr/lib/libgr*.*)" ""
       ADDLIBGR=-lgrsoft_gfortran
 	  OBJ_GR=datreat_plot2gr.o	  
 else
@@ -52,8 +52,10 @@ endif
 
 SRCSTHEO=  $(wildcard theos/*.f) $(wildcard theos/*.f90) $(wildcard theos/*.i90)
 
-FC=gfortran
-FFLAGS=-march=core2 -O2 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -msse4a -mfpmath=sse -I$LOCAL -Wunused-function -Wunused-variable
+#FC=gfortran
+#FFLAGS=-march=core2 -O2 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -msse4a -mfpmath=sse -I$LOCAL -Wunused-function -Wunused-variable
+FC=ifort
+FFLAGS=-march=core2 -O2  -save -fPIC  -mfpmath=sse -I$LOCAL 
 
 #-fbounds-check
 LDFLAGS = -DPATH_TO_LOCAL_DATREAT=\"$(LOCAL)\"
@@ -61,24 +63,26 @@ LDFLAGS = -DPATH_TO_LOCAL_DATREAT=\"$(LOCAL)\"
 
 OBJS = datreat05_2.o dataconvolution4.o dtpur.o util_get_y_value.o \
  incom.o utilux.o datreat2xmgrace.o incom_subroutines.o \
-datreat_subroutines.o
+datreat_subroutines.o PhysicalConstantsPlus.o commons_mod.o unift.o 
 
 LIBS = theos/libtheos.a \
 lib/dtpurcollection/libdtpurcollection.a lib/fftpack5/libfftpack.a \
 lib/slatec/libslatec.a lib/sminpack/libsminpack.a
 
+MODS = PhysicalConstantsPlus.f90 commons_mod.f90 unift.f90
+
 .F90.o:
-	$(FC) -c $(FFLAGS) $(LDFLAGS) $<
+	$(FC) -c $(FFLAGS) $(LDFLAGS) $(MODS) $<
 
 .f90.o:
-	$(FC) -c $(FFLAGS) $(LDFLAGS) $< 
+	$(FC) -c $(FFLAGS) $(LDFLAGS) $(MODS) $< 
 
 .f.o:
-	$(FC) -c $(FFLAGS) $(LDFLAGS) $< 
+	$(FC) -c $(FFLAGS) $(LDFLAGS) $(MODS) $< 
 
 
-datreat: CPP $(OBJS) $(LIBS) $(OBJ_GR)
-	$(FC) -o datreat $(FFLAGS) $(OBJS) $(LIBS) $(LDFLAGS) -L$(GRACE) $(OBJ_GR) -l$(GRACENP)  -L/usr/local/psh/lib $(ADDLIBGR) $(ADDLIBGKS)
+datreat: $(OBJS) $(LIBS) $(OBJ_GR)
+	$(FC) -o datreat $(FFLAGS) $(OBJS) $(LIBS) $(LDFLAGS) -L$(GRACE) $(OBJ_GR) -l$(GRACENP)  -L/usr/local/gr/lib $(ADDLIBGR) $(ADDLIBGKS) -L/usr/local/nag/lib -lnag  -Wl,-rpath,/usr/local/intel/lib/intel64 -lifcore -limf -lintlc -llapack_ifort -lblas_ifort
 	@/bin/mv datreat ../bin
 	@/bin/ln -sf $(LOCAL)/bin/datreat ~/bin
 	@echo "___________________________________________________________________"
@@ -93,8 +97,9 @@ datreat: CPP $(OBJS) $(LIBS) $(OBJ_GR)
 	@head CHANGES.log
 	@echo "___________________________________________________________________"
 
-CPP:	
-	@cpp commons-cpp.h commons.h
+# CPP:	
+#	@cpp commons-cpp.h commons.h
+#       @cpp commons-cpp.h -o commons.h     fuer MAC OS-X weg damit
 intel:
 	make datreat FC=ifort FFLAGS="-g -O2" \
 	LDFLAGS="-Wl,-rpath,/usr/local/intel/fc/stable/lib"
@@ -128,6 +133,9 @@ clean:
 	make -C lib/slatec clean
 	make -C lib/sminpack clean
 	make -C theos clean
+	rm -f *.o
+	rm -f *.mod
+	rm -f unused_theos/*.o
 	
 
 
