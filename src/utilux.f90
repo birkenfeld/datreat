@@ -129,43 +129,43 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!! GFORTRAN version
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!       subroutine sigset(iflag)
-!!      ------------------------
-!!      establish SIGINT (Crtl-C) for use in own fortran programs
-!!      if iflag = -1 --> SIGINT is flagged in common/sig/
-!!      if iflga =  0 --> Systemaction is restore
-!
-!       INTRINSIC signal
-!       INTEGER  IntHandler
-!
-!
-!       integer ret, iflag, iflag0
-!       INTEGER SIGINT
-!       parameter(SIGINT=2)
-!       common/sig/isignal
-!       external IntHandler
-!
-!       isignal = 0
-!
-!       if(iflag.eq.-1) then
-!          iflag0 = -1
-!          write(6,*)'Signal with iflag0=',iflag0
-!          call signal( SIGINT, IntHandler)
-!          write(6,*)'Signal:',SIGINT,'  redefined'
-!       else
-!          iflag0 = 0
-!          write(6,*)'Signal:',SIGINT,'  reset not supported '
-!       endif
-!
-!       return
-!      END
-!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!! GFORTAN version  end
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! !! GFORTRAN version
+!! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!        subroutine sigset(iflag)
+!! !      ------------------------
+!! !      establish SIGINT (Crtl-C) for use in own fortran programs
+!! !      if iflag = -1 --> SIGINT is flagged in common/sig/
+!! !      if iflga =  0 --> Systemaction is restore
+!! 
+!!        INTRINSIC signal
+!!        INTEGER  IntHandler
+!! 
+!! 
+!!        integer ret, iflag, iflag0
+!!        INTEGER SIGINT
+!!        parameter(SIGINT=2)
+!!        common/sig/isignal
+!!        external IntHandler
+!! 
+!!        isignal = 0
+!! 
+!!        if(iflag.eq.-1) then
+!!           iflag0 = -1
+!!           write(6,*)'Signal with iflag0=',iflag0
+!!           call signal( SIGINT, IntHandler)
+!!           write(6,*)'Signal:',SIGINT,'  redefined'
+!!        else
+!!           iflag0 = 0
+!!           write(6,*)'Signal:',SIGINT,'  reset not supported '
+!!        endif
+!! 
+!!        return
+!!       END
+!! 
+!! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! GFORTAN version  end
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
 
