@@ -57,6 +57,8 @@ SRCSTHEO=  $(wildcard theos/*.f) $(wildcard theos/*.f90) $(wildcard theos/*.i90)
 FC=ifort
 FFLAGS=-march=core2 -O2  -save -fPIC  -mfpmath=sse -I$LOCAL 
 
+make_date = "$(shell date +%F)"
+
 #-fbounds-check
 LDFLAGS = -DPATH_TO_LOCAL_DATREAT=\"$(LOCAL)\"
 

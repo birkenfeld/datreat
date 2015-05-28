@@ -167,8 +167,8 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 			write(6,*)
 			write(6,*)'======================================================='
-			write(6,*)'=   datreat12_2     Version: jan.2013   RCS:1.11      ='
-			write(6,*)'=   -----------     -----------------                 ='
+			write(6,*)'=   datreat12_2     Version: mm-develop 1.0           ='
+			write(6,*)'=   -----------     --------                          ='
 			write(6,*)'=   changed to fortran 90 format and gfortran         ='
 			write(6,*)'=   gplot ?  shows help for plotting in xmgrace       ='
 			write(6,*)'=          or simply try "gp  "          :-)          ='
@@ -1287,6 +1287,13 @@
          goto 2000
        endif
 !
+!
+       if(comand.eq.'average ') then
+!                    -------
+         call average_data()
+
+         goto 2000
+       endif
 !
        if(comand.eq.'addval  ') then
 !                    ------
@@ -3880,6 +3887,9 @@
 !      ---------> read now commandlines from makro file
 !
 !
+!
+
+
       END ! Ende der Hauptschleife
 
 
@@ -4003,3 +4013,188 @@
 
        return
        end subroutine get_pair_of_points
+
+
+
+ 
+   subroutine average_data()
+!     -------------------------
+      use dimensions
+      use cincom
+      use cincoc
+      use xoutxx
+      use cdata
+      use outlev
+      use theory
+      use selist
+      use fslist
+      use theorc
+      use thparc
+      use formul
+      use cfc
+      use cfunc
+      use cfunce
+      use partran
+      use wlntran
+      use sqtran
+      use constants
+      use PhysicalConstantsPlus
+ 
+      implicit none
+
+      double precision, save        :: xcatch = 0.05d0
+      integer                       :: inew, ier
+      integer                       :: i,j,k,n
+      integer                       :: number_of_data_points
+      integer                       :: n_result_point
+      character(len=8)              :: cbuf
+      logical                       :: found
+      double precision              :: getval
+      double precision              :: xaver, yaver, yerra
+      double precision, allocatable :: xva(:), yva(:), yvaer(:)
+      integer         , allocatable :: iperm(:)
+      logical         , allocatable :: va_used(:)
+
+
+      if(found('help    ')) then 
+       write(6,*)'=============================================================================='
+       write(6,*)'= average_data                                                               ='
+       write(6,*)'= combine error weighted close data points from records in the selection list='
+       write(6,*)'= parameter is       xcatch  the relative width of the x-window              ='
+       write(6,*)'= current default is xcatch  ',xcatch
+       write(6,*)'=============================================================================='
+       return
+      endif
+
+
+
+
+
+      xcatch = getval("xcatch  ",xcatch,inew)
+
+      write(6,*)'xcatch=', xcatch
+
+      if(nsel <= 1) then
+        write(6,*)"Select more than one curve to average!"
+        ierrs = 1000
+        return
+      endif
+
+      if(nbuf >= mbuf) then
+        write(6,*)"..too many buffers", nbuf, mbuf
+        ierrs = 2000
+        return
+      endif
+
+! prepare destination
+      nbuf = nbuf + 1
+      call txfera(isels(1),nbuf)
+      numor(nbuf)    = numor(isels(1))+200000
+      call parset("xcatch   ",sngl(xcatch),nbuf)
+      do i=1, nsel
+        write(cbuf,'("c",i0)')i
+        call parset(cbuf,real(numor(isels(i))),nbuf)
+      enddo
+! check how many data_points are there
+      number_of_data_points = 0
+      do i=1,nsel
+       number_of_data_points = number_of_data_points + nwert(isels(i)) 
+      enddo
+
+      if(allocated(xva))     deallocate(xva)
+      if(allocated(yva))     deallocate(yva)
+      if(allocated(yvaer))   deallocate(yvaer)
+      if(allocated(va_used)) deallocate(va_used)
+      if(allocated(iperm))   deallocate(iperm)
+      allocate(xva    (number_of_data_points))
+      allocate(yva    (number_of_data_points))
+      allocate(yvaer  (number_of_data_points))
+      allocate(va_used(number_of_data_points))
+      allocate(  iperm(number_of_data_points))
+
+! distribute data
+      n = 0      
+      do i=1,nsel
+        do j=1,nwert(isels(i))
+         n=n+1
+         xva(n)    =  xwerte(j,isels(i))
+         yva(n)    =  ywerte(j,isels(i))
+         yvaer(n)  =  yerror(j,isels(i))
+         va_used(n)= .false.
+        enddo 
+      enddo
+      number_of_data_points = n
+! error-sorting (using SLATEC dpsort) 
+      iperm = [(i,i=1,number_of_data_points)]
+      call  DPSORT (yvaer, number_of_data_points, IPERM,  1 , ier)
+!C      KFLAG - input -- control parameter:---------------^
+!C            =  2  means return the permutation vector resulting from
+!C                  sorting DX in increasing order and sort DX also.
+!C            =  1  means return the permutation vector resulting from
+!C                  sorting DX in increasing order and do not sort DX.
+!C            = -1  means return the permutation vector resulting from
+!C                  sorting DX in decreasing order and do not sort DX.
+!C            = -2  means return the permutation vector resulting from
+!C                  sorting DX in decreasing order and sort DX also.
+
+       write(6,*)            " All related points after error sorting: "
+       write(6,'(2i5,3e14.7)') (i,iperm(i),xva(iperm(i)),yva(iperm(i)),yvaer(iperm(i)),i=1,number_of_data_points)
+
+! now proceed with the lowest error point and get all neibours in xcatch distance
+       n_result_point = 0
+d1:    do i=1,number_of_data_points
+          if(va_used(iperm(i))) cycle d1
+          va_used(iperm(i)) = .true.
+          xaver = xva(iperm(i)) * 1d0/yvaer(iperm(i))**2
+          yaver = yva(iperm(i)) * 1d0/yvaer(iperm(i))**2
+          yerra = 1d0/yvaer(iperm(i))**2
+d2:       do j=1,number_of_data_points
+            if(va_used(iperm(j))) cycle d2
+            if(abs(2*(xva(iperm(j))-xva(iperm(i)))/(xva(iperm(j))+xva(iperm(j)))) > xcatch ) cycle d2 ! relative match
+              xaver = xaver + xva(iperm(j)) * 1d0/yvaer(iperm(j))**2
+              yaver = yaver + yva(iperm(j)) * 1d0/yvaer(iperm(j))**2
+              yerra = yerra + 1d0/yvaer(iperm(j))**2   
+              va_used(iperm(j)) = .true.           
+          enddo d2 
+          n_result_point = n_result_point + 1
+          if(n_result_point > mwert) then
+            write(6,*)'too many points created.'
+            return
+          endif
+          xwerte(n_result_point,nbuf) = xaver / yerra
+          ywerte(n_result_point,nbuf) = yaver / yerra
+          yerror(n_result_point,nbuf) = sqrt(1d0 / yerra)
+
+!          write(6,*)"test: ", n_result_point, xwerte(n_result_point,nbuf), &
+!                     ywerte(n_result_point,nbuf), yerror(n_result_point,nbuf)
+
+       enddo d1
+       nwert(nbuf) =  n_result_point
+!sort the result according to x
+       iperm = [(i,i=1, n_result_point)]
+
+!       write(6,*)            " intermediate result: "
+!       write(6,'(2i5,3e14.7)') (i,iperm(i),xva(iperm(i)),yva(iperm(i)),yvaer(iperm(i)),i=1,n_result_point)
+
+       call  SPSORT (xwerte(:,nbuf),n_result_point, IPERM, -1 , ier)
+       xva  (1:n_result_point) = xwerte(iperm(1:n_result_point),nbuf)
+       yva  (1:n_result_point) = ywerte(iperm(1:n_result_point),nbuf)
+       yvaer(1:n_result_point) = yerror(iperm(1:n_result_point),nbuf)
+       xwerte(1:n_result_point,nbuf) =  xva  (1:n_result_point)
+       ywerte(1:n_result_point,nbuf) =  yva  (1:n_result_point) 
+       yerror(1:n_result_point,nbuf) = yvaer (1:n_result_point)
+
+       write(6,'(a)'    , advance='no') "final result from: "
+       write(6,'(20i4)' , advance='no') (isels(i),i=1,nsel)
+       write(6,'(a,i4,a,f12.6)')" --> ",nbuf,"    xcatch=",xcatch  
+       write(6,'(2i5,3e14.7)') (i,iperm(i),xva(iperm(i)),yva(iperm(i)),yvaer(iperm(i)),i=1,n_result_point)
+
+       nsel     = 1
+       isels(1) = nbuf
+
+
+
+   end subroutine average_data
+
+
+
