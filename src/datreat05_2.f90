@@ -3838,7 +3838,7 @@
             e0           = NeutronEnergy_fromLambda(dble(lambda0))
             e1           = NeutronEnergy_fromLambda(dble(lambda1))
             dE           = e1-e0                                    ! hquer*omega = E_in - E_final
-            q  = sqrt(((2*Pi/lambda0)**2+(2*Pi/lambda1)**2 - 2*COSD(angle_2tht)*(2*Pi/lambda0)*(2*Pi/lambda1)))  
+            q  = sqrt(((2*Pi/lambda0)**2+(2*Pi/lambda1)**2 - 2*COS(angle_2tht*Pi/180d0)*(2*Pi/lambda0)*(2*Pi/lambda1)))  
             qa = q * 1d-10
             sumq = sumq+qa
 
