@@ -2947,6 +2947,98 @@
 !
        if(comand.eq.'sel     ') then
 !                    ---
+
+      if(found('help    ')) then 
+       write(6,*)'=============================================================================='
+       write(6,*)'= sel                                                                        ='
+       write(6,*)'= select items from the list of loaded data records                          ='
+       write(6,*)'=    sel  <i1> <i2> ... <in>                                                 ='
+       write(6,*)'=            selects those with dir adresses i1, i2,.. in                    ='
+       write(6,*)'=    sel  <i1>  -<i2>                                                        ='
+       write(6,*)'=            selects all addresses between i1 and i2                         ='
+       write(6,*)'=    sel  all  <parname> <value>  band <value>  | <i1> ..                    ='
+       write(6,*)'=            selects all records with parameter parnam value +- band         ='
+       write(6,*)'=    sel  fit+                                                               ='
+       write(6,*)'=            adds fit curves to the selection                                ='
+       write(6,*)'=    sel next <parname> <value>  band <value>                                ='
+       write(6,*)'=            selects the next record matching the parameter value            ='
+       write(6,*)'=    sel add ......                                     (OR)                 ='
+       write(6,*)'=         adds the selctions done via ... to the present list                ='
+       write(6,*)'=    sel narrow <parname> <value>  band <value>                              ='
+       write(6,*)'=         applies parameter selction to the prsent list (AND)                ='
+       write(6,*)'=    sel exclude <parname> <value>  band <value>                             ='
+       write(6,*)'=         removes matching records from the list                             ='
+       write(6,*)'=    sel exclude numor mod <n>                                               ='
+       write(6,*)'=         removes records with mod(#,n)=0 from the list                      ='
+       write(6,*)'=    sel                                                                     ='
+       write(6,*)'=         clear the list                                                     ='
+       write(6,*)'=                                                                            ='
+       write(6,*)'=    use dsl  or dir to check selections!                                    ='
+       write(6,*)'=============================================================================='
+       return
+      endif
+
+
+          
+narrow:   if(found('narrow  ')) then
+             if(nsel <= 0) goto 2000
+                selparna  = chrval('narrow  ',selparna  ,inew)
+                selparval = getval( selparna ,dble(selparval) ,inew)
+                selpartol = getval('band    ',dble(selpartol) ,inew)
+                m = 0
+                do i=1,nsel
+                   call parget(selparna, parval_x , isels(i),ier)
+                   if(ier.eq.0 .and. abs(parval_x-selparval).lt.selpartol) then
+                      m = m+1
+                      isels(m) = isels(i)
+                      ifits(m) = ifits(i)
+                      write(6,'(i4,"[",i4,"]:#",i9,3x,a,2x,e14.7)') &
+                           isels(m),ifits(m),numor(isels(m)),trim(selparna),parval_x
+                   endif
+                   nsel = m
+                enddo   
+             goto 2000
+          endif narrow
+          
+exclude:   if(found('exclude  ')) then
+                if(nsel <= 0) goto 2000
+
+                if(found('numor   ')) then
+                   l = intval('mod     ',2,inew)
+                   if(l==0) l=100
+                   m = 0
+                   do i=1,nsel
+                    if(.not.(mod(numor(isels(i)),l) == 0)) then
+                      m = m+1
+                      isels(m) = isels(i)
+                      ifits(m) = ifits(i)
+                      write(6,'(i4,"[",i4,"]:#",i9,3x,a,2x,e14.7)') &
+                           isels(m),ifits(m),numor(isels(m)),trim(selparna),parval_x
+                    endif
+                    nsel = m
+                   enddo   
+                 goto 2000
+                endif   
+                
+                selparna  = chrval('exclude  ',selparna  ,inew)
+                selparval = getval( selparna ,dble(selparval) ,inew)
+                selpartol = getval('band    ',dble(selpartol) ,inew)
+                m = 0
+                do i=1,nsel
+                   call parget(selparna, parval_x , isels(i),ier)
+                   if(.not.(ier.eq.0 .and. abs(parval_x-selparval).lt.selpartol)) then
+                      m = m+1
+                      isels(m) = isels(i)
+                      ifits(m) = ifits(i)
+                      write(6,'(i4,"[",i4,"]:#",i9,3x,a,2x,e14.7)') &
+                           isels(m),ifits(m),numor(isels(m)),trim(selparna),parval_x
+                   endif
+                   nsel = m
+                enddo   
+             goto 2000
+          endif exclude
+          
+          
          if(inames.eq.0 .or. found('add     ')                          &
      &                  .or. found('fit+    ')                          &
      &                  .or. found('next    ')                          &
@@ -2984,6 +3076,8 @@
                     endif
                     m = m+1
                     isels(m) = i
+                    write(6,'(i4,"[",i4,"]:#",i9,3x,a,2x,e14.7)') &
+                          isels(m),ifits(m),numor(isels(m)),trim(selparna),parval_x
                     if(iout.gt.0) write(6,*)'all ',m,i
                   endif
              enddo

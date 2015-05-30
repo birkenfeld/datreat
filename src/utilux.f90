@@ -88,84 +88,84 @@
 !
 !----------------------------------------------------------------------
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!! IFORT version
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-       subroutine sigset(iflag)
-!      ------------------------
-!      establish SIGINT (Crtl-C) for use in own fortran programs
-!      if iflag = -1 --> SIGINT is flagged in common/sig/
-!      if iflga =  0 --> Systemaction is restore
-
-       USE IFPORT
-!      EXTERNAL IntHandler
-       INTEGER  IntHandler
-
-
-       integer ret, iflag, iflag0
-!       parameter(SIGINT=2)
-       common/sig/isignal
-       external IntHandler
-
-       isignal = 0
-
-       if(iflag.eq.-1) then
-          iflag0 = -1
-          write(6,*)'Signal with iflag0=',iflag0
-          ret = signal( SIGINT, IntHandler, iflag )
-          write(6,*)'Signal:',SIGINT,'  redefined, ret=',ret
-       else
-          iflag0 = 0
-          ret = signal( SIGINT, IntHandler, iflag0)
-          write(6,*)'Signal:',SIGINT,'  is set to system default',      &
-     &              ', ret=',ret
-       endif
-
-       return
-      END
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!>ifort<! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!>ifort<! !! IFORT version
+!>ifort<! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!>ifort<!        subroutine sigset(iflag)
+!>ifort<! !      ------------------------
+!>ifort<! !      establish SIGINT (Crtl-C) for use in own fortran programs
+!>ifort<! !      if iflag = -1 --> SIGINT is flagged in common/sig/
+!>ifort<! !      if iflga =  0 --> Systemaction is restore
+!>ifort<! 
+!>ifort<!        USE IFPORT
+!>ifort<! !      EXTERNAL IntHandler
+!>ifort<!        INTEGER  IntHandler
+!>ifort<! 
+!>ifort<! 
+!>ifort<!        integer ret, iflag, iflag0
+!>ifort<! !       parameter(SIGINT=2)
+!>ifort<!        common/sig/isignal
+!>ifort<!        external IntHandler
+!>ifort<! 
+!>ifort<!        isignal = 0
+!>ifort<! 
+!>ifort<!        if(iflag.eq.-1) then
+!>ifort<!           iflag0 = -1
+!>ifort<!           write(6,*)'Signal with iflag0=',iflag0
+!>ifort<!           ret = signal( SIGINT, IntHandler, iflag )
+!>ifort<!           write(6,*)'Signal:',SIGINT,'  redefined, ret=',ret
+!>ifort<!        else
+!>ifort<!           iflag0 = 0
+!>ifort<!           ret = signal( SIGINT, IntHandler, iflag0)
+!>ifort<!           write(6,*)'Signal:',SIGINT,'  is set to system default',      &
+!>ifort<!      &              ', ret=',ret
+!>ifort<!        endif
+!>ifort<! 
+!>ifort<!        return
+!>ifort<!       END
+!>ifort<! 
+!>ifort<! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !! IFORT version  end
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-!! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!! !! GFORTRAN version
-!! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!        subroutine sigset(iflag)
-!! !      ------------------------
-!! !      establish SIGINT (Crtl-C) for use in own fortran programs
-!! !      if iflag = -1 --> SIGINT is flagged in common/sig/
-!! !      if iflga =  0 --> Systemaction is restore
-!! 
-!!        INTRINSIC signal
-!!        INTEGER  IntHandler
-!! 
-!! 
-!!        integer ret, iflag, iflag0
-!!        INTEGER SIGINT
-!!        parameter(SIGINT=2)
-!!        common/sig/isignal
-!!        external IntHandler
-!! 
-!!        isignal = 0
-!! 
-!!        if(iflag.eq.-1) then
-!!           iflag0 = -1
-!!           write(6,*)'Signal with iflag0=',iflag0
-!!           call signal( SIGINT, IntHandler)
-!!           write(6,*)'Signal:',SIGINT,'  redefined'
-!!        else
-!!           iflag0 = 0
-!!           write(6,*)'Signal:',SIGINT,'  reset not supported '
-!!        endif
-!! 
-!!        return
-!!       END
-!! 
-!! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!! GFORTAN version  end
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ !! GFORTRAN version
+ !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        subroutine sigset(iflag)
+ !      ------------------------
+ !      establish SIGINT (Crtl-C) for use in own fortran programs
+ !      if iflag = -1 --> SIGINT is flagged in common/sig/
+ !      if iflga =  0 --> Systemaction is restore
+ 
+        INTRINSIC signal
+        INTEGER  IntHandler
+ 
+ 
+        integer ret, iflag, iflag0
+        INTEGER SIGINT
+        parameter(SIGINT=2)
+        common/sig/isignal
+        external IntHandler
+ 
+        isignal = 0
+ 
+        if(iflag.eq.-1) then
+           iflag0 = -1
+           write(6,*)'Signal with iflag0=',iflag0
+           call signal( SIGINT, IntHandler)
+           write(6,*)'Signal:',SIGINT,'  redefined'
+        else
+           iflag0 = 0
+           write(6,*)'Signal:',SIGINT,'  reset not supported '
+        endif
+ 
+        return
+       END
+ 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+! GFORTAN version  end
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
 

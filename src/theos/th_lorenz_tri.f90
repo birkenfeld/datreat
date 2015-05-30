@@ -99,7 +99,7 @@
       D     = pa (2)**2        ! square of diffusion constatnt ! 
       delta = abs (pa (3) )
 
-      q = ((2*Pi/alam)**2+(2*Pi/x)**2 - 2*COSD(angle_2tht)*(2*Pi/alam)*(2*Pi/x))  ! q-squared !!
+      q = ((2*Pi/alam)**2+(2*Pi/x)**2 - 2*COS(angle_2tht*Pi/180d0)*(2*Pi/alam)*(2*Pi/x))  ! q-squared !!
 
 ! convolution of a lorenzian (simple diffusion, Gamma proto D*q**2) 
 ! with a simple triangular resolution function with fwhm = delta
