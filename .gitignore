@@ -5,4 +5,5 @@
 fort.*
 *~
 Makefile
-
+Makefile.def
+.gitignore
