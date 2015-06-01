@@ -2975,7 +2975,7 @@
        write(6,*)'=                                                                            ='
        write(6,*)'=    use dsl  or dir to check selections!                                    ='
        write(6,*)'=============================================================================='
-       return
+       goto 2000
       endif
 
 
