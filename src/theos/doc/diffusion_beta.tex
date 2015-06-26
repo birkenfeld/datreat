@@ -1,0 +1,68 @@
+\documentclass[12pt]{article}
+\usepackage[titletoc]{appendix}
+\usepackage{mathtools}
+\usepackage{amsmath} 
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{epstopdf}
+\usepackage{relsize}
+\usepackage{fancyvrb}
+
+\usepackage[firstpage]{draftwatermark}
+\SetWatermarkScale{2}
+\SetWatermarkLightness{0.7}
+
+% for Verbatim
+\fvset{formatcom=\color{blue}}
+\fvset{fontsize=\relsize{-1}}
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title{NSE background subtraction issues}
+\author{M. Monkenbusch 
+JCNS, Forschungszentrum J\"uelich, Germany}
+\date{\today}
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\myspace}{\vskip 0.4cm}
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+\title{diffusion\_beta}
+%----------------------
+%
+Problem solved:
+make a consistent connection of long time normal diffusion as e.g. measured by NMR to
+some sublinear diffusion regime.
+\myspace
+Conditions
+\begin{enumerate}
+\item Gaussian approximation is valid
+\item sub/super-linear diffusion at short time is described by $\langle r^2(t) \rangle \propto t^\beta$
+\item at some transition time $t^*$ (tstar) the short time diffusion smoothly meets the long time diffusion
+\item the condition that value and slope of  $\langle r^2(t) \rangle$ match at $t*$ implies an offset for
+the mean square displacement in the long time behaviour.
+\item besides the streching exponent $\beta$, tstar ($t^*$) is the only additional free parameter.
+\end{enumerate}
+
+After a few operation we the arrive at:
+\begin{equation}
+\label{eq:difbeta1}
+ \langle r^2(t<t^*) \rangle = 6\,{\frac {{t}^{\beta}{{\it t^*}}^{-\beta+1}{\it D_{nmr}}}{\beta}} =
+                              6\,{\frac {(t/t^*)^{\beta}\;({{\it t^*}}{\it D_{nmr})}}{\beta}}
+\end{equation}
+and
+\begin{equation}
+\label{eq:difbeta2}
+ \langle r^2(t>t^*) \rangle = 6\,{\frac {{\it D_{nmr}}\, \left( \beta\,t-\beta\,{\it t^*}+{\it t^*}
+ \right) }{\beta}}
+= 
+6\,D_{nmr}[t + t^* (1/\beta -1)] 
+\end{equation}
+the intermediate scattering (factor) then follows immediately from the Gaussian approximation.
+\begin{equation}
+S(Q,t) = \exp(-q^2 \,  \langle r^2(t) \rangle /6)
+\end{equation}
+
+
+\end{document}

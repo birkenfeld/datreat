@@ -3,7 +3,7 @@ RECURSIVE FUNCTION adapint (f, a, b, epsilon, maxiter, erroraccu)
 !                                                                       
 !      lokal adaptives integrationsverfahren 2te ver. wg. rekur.        
 !                                                                       
-      use outlev
+!      use outlev
       IMPLICIT real (8)(a - h, o - z) 
 !                                                                       
       PARAMETER (maxstack = 200) 
@@ -87,7 +87,7 @@ RECURSIVE  FUNCTION a2dapint (f, a, b, epsilon, maxiter, erroraccu)
 !                                                                       
 !      lokal adaptives integrationsverfahren 2te ver. wg. rekur.        
 !                                                                       
-      use outlev
+!      use outlev
       IMPLICIT real (8)(a - h, o - z) 
 !                                                                       
       PARAMETER (maxstack = 200) 
