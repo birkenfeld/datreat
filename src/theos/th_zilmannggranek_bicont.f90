@@ -2,7 +2,12 @@
 !      ===================================================              
 !                                                                       
 !       zilman-granek for bicontinuous phase
-!                                                                       
+!
+         ! cite:
+         ! M. Monkenbusch et al., CONDENSED MATTER J. Phys.: Condens. Matter 17 (2005) S2903–S2909
+         ! doi:10.1088/0953-8984/17/31/017
+         ! and the Original Zilman Granek PRL 
+         
 !                                                                       
 
 !        implicit none                                                  
