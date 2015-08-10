@@ -31,6 +31,8 @@ JCNS, Forschungszentrum J\"uelich, Germany}
 \title{diffusion\_beta}
 %----------------------
 %
+\today
+
 Problem solved:
 make a consistent connection of long time normal diffusion as e.g. measured by NMR to
 some sublinear diffusion regime.
@@ -63,6 +65,64 @@ the intermediate scattering (factor) then follows immediately from the Gaussian 
 \begin{equation}
 S(Q,t) = \exp(-q^2 \,  \langle r^2(t) \rangle /6)
 \end{equation}
+\vskip 0.5cm
+\hline
+\vskip 0.5cm
+M. Monkenbusch, JCNS-1 , July 2015
 
+\vskip 1cm
+\hline
+
+Subroutine:
+
+\hline
+\tiny
+\begin{verbatim}
+function diffusion_beta(t,q,Dlong,tstar,beta) result(sqt)
+!-----------------------------------------------------------------------------
+!
+! diffusion scattering function under Gaussian approximation
+! but with subdiffusive start
+! 
+! the physical parameters are the classic long time diffusion constant Dlong
+!                         and a transition time tstar
+!                         below tstar the diffusion is sub (super?) diffusive 
+!                         with <r**2>(t) ~ t**beta
+!
+! the transition is smooth (stetig 1 x differenzierbar) at tstar
+! this implies that the long time diffusion is linear with an offset, which
+! implicitly is controlle by the value of tstar and the smoothness condition
+!
+! Michael Monkenbusch, JCNS-1, June 2015
+!-----------------------------------------------------------------------------
+implicit none
+ 
+
+double precision, intent(in)  :: t       ! time in the time units used in the diffusion constant units
+double precision, intent(in)  :: q       ! "q", momentum transfer in the length units used for Dlong
+double precision, intent(in)  :: Dlong   ! long time diffusion constant in units consistent wit t and q
+double precision, intent(in)  :: tstar   ! transition time between short and long time diffusion (units as t)
+double precision, intent(in)  :: beta    ! streching exponent for the sublinear initial part of diffusion
+
+double precision              :: sqt     ! return value = intermediate scattering factor of the diffusion
+
+double precision              :: r2
+
+
+if(t < tstar) then
+   r2  = 6*t**beta*tstar**(-beta+1)*Dlong/beta
+else
+   r2  = 6*Dlong*(beta*t-beta*tstar+tstar)/beta
+endif
+
+sqt = exp(-q*q*r2/6d0) 
+
+! testing
+! write(6,'(3F18.9)') t, r2, sqt
+! testing
+
+end function diffusion_beta 
+\end{verbatim}
+\normalsize
 
 \end{document}
