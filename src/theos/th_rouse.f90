@@ -94,7 +94,7 @@
                                                                         
          IF (pa (4) .lt.0) then 
             WRITE (6, * ) 'Full rouse computation from scratch!' 
-            sum = sum + a * SQ_rouse (tau, qzz, temp, xi, b, epsilon) 
+            sum = sum + a * SQ_rouse (tau, qzz, temp, xi, b, 1d-8) 
          ELSE 
             sum = sum + a * SQ_rouseT (tau, qzz, temp, xi, b, epsilon) 
          ENDIF 
