@@ -1,0 +1,25 @@
+#!/bin/bash
+
+N=43
+chains=0
+
+./ranrouse.exe $chains 200 $N 0.0 0.0 0.0001 10.0 0 1 0 ./diddo/b350_ 4 b350_friction_heuer_inp
+#./ranrouse.exe $chains 200 $N 0.0 0.0 0.0001 10.0 0 0 0 ./diddo/b400_ 4 b400_friction_heuer_inp
+#./ranrouse.exe $chains 200 $N 0.0 0.0 0.0001 10.0 0 0 0 ./diddo/h350_ 4 h350_friction_heuer_inp
+#./ranrouse.exe $chains 200 $N 0.0 0.0 0.0001 10.0 0 0 0 ./diddo/h400_ 4 h400_friction_heuer_inp
+
+#./ranrouse.exe 1 200 $N 15091 126.88 0.0001 10.0 0 0 0 ./henrich/fix0 2 1e8 0
+#mpirun -machinefile ./machines.LINUX -n 16 ./ranrouse.exe $chains 200 $N 15091 126.88 0.0001 10.0 0 0 0 ./henrich/fix1 2 1e8 1
+#mpirun -machinefile ./machines.LINUX -n 16 ./ranrouse.exe $chains 200 $N 15091 126.88 0.0001 10.0 0 0 0 ./henrich/fix2 2 1e8 2
+#mpirun -machinefile ./machines.LINUX -n 16 ./ranrouse.exe $chains 200 $N 15091 126.88 0.0001 10.0 0 0 0 ./henrich/fix4 2 1e8 4
+#mpirun -machinefile ./machines.LINUX -n 16 ./ranrouse.exe $chains 200 $N 15091 126.88 0.0001 10.0 0 0 0 ./henrich/fix8 2 1e8 8
+#mpirun -machinefile ./machines.LINUX -n 16 ./ranrouse.exe $chains 200 $N 15091 126.88 0.0001 10.0 0 0 0 ./henrich/fix16 2 1e8 16
+#mpirun -machinefile ./machines.LINUX -n 16 ./ranrouse.exe $chains 200 $N 15091 126.88 0.0001 10.0 0 0 0 ./henrich/fix32 2 1e8 32
+#mpirun -machinefile ./machines.LINUX -n 16 ./ranrouse.exe $chains 200 $N 15091 126.88 0.0001 10.0 0 0 0 ./henrich/fix48 2 1e8 48
+#mpirun -machinefile ./machines.LINUX -n 16 ./ranrouse.exe $chains 200 $N 15091 126.88 0.0001 10.0 0 0 0 ./henrich/fix64 2 1e8 64
+
+#mpirun -machinefile ./machines.LINUX -n 16 ./ranrouse.exe $chains 200 $N 15091 126.88 0.0001 10.0 0 0 0 ./henrich/fix10 2 1e8 10
+
+#mpirun -machinefile ./machines.LINUX -n 16 ./ranrouse.exe $chains 200 $N 30182 126.88 0.0001 10.0 0 0 0 ./henrich/fix10 2 1e8 10
+#mpirun -machinefile ./machines.LINUX -n 16 ./ranrouse.exe $chains 200 $N 30182 126.88 0.0001 10.0 0 0 0 ./henrich/fix12 2 1e8 12
+

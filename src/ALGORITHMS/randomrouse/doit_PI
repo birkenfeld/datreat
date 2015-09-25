@@ -1,0 +1,16 @@
+#!/bin/bash
+
+N=35
+chains=1
+
+#ranrouse.exe chains MSD_entries N(monomers) Wl4 Ree t_min t_max errorcheck(1/0) debug(1/0) povray(1/0) prefix friction_dist(use -1 for help) additional_parameters(see help)
+#./ranrouse.exe $chains 200 $N 20.0 70.0 0.0001 10.0 0 0 0 ./PI/T468K_ 0
+#./ranrouse.exe $chains 200 $N 23.0 70.0 0.0001 10.0 0 0 0 ./PI/T473K_ 0
+#./ranrouse.exe $chains 200 $N 12.6 70.0 0.0001 10.0 0 0 0 ./PI/T418K_ 0
+#./ranrouse.exe $chains 200 $N 2.0 70.0 0.0001 10.0 0 0 0 ./PI/T300K_ 0
+
+#./ranrouse.exe $chains 200 $N 10.22 70.0 0.0001 10.0 0 0 0 ./PInew/T400K_ 0
+#./ranrouse.exe $chains 200 $N 10.22 70.0 0.0001 10.0 0 0 0 ./PInew/T400K_fixed_ 1 10e10 0
+
+./ranrouse.exe $chains 200 $N 10.22 70.0 0.0001 10.0 0 0 0 ./PInew30/T400K_ 0
+./ranrouse.exe $chains 200 $N 10.22 70.0 0.0001 10.0 0 0 0 ./PInew30/T400K_fixed_ 1 10e10 0

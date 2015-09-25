@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# chain dimension from polymer handbook
+# <Ree2>/M=0.805
+# Henrichs Kette: Mw=20000
+# <Ree2>=126.88^2
+# Wl4=15091
+
+N=80
+
+./ranrouse.exe 1 200 $N 2015 66.0 0.0001 10.0 0 0 0 ./fixend/rouse_ 0
+./ranrouse.exe 1 200 $N 2015 66.0 0.0001 10.0 0 0 0 ./fixend/fixed_ 1 10e10 0
