@@ -1,6 +1,6 @@
 !***********************************************************************
 !       incom-system                                                   *
-!       ------------                                                   *
+!       ============                                                   *
 !       by  michael monkenbusch                                        *
 !       institut fuer festkoerperforschung des                         *
 !       forschungszentrum juelich, d-5170 juelich, po-box 1913, frg    *

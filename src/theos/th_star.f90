@@ -136,7 +136,7 @@ double precision function pericostar_sqt(q,t,f_arm,n_arm,Re_arm,Wl4,diff)
   real(kind=real_kind)         :: M(1+n_arm*f_arm,1+n_arm*f_arm)
   real(kind=real_kind)         :: A(1+n_arm*f_arm,1+n_arm*f_arm)  
   real(kind=real_kind)         :: phi(1+n_arm*f_arm,1+n_arm*f_arm)  
-  real(kind=real_kind)         :: work(1+n_arm*f_arm)
+  real(kind=real_kind)         :: work((1+n_arm*f_arm)*2)
   real(kind=real_kind), allocatable, save   :: Eigenvalues(:)  
   real(kind=real_kind), allocatable, save   :: Eigenvectors(:,:)  
 
@@ -158,7 +158,10 @@ double precision function pericostar_sqt(q,t,f_arm,n_arm,Re_arm,Wl4,diff)
 !
 ! the first index pertains to the center of the star
 !
-   
+
+
+ first_run = .true.    ! allocated are not save in all cases thus we need this as a workaround   
+
 
 eig:  if(first_run .or. n_arm .ne. n_arm0 .or. f_arm .ne. f_arm0) then
     
@@ -213,11 +216,21 @@ eig:  if(first_run .or. n_arm .ne. n_arm0 .or. f_arm .ne. f_arm0) then
      X(i,j) = dot_product(H(i,1:N),A(1:N,j))
     enddo
    enddo
+
+   ! check symmetry
+   do i=1,N
+    do j=i+1,N
+     if(abs(X(i,j)-X(j,i)) > 1e-5) then
+       write(6,*)'ERROR nonsymmetric matrix HA '
+       write(6,*)'USE star2 to deal with cases where H is nontrivial'
+       pericostar_sqt = 0
+       return
+     endif
+    enddo
+   enddo
+
    
-   A = X
-   
-   
-   Eigenvectors = A
+   Eigenvectors = X
    job = 1            ! signal to ssiev that the matrix is to be replaced by the eigenvectors
    !
    ! Slatec:
@@ -258,14 +271,16 @@ philp: do i=1,N
         enddo
 
         s12 = 0         ! the "cross term"
-        do i=2,n_arm+1
-           s12 = s12 + exp(-(q*q/6d0) * phi(i+n_arm,i))
-        enddo
-        do i=2,n_arm
-           do j=i+1,n_arm+1
-             s12 = s12 + 2 * exp(-(q*q/6d0) * phi(i+n_arm,j))
-           enddo
-        enddo
+        if(f_arm > 1) then
+          do i=2,n_arm+1
+             s12 = s12 + exp(-(q*q/6d0) * phi(i+n_arm,i))
+          enddo
+          do i=2,n_arm
+             do j=i+1,n_arm+1
+               s12 = s12 + 2 * exp(-(q*q/6d0) * phi(i+n_arm,j))
+             enddo
+          enddo
+        endif
 
         sum = (1+f_arm*(s11+(f_arm-1)*s12))/N**2
 

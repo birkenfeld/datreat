@@ -47,8 +47,7 @@
       use wlntran
       use sqtran
       use constants
-!      use physconstants
-      use physconstants
+      use PhysicalConstantsPlus
       use unift
       implicit none
 
@@ -144,7 +143,18 @@
        double precision :: Ommax = 1000d0
        integer          :: nomega = 100
 
+       real             :: He3_pressure_bar = 4.75  ! (IN5 value in 2013)
+       real             :: Tube_diameter_m  = 0.025 ! (IN5 1 inch tubes)
+       real             :: lenfrac          = 1.0
+       real             :: detector_sensitivity, detsens, lambdaA
 
+
+         real  :: lambda0, lambda1, delta_lambda, temp,angle_2tht 
+         real  :: e0, e1, dE, de0, dee, dbb, omega, om_cm, qrc, qa, q
+         real  :: kinetic_factor, channel_factor,channel_width,channel_width0
+         real  :: sume, sumq
+  
+       integer :: irstp, recstep = 1    
 
 ! ---- initialisations ----
 ! ---- error-set ----------
@@ -157,8 +167,8 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 			write(6,*)
 			write(6,*)'======================================================='
-			write(6,*)'=   datreat12_2     Version: jan.2013   RCS:1.11      ='
-			write(6,*)'=   -----------     -----------------                 ='
+			write(6,*)'=   datreat12_2     Version: mm-develop 1.0           ='
+			write(6,*)'=   -----------     --------                          ='
 			write(6,*)'=   changed to fortran 90 format and gfortran         ='
 			write(6,*)'=   gplot ?  shows help for plotting in xmgrace       ='
 			write(6,*)'=          or simply try "gp  "          :-)          ='
@@ -1277,6 +1287,13 @@
          goto 2000
        endif
 !
+!
+       if(comand.eq.'average ') then
+!                    -------
+         call average_data()
+
+         goto 2000
+       endif
 !
        if(comand.eq.'addval  ') then
 !                    ------
@@ -2930,6 +2947,98 @@
 !
        if(comand.eq.'sel     ') then
 !                    ---
+
+      if(found('help    ')) then 
+       write(6,*)'=============================================================================='
+       write(6,*)'= sel                                                                        ='
+       write(6,*)'= select items from the list of loaded data records                          ='
+       write(6,*)'=    sel  <i1> <i2> ... <in>                                                 ='
+       write(6,*)'=            selects those with dir adresses i1, i2,.. in                    ='
+       write(6,*)'=    sel  <i1>  -<i2>                                                        ='
+       write(6,*)'=            selects all addresses between i1 and i2                         ='
+       write(6,*)'=    sel  all  <parname> <value>  band <value>  | <i1> ..                    ='
+       write(6,*)'=            selects all records with parameter parnam value +- band         ='
+       write(6,*)'=    sel  fit+                                                               ='
+       write(6,*)'=            adds fit curves to the selection                                ='
+       write(6,*)'=    sel next <parname> <value>  band <value>                                ='
+       write(6,*)'=            selects the next record matching the parameter value            ='
+       write(6,*)'=    sel add ......                                     (OR)                 ='
+       write(6,*)'=         adds the selctions done via ... to the present list                ='
+       write(6,*)'=    sel narrow <parname> <value>  band <value>                              ='
+       write(6,*)'=         applies parameter selction to the prsent list (AND)                ='
+       write(6,*)'=    sel exclude <parname> <value>  band <value>                             ='
+       write(6,*)'=         removes matching records from the list                             ='
+       write(6,*)'=    sel exclude numor mod <n>                                               ='
+       write(6,*)'=         removes records with mod(#,n)=0 from the list                      ='
+       write(6,*)'=    sel                                                                     ='
+       write(6,*)'=         clear the list                                                     ='
+       write(6,*)'=                                                                            ='
+       write(6,*)'=    use dsl  or dir to check selections!                                    ='
+       write(6,*)'=============================================================================='
+       goto 2000
+      endif
+
+
+          
+narrow:   if(found('narrow  ')) then
+             if(nsel <= 0) goto 2000
+                selparna  = chrval('narrow  ',selparna  ,inew)
+                selparval = getval( selparna ,dble(selparval) ,inew)
+                selpartol = getval('band    ',dble(selpartol) ,inew)
+                m = 0
+                do i=1,nsel
+                   call parget(selparna, parval_x , isels(i),ier)
+                   if(ier.eq.0 .and. abs(parval_x-selparval).lt.selpartol) then
+                      m = m+1
+                      isels(m) = isels(i)
+                      ifits(m) = ifits(i)
+                      write(6,'(i4,"[",i4,"]:#",i9,3x,a,2x,e14.7)') &
+                           isels(m),ifits(m),numor(isels(m)),trim(selparna),parval_x
+                   endif
+                   nsel = m
+                enddo   
+             goto 2000
+          endif narrow
+          
+exclude:   if(found('exclude  ')) then
+                if(nsel <= 0) goto 2000
+
+                if(found('numor   ')) then
+                   l = intval('mod     ',2,inew)
+                   if(l==0) l=100
+                   m = 0
+                   do i=1,nsel
+                    if(.not.(mod(numor(isels(i)),l) == 0)) then
+                      m = m+1
+                      isels(m) = isels(i)
+                      ifits(m) = ifits(i)
+                      write(6,'(i4,"[",i4,"]:#",i9,3x,a,2x,e14.7)') &
+                           isels(m),ifits(m),numor(isels(m)),trim(selparna),parval_x
+                    endif
+                    nsel = m
+                   enddo   
+                 goto 2000
+                endif   
+                
+                selparna  = chrval('exclude  ',selparna  ,inew)
+                selparval = getval( selparna ,dble(selparval) ,inew)
+                selpartol = getval('band    ',dble(selpartol) ,inew)
+                m = 0
+                do i=1,nsel
+                   call parget(selparna, parval_x , isels(i),ier)
+                   if(.not.(ier.eq.0 .and. abs(parval_x-selparval).lt.selpartol)) then
+                      m = m+1
+                      isels(m) = isels(i)
+                      ifits(m) = ifits(i)
+                      write(6,'(i4,"[",i4,"]:#",i9,3x,a,2x,e14.7)') &
+                           isels(m),ifits(m),numor(isels(m)),trim(selparna),parval_x
+                   endif
+                   nsel = m
+                enddo   
+             goto 2000
+          endif exclude
+          
+          
          if(inames.eq.0 .or. found('add     ')                          &
      &                  .or. found('fit+    ')                          &
      &                  .or. found('next    ')                          &
@@ -2967,6 +3076,8 @@
                     endif
                     m = m+1
                     isels(m) = i
+                    write(6,'(i4,"[",i4,"]:#",i9,3x,a,2x,e14.7)') &
+                          isels(m),ifits(m),numor(isels(m)),trim(selparna),parval_x
                     if(iout.gt.0) write(6,*)'all ',m,i
                   endif
              enddo
@@ -3684,6 +3795,174 @@
         endif
 !
 
+       if(comand.eq.'detsens  ') then
+!                    ---> sensitivity correction
+         if(nsel.eq.0) then
+           write(6,*)'no curve selected'
+           goto 2000
+         endif
+
+
+         He3_pressure_bar  = getval('p       ',dble(He3_pressure_bar) ,inew)
+         Tube_diameter_m   = getval('dtube   ',dble(Tube_diameter_m),inew)       
+         lenfrac           = getval('lenfrac ',dble(lenfrac),inew) 
+
+         write(6,'(a)')'Performing wavelength dependent sensitivy correction on Tof data on lambda scale'
+         write(6,*)' p       = He3-pressure/bar        = ',  He3_pressure_bar 
+         write(6,*)' dtube   = tube diameter/m         = ',  Tube_diameter_m 
+         write(6,*)' lenfrac = projected length factor = ',  lenfrac 
+
+         do i=1,nsel
+          ia      = isels(i)
+          call parget('det_phe3',xx,ia,ier)
+          if(ier .ne. 0 ) then
+            do j=1,nwert(ia)
+              lambdaA =  xwerte(j,ia)
+              if(lambdaA > 0.01 ) then
+                 detsens = detector_sensitivity(lambdaA,lenfrac,He3_pressure_bar,Tube_diameter_m)
+                 ywerte(j,ia) = ywerte(j,ia)/detsens
+                 yerror(j,ia) = yerror(j,ia)/detsens
+ !                write(6,*)xwerte(j,ia), detsens
+              endif
+            enddo
+            call parset ('det_phe3 ', He3_pressure_bar ,ia)
+            call parset ('dtube    ', Tube_diameter_m  ,ia)
+          else
+            write(6,*)'Record: ',ia,' will not be treated a second time, skipped!'
+          endif
+         enddo
+
+         goto 2000
+        endif
+!
+!
+       if(comand.eq.'gdos_q  ') then
+!                    ------> see e.g. J.C. Smith et al, J.Chem. Phys. 85, 3636 (1986)
+         if(nsel.eq.0) then
+           write(6,*)'no curve selected'
+           goto 2000
+         endif
+         ia      = isels(1)
+
+         k1                = intval('k1      ', k1,      inew)
+         k2                = intval('k2      ', k2,      inew)
+         recstep           = intval('recstep ', recstep, inew)
+
+         write(6,'(a)')'Creating q-exptrapolation curve for g(omega) deterimation '
+         write(6,'(a)')'see e.g. J.C. Smith et al, J.Chem. Phys. 85, 3636 (1986)  '
+         write(6,*)' from channel ',k1,' to ', k2,'   recstep ',recstep
+         write(6,*)' lambda       ',xwerte(k1,ia),' to ',xwerte(k2,ia)
+
+! use first record as template for energy scaling, parameter extraction etc.
+         call parget('det_phe3',xx,ia,ier)
+         if(ier .ne. 0 ) then
+           write(6,*)'do detector efficiency correction first!'
+           goto 2000
+         endif
+  
+         call parget ('lambda  ',lambdaA ,ia, ier)
+         if(ier.ne.0) then
+            write(6,*)'ERROR: Parameter lambda is missing in parameterlist of record!'
+            goto 2000
+         endif
+
+         call parget ('temp    ', temp ,ia, ier)
+         if(ier.ne.0) then
+            write(6,*)'ERROR: Parameter temp is missing in parameterlist of record!'
+            goto 2000
+         endif
+
+         lambda0      = (xwerte(k1,ia)+xwerte(k2,ia))/2     * 1d-10                      ! das ist lambda_final
+         lambda1      = lambdaA                             * 1d-10                      ! das ist lambda_in
+         delta_lambda = (xwerte(k2+1,ia)-xwerte(k1,ia))     * 1d-10
+         e0           = NeutronEnergy_fromLambda(dble(lambda0))
+         e1           = NeutronEnergy_fromLambda(dble(lambda1))
+         dE           = e1-e0                                    ! hquer*omega = E_in - E_final
+         de0     = NeutronEnergy_fromLambda(dble(lambda1-delta_lambda/2))-NeutronEnergy_fromLambda(dble(lambda1+delta_lambda/2))
+         dee     = NeutronEnergy_fromLambda(dble(lambda0-delta_lambda/2))-NeutronEnergy_fromLambda(dble(lambda0+delta_lambda/2))
+
+
+
+         omega   = dE*2*Pi/Planckkonstante / 1d9
+         om_cm   = dE/Planckkonstante/Lichtgeschwindigkeit/100   ! werte in cm**-1
+
+         kinetic_factor = lambda0/lambda1      ! to be multiplied with the cross setion data to come towards s(q,om)
+         channel_factor = dee/de0
+         channel_width  = dee/Planckkonstante/Lichtgeschwindigkeit/100   ! werte in cm**-1
+         channel_width0 = de0/Planckkonstante/Lichtgeschwindigkeit/100   ! werte in cm**-1
+
+          
+         if(nbuf.lt.mbuf) then 
+            nbuf = nbuf+1
+         else
+            Write(6,*)'max. number of buffers reached .. '
+            goto 2000   
+         endif
+         call txfera(ia,nbuf)
+         numor(nbuf)    = numor(ia)+100000
+         xname(nbuf)    = 'q      '
+         yname(nbuf)    = 'gdos'
+         coment(nbuf)   = coment(nbuf)(1:40)//'gdos extrapolation data '
+         nwert(nbuf) = 0
+
+         call parset ('omega    ', omega            ,nbuf)
+         call parset ('om_cm    ', om_cm            ,nbuf)
+         call parset ('rwidth   ', channel_factor   ,nbuf)
+         call parset ('cwidth   ', channel_width    ,nbuf)
+         call parset ('cwidth0  ', channel_width0   ,nbuf)
+         call parset ('lambda1  ', xwerte(k1,ia)    ,nbuf)
+         call parset ('lambda2  ', xwerte(k2,ia)    ,nbuf)
+         
+         
+         do i=0,nsel-recstep,recstep
+          sumq = 0
+          sum  = 0
+          sume = 0
+ irs:     do irstp=1,recstep
+           ia      = isels(i+irstp)
+           call parget ('angle   ',angle_2tht, ia, ier)  
+           if(ier.ne.0) then
+             write(6,*)'ERROR: Parameter angle is missing in parameterlist of record!',isels(ia)
+           endif
+
+          do j=k1,k2
+            lambda0      = xwerte(k1,ia)                       * 1d-10                      ! das ist lambda_final
+            lambda1      = lambdaA                             * 1d-10                      ! das ist lambda_in
+            delta_lambda = (xwerte(k2+1,ia)-xwerte(k1,ia))     * 1d-10
+            e0           = NeutronEnergy_fromLambda(dble(lambda0))
+            e1           = NeutronEnergy_fromLambda(dble(lambda1))
+            dE           = e1-e0                                    ! hquer*omega = E_in - E_final
+            q  = sqrt(((2*Pi/lambda0)**2+(2*Pi/lambda1)**2 - 2*COS(angle_2tht*Pi/180d0)*(2*Pi/lambda0)*(2*Pi/lambda1)))  
+            qa = q * 1d-10
+            sumq = sumq+qa
+
+            omega   = dE*2*Pi/Planckkonstante / 1d9
+            om_cm   = dE/Planckkonstante/Lichtgeschwindigkeit/100   ! werte in cm**-1
+            kinetic_factor = lambda0/lambda1      ! to be multiplied with the cross setion data to come towards s(q,om)
+!                                                   kinetic_factor=1 if already applied
+            dbb = exp(dble(-dE/(temp*Boltzmannkonstante))) - 1.0
+!                         ! definition of omega in paper
+            sum  = sum  +  6*(-omega)/(qa**2)*dbb* kinetic_factor * ywerte(j,ia)
+            sume = sume + (6*(-omega)/(qa**2)*dbb* kinetic_factor * yerror(j,ia))**2
+!                             ! definition of omega in paper          
+           enddo
+          enddo irs
+
+           nwert(nbuf) =  nwert(nbuf) + 1
+           xwerte(nwert(nbuf), nbuf) = sumq       / (recstep*(k2-k1+1))
+           ywerte(nwert(nbuf), nbuf) = sum        / (channel_factor*recstep)
+           yerror(nwert(nbuf), nbuf) = sqrt(sume) / (channel_factor*recstep)
+           write(6,'(2i4,3e14.7)')i, nwert(nbuf), xwerte(nwert(nbuf), nbuf), ywerte(nwert(nbuf), nbuf),  yerror(nwert(nbuf), nbuf)
+         enddo
+
+         nsel     = 1
+         isels(1) = nbuf
+         ifits    = 0
+        
+         goto 2000
+        endif
+!
+
 
 
 
@@ -3702,6 +3981,9 @@
 !      ---------> read now commandlines from makro file
 !
 !
+!
+
+
       END ! Ende der Hauptschleife
 
 
@@ -3825,3 +4107,188 @@
 
        return
        end subroutine get_pair_of_points
+
+
+
+ 
+   subroutine average_data()
+!     -------------------------
+      use dimensions
+      use cincom
+      use cincoc
+      use xoutxx
+      use cdata
+      use outlev
+      use theory
+      use selist
+      use fslist
+      use theorc
+      use thparc
+      use formul
+      use cfc
+      use cfunc
+      use cfunce
+      use partran
+      use wlntran
+      use sqtran
+      use constants
+      use PhysicalConstantsPlus
+ 
+      implicit none
+
+      double precision, save        :: xcatch = 0.05d0
+      integer                       :: inew, ier
+      integer                       :: i,j,k,n
+      integer                       :: number_of_data_points
+      integer                       :: n_result_point
+      character(len=8)              :: cbuf
+      logical                       :: found
+      double precision              :: getval
+      double precision              :: xaver, yaver, yerra
+      double precision, allocatable :: xva(:), yva(:), yvaer(:)
+      integer         , allocatable :: iperm(:)
+      logical         , allocatable :: va_used(:)
+
+
+      if(found('help    ')) then 
+       write(6,*)'=============================================================================='
+       write(6,*)'= average_data                                                               ='
+       write(6,*)'= combine error weighted close data points from records in the selection list='
+       write(6,*)'= parameter is       xcatch  the relative width of the x-window              ='
+       write(6,*)'= current default is xcatch  ',xcatch
+       write(6,*)'=============================================================================='
+       return
+      endif
+
+
+
+
+
+      xcatch = getval("xcatch  ",xcatch,inew)
+
+      write(6,*)'xcatch=', xcatch
+
+      if(nsel <= 1) then
+        write(6,*)"Select more than one curve to average!"
+        ierrs = 1000
+        return
+      endif
+
+      if(nbuf >= mbuf) then
+        write(6,*)"..too many buffers", nbuf, mbuf
+        ierrs = 2000
+        return
+      endif
+
+! prepare destination
+      nbuf = nbuf + 1
+      call txfera(isels(1),nbuf)
+      numor(nbuf)    = numor(isels(1))+200000
+      call parset("xcatch   ",sngl(xcatch),nbuf)
+      do i=1, nsel
+        write(cbuf,'("c",i0)')i
+        call parset(cbuf,real(numor(isels(i))),nbuf)
+      enddo
+! check how many data_points are there
+      number_of_data_points = 0
+      do i=1,nsel
+       number_of_data_points = number_of_data_points + nwert(isels(i)) 
+      enddo
+
+      if(allocated(xva))     deallocate(xva)
+      if(allocated(yva))     deallocate(yva)
+      if(allocated(yvaer))   deallocate(yvaer)
+      if(allocated(va_used)) deallocate(va_used)
+      if(allocated(iperm))   deallocate(iperm)
+      allocate(xva    (number_of_data_points))
+      allocate(yva    (number_of_data_points))
+      allocate(yvaer  (number_of_data_points))
+      allocate(va_used(number_of_data_points))
+      allocate(  iperm(number_of_data_points))
+
+! distribute data
+      n = 0      
+      do i=1,nsel
+        do j=1,nwert(isels(i))
+         n=n+1
+         xva(n)    =  xwerte(j,isels(i))
+         yva(n)    =  ywerte(j,isels(i))
+         yvaer(n)  =  yerror(j,isels(i))
+         va_used(n)= .false.
+        enddo 
+      enddo
+      number_of_data_points = n
+! error-sorting (using SLATEC dpsort) 
+      iperm = [(i,i=1,number_of_data_points)]
+      call  DPSORT (yvaer, number_of_data_points, IPERM,  1 , ier)
+!C      KFLAG - input -- control parameter:---------------^
+!C            =  2  means return the permutation vector resulting from
+!C                  sorting DX in increasing order and sort DX also.
+!C            =  1  means return the permutation vector resulting from
+!C                  sorting DX in increasing order and do not sort DX.
+!C            = -1  means return the permutation vector resulting from
+!C                  sorting DX in decreasing order and do not sort DX.
+!C            = -2  means return the permutation vector resulting from
+!C                  sorting DX in decreasing order and sort DX also.
+
+       write(6,*)            " All related points after error sorting: "
+       write(6,'(2i5,3e14.7)') (i,iperm(i),xva(iperm(i)),yva(iperm(i)),yvaer(iperm(i)),i=1,number_of_data_points)
+
+! now proceed with the lowest error point and get all neibours in xcatch distance
+       n_result_point = 0
+d1:    do i=1,number_of_data_points
+          if(va_used(iperm(i))) cycle d1
+          va_used(iperm(i)) = .true.
+          xaver = xva(iperm(i)) * 1d0/yvaer(iperm(i))**2
+          yaver = yva(iperm(i)) * 1d0/yvaer(iperm(i))**2
+          yerra = 1d0/yvaer(iperm(i))**2
+d2:       do j=1,number_of_data_points
+            if(va_used(iperm(j))) cycle d2
+            if(abs(2*(xva(iperm(j))-xva(iperm(i)))/(xva(iperm(j))+xva(iperm(j)))) > xcatch ) cycle d2 ! relative match
+              xaver = xaver + xva(iperm(j)) * 1d0/yvaer(iperm(j))**2
+              yaver = yaver + yva(iperm(j)) * 1d0/yvaer(iperm(j))**2
+              yerra = yerra + 1d0/yvaer(iperm(j))**2   
+              va_used(iperm(j)) = .true.           
+          enddo d2 
+          n_result_point = n_result_point + 1
+          if(n_result_point > mwert) then
+            write(6,*)'too many points created.'
+            return
+          endif
+          xwerte(n_result_point,nbuf) = xaver / yerra
+          ywerte(n_result_point,nbuf) = yaver / yerra
+          yerror(n_result_point,nbuf) = sqrt(1d0 / yerra)
+
+!          write(6,*)"test: ", n_result_point, xwerte(n_result_point,nbuf), &
+!                     ywerte(n_result_point,nbuf), yerror(n_result_point,nbuf)
+
+       enddo d1
+       nwert(nbuf) =  n_result_point
+!sort the result according to x
+       iperm = [(i,i=1, n_result_point)]
+
+!       write(6,*)            " intermediate result: "
+!       write(6,'(2i5,3e14.7)') (i,iperm(i),xva(iperm(i)),yva(iperm(i)),yvaer(iperm(i)),i=1,n_result_point)
+
+       call  SPSORT (xwerte(:,nbuf),n_result_point, IPERM, -1 , ier)
+       xva  (1:n_result_point) = xwerte(iperm(1:n_result_point),nbuf)
+       yva  (1:n_result_point) = ywerte(iperm(1:n_result_point),nbuf)
+       yvaer(1:n_result_point) = yerror(iperm(1:n_result_point),nbuf)
+       xwerte(1:n_result_point,nbuf) =  xva  (1:n_result_point)
+       ywerte(1:n_result_point,nbuf) =  yva  (1:n_result_point) 
+       yerror(1:n_result_point,nbuf) = yvaer (1:n_result_point)
+
+       write(6,'(a)'    , advance='no') "final result from: "
+       write(6,'(20i4)' , advance='no') (isels(i),i=1,nsel)
+       write(6,'(a,i4,a,f12.6)')" --> ",nbuf,"    xcatch=",xcatch  
+       write(6,'(2i5,3e14.7)') (i,iperm(i),xva(iperm(i)),yva(iperm(i)),yvaer(iperm(i)),i=1,n_result_point)
+
+       nsel     = 1
+       isels(1) = nbuf
+
+
+
+   end subroutine average_data
+
+
+

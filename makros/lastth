@@ -1,9 +1,5 @@
- theory   hohdiff                                                                         
-      amplitu    0.6942E+00  0.1E+01  0.69E-02
-      u_quadra  -0.8383E+00  0.1E+01  0.37E+00
-      self_dif   0.3722E+02  0.1E+01  0.38E+00
-      tau0_dif  -0.6254E-02  0.1E+01  0.51E-03
-      a_rot      0.1498E+01  0.1E+01  0.32E+00
-      d_rot      0.0000E+00  0.0E+00  0.00E+00
-      shiftt     0.0000E+00  0.0E+00  0.00E+00
+ theory   gauss                                                                           
+      intensit   0.2000E+01  0.0E+00  0.00E+00
+      width      0.2000E+01  0.0E+00  0.00E+00
+      center     0.3000E+01  0.0E+00  0.00E+00
  end

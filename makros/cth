@@ -1,4 +1,12 @@
 makro
 al
-cms emacs lastth
+c sys xterm -title "Enter datreat theory parameters, emacs style" -geometry 100x50 -e "emacs lastth"
+c xterm -e "emacs lastth"
+emacs lastth
+c
+c =================================================================
+c sys open -a /usr/local/Applications/Aquamacs\ Emacs.app  lastth
+c to work properly this needs a WAIT here
+c sys read -p "Press any key to continue... " -n1 -s
+c ==================================================================
 acl

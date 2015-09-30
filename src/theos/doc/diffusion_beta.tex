@@ -1,0 +1,128 @@
+\documentclass[12pt]{article}
+\usepackage[titletoc]{appendix}
+\usepackage{mathtools}
+\usepackage{amsmath} 
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{epstopdf}
+\usepackage{relsize}
+\usepackage{fancyvrb}
+
+\usepackage[firstpage]{draftwatermark}
+\SetWatermarkScale{2}
+\SetWatermarkLightness{0.7}
+
+% for Verbatim
+\fvset{formatcom=\color{blue}}
+\fvset{fontsize=\relsize{-1}}
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title{NSE background subtraction issues}
+\author{M. Monkenbusch 
+JCNS, Forschungszentrum J\"uelich, Germany}
+\date{\today}
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\myspace}{\vskip 0.4cm}
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+\title{diffusion\_beta}
+%----------------------
+%
+\today
+
+Problem solved:
+make a consistent connection of long time normal diffusion as e.g. measured by NMR to
+some sublinear diffusion regime.
+\myspace
+Conditions
+\begin{enumerate}
+\item Gaussian approximation is valid
+\item sub/super-linear diffusion at short time is described by $\langle r^2(t) \rangle \propto t^\beta$
+\item at some transition time $t^*$ (tstar) the short time diffusion smoothly meets the long time diffusion
+\item the condition that value and slope of  $\langle r^2(t) \rangle$ match at $t*$ implies an offset for
+the mean square displacement in the long time behaviour.
+\item besides the streching exponent $\beta$, tstar ($t^*$) is the only additional free parameter.
+\end{enumerate}
+
+After a few operation we the arrive at:
+\begin{equation}
+\label{eq:difbeta1}
+ \langle r^2(t<t^*) \rangle = 6\,{\frac {{t}^{\beta}{{\it t^*}}^{-\beta+1}{\it D_{nmr}}}{\beta}} =
+                              6\,{\frac {(t/t^*)^{\beta}\;({{\it t^*}}{\it D_{nmr})}}{\beta}}
+\end{equation}
+and
+\begin{equation}
+\label{eq:difbeta2}
+ \langle r^2(t>t^*) \rangle = 6\,{\frac {{\it D_{nmr}}\, \left( \beta\,t-\beta\,{\it t^*}+{\it t^*}
+ \right) }{\beta}}
+= 
+6\,D_{nmr}[t + t^* (1/\beta -1)] 
+\end{equation}
+the intermediate scattering (factor) then follows immediately from the Gaussian approximation.
+\begin{equation}
+S(Q,t) = \exp(-q^2 \,  \langle r^2(t) \rangle /6)
+\end{equation}
+\vskip 0.5cm
+\hline
+\vskip 0.5cm
+M. Monkenbusch, JCNS-1 , July 2015
+
+\vskip 1cm
+\hline
+
+Subroutine:
+
+\hline
+\tiny
+\begin{verbatim}
+function diffusion_beta(t,q,Dlong,tstar,beta) result(sqt)
+!-----------------------------------------------------------------------------
+!
+! diffusion scattering function under Gaussian approximation
+! but with subdiffusive start
+! 
+! the physical parameters are the classic long time diffusion constant Dlong
+!                         and a transition time tstar
+!                         below tstar the diffusion is sub (super?) diffusive 
+!                         with <r**2>(t) ~ t**beta
+!
+! the transition is smooth (stetig 1 x differenzierbar) at tstar
+! this implies that the long time diffusion is linear with an offset, which
+! implicitly is controlle by the value of tstar and the smoothness condition
+!
+! Michael Monkenbusch, JCNS-1, June 2015
+!-----------------------------------------------------------------------------
+implicit none
+ 
+
+double precision, intent(in)  :: t       ! time in the time units used in the diffusion constant units
+double precision, intent(in)  :: q       ! "q", momentum transfer in the length units used for Dlong
+double precision, intent(in)  :: Dlong   ! long time diffusion constant in units consistent wit t and q
+double precision, intent(in)  :: tstar   ! transition time between short and long time diffusion (units as t)
+double precision, intent(in)  :: beta    ! streching exponent for the sublinear initial part of diffusion
+
+double precision              :: sqt     ! return value = intermediate scattering factor of the diffusion
+
+double precision              :: r2
+
+
+if(t < tstar) then
+   r2  = 6*t**beta*tstar**(-beta+1)*Dlong/beta
+else
+   r2  = 6*Dlong*(beta*t-beta*tstar+tstar)/beta
+endif
+
+sqt = exp(-q*q*r2/6d0) 
+
+! testing
+! write(6,'(3F18.9)') t, r2, sqt
+! testing
+
+end function diffusion_beta 
+\end{verbatim}
+\normalsize
+
+\end{document}

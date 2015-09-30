@@ -11,7 +11,7 @@
 ! ---> based on routines of Reiner Zorn unift_3_2 <----
 !
 !
-   use physconstants
+   use PhysicalConstantsPlus
    use cdata
    use selist
    use constants

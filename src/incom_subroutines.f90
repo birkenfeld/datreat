@@ -313,7 +313,7 @@
        inew      = 0
        wert      = defval
        getval    = defval
-       call setudf(pname//' ',wert,ier)
+!mm??       call setudf(pname//' ',wert,ier)
        if(inames.le.0) return
 
        do 10 i=1,inames
@@ -469,7 +469,7 @@
 !-----------------------------------------------------------------------
        inew      = 0
        intval    = idef
-       call setudf(pname//' ',wert,ier)
+!mm??       call setudf(pname//' ',wert,ier)
        if(inames.le.0) return
 !
        do 10 i=1,inames
