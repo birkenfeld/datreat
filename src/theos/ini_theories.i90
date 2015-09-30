@@ -76,9 +76,9 @@
        nthpar(37) = mtpar 
        dummy = thick_co(x,par,thenam(37),thparn(:,37),nthpar(37),ini,idum ,idum,idum,idum)
        nthpar(38) = mtpar 
-       dummy = th_zglam(x,par,thenam(38),thparn(:,38),nthpar(38),ini,idum ,idum,idum,idum)
+       dummy = th_zgbic2(x,par,thenam(38),thparn(:,38),nthpar(38),ini,idum ,idum,idum,idum)
        nthpar(39) = mtpar 
-       dummy = th_zgbicbic(x,par,thenam(39),thparn(:,39),nthpar(39),ini,idum ,idum,idum,idum)
+       dummy = th_zglam(x,par,thenam(39),thparn(:,39),nthpar(39),ini,idum ,idum,idum,idum)
        nthpar(40) = mtpar 
        dummy = zimm(x,par,thenam(40),thparn(:,40),nthpar(40),ini,idum ,idum,idum,idum)
        ntheos=0
