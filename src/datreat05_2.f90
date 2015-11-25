@@ -119,6 +119,8 @@
 
        real          :: y_scaling
 
+       character(len=80) :: cbuffer
+
 
 !
        external fdes
@@ -126,6 +128,7 @@
 !
 !
        real :: errabs=1.0,errel=1.e-2
+       real :: xcopy1, xcopy2
 
 !
 ! lokale Hilfsvariablen fuer arit2 (geht noch besser) !
@@ -1824,6 +1827,98 @@
        endif
 !
 
+
+       if(comand.eq.'swapxy   ') then
+!                    ----->    vertauschen von x und y
+!                              
+! 
+         if(nsel.lt.1) then
+           write(6,*)'no items selected, use sel !'
+           goto 2000
+         endif
+
+         do i=1,nsel
+          ia = isels(i)
+          n  = nwert(ia)
+          do l=1,n
+              xsum = xwerte(l,ia)
+              ysum = ywerte(l,ia)
+              xwerte(l,ia) = ysum
+              ywerte(l,ia) = xsum             
+              yerror(l,ia) = 0
+           enddo
+           cbuffer   = xname(ia)
+           xname(ia) = yname(ia)
+           yname(ia) = cbuffer
+           write(6,'(a,i5,a)')" x and y values of ",ia," have been swapped, errors set to zero!" 
+         enddo
+         goto 2000
+       endif
+!
+
+       if(comand.eq.'sequence   ') then
+!                    ----->  sequence  
+!                                       
+         if(nsel.lt.1) then
+           write(6,*)'no items selected, use sel !'
+           goto 2000
+         endif
+
+         do i=1,nsel
+          ia = isels(i)
+          n  = nwert(ia)
+          do l=1,n
+             xwerte(l,ia) = l
+          enddo
+           xname(ia) = "#"
+           write(6,'(a,i5,a)')" x values of ",ia," have been replace by sequence numbers" 
+         enddo
+         goto 2000
+       endif
+!
+!
+       if(comand.eq.'copy   ') then
+!                    ----->  copy 
+!                                       
+         if(nsel.lt.1) then
+           write(6,*)'no items selected, use sel !'
+           goto 2000
+         endif
+
+         xcopy1 = getval('x1      ',dble(xcopy1),ier)
+         xcopy2 = getval('x2      ',dble(xcopy2),ier)
+
+         do i=1,nsel
+          ia = isels(i)
+          if(nbuf < mbuf) then
+             nbuf = nbuf + 1
+          else
+             Write(6,*)"ERROR: too many records !"
+             goto 2000
+          endif
+
+           call DataCopy(ia,nbuf)
+           write(6,'(a,i5,a,i5)')" copy ", ia," to ",nbuf 
+           isels(i) = nbuf 
+
+           if(found('x1      ') .and. found('x2      ')) then
+             Write(6,'(a,2e14.6)')" ...restricted to the interval: ",xcopy1, xcopy2
+             nwert(nbuf) = 0
+             do j=1,nwert(ia)
+               if(xwerte(j,ia) >= xcopy1 .and. xwerte(j,ia) <= xcopy2) then
+                  nwert(nbuf) = nwert(nbuf) + 1
+                  xwerte(nwert(nbuf) ,ia)  = xwerte(j,ia)
+                  ywerte(nwert(nbuf) ,ia)  = ywerte(j,ia)
+                  yerror(nwert(nbuf) ,ia)  = yerror(j,ia)
+               endif
+             enddo
+           endif
+
+         enddo
+         goto 2000
+       endif
+!
+       
 
        if(comand.eq.'scale   ') then
 !                    ----->    Skalierung der Intesnitaet          
