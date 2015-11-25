@@ -101,17 +101,22 @@
                                                                         
       td = t / taud 
       t0 = t / tau0 
-      eqd = exp ( - ( (q * d / 6) **2) ) 
+      eqd = exp ( - ( (q * d / 6) **2) )
+
+!      write(6,*)'td,t0,eqd ',td, t0, eqd
                                                                         
       m = 10 / sqrt (td+0.001D0) + 2 
       sum = 0 
       DO i = 1, m, 2 
       sum = sum + exp ( - i * i * td) / (i * i) 
       enddo 
-      sum = sum * (8 / (pi**2) ) * eqd 
+      sum = sum * (8 / (pi**2) ) * eqd
+!     write(6,*)'m, sum ',m,sum
                                                                         
                                                                         
-      degennes = (1 - eqd) * exp (t0) * derfc (sqrt (t0) ) + sum 
-                                                                        
+      degennes = (1 - eqd) * exp (t0) * erfc (sqrt (t0) ) + sum 
+
+!      write(6,*)'degennes ',degennes, erfc(sqrt(t0))
+      
       RETURN 
       END FUNCTION degennes                         
