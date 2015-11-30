@@ -1,0 +1,18 @@
+Makefiles
+to do
+
+im Augenblick gibt es verschieden Makefiles für ifort und gfortran
+
+ausserdem ist be gfortran notwendig folgende symbolische links generiert zu haben
+
+monk@iff1014:theos % ls -ltr *.mod
+lrwxr-xr-x  1 monk  staff  13 26 Mai 13:52 outlev.mod -> ../outlev.mod
+lrwxr-xr-x  1 monk  staff  13 26 Mai 13:53 formul.mod -> ../formul.mod
+lrwxr-xr-x  1 monk  staff  28 26 Mai 13:54 PhysicalConstantsPlus.mod -> ../PhysicalConstantsPlus.mod
+lrwxr-xr-x  1 monk  staff  24 26 Mai 13:55 Sample_scattering.mod -> ../Sample_scattering.mod
+monk@iff1014:theos % 
+
+ausserdem muss die 'richtige' utilux.f90 Version einkopiert werden.
+
+Das sollte ion die Makefiles eingearbeitet werden.....
+
