@@ -5,3 +5,8 @@
 fort.*
 *~
 Makefile.def
+Makefile
+src/Makefile
+src/theos/Makefile
+src/utilux.f90
+
