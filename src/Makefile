@@ -1,3 +1,4 @@
+
 .SUFFIXES:
 .SUFFIXES: .f90 .f .o .F90
 SHELL = /bin/sh
@@ -14,7 +15,7 @@ ifneq "$(wildcard /usr/local/lib/libgr.*)" ""
       ADDLIBGR=-lgr
 	  OBJ_GR=datreat_plot2gr.o
 else ifneq "$(wildcard /usr/local/gr/lib/libgr*.*)" ""
-      ADDLIBGR=-lgrsoft_gfortran
+      ADDLIBGR=-lgrsoft_ifort
 	  OBJ_GR=datreat_plot2gr.o	  
 else
       ADDLIBGR=
@@ -51,10 +52,10 @@ endif
 
 SRCSTHEO=  $(wildcard theos/*.f) $(wildcard theos/*.f90) $(wildcard theos/*.i90)
 
-FC=gfortran
-FFLAGS=-march=core2 -O2 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -msse4a -mfpmath=sse -Wunused-function -Wunused-variable
-#FC=ifort
-#FFLAGS=-march=core2 -O2  -save -fPIC  -mfpmath=sse -I$LOCAL -heap_arrays 100 
+#FC=gfortran
+#FFLAGS=-march=core2 -O2 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -msse4a -mfpmath=sse -I$LOCAL -Wunused-function -Wunused-variable
+FC=ifort
+FFLAGS=-march=core2 -O2  -save -fPIC  -mfpmath=sse -I$LOCAL -heap_arrays 100 
 
 #-fbounds-check
 LDFLAGS = -DPATH_TO_LOCAL_DATREAT=\"$(LOCAL)\"
