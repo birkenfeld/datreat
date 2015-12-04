@@ -130,7 +130,7 @@
        
       Rg =b/sqrt(6d0)*sqrt((c_inf*Mw)/Mmon)
 
-      sinc0 = phi_h*(sigma_inc_hydrogen/unit_cm**2)/(4*Pi)*n_h_mon/(Mmon*rho*Avogadrozahl)
+      sinc0 = phi_h*(sigma_inc_hydrogen/unit_cm**2)/(4*Pi)*n_h_mon/Mmon*rho*Avogadrozahl
       sinc  = sinc0 * exp(-sqrt((1d0/9d0)*Q**4*Wl4*tau/Pi))
 
  
