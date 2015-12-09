@@ -1,4 +1,3 @@
-
 .SUFFIXES:
 .SUFFIXES: .f90 .f .o .F90
 SHELL = /bin/sh
@@ -15,7 +14,7 @@ ifneq "$(wildcard /usr/local/lib/libgr.*)" ""
       ADDLIBGR=-lgr
 	  OBJ_GR=datreat_plot2gr.o
 else ifneq "$(wildcard /usr/local/gr/lib/libgr*.*)" ""
-      ADDLIBGR=-lgrsoft_ifort
+      ADDLIBGR=-lgrsoft_gfortran
 	  OBJ_GR=datreat_plot2gr.o	  
 else
       ADDLIBGR=
@@ -52,10 +51,10 @@ endif
 
 SRCSTHEO=  $(wildcard theos/*.f) $(wildcard theos/*.f90) $(wildcard theos/*.i90)
 
-#FC=gfortran
-#FFLAGS=-march=core2 -O2 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -msse4a -mfpmath=sse -I$LOCAL -Wunused-function -Wunused-variable
-FC=ifort
-FFLAGS=-march=core2 -O2  -save -fPIC  -mfpmath=sse -I$LOCAL -heap_arrays 100 
+FC=gfortran
+FFLAGS=-march=core2 -O2 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -msse4a -mfpmath=sse -Wunused-function -Wunused-variable
+#FC=ifort
+#FFLAGS=-march=core2 -O2  -save -fPIC  -mfpmath=sse -I$LOCAL -heap_arrays 100 
 
 #-fbounds-check
 LDFLAGS = -DPATH_TO_LOCAL_DATREAT=\"$(LOCAL)\"
@@ -82,7 +81,7 @@ MODS = PhysicalConstantsPlus.f90 commons_mod.f90 unift.f90
 
 
 datreat: $(OBJS) $(LIBS) $(OBJ_GR)
-	$(FC) -o datreat $(FFLAGS) $(OBJS) $(LIBS) $(LDFLAGS) -L$(GRACE) $(OBJ_GR) -l$(GRACENP)  -L/usr/local/gr/lib $(ADDLIBGR) $(ADDLIBGKS) -Wl,-rpath,/usr/local/intel/lib/intel64 -lifcore -limf -lintlc -llapack_ifort -lblas_ifort  
+	$(FC) -o datreat $(FFLAGS) $(OBJS) $(LIBS) $(LDFLAGS) -L$(GRACE) $(OBJ_GR) -l$(GRACENP)  -L/usr/local/gr/lib $(ADDLIBGR) $(ADDLIBGKS)  -lifcore -limf -lintlc -llapack_gfortran -lblas_gfortran  
 	@/bin/mv datreat ../bin
 	@/bin/ln -sf $(LOCAL)/bin/datreat ~/bin
 	@echo "___________________________________________________________________"
