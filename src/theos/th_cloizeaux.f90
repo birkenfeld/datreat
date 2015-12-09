@@ -3,6 +3,8 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! Formel (23) aus Cloizeaux, J. de Physique I, 3 (1993) p.1533 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! TO BE DONE: USE INTEGRATION MODULE INSTEAD OF ADAPINT
+        
       implicit none
       
       CHARACTER(8) thnam, parnam (20) 
@@ -30,6 +32,7 @@
          INTEGER iadda, ier, iout, iot                
          COMMON/thiadd/iadda         !! transfer of address for parget
 
+      
 !
 ! ----- initialisation -----
        if(ini.eq.0) then
@@ -64,7 +67,9 @@
         endif
  
         t = x 
- 
+
+!        write(6,*)"### t, q =",t,q
+        
         th_cloizeaux = a * cloizeaux(t,q,d,Wl4) 
 
          return
@@ -244,15 +249,18 @@ double precision function cloizeaux(t,q,d,Wl4)
 
         i1 = 0.0d0
         n1 = 0.0d0
-   
+
+!       write(6,*)"#0: ", q,d,y
         do j=1,ngl64
+!           write(6,*)"#0a: ",j
           p = xgl64(j)
           i1 = i1 + FYZ(p)*wgl64(j)
+!           write(6,*)"0b:", i1
         enddo
         
       res     =   i1 + log(1+Zav)/Zav
       cloizeaux = res
-!      write(6,*)t,res
+!      write(6,*)"#cloizeaux t, res ",t,res
       return
 
       end function cloizeaux
@@ -266,15 +274,15 @@ double precision function cloizeaux(t,q,d,Wl4)
 
       integer maxit
       double precision epsilon, errac, gwidth
-      parameter (epsilon=1d-6, gwidth=4.0d0, maxit=1000)
+      parameter (epsilon=1d-6 , gwidth=4.0d0, maxit=1000)
 
       double precision Z,Y,Zav, FaF, Fbf
       common/cloik1/Z,Y,Zav, FaF, Fbf
 
-      double precision p, badapint_r, gu, go, fa, fb
+      double precision p, gu, go, fa, fb
       double precision FA_ker, FB_ker, FAB_ker
       double precision upbound, lowbound      
-      double precision res, adapint_r
+      double precision res, a2dapint
 
       external FA_ker, FB_ker, FAB_ker      
       external upbound, lowbound
@@ -291,10 +299,12 @@ double precision function cloizeaux(t,q,d,Wl4)
 !       call dtwodq(FAB_ker,gu,go,lowbound,upbound,
       !     *            epsilon, epsilon*10, 2, result, errac)
 
-      res = adapint_r(FA_ker, gu, go, epsilon, maxit, errac ) 
+!      write(6,'(a,3f12.6,a)')"FYZ start int:",gu,go,p," ==> "
+
+      res = a2dapint(FA_ker, gu, go, epsilon, maxit, errac ) 
       
        Fyz = res * Z
-!       write(6,*)' 2: ',Fyz, errac
+!       write(6,'(a,2e416.7)')"FYZ result: ",Fyz, errac
 
       return
       end
@@ -304,8 +314,8 @@ double precision function cloizeaux(t,q,d,Wl4)
         implicit none
          double precision, intent(in) :: a
          double precision             :: a_cloik2
-         double precision             :: adapint_r
-         double precision, parameter  :: epsilon = 1d-9
+         double precision             :: adapint
+         double precision, parameter  :: epsilon = 1d-9 
          double precision             :: erracc
          integer, parameter           :: maxit = 300 
          common/cloik2/ a_cloik2
@@ -313,8 +323,17 @@ double precision function cloizeaux(t,q,d,Wl4)
 
          a_cloik2 = a
 
-         FA_ker = adapint_r(FB_ker , a, 1d0, epsilon, maxit, erracc)
-            
+         if(abs(a-1d0)<1d-8) then
+            FA_ker = 0
+            return
+         endif
+         
+!         write(6,'(a,e16.7)')"# FA_ker   a    ",a
+         
+         FA_ker = adapint(FB_ker , a, 1d0, epsilon, maxit, erracc)
+
+!         write(6,'(a,e16.7)')"# FA_ker result ",FA_ker
+         
       end function FA_ker  
 
       
@@ -347,7 +366,7 @@ double precision function cloizeaux(t,q,d,Wl4)
 
       integer maxit
       double precision epsilon, errac, gwidth
-      parameter (epsilon=1d-12, gwidth=4.0d0, maxit=1000)
+      parameter (epsilon=1d-12  , gwidth=4.0d0, maxit=1000)
       double precision edwp   
       parameter(edwp=0.564189583d0)        !! = 1/sqrt(pi)
 
@@ -381,115 +400,3 @@ double precision function cloizeaux(t,q,d,Wl4)
 
 
 
-
-      RECURSIVE FUNCTION adapint_r (f, a, b, epsilon, maxiter, erroraccu) 
-!      =================================================                
-!                                                                       
-!      lokal adaptives integrationsverfahren 2te ver. wg. rekur.        
-!                                                                       
-!#!      use outlev
-      IMPLICIT real (8)(a - h, o - z) 
-!                                                                       
-      PARAMETER (maxstack = 200) 
-!                 --------------->  stacktiefe                          
-      DIMENSION s (0:maxstack), xa (0:maxstack), xb (0:maxstack) 
-!                                                                       
-!      LOGICAL cray 
-!!     common/outlev/iot,ibild,ierrs,inka, cray                         
-                                                                     !! 
-!      REAL xxxx, yyyy, ptxf 
-                                                                     !! 
-!      COMMON / outlev / iot, ibild, ierrs, inka, iibuf, xxxx, yyyy,     &
-!      ptxf (20)                                                         
-!                                                                       
-      EXTERNAL f 
-!                                                                       
-!      -----------------------------------------------------------------
-                                                                        
-                                                                        
-      iterationcounter = 0 
-      erg = 0.0d0 
-      itop = 0 
-      xa (itop) = a 
-      xb (itop) = b 
-      s (itop) = gaus8a (f, a, b) 
-                                                                        
-      DO i = 1, maxiter 
-      IF (itop.ge. (maxstack - 2) ) then 
-         erg = erg + s (itop) 
-         xbb = xb (itop) 
-         itm = itop - 1 
-         DO itop = itm, 0, - 1 
-         IF (xa (itop) .eq.xbb) goto 1 
-         enddo 
-    1    CONTINUE 
-         WRITE (6, * ) 'warning! adaptint stack overflow!' 
-      ELSE 
-         iterationcounter = iterationcounter + 1 
-         itop = itop + 1 
-         xa (itop) = (xa (itop - 1) + xb (itop - 1) ) * 0.5d0 
-         xb (itop) = xb (itop - 1) 
-         s (itop) = gaus8a (f, xa (itop), xb (itop) ) 
-         itop = itop + 1 
-         xa (itop) = xa (itop - 2) 
-         xb (itop) = xa (itop - 1) 
-         s (itop) = gaus8a (f, xa (itop), xb (itop) ) 
-         error = dabs ( (s (itop) + s (itop - 1) ) - s (itop - 2) ) 
-                                                                        
-!         IF (iot.gt.2) then 
-!            WRITE (6, '(1x,i3,i5,4e13.6)') itop, iterationcounter, xa ( &
-!            itop) , xb (itop) , (s (itop) + s (itop - 1) ) , error      
-!         ENDIF 
-                                                                        
-         IF (error.lt.epsilon) then 
-            erg = erg + s (itop) + s (itop - 1) 
-            erroraccu = erroraccu + error 
-            itop = itop - 1 
-            xbb = xb (itop) 
-            itop = itop - 1 
-            itm = itop - 1 
-            DO itop = itm, 0, - 1 
-            IF (xa (itop) .eq.xbb) goto 2 
-            enddo 
-    2       CONTINUE 
-         ENDIF 
-      ENDIF 
-      IF (itop.le.0) goto 3 
-      enddo 
-      WRITE (6, * ) 'adapint_r fatal error iterationnumber exceeded!' 
-    3 CONTINUE 
-                                                                        
-                                                                        
-      adapint_r = erg 
-                                                                        
-      RETURN 
-                                                                        
-      END FUNCTION adapint_r                          
-
-!!#>       function gaus8a (f,xu,xo)
-!!#> !-----------------------------------------------------------------------
-!!#> !      8-punkte gauss-integration  : int(f,xu..xo)  2te kopie wg. rekur.
-!!#> !-----------------------------------------------------------------------
-!!#>       parameter ( ndim = 8 )
-!!#>       parameter ( ndim2=ndim/2)
-!!#>       implicit real*8 (a-h,o-z)
-!!#>       dimension a(ndim2),x(ndim2)
-!!#>       data a / 0.362683783378362d0,&
-!!#>                0.313706645877887d0,&
-!!#>                0.222381034453374d0,&
-!!#>                0.101228536290376d0/
-!!#>       data x / 0.183434642495650d0,&
-!!#>                0.525532409916329d0,&
-!!#>                0.796666477413627d0,&
-!!#>                0.960289856497536d0/
-!!#> 
-!!#>       xave = (xo+xu)*0.5d0
-!!#>       range= (xo-xu)*0.5d0
-!!#>       sum = 0.d0
-!!#>       do i=1,ndim2
-!!#>         sum = sum + a(i)*( f(xave+range*x(i))+ f(xave-range*x(i)) )
-!!#>       enddo
-!!#>       gaus8a = sum * range
-!!#> 
-!!#>       return
-!!#>       end function gaus8a

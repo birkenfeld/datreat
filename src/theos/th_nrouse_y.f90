@@ -30,11 +30,14 @@
       integer          :: iadda 
       common/thiadd/iadda
 
- 
+      double precision :: a,b,c,d,beta0,betae,Z 
+
+
+
  ! ----- initialisation -----
        if(ini.eq.0) then
          thnam = 'nrouse_y'
-         nparx = 8
+         nparx = 14
          if(npar.lt.nparx) then
            write(6,1)thnam,nparx,npar
 1          format(' theory: ',a8,' no of parametrs=',i8,' exceeds current max. = ',i8)
@@ -51,7 +54,13 @@
          parnam(6) = 'p_trans '   ! transition mode number
          parnam(7) = 'w_scale '   ! rate scale for low modes
          parnam(8) = 'a_scale '   ! amplitude scale for low modes
-  
+         parnam(9) = 'bet_a   '   ! beta model a parameter
+         parnam(10)= 'bet_c   '   ! beta model c parameter
+         parnam(11)= 'bet_d   '   ! beta model d parameter
+         parnam(12)= 'beta0   '   ! beta model beta0 parameter
+         parnam(13)= 'betae   '   ! beta model min beta parameter
+         parnam(14)= 'z       '   ! beta model Z parameter
+ 
          th_nrouse_y = 0
          return
        endif
@@ -67,6 +76,12 @@
        p_trans  = pa(6)
        w_scale  = abs(pa(7))
        a_scale  = abs(pa(8))
+       a        = abs(pa(9))
+       c        = pa(10)
+       d        = abs(pa(11))
+       beta0    = abs(pa(12))
+       betae    = abs(pa(13))
+       z        = abs(pa(14))
 
        diff     = diff * 1d-9 / 1d-16  ! in A**2/ns
 
@@ -87,7 +102,7 @@
 
        dr = diff
              
-       call Nrouse3(qz,tau,dr,Wl4,N,R, p_trans, w_scale, a_scale, l,Sq,Sqt)
+       call Nrouse3(qz,tau,dr,Wl4,N,R, p_trans, w_scale, a_scale,a,b,c,d,beta0,betae,Z, l,Sq,Sqt)
  
        if(sqof0) then
           th_nrouse_y =  a0 * Sqt
@@ -108,8 +123,8 @@
 
 
 
-       subroutine Nrouse3(q,t,Dr,Wl4,N,R,p_trans, w_scale, a_scale,l,Sq,Sqt)
-!      =====================================================================
+       subroutine Nrouse3(q,t,Dr,Wl4,N,R,p_trans, w_scale, a_scale, a,b,c,d, beta0,betae,Z, l,Sq,Sqt)
+!      ==============================================================================================
 !
 ! Rouse expression for a chain of finite length:
 ! Input parameters:
@@ -122,6 +137,7 @@
 ! p_trans  ----> mode number for transition from scaled to pure Rouse
 ! w_trans  ----> rate scale
 ! a_trans  ----> amplitiude scale
+! a,b,c,beta0,betae,Z --> mode dependent beta model params
 ! Output parameters:
 !    l     <--- segment length
 !    Sq    <--- S(Q)
@@ -136,6 +152,7 @@
 
        double precision, intent(in)     ::  q,t,Wl4,R
        double precision, intent(in)     ::  p_trans, w_scale, a_scale
+       double precision, intent(in)     ::  a, c, d, beta0, betae, z
        double precision, intent(inout)  ::  Dr
        double precision, intent(out)    ::  l, Sq, Sqt
        integer,          intent(in)     ::  N
@@ -145,8 +162,14 @@
        double precision :: W, rate_p, kbt, Sq0, arg1, arg2
        double precision :: a0,e0, ff2, ffc,    arg10,arg20
        double precision :: aa1 , aa2
+       double precision, save :: b3old
 
        double precision :: wscal(n), ascal(n), ppsin(n), cospn(n,n)
+       double precision :: beta(n),  tteff(n)
+       integer          :: pv(n)
+
+       double precision :: b, b0
+       integer          :: pmax
 
        integer          :: iout, itrans
         
@@ -186,6 +209,48 @@
             cospn(p,nn) = cos((pi*p*nn)/dfloat(N))
           enddo
        enddo
+
+! and for variation of beta with mode number
+! default beta = b0 is obtained for
+!      
+       if(beta0 .ne. 0d0) then
+          b0         = beta0
+          b          = abs(tan(betae*Pi/2))
+          pv(1:n)    = [(p,p=1,N)]
+          beta(1:n)  = 2*atan(a*(log(dfloat(N)/pv)-log(Z))**2+b)/Pi*(1-c+c*erf(d*(log(dfloat(N)/pv)-log(Z))))*b0
+          tteff(1:n) = Gamma(1d0/beta)/beta
+          if(beta(n/3) .ne. b3old) then
+             b3old = beta(n/3)
+             open(22,file='nrouse_y_betas.dgli')
+                write(22,'(i8,3e16.7)') (p, dfloat(n)/dfloat(p), log(dfloat(n)/dfloat(p)), beta(p), p=1,N)
+             close(22)
+             open(22,file='nry.gp')
+                write(22,'(a        )') 'set term x11 nopersist font Courier '
+                write(22,'(a        )') 'set xlabel "{/=20 log N/p}" '
+                write(22,'(a        )') 'set ylabel "{/=20 beta}" '
+                write(22,'(a        )') 'set yrange [0:1.1] '
+                write(22,'(a,f8.4,a )') 'set label 1 "{/=20 Z  = ', Z ,'}" at graph 0.6,0.9  left '
+                write(22,'(a,f8.4,a )') 'set label 2 "{/=20 a  = ', a ,'}" at graph 0.6,0.85 left '
+                write(22,'(a,f8.4,a )') 'set label 3 "{/=20 c  = ', c ,'}" at graph 0.6,0.8  left '
+                write(22,'(a,f8.4,a )') 'set label 4 "{/=20 d  = ', d ,'}" at graph 0.6,0.75 left '
+                write(22,'(a,f8.4,a )') 'set label 5 "{/=20 b0 = ', beta0 ,'}" at graph 0.6,0.7 left '
+                write(22,'(a,f8.4,a )') 'set label 6 "{/=20 de = ', betae ,'}" at graph 0.6,0.65 left '
+                write(22,'(a        )') "plot 'nrouse_y_betas.dgli' using 3:4 with lines lw 3 lc 2" 
+                write(22,'(a        )') 'set output "lastgplot.eps" ' 
+                write(22,'(a        )') 'set term postscript eps  ' 
+                write(22,'(a        )') "plot 'nrouse_y_betas.dgli' using 3:4 with lines lw 3 lc 2" 
+                write(22,'(a        )') "pause 2" 
+             close(22)
+             call system("gnuplot nry.gp &")
+           endif
+       else
+          beta       = 1d0
+          tteff      = 1d0
+       endif
+
+
+! estimate pmax for the present q  TO BE DONE
+       pmax = N
        
        
 ! ---- init sums ----
@@ -202,19 +267,17 @@
     
           arg2 = 0
           arg20= 0
-          do p = 1,N
+          do p = 1,pmax
 !            rate_p = 2*W*(1-cos((pi*p)/dfloat(N))) * wscal(p)
-            rate_p = W * (pi/N)**2 * ppsin(p) * wscal(p)
-            a0    = -t*rate_p
+            rate_p = W * (pi/N)**2 * ppsin(p)    * wscal(p) * tteff(p)
+            a0    = - (t*rate_p)**beta(p)
 !            if(a0.lt.-200.0d0) a0 = -200.0d0
             e0    = 1.0d0-exp(a0)
             
 !            ffc   = cos((pi*p*nn)/dfloat(N)) * cos((pi*p*mm)/dfloat(N))
             ffc   = cospn(p,nn) * cospn(p,mm)
 !            ffc   = ffc / (p**2)
-            ffc   = ffc / ppsin(p)
-
-            ffc   = ffc * ascal(p)
+            ffc   = ffc / ppsin(p)  * ascal(p)
 
             arg2  = arg2  + ffc*e0
             arg20 = arg20 + ffc
