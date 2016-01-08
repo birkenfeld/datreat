@@ -21,7 +21,7 @@
 
       double precision :: temp, tau, q, wl4, l 
       double precision :: a0 , qz, R, dr
-      double precision :: m_aver, wcut
+      double precision :: m_aver, wcut, fpos
       double precision :: diffscal 
       double precision :: sq, sqt
       REAL             :: qget, tget 
@@ -35,7 +35,7 @@
  ! ----- initialisation -----
        if(ini.eq.0) then
          thnam = 'nrouse_s'
-         nparx = 7
+         nparx = 8
          if(npar.lt.nparx) then
            write(6,1)thnam,nparx,npar
 1          format(' theory: ',a8,' no of parametrs=',i8,' exceeds current max. = ',i8)
@@ -50,7 +50,8 @@
          parnam(4) = 're      '   ! re of one block
          parnam(5) = 'diffscal'   ! diffusion scaling
          parnam(6) = 'm_aver  '   ! average aggregation number
-         parnam(7) = 'wcut    '   ! weight cutoff
+         parnam(7) = 'wcut    '   ! weight cutoff in terms of mmax = wcut * (n at max of w)
+         parnam(8) = 'fpos    '   ! fractional position of inserted segment 
    
          th_nrouse_sh = 0
          return
@@ -66,6 +67,7 @@
        diffscal = abs(pa(5)) 
        m_aver   = pa(6)
        wcut     = pa(7)
+       fpos     = pa(8)
 
        qget = 0.01
        call        parget('q       ',qget,iadda,ier)
@@ -82,7 +84,7 @@
          sqof0 = .true.
        endif
              
-       call Nrouse_sh(qz,tau,diffscal,Wl4,N,R, m_aver, wcut, l,dr,Sq,Sqt)
+       call Nrouse_sh(qz,tau,diffscal,Wl4,N,R, m_aver, wcut,fpos, l,dr,Sq,Sqt)
  
        if(sqof0) then
           th_nrouse_sh =  a0 * Sqt
@@ -96,6 +98,7 @@
        call        parset('l       ',sngl(l),iadda,ier)      ! in ns A units
        dr        = dr /( 1d-9 / 1d-16 ) ! in cm**2/s
        call        parset('diffav  ',sngl(dr),iadda,ier)
+       call        parset('wl4     ',sngl(wl4),iadda,ier)
  
        return
        end
@@ -103,10 +106,22 @@
 
 
 
-       subroutine Nrouse_sh(q,t,DrScal,Wl4,Nb,R,m_aver,wcut,l,Daver, SqAve,SqtAve)
+       subroutine Nrouse_sh(q,t,DrScal,Wl4,Nb,R,m_aver,wcut,fpos,l,Daver, SqAve,SqtAve)
 !      ===========================================================================
 !
-! Rouse expression for a chain of finite length:
+! Rouse expression for an ensemble of polydisperse chains made up of pieces
+! with Nb segments each, the ideal Ree of the Nb-wide pieces is given by R.
+! The system contains of a polydispers mixture of 1, 2, 3 .... combinations of these
+! chains, the Nb segments are either deuterated or protonated. The assumption is
+! a random placement of h or d subchains, as expected as a result of a system with
+! dynamical links.
+! The size distribution is assume to be that of a polycondensation model with
+! an average number of subchains: m_aver. wcut controlls the cutoff of the 
+! summation over number of subchains which is approximately at m_aver * wcut.
+!           (more precise -wcut/ln(p), with -1/ln(p) the n of the peak of the distribution.
+! The diffusions are taken from Rousemodel with a scaling factor DrScal
+! The marke block is inserted at relative position fpos in the long aggreate chain.  
+! 
 ! Input parameters:
 !    q     ----> momentum transfer in A**-1
 !    t     ----> time in nano-sec
@@ -114,8 +129,9 @@
 !    Wl4   ----> Rouse rate in A**4/ns
 !    N     ----> number of chain segments in one block
 !    R     ----> end-to-end distance of the polymer molecule
-!    wcut  ----> weight cutoff for mblocks summation
 !    m_aver----> average number of blocks
+!    wcut  ----> weight cutoff for mblocks summation in terms of wcut * location of max of distribution
+!    fpos  ----> fractional position of marked segment
 ! Output parameters:
 !    Daver <--- averaged effective diffusuion
 !    l     <--- segment length
@@ -132,6 +148,7 @@
        double precision, intent(in)     ::  q,t,Wl4,R
        double precision, intent(in)     ::  m_aver
        double precision, intent(in)     ::  wcut
+       double precision, intent(in)     ::  fpos
        double precision, intent(in)     ::  DrScal
        double precision, intent(out)    ::  Daver, l, SqAve, SqtAve
        integer,          intent(in)     ::  Nb
@@ -160,7 +177,7 @@
  
 
        pcindex = 1d0-1d0/m_aver
-       mmax    = log(wcut)/log(pcindex)
+       mmax    = nint(-1d0/log(pcindex) * wcut)
 
 
 ! ---- determine the segment length l ----
@@ -169,6 +186,9 @@
 ! ---- and the Rousefactor ----
 
        W   = Wl4 / l**4
+
+!       write(6,'("cp1: ",f12.6,i6,f12.6,i6)')pcindex, mmax, l, Nb     ! checking 1
+ 
 
 
 ! ---- init sums ----
@@ -185,16 +205,16 @@ mloop: do mblocks=1,mmax
            Sq  = 0
            Sqt = 0
 
-           weight    =  mblocks * pcindex ** mblocks
+           weight    =  mblocks * (pcindex ** (mblocks-1)) * (1-pcindex)**2 
            weightsum = weightsum + weight
            N      =  Nb * mblocks
-           n1     =  max(1,N/2-Nb/2)
+           n1     =  max(1,nint(N*fpos-Nb/2))
            n2     =  min(N,n1+Nb)
 
            Dr    = DrScal * Wl4 / ( 3*Nb*mblocks *l**2) 
            Daver = Daver + Dr * weight
 
-
+!           write(6,'("chk2: ",4i8,2f12.6)') mblocks, N, n1, n2, weight, Dr   ! checking 2
 
 
 ! ---- Do the sums -----
@@ -251,7 +271,7 @@ mloop: do mblocks=1,mmax
 
  
 
- !      write(6,'(1x,7E14.6)')q,t,SqAve,SqtAve, SqtAve/SqAve, weightsum, daver 
+!       write(6,'(1x,7E14.6)')q,t,SqAve,SqtAve, SqtAve/SqAve, weightsum, daver   ! checking 
 
        return
        end
