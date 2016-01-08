@@ -81,10 +81,8 @@
          write(6,*)'tau = ',tau 
          sqof0 = .true.
        endif
-
-       dr = diffscal
              
-       call Nrouse_sh(qz,tau,dr,Wl4,N,R, m_aver, wcut, l,Sq,Sqt)
+       call Nrouse_sh(qz,tau,diffscal,Wl4,N,R, m_aver, wcut, l,dr,Sq,Sqt)
  
        if(sqof0) then
           th_nrouse_sh =  a0 * Sqt
@@ -151,11 +149,11 @@
 
        integer          :: iout, itrans
         
-       if(N.le.0) then
+       if(Nb.le.0) then
          W  = 999
          Sq = 999
          Sqt= 999
-         write(6,*)'Error Number of chain segments is <= 0!',N
+         write(6,*)'Error Number of chain segments is <= 0!',Nb
          return
        endif
 
@@ -247,12 +245,13 @@ mloop: do mblocks=1,mmax
     
        enddo mloop
 
-       SqAve  = SqAve  + Sq / weightsum
-       SqtAve = SqtAve + Sqt/ weightsum
-       Daver  = Daver       / weightsum
+       SqAve  = SqAve  + SqAve / weightsum
+       SqtAve = SqtAve + SqtAve/ weightsum
+       Daver  = Daver          / weightsum
 
+ 
 
-       if(iout().gt.0)write(6,'(1x,6E14.6)')q,t,SqAve,SqtAve, SqtAve/SqAve, w 
+ !      write(6,'(1x,7E14.6)')q,t,SqAve,SqtAve, SqtAve/SqAve, weightsum, daver 
 
        return
        end
