@@ -118,6 +118,9 @@
        real*4           dirpav(20)
 
        real          :: y_scaling
+       real          :: diffscal, diffrouse
+
+
 
        character(len=80) :: cbuffer
 
@@ -2548,7 +2551,10 @@
                                        ifunx=7
                     if(inpar(i).ne.0)  sx   = rpar(j)
            endif
-           if(vname(i).eq.'rouse    ') ifunx=8
+           if(vname(i).eq.'rouse    ') then 
+                                       ifunx=8
+                                       ifuny=-1
+           endif
            if(vname(i).eq.'zimm     ') ifunx=9
 
            if(vname(i).eq.'y        ') ifuny=0
@@ -2619,6 +2625,7 @@
                                  ! Rouse Scaling !
              if(ifunx.eq.8) then
               if(i.eq.1) then
+               diffrouse = 0
                wl4 = getval('wl4     ',dble(wl4),inew)
                call  parget('wl4     ',wl4,ia,ier)
                call  parget('q       ',qrs,ia,ier)
@@ -2626,9 +2633,17 @@
                  call errsig(1111,'q-value not found ...$')
                endif
                call parset('wl4     ',wl4,ib)
+               cbuffer = chrval('usediff  ','none    ',inew)
+               if(cbuffer(1:4) .ne. 'none' ) then
+                  diffscal  = getval('unit    ', 1d7, ier)   ! default diffusion in cm**2/s ==> scale to A**2/ns
+                 call parget(cbuffer(1:8),diffrouse,ia,ier)
+                 diffrouse = diffrouse * diffscal
+                 write(6,'("scaling:",i6,"  at q= ",f12.6," with diff ",f12.6," A**2/ns  from:",a)')ia,qrs,diffrouse,cbuffer(1:8)
+               endif
               endif
-              ywerte(i,ib) = ywerte(i,ia)
-              yerror(i,ib) = yerror(i,ia)
+!!              write(6,*)i,ia,diffrouse,qrs,xwerte(i,ia), exp( +diffrouse *qrs**2 * xwerte(i,ia) )
+              ywerte(i,ib) = ywerte(i,ia) * exp( +diffrouse *qrs**2 * xwerte(i,ia) )
+              yerror(i,ib) = yerror(i,ia) * exp( +diffrouse *qrs**2 * xwerte(i,ia) )
               xwerte(i,ib) = (qrs**2)*sqrt(wl4*xwerte(i,ia))
              endif
 
