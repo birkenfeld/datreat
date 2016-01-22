@@ -19,7 +19,7 @@
 
       integer          :: ier, nparx
 
-      double precision :: temp, tau, q, wl4, l 
+      double precision :: temp, tau, q, wl4, l , taulim
       double precision :: a0 , qz, R, dr
       double precision :: m_aver, wcut, fpos
       double precision :: diffscal 
@@ -35,7 +35,8 @@
  ! ----- initialisation -----
        if(ini.eq.0) then
          thnam = 'nrouse_s'
-         nparx = 8
+ !##!        thnam = 'nrouse_h'
+         nparx = 9
          if(npar.lt.nparx) then
            write(6,1)thnam,nparx,npar
 1          format(' theory: ',a8,' no of parametrs=',i8,' exceeds current max. = ',i8)
@@ -52,6 +53,7 @@
          parnam(6) = 'm_aver  '   ! average aggregation number
          parnam(7) = 'wcut    '   ! weight cutoff in terms of mmax = wcut * (n at max of w)
          parnam(8) = 'fpos    '   ! fractional position of inserted segment 
+         parnam(9) = 'taulim  '   ! model limit tau
    
          th_nrouse_sh = 0
          return
@@ -68,6 +70,7 @@
        m_aver   = pa(6)
        wcut     = pa(7)
        fpos     = pa(8)
+       taulim   = pa(9)
 
        qget = 0.01
        call        parget('q       ',qget,iadda,ier)
@@ -84,7 +87,7 @@
          sqof0 = .true.
        endif
              
-       call Nrouse_sh(qz,tau,diffscal,Wl4,N,R, m_aver, wcut,fpos, l,dr,Sq,Sqt)
+       call Nrouse_sh(qz,tau,diffscal,Wl4,N,R, m_aver, wcut,fpos, l,dr,taulim, Sq,Sqt)
  
        if(sqof0) then
           th_nrouse_sh =  a0 * Sqt
@@ -106,7 +109,7 @@
 
 
 
-       subroutine Nrouse_sh(q,t,DrScal,Wl4,Nb,R,m_aver,wcut,fpos,l,Daver, SqAve,SqtAve)
+       subroutine Nrouse_sh(q,t,DrScal,Wl4,Nb,R,m_aver,wcut,fpos,l,Daver,taulim, SqAve,SqtAve)
 !      ===========================================================================
 !
 ! Rouse expression for an ensemble of polydisperse chains made up of pieces
@@ -134,6 +137,7 @@
 !    fpos  ----> fractional position of marked segment
 ! Output parameters:
 !    Daver <--- averaged effective diffusuion
+!    taulim<--- mode cut off beyond that time (chain breaking)         
 !    l     <--- segment length
 !    Sq    <--- S(Q)
 !    Sqt   <--- S(Q,t)
@@ -150,6 +154,7 @@
        double precision, intent(in)     ::  wcut
        double precision, intent(in)     ::  fpos
        double precision, intent(in)     ::  DrScal
+       double precision, intent(in)     ::  taulim
        double precision, intent(out)    ::  Daver, l, SqAve, SqtAve
        integer,          intent(in)     ::  Nb
 
@@ -185,7 +190,7 @@
        
 ! ---- and the Rousefactor ----
 
-       W   = Wl4 / l**4
+       W   = Wl4 / l**4  
 
 !       write(6,'("cp1: ",f12.6,i6,f12.6,i6)')pcindex, mmax, l, Nb     ! checking 1
  
@@ -212,6 +217,7 @@ mloop: do mblocks=1,mmax
            n2     =  min(N,n1+Nb)
 
            Dr    = DrScal * Wl4 / ( 3*Nb*mblocks *l**2) 
+!##!           Dr    = DrScal**(1d0/mblocks)    * Wl4 / ( 3*Nb*mblocks *l**2) 
            Daver = Daver + Dr * weight
 
 !           write(6,'("chk2: ",4i8,2f12.6)') mblocks, N, n1, n2, weight, Dr   ! checking 2
@@ -227,7 +233,8 @@ mloop: do mblocks=1,mmax
               arg2 = 0
               arg20= 0
               do p = 1,N
-                tau_p = 2*W*(1-cos((pi*p)/dfloat(N))) 
+                tau_p = 2*W*(1-cos((pi*p)/dfloat(N)))
+                if(1d0/tau_p > taulim) cycle 
                 a0    = -t*tau_p
                 if(a0.lt.-200.0d0) a0 = -200.0d0
                 e0    = 1.0d0-exp(a0)

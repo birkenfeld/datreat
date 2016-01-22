@@ -57,7 +57,7 @@ FFLAGS=-march=core2 -O2 -ffree-line-length-none -fno-automatic -fPIC -fno-backsl
 #FFLAGS=-march=core2 -O2  -save -fPIC  -mfpmath=sse -I$LOCAL -heap_arrays 100 
 
 #-fbounds-check
-LDFLAGS = -DPATH_TO_LOCAL_DATREAT=\"$(LOCAL)\"
+LDFLAGS = -DPATH_TO_LOCAL_DATREAT=\"$(LOCAL)\" -Wl,-rpath,/usr/local/gr/lib
 
 
 OBJS = datreat05_2.o dataconvolution4.o dtpur.o util_get_y_value.o \
