@@ -53,7 +53,7 @@
          parnam(6) = 'm_aver  '   ! average aggregation number
          parnam(7) = 'wcut    '   ! weight cutoff in terms of mmax = wcut * (n at max of w)
          parnam(8) = 'fpos    '   ! fractional position of inserted segment 
-         parnam(9) = 'taulim  '   ! model limit tau
+         parnam(9) = 'taulim  '   ! mode cutoff by weight exp(-tau(p)/taulim)
    
          th_nrouse_sh = 0
          return
@@ -160,9 +160,9 @@
 
        integer                          ::  nn,mm,p
 
-       double precision :: W, tau_p, kbt, Sq0, arg1, arg2, Dr
+       double precision :: W, rate_p, kbt, Sq0, arg1, arg2, Dr
        double precision :: a0,e0, ff2, ffc,    arg10,arg20
-       double precision :: aa1 , aa2, weight, Sqt, Sq, weightsum
+       double precision :: aa1 , aa2, weight, Sqt, Sq, weightsum, wmode
 
  
 
@@ -233,16 +233,19 @@ mloop: do mblocks=1,mmax
               arg2 = 0
               arg20= 0
               do p = 1,N
-                tau_p = 2*W*(1-cos((pi*p)/dfloat(N)))
-                if(1d0/tau_p > taulim) cycle 
-                a0    = -t*tau_p
+                rate_p = 2*W*(1-cos((pi*p)/dfloat(N)))
+!####new               if(1d0/rate_p > taulim) cycle
+                wmode = exp(-1d0/(rate_p*taulim))        !####new          
+
+                a0    = -t * rate_p
                 if(a0.lt.-200.0d0) a0 = -200.0d0
                 e0    = 1.0d0-exp(a0)
                 
                 ffc   = cos((pi*p*nn)/dfloat(N)) * cos((pi*p*mm)/dfloat(N))
                 ffc   = ffc / (p**2)
+                ffc   = ffc * wmode                    !####new
     
-                arg2  = arg2  + ffc*e0
+                arg2  = arg2  + ffc*e0  
                 arg20 = arg20 + ffc
     
               enddo   
