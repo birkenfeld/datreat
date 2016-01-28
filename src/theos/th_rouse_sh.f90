@@ -235,8 +235,15 @@ mloop: do mblocks=1,mmax
               do p = 1,N
                 rate_p = 2*W*(1-cos((pi*p)/dfloat(N)))
 !####new               if(1d0/rate_p > taulim) cycle
-                wmode = exp(-1d0/(rate_p*taulim))        !####new          
-
+                wmode = exp(-1d0/(rate_p*taulim))        !####new
+                if(taulim > 0d0) then
+                   wmode = exp(-1d0/(rate_p*taulim))        !####new
+                elseif(taulim < 0d0) then         ! try the Freed Scheme funktioniert nicht
+                   wmode = exp(t/taulim)
+                else
+                   wmode = 1d0         
+                endif   
+                   
                 a0    = -t * rate_p
                 if(a0.lt.-200.0d0) a0 = -200.0d0
                 e0    = 1.0d0-exp(a0)
