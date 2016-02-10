@@ -48,34 +48,48 @@
        nthpar(23) = mtpar 
        dummy = th_moderators(x,par,thenam(23),thparn(:,23),nthpar(23),ini,idum ,idum,idum,idum)
        nthpar(24) = mtpar 
-       dummy = th_odamp(x,par,thenam(24),thparn(:,24),nthpar(24),ini,idum ,idum,idum,idum)
+       dummy = th_nrouse_sh4(x,par,thenam(24),thparn(:,24),nthpar(24),ini,idum ,idum,idum,idum)
        nthpar(25) = mtpar 
-       dummy = th7(x,par,thenam(25),thparn(:,25),nthpar(25),ini,idum ,idum,idum,idum)
+       dummy = th_odamp(x,par,thenam(25),thparn(:,25),nthpar(25),ini,idum ,idum,idum,idum)
        nthpar(26) = mtpar 
-       dummy = th10(x,par,thenam(26),thparn(:,26),nthpar(26),ini,idum ,idum,idum,idum)
+       dummy = th7(x,par,thenam(26),thparn(:,26),nthpar(26),ini,idum ,idum,idum,idum)
        nthpar(27) = mtpar 
-       dummy = riggch(x,par,thenam(27),thparn(:,27),nthpar(27),ini,idum ,idum,idum,idum)
+       dummy = th10(x,par,thenam(27),thparn(:,27),nthpar(27),ini,idum ,idum,idum,idum)
        nthpar(28) = mtpar 
-       dummy = th_roufbead(x,par,thenam(28),thparn(:,28),nthpar(28),ini,idum ,idum,idum,idum)
+       dummy = riggch(x,par,thenam(28),thparn(:,28),nthpar(28),ini,idum ,idum,idum,idum)
        nthpar(29) = mtpar 
-       dummy = rouse(x,par,thenam(29),thparn(:,29),nthpar(29),ini,idum ,idum,idum,idum)
+       dummy = th_roufbead(x,par,thenam(29),thparn(:,29),nthpar(29),ini,idum ,idum,idum,idum)
        nthpar(30) = mtpar 
-       dummy = th_nrouse_sh(x,par,thenam(30),thparn(:,30),nthpar(30),ini,idum ,idum,idum,idum)
+       dummy = rouse(x,par,thenam(30),thparn(:,30),nthpar(30),ini,idum ,idum,idum,idum)
        nthpar(31) = mtpar 
-       dummy = srouse(x,par,thenam(31),thparn(:,31),nthpar(31),ini,idum ,idum,idum,idum)
+       dummy = th_nrouse_sh(x,par,thenam(31),thparn(:,31),nthpar(31),ini,idum ,idum,idum,idum)
        nthpar(32) = mtpar 
-       dummy = rousei(x,par,thenam(32),thparn(:,32),nthpar(32),ini,idum ,idum,idum,idum)
+       dummy = th_nrouse_sh2(x,par,thenam(32),thparn(:,32),nthpar(32),ini,idum ,idum,idum,idum)
        nthpar(33) = mtpar 
-       dummy = sofqq(x,par,thenam(33),thparn(:,33),nthpar(33),ini,idum ,idum,idum,idum)
+       dummy = th_nrouse_sh3(x,par,thenam(33),thparn(:,33),nthpar(33),ini,idum ,idum,idum,idum)
        nthpar(34) = mtpar 
-       dummy = strexpo(x,par,thenam(34),thparn(:,34),nthpar(34),ini,idum ,idum,idum,idum)
+       dummy = srouse(x,par,thenam(34),thparn(:,34),nthpar(34),ini,idum ,idum,idum,idum)
        nthpar(35) = mtpar 
-       dummy = subdiff(x,par,thenam(35),thparn(:,35),nthpar(35),ini,idum ,idum,idum,idum)
+       dummy = rousei(x,par,thenam(35),thparn(:,35),nthpar(35),ini,idum ,idum,idum,idum)
        nthpar(36) = mtpar 
-       dummy = thick_co(x,par,thenam(36),thparn(:,36),nthpar(36),ini,idum ,idum,idum,idum)
+       dummy = sofqq(x,par,thenam(36),thparn(:,36),nthpar(36),ini,idum ,idum,idum,idum)
        nthpar(37) = mtpar 
-       dummy = th_zgbic2(x,par,thenam(37),thparn(:,37),nthpar(37),ini,idum ,idum,idum,idum)
+       dummy = strexpo(x,par,thenam(37),thparn(:,37),nthpar(37),ini,idum ,idum,idum,idum)
        nthpar(38) = mtpar 
-       dummy = zimm(x,par,thenam(38),thparn(:,38),nthpar(38),ini,idum ,idum,idum,idum)
+       dummy = subdiff(x,par,thenam(38),thparn(:,38),nthpar(38),ini,idum ,idum,idum,idum)
+       nthpar(39) = mtpar 
+       dummy = thick_co(x,par,thenam(39),thparn(:,39),nthpar(39),ini,idum ,idum,idum,idum)
+       nthpar(40) = mtpar 
+       dummy = th_zgbic2(x,par,thenam(40),thparn(:,40),nthpar(40),ini,idum ,idum,idum,idum)
+        write(6,*) "Warning to many theories in directory theos"
+        write(6,*) "Warning to many theories in directory theos"
+        write(6,*) "Warning to many theories in directory theos"
+        write(6,*) "Warning to many theories in directory theos"
+        write(6,*) "Warning to many theories in directory theos"
+        write(6,*) "Warning to many theories in directory theos"
+        write(6,*) "ONLY 40 are allowd"                         
+        write(6,*) "ONLY 40 are allowd"                         
+        write(6,*) "ONLY 40 are allowd"                         
+        write(6,*) "ONLY 40 are allowd some were truncated"     
        ntheos=0
 ! ---- initialize theory tables ende----
