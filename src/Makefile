@@ -81,7 +81,9 @@ MODS = PhysicalConstantsPlus.f90 commons_mod.f90 unift.f90
 
 
 datreat: $(OBJS) $(LIBS) $(OBJ_GR)
-	$(FC) -o datreat $(FFLAGS) $(OBJS) $(LIBS) $(LDFLAGS) -L$(GRACE) $(OBJ_GR) -l$(GRACENP)  -L/usr/local/gr/lib $(ADDLIBGR) $(ADDLIBGKS)  -lifcore -limf -lintlc -llapack_gfortran -lblas_gfortran  
+	$(FC) -o datreat $(FFLAGS) $(OBJS) $(LIBS) $(LDFLAGS) -L$(GRACE) $(OBJ_GR) -l$(GRACENP) \
+        -L/usr/local/gr/lib -lgrsoft_gfortran -lGKS -Wl,-rpath,/usr/local/gr/lib -lifcore -limf -lintlc -llapack_gfortran -lblas_gfortran  
+# -L/usr/local/gr/lib -lgrsoft_ifort -lGKS -Wl,-rpath,/usr/local/gr/lib
 	@/bin/mv datreat ../bin
 	@/bin/ln -sf $(LOCAL)/bin/datreat ~/bin
 	@echo "___________________________________________________________________"
