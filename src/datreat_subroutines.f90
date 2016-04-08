@@ -1318,6 +1318,40 @@
       END subroutine parget
 
 
+       subroutine get_full_xvec (iadd,n,xv)
+!      ===================================
+!
+! ---- this routine gets the value of a parameter ----
+!
+       use cdata
+       use outlev  
+       implicit none
+
+       integer, intent(in)   :: iadd
+       integer, intent(inout):: n
+       real,    intent(out)  :: xv(*)
+
+       if( iadd < 1 .or. iadd > nbuf) then
+          write(6,*)'get_full_xvec: iadd = ',iadd,' out of range !'
+          n = 0
+          ierrs = 800
+          return
+       endif     
+       if(nwert(iadd) > n) then
+          write(6,*)'get_full_xvec: too many tau points',n,nwert(iadd)
+          n = 0
+          ierrs = 800
+          return
+       endif
+
+       n = nwert(iadd)
+       
+       if(n <= 0) return
+       xv(1:n) = xwerte(1:n,iadd)
+!
+      END subroutine get_full_xvec
+
+
 
        subroutine par_gaint_scale(svalue, iadd)
 !      ----------------------------------------

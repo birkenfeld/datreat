@@ -1,8 +1,8 @@
 makro
 al
 c sys xterm -title "Enter datreat theory parameters, emacs style" -geometry 100x50 -e "emacs lastth"
-c xterm -e "emacs lastth"
-emacs lastth
+ xterm -e "emacs lastth"
+c emacs lastth
 c
 c =================================================================
 c sys open -a /usr/local/Applications/Aquamacs\ Emacs.app  lastth
