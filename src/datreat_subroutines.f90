@@ -1172,17 +1172,17 @@
         nwert(inbuf) = n
 ! --- compute now...
 
-          do 1003 i=1,n
-             x = xwerte(i,inbuf)
-!
-
-            sum = thval(x)
-
-            xwerte(i,inbuf) = x
-            ywerte(i,inbuf) = sum
-            if(iout.gt.5) write(6,*)'i: ',i,'  ywerte=',sum
-
- 1003    continue
+!!>           do 1003 i=1,n
+!!>              x = xwerte(i,inbuf)
+!!> !
+!!> 
+!!>             sum = thval(x)
+!!> 
+!!>             xwerte(i,inbuf) = x
+!!>             ywerte(i,inbuf) = sum
+!!>             if(iout.gt.5) write(6,*)'i: ',i,'  ywerte=',sum
+!!> 
+!!>  1003    continue
 
 ! --- transfer the scanparameters ---
          call txfpar(iadd,inbuf)
@@ -1197,6 +1197,18 @@
 ! -------------------------
          if(iout.gt.3)write(6,*)'nbuf=',inbuf,'  numor=',numor(inbuf)
          nwert(inbuf) = n
+!!> neu
+         iadda = inbuf  ! hier wird erreicht, dass der neue x-vektor 
+                        ! auch bei z.B th_romanov gefunden wird..
+         do i=1,n
+              x = xwerte(i,inbuf)
+              sum = thval(x) 
+              xwerte(i,inbuf) = x
+              ywerte(i,inbuf) = sum
+              if(iout.gt.5) write(6,*)'i: ',i,'  ywerte=',sum
+         enddo
+!!> <
+         
 ! ----- convolution ------ ( subroutine has to be supplied ! ) ------
          if(convolute) then
            call datconv(inbuf,xwerte(1,inbuf),ywerte(1,inbuf),n,        &
