@@ -50,7 +50,7 @@
 
       double precision       :: eunit=Elektronenladung*1d-6          !! energy scale unit in J
       double precision       :: tunit=1d-9                           !! desired time unit for result in s
-      character*8            :: eunit_name='micro-eV'
+      character*8            :: eunit_name='none    '
       character*8            :: tunit_name='ns      '
        
       real                   :: temp
@@ -59,7 +59,9 @@
       integer                :: ipoint_out
       integer                :: iout
       integer                :: ida1 = 2
-      integer                :: ielastic, nft
+      integer                :: ielastic, nft, nft_result
+
+      double precision       :: resolution_limit = 0.1d0
 !     ------------------------------------------------------------
 
 !---  get the data -->
@@ -73,22 +75,30 @@
         emir  = emaxs
         write(6,*)'E-Range = ',emaxs
 
+        write(6,*)"xname: ", xname(ipoint_da)
+
         if     (index(xname(ipoint_da),'eV')  .gt.0 .and. index(xname(ipoint_da),'mic') .gt. 0  ) then
           eunit=Elektronenladung*1d-6 
           eunit_name='micro-eV'
+          write(6,*)" eunit 1 identified: ", eunit_name
         else if (index(xname(ipoint_da),'eV')  .gt.0 .and. index(xname(ipoint_da),'milli') .gt. 0) then
           eunit=Elektronenladung*1d-3
           eunit_name='meV     '
-        else if (index(xname(ipoint_da),'meV') .gt.0                                             ) then
+          write(6,*)" eunit 2 identified: ", eunit_name
+       else if (index(xname(ipoint_da),'meV') .gt.0) then
+          eunit_name='meV     '
           eunit=Elektronenladung*1d-3
-        else if (index(xname(ipoint_da),'GHz') .gt.0                                             ) then
+          write(6,*)" eunit 3 identified: ", eunit_name
+       else if (index(xname(ipoint_da),'GHz') .gt.0                                             ) then
           !! assuming omega not nue 
           eunit=1d9*Planckkonstante/2/Pi
           eunit_name='GHz     '
-        else if (index(xname(ipoint_da),'omega') .gt.0                                           ) then
+          write(6,*)" eunit 4 identified: ", eunit_name
+       else if (index(xname(ipoint_da),'omega') .gt.0                                           ) then
           !! assuming omega not nue is in GigaRad/s !
           eunit=1d9*Planckkonstante/2/Pi
           eunit_name='GHz     '
+          write(6,*)" eunit 5 identified: ", eunit_name
         else
           Write(6,*)'uni_ft: eunit not reckognizable from xaxis, assuming defaults: '
           write(6,*)'      : ',eunit_name,' ==> ',eunit,' J'
@@ -129,7 +139,7 @@
       write(6,'(a,f7.2,a) ') "#  assumed temperature is T =",temp," K"
       write(6,'(a,e14.7,a)') "#  a negative coeff corresponds to Marshall-Lovesey definition: "
       write(6,'(a,e14.7,a)') "#  positive omega is energy LOSS of the NEUTRON "
-      write(6,'(a)        ') "###### >>>>>>>>>>>> "
+
 
 !     conversion E->omega:               
                                                                         
@@ -170,11 +180,12 @@
        domega   = abs(es1(ielastic)-es1(ielastic-1))
        tmax     = 2*Pi/domega    
        nft      = min( nint(tmax/dt+1)  , mwert) 
-       write(6,'(a,i8)'   )"elastic channel nr. = ",ielastic
-       write(6,'(a,e14.7)')"d_omega             = ",domega
-       write(6,'(a,e14.7)')"tmax                = ",tmax
-       write(6,'(a,e14.7)')"dt                  = ",dt
-       write(6,'(a,i8)'   )"nft                 = ",nft
+       write(6,'(a,i8)'     )"#  elastic channel nr.    = ",ielastic
+       write(6,'(a,e14.7,1x,a)')"#  eunit               = ",eunit, "J"
+       write(6,'(a,e14.7,1x,a)')"#  d_omega             = ",domega, eunit_name
+       write(6,'(a,e14.7,1x,a)')"#  tmax (internal)     = ",tmax, tunit_name
+       write(6,'(a,e14.7,1x,a)')"#  dt                  = ",dt, tunit_name
+       write(6,'(a,i8)'     )"#  nft                    = ",nft
 !!<<
       DO it=1,nft 
         t=(it-1)*dt 
@@ -232,8 +243,8 @@
 
 !!!
 !     Write DECONVOLUTED S(Q,t) DATA to file:                           
-                                                                        
-        DO it=1,nft
+          nft_result = nft                                                              
+rloop: DO it=1,nft
           t=(it-1)*dt
           tv(it) = t 
           sqt(it)=fts(it)/ftr(it) 
@@ -244,11 +255,17 @@
                WRITE(6,*) '       t           S(Q,t)              sqterr '
               endif                                                  
               write(6,'(f12.6,e16.8,e12.4)') tv(it),sqt(it),sqterr(it) 
-            endif                                                                
-        END DO 
+           endif
+
+           if( abs(ftr(it)/ftr(1)) < resolution_limit ) then
+              nft_result = it
+              exit rloop
+           endif   
+           
+        END DO rloop
 
         call DataCopy(ipoint_da,ipoint_out)             !! copy data here only to transfer auxiliary params...
-        call DataPut(ipoint_out,tv,sqt,sqterr,nft)
+        call DataPut(ipoint_out,tv,sqt,sqterr,nft_result)
         numor(ipoint_out)     = numor(ipoint_out) + 300000
         name(ipoint_out)(8:8) = 'S'
         write(coment(ipoint_out),'(a,a)') 'uni_ft S:',coment(ipoint_out)(1:71)    !! check ob das so geht, besser hilfskft.
@@ -257,7 +274,17 @@
 
       endif
 
-      write(6,*)'uni_ft: finished: --> dir  to identify the final and intermediate results '                                                                       
+      write(6,'(a)')'#  uni_ft: finished: --> dir  to identify the final and intermediate results '
+      write(6,'(a,f12.6)')          "#  applied resolution limit          = ", resolution_limit
+      write(6,'(a,i8)')             "#  final result has number of points = " , nft_result
+      write(6,'(a,f12.6,a,f12.6,a)')"#  S(q,t) time range                 = " ,xwerte(2,ipoint_out)," ... ", &
+               xwerte(nft_result,ipoint_out), " "//tunit_name
+      write(6,'(a,i8)')             "#  local address of result is (sel)  =" , ipoint_out
+      write(6,'(a)        ') "#############################################################################"
+
+      nsel     = 1
+      isels(1) = ipoint_out
+      ifits    = 0
 
       end subroutine uni_ft
 
