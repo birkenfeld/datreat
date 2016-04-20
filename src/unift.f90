@@ -46,7 +46,7 @@
       double precision       :: emaxs, emaxr, emir                   !! "energy" range specifiers
       double precision       :: fdbf                                 !! detailed balance exp-argument
 
-      double precision       :: domega, tmax
+      double precision       :: domega, tmax, fn
 
       double precision       :: eunit=Elektronenladung*1d-6          !! energy scale unit in J
       double precision       :: tunit=1d-9                           !! desired time unit for result in s
@@ -156,6 +156,7 @@
       write(coment(ipoint_out),'(a,a)') 'uni_ft M:',coment(ipoint_out)(1:71)    !! check ob das so geht, besser hilfskft.
       xname(ipoint_out) ='1/'//tunit_name(1:6) 
       call parset('tunit   ', sngl(tunit), ipoint_out)   
+      call parset('ft_typ  ', -1.0 , ipoint_out)                                 !! fourier tf(sample):  type = -1 (sym only)
 
 
       if(ipoint_re.gt.0) then
@@ -168,6 +169,7 @@
        write(coment(ipoint_out),'(a,a)') 'uni_ft M:',coment(ipoint_out)(1:71)    !! check ob das so geht, besser hilfskft.
        xname(ipoint_out) ='1/'//tunit_name(1:6) 
        call parset('tunit   ', sngl(tunit), ipoint_out)   
+       call parset('ft_typ  ', -2.0 , ipoint_out)                                !! fourier tf(ref):  type = -2 (sym only)
       endif
 
       ipoint_out=ipoint_out+1
@@ -208,6 +210,7 @@
       write(coment(ipoint_out),'(a,a)') 'uni_ft F:',coment(ipoint_out)(1:71)    !! check ob das so geht, besser hilfskft.
       xname(ipoint_out) = tunit_name 
       call parset('tunit   ', sngl(tunit), ipoint_out)   
+      call parset('ft_typ  ', 1.0 , ipoint_out)                                !! fourier tf(sample):  type = 1 (FT)
 
       
 
@@ -236,13 +239,22 @@
         write(coment(ipoint_out),'(a,a)') 'uni_ft F:',coment(ipoint_out)(1:71)    !! check ob das so geht, besser hilfskft.
         xname(ipoint_out) = tunit_name 
         call parset('tunit   ', sngl(tunit), ipoint_out)   
+        call parset('ft_typ  ', 2.0 , ipoint_out)                                !! fourier tf(res):  type = 2 (FT)
+
 
         ipoint_out = ipoint_out+1
      
 
 
 !!!
-!     Write DECONVOLUTED S(Q,t) DATA to file:                           
+!     Write DECONVOLUTED S(Q,t) DATA to file:  
+! 
+! --> normalize resolution function
+!     means that the scale of the data is preserved 
+          fn   = ftr(1)
+          ftr  = ftr/fn
+          dftr = dftr/fn
+        
           nft_result = nft                                                              
 rloop: DO it=1,nft
           t=(it-1)*dt
@@ -271,6 +283,10 @@ rloop: DO it=1,nft
         write(coment(ipoint_out),'(a,a)') 'uni_ft S:',coment(ipoint_out)(1:71)    !! check ob das so geht, besser hilfskft.
         xname(ipoint_out) = tunit_name 
         call parset('tunit   ', sngl(tunit), ipoint_out)   
+        call parset('ft_typ  ', 3.0 , ipoint_out)                                !! fourier tf(sample) ref.
+        call parset('vananorm', sngl(fn), ipoint_out)
+        call parset('reslimit', sngl(resolution_limit), ipoint_out)
+
 
       endif
 
