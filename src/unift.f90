@@ -121,7 +121,15 @@
 
       fdbf  = eunit/2/Boltzmannkonstante/temp
 ! Marshall Lovesey Convention omega = energy loss of the neutron
-!      fdbf  = -fdbf
+      fdbf  = -fdbf
+
+
+      write(6,'(a)        ') "#####################  uni_ft ###############################################"
+      write(6,'(a,e14.7,a)') "#  will use detailed balance symmetrisation: exp(",fdbf," * omega) "
+      write(6,'(a,f7.2,a) ') "#  assumed temperature is T =",temp," K"
+      write(6,'(a,e14.7,a)') "#  a negative coeff corresponds to Marshall-Lovesey definition: "
+      write(6,'(a,e14.7,a)') "#  positive omega is energy LOSS of the NEUTRON "
+      write(6,'(a)        ') "###### >>>>>>>>>>>> "
 
 !     conversion E->omega:               
                                                                         
