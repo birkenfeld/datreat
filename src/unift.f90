@@ -46,6 +46,8 @@
       double precision       :: emaxs, emaxr, emir                   !! "energy" range specifiers
       double precision       :: fdbf                                 !! detailed balance exp-argument
 
+      double precision       :: domega, tmax
+
       double precision       :: eunit=Elektronenladung*1d-6          !! energy scale unit in J
       double precision       :: tunit=1d-9                           !! desired time unit for result in s
       character*8            :: eunit_name='micro-eV'
@@ -56,6 +58,8 @@
       integer                :: i, it, ier
       integer                :: ipoint_out
       integer                :: iout
+      integer                :: ida1 = 2
+      integer                :: ielastic, nft
 !     ------------------------------------------------------------
 
 !---  get the data -->
@@ -79,6 +83,10 @@
           eunit=Elektronenladung*1d-3
         else if (index(xname(ipoint_da),'GHz') .gt.0                                             ) then
           !! assuming omega not nue 
+          eunit=1d9*Planckkonstante/2/Pi
+          eunit_name='GHz     '
+        else if (index(xname(ipoint_da),'omega') .gt.0                                           ) then
+          !! assuming omega not nue is in GigaRad/s !
           eunit=1d9*Planckkonstante/2/Pi
           eunit_name='GHz     '
         else
@@ -112,6 +120,8 @@
       dt = Planckkonstante/eunit/2/tunit / emaxs       !!! [ h/eunit/2 / tunit] /  ((emaxs+emaxr)*0.5) !! here eunit=meV, tunit=ps        write(6,*)'uni_ft: timestep = ',dt,tunit_name
 
       fdbf  = eunit/2/Boltzmannkonstante/temp
+! Marshall Lovesey Convention omega = energy loss of the neutron
+!      fdbf  = -fdbf
 
 !     conversion E->omega:               
                                                                         
@@ -120,7 +130,7 @@
 
       
       ipoint_out = ipoint_fts
-      call uni_mirror(es,ss,ds,1,ndats,fdbf ,emir, es1,ss1,ds1,ns1, eunit, tunit)
+      call uni_mirror(es,ss,ds,ida1,ndats,fdbf ,emir, es1,ss1,ds1,ns1, eunit, tunit)
       call DataCopy(ipoint_da,ipoint_out)             !! copy data here aonly to transfer auxiliary params...
       call DataPut(ipoint_out,es1,ss1,ds1,ns1)
       numor(ipoint_out)     = numor(ipoint_out) + 100000
@@ -132,7 +142,7 @@
 
       if(ipoint_re.gt.0) then
        ipoint_out=ipoint_out+1
-       call uni_mirror(er,sr,dr,1,ndatr,0.0d0,emir, er1,sr1,dr1,nr1, eunit, tunit)
+       call uni_mirror(er,sr,dr,ida1,ndatr,0.0d0,emir, er1,sr1,dr1,nr1, eunit, tunit)
        call DataCopy(ipoint_re,ipoint_out)             !! copy data here only to transfer auxiliary params..
        call DataPut(ipoint_out,er1,sr1,dr1,nr1)      
        numor(ipoint_out)     = numor(ipoint_out) + 100000
@@ -146,7 +156,19 @@
 
 !!! Fouriertransform of data !!
 
-      DO it=1,mwert 
+!!>> neu:
+!! determine maximum useful time of ft
+       ielastic = max( minloc(abs(es1(1:ns1)),1) ,2 )
+       domega   = abs(es1(ielastic)-es1(ielastic-1))
+       tmax     = 2*Pi/domega    
+       nft      = min( nint(tmax/dt+1)  , mwert) 
+       write(6,'(a,i8)'   )"elastic channel nr. = ",ielastic
+       write(6,'(a,e14.7)')"d_omega             = ",domega
+       write(6,'(a,e14.7)')"tmax                = ",tmax
+       write(6,'(a,e14.7)')"dt                  = ",dt
+       write(6,'(a,i8)'   )"nft                 = ",nft
+!!<<
+      DO it=1,nft 
         t=(it-1)*dt 
         tv(it) = t
         call uni_fourier(es1,ss1,ds1,ns1,t,ft1,ft2,fts(it),dfts(it))
@@ -161,7 +183,7 @@
       END DO 
 
       call DataCopy(ipoint_da,ipoint_out)             !! copy data here only to transfer auxiliary params...
-      call DataPut(ipoint_out,tv,fts,dfts,mwert)
+      call DataPut(ipoint_out,tv,fts,dfts,nft)
       numor(ipoint_out)     = numor(ipoint_out) + 200000
       name(ipoint_out)(8:8) = 'F'
       write(coment(ipoint_out),'(a,a)') 'uni_ft F:',coment(ipoint_out)(1:71)    !! check ob das so geht, besser hilfskft.
@@ -174,7 +196,7 @@
 
        if(ipoint_re.ne.0) then
         ipoint_out = ipoint_out+1
-        DO it=1,mwert 
+        DO it=1,nft 
           t=(it-1)*dt 
           tv(it) = t
           call uni_fourier(er1,sr1,dr1,nr1,t,ft1,ft2,ftr(it),dftr(it))
@@ -189,7 +211,7 @@
         END DO 
   
         call DataCopy(ipoint_re,ipoint_out)             !! copy data here only to transfer auxiliary params...
-        call DataPut(ipoint_out,tv,ftr,dftr,mwert)
+        call DataPut(ipoint_out,tv,ftr,dftr,nft)
         numor(ipoint_out)     = numor(ipoint_out) + 200000
         name(ipoint_out)(8:8) = 'F'
         write(coment(ipoint_out),'(a,a)') 'uni_ft F:',coment(ipoint_out)(1:71)    !! check ob das so geht, besser hilfskft.
@@ -203,7 +225,7 @@
 !!!
 !     Write DECONVOLUTED S(Q,t) DATA to file:                           
                                                                         
-        DO it=1,mwert
+        DO it=1,nft
           t=(it-1)*dt
           tv(it) = t 
           sqt(it)=fts(it)/ftr(it) 
@@ -218,7 +240,7 @@
         END DO 
 
         call DataCopy(ipoint_da,ipoint_out)             !! copy data here only to transfer auxiliary params...
-        call DataPut(ipoint_out,tv,sqt,sqterr,mwert)
+        call DataPut(ipoint_out,tv,sqt,sqterr,nft)
         numor(ipoint_out)     = numor(ipoint_out) + 300000
         name(ipoint_out)(8:8) = 'S'
         write(coment(ipoint_out),'(a,a)') 'uni_ft S:',coment(ipoint_out)(1:71)    !! check ob das so geht, besser hilfskft.
