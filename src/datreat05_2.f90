@@ -155,6 +155,10 @@
        real             :: detector_sensitivity, detsens, lambdaA
 
 
+       double precision :: unift_range_expand     = 1d0
+       double precision :: unift_resolution_limit = 0.1d0
+       
+
          real  :: lambda0, lambda1, delta_lambda, temp,angle_2tht 
          real  :: e0, e1, dE, de0, dee, dbb, omega, om_cm, qrc, qa, q
          real  :: kinetic_factor, channel_factor,channel_width,channel_width0
@@ -945,11 +949,21 @@
          ia1 = nbuf+1
          ia1 = intval('store_at',ia1,inew)
 
+         if(found('resnorm  ') ) then
+            write(6,*)"Option:   resnorm    ==> use resolution for intensity normalisation also"
+         else
+            write(6,*)"NO option: resnorm  specified ==> use resolution for shape deconvolution ONLY"
+         endif
+
+         unift_range_expand     = getval('rexpand ',unift_range_expand,ier)
+         unift_resolution_limit = getval('reslim  ',unift_resolution_limit,ier)
+
+         
          write(6,*)'uni_ft: selected records and store data beginning from recordnr.:',ia1
          if (nsel.eq.1) then 
            isels(2) = 0
          endif
-         call uni_ft(isels(1), isels(2), ia1)
+         call uni_ft(isels(1), isels(2), ia1, found('resnorm  '), unift_range_expand, unift_resolution_limit )
 
          goto 2000
        endif

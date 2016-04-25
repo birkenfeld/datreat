@@ -18,16 +18,18 @@
 
    contains
 
-      SUBROUTINE uni_ft(ipoint_da, ipoint_re, ipoint_fts) 
-!     ---------------------------------------------------
+      SUBROUTINE uni_ft(ipoint_da, ipoint_re, ipoint_fts, resnorm, range_expand, resolution_limit)
+!     --------------------------------------------------------------------------------------------
 
       implicit none
 
       integer                :: ipoint_da             !! Addresse der "Daten" 
       integer                :: ipoint_re             !! Addresse der "Referenz" 
       integer                :: ipoint_fts            !! StartAddresse der Ergebnisse
-
-      
+      logical, intent(in)    :: resnorm               !! if true use reolution also for intensity normalisation
+      double precision, intent(in) :: range_expand    !! reduces the default dt-step    
+      double precision, intent(in) :: resolution_limit !! determines the end of the spectrum (default ..0.1) 
+   
       double precision       :: es(mwert) , ss(mwert) , ds(mwert)    !! Daten Energie, Werte, Fehler
       double precision       :: es1(mwert), ss1(mwert), ds1(mwert)
       double precision       :: er(mwert) , sr(mwert) , dr(mwert)    !! Referenz
@@ -43,7 +45,7 @@
   
       double precision       :: t, ft1, ft2
       double precision       :: dt                                   !! timestep
-      double precision       :: emaxs, emaxr, emir                   !! "energy" range specifiers
+      double precision       :: emaxs, emaxr                         !! "energy" range specifiers
       double precision       :: fdbf                                 !! detailed balance exp-argument
 
       double precision       :: domega, tmax, fn
@@ -61,7 +63,6 @@
       integer                :: ida1 = 2
       integer                :: ielastic, nft, nft_result
 
-      double precision       :: resolution_limit = 0.1d0
 !     ------------------------------------------------------------
 
 !---  get the data -->
@@ -71,8 +72,8 @@
         call DataGet(ipoint_da,es,ss,ds,ndats)
         write(6,*)'uni_ft: got ',ndats,' data points from record:',ipoint_da,' :  ', name(ipoint_da)
 
-        emaxs = es(ndats)
-        emir  = emaxs
+!        emaxs = es(ndats)
+        emaxs = maxval(abs(es(1:ndats)))
         write(6,*)'E-Range = ',emaxs
 
         write(6,*)"xname: ", xname(ipoint_da)
@@ -116,7 +117,7 @@
       if(ipoint_re.gt.0) then
         call DataGet(ipoint_re,er,sr,dr,ndatr)
         write(6,*)'uni_ft: got ',ndatr,' ref  points from record:',ipoint_re,' :  ', name(ipoint_re) 
-        emaxs = er(ndatr)
+        emaxr = maxval(abs(er(1:ndatr)))
         write(6,*)'E-Range = ',emaxr
         if(xname(ipoint_da).ne.xname(ipoint_re)) then
          write(6,*)'uni_ft: e-units of data and refernce are different! No action'
@@ -128,6 +129,7 @@
 !---- optimum time step -->
   
       dt = Planckkonstante/eunit/2/tunit / emaxs       !!! [ h/eunit/2 / tunit] /  ((emaxs+emaxr)*0.5) !! here eunit=meV, tunit=ps        write(6,*)'uni_ft: timestep = ',dt,tunit_name
+      dt = dt / range_expand
 
       fdbf  = eunit/2/Boltzmannkonstante/temp
 ! Marshall Lovesey Convention omega = energy loss of the neutron
@@ -139,6 +141,7 @@
       write(6,'(a,f7.2,a) ') "#  assumed temperature is T =",temp," K"
       write(6,'(a,e14.7,a)') "#  a negative coeff corresponds to Marshall-Lovesey definition: "
       write(6,'(a,e14.7,a)') "#  positive omega is energy LOSS of the NEUTRON "
+      write(6,'(a,e14.7,a)') "#  dt rangeexpand by factor =",range_expand,"  (cmd: uni_tf rexpand <val>) "
 
 
 !     conversion E->omega:               
@@ -148,7 +151,9 @@
 
       
       ipoint_out = ipoint_fts
-      call uni_mirror(es,ss,ds,ida1,ndats,fdbf ,emir, es1,ss1,ds1,ns1, eunit, tunit)
+!      call uni_mirror(es,ss,ds,ida1,ndats,fdbf ,emir, es1,ss1,ds1,ns1, eunit, tunit)
+      call uni_mirror1(es,ss,ds,ndats,fdbf,es1,ss1,ds1,ns1,mwert,eunit,tunit)
+
       call DataCopy(ipoint_da,ipoint_out)             !! copy data here aonly to transfer auxiliary params...
       call DataPut(ipoint_out,es1,ss1,ds1,ns1)
       numor(ipoint_out)     = numor(ipoint_out) + 100000
@@ -161,7 +166,8 @@
 
       if(ipoint_re.gt.0) then
        ipoint_out=ipoint_out+1
-       call uni_mirror(er,sr,dr,ida1,ndatr,0.0d0,emir, er1,sr1,dr1,nr1, eunit, tunit)
+!       call uni_mirror(er,sr,dr,ida1,ndatr,0.0d0,emir, er1,sr1,dr1,nr1, eunit, tunit)
+       call uni_mirror1(er,sr,dr,ndatr,0.d0,er1,sr1,dr1,nr1,mwert,eunit,tunit)
        call DataCopy(ipoint_re,ipoint_out)             !! copy data here only to transfer auxiliary params..
        call DataPut(ipoint_out,er1,sr1,dr1,nr1)      
        numor(ipoint_out)     = numor(ipoint_out) + 100000
@@ -250,10 +256,16 @@
 !     Write DECONVOLUTED S(Q,t) DATA to file:  
 ! 
 ! --> normalize resolution function
-!     means that the scale of the data is preserved 
+!     means that the scale of the data is preserved
+        if(resnorm) then
+         write(6,'(a)')          "#  using resolution for shape AND Intesity normalisation! "
+        else
           fn   = ftr(1)
           ftr  = ftr/fn
           dftr = dftr/fn
+          write(6,'(a)')         "#  using resolution for shape deconvolution ONLY preserve data intensity! "
+       endif
+          
         
           nft_result = nft                                                              
 rloop: DO it=1,nft
@@ -286,6 +298,7 @@ rloop: DO it=1,nft
         call parset('ft_typ  ', 3.0 , ipoint_out)                                !! fourier tf(sample) ref.
         call parset('vananorm', sngl(fn), ipoint_out)
         call parset('reslimit', sngl(resolution_limit), ipoint_out)
+        call parset('rexpand' , sngl(range_expand), ipoint_out)
 
 
       endif
@@ -298,6 +311,25 @@ rloop: DO it=1,nft
       write(6,'(a,i8)')             "#  local address of result is (sel)  =" , ipoint_out
       write(6,'(a)        ') "#############################################################################"
 
+     if( abs(range_expand-1d0) > 1d-6) then
+       write(6,'(a)')"???????????????????????????????????????????????????????????????????????????"
+       write(6,'(a)')"???????????????????????????????????????????????????????????????????????????"
+       write(6,'(a)')"??                                                                       ??"
+       write(6,'(a)')"??   WARNING WARNING WARNING WARNING                                     ??"
+       write(6,'(a)')"??                                                                       ??"
+       write(6,'(a)')"??   range expansion is not equal 1                                      ??"
+       write(6,'(a)')"??                                                                       ??"
+       write(6,'(a)')"??   This most probably leads to wrong an misleading short time          ??"
+       write(6,'(a)')"??   results (especially if the value is larger than 1)                  ??"
+       write(6,'(a)')"??                                                                       ??"
+       write(6,'(a)')"??   note that the short time results now may lack information           ??"
+       write(6,'(a)')"??   which ios just not present in the data range given                  ??"
+       write(6,'(a)')"???????????????????????????????????????????????????????????????????????????"
+       write(6,'(a)')"???????????????????????????????????????????????????????????????????????????"
+     endif
+
+
+
       nsel     = 1
       isels(1) = ipoint_out
       ifits    = 0
@@ -306,87 +338,188 @@ rloop: DO it=1,nft
 
                                                             
                                                                         
-      SUBROUTINE uni_mirror(es,ss,ds,jbeg,jend,fdbf,emir,es1,ss1,ds1,ns1,eunit,tunit)
+      SUBROUTINE uni_mirror1(es,ss,ds,ns,fdbf,es1,ss1,ds1,ns1,ns1dim,eunit,tunit)
                                                                         
 !     This subroutine mirrors the high energy part of the spectrum      
 !     to complement the energy loss side. At the same time it transforms
-!     from S(Q,E) to S(Q,omega).                                        
-                                                                        
+!     from S(Q,E) to S(Q,omega).
+!     NEW version Assume energy scale convention of Marshall-Lovesey
+!     i.e. positive omega <=> energy loss of neutron
+!
+                                                                                     
       implicit none
-                                                                 
-      integer, intent(in)           :: jbeg, jend
-      integer, intent(inout)        :: ns1      
-      double precision, intent(in)  :: es(jend),ss(jend),ds(jend) 
-      double precision, intent(out) :: es1(ns1),ss1(ns1),ds1(ns1) 
-      double precision, intent(in)  :: fdbf, emir, eunit, tunit
 
-      integer                       :: j1, je, jlim
-      double precision              :: ee, dbf
-      double precision              :: ef_conversion
+      double precision, intent(in)   :: es(ns)        ! energy-values of original spectrum
+      double precision, intent(in)   :: ss(ns)        ! intensity-values of original spectrum
+      double precision, intent(in)   :: ds(ns)        ! intensity-error-values of original spectrum
+      integer,          intent(in)   :: ns            ! length of original spectrum
+      double precision, intent(in)   :: fdbf          ! deteailed balance parameter
+      double precision, intent(out)  :: es1(ns1dim)   ! energy-values of symmetrized spectrum
+      double precision, intent(out)  :: ss1(ns1dim)   ! intensity-values of symmetrized spectrum
+      double precision, intent(out)  :: ds1(ns1dim)   ! intensity-error-values of symmetrized spectrum
+      integer,          intent(out)  :: ns1           ! length of symmetrized spectrum
+      integer,          intent(in)   :: ns1dim        ! maximum dimension
+      double precision, intent(in)   :: eunit         ! energy unit (in Joule) of input
+      double precision, intent(in)   :: tunit         ! time unit (in sec) of output
 
+
+      double precision               :: esh(ns1dim), ssh(ns1dim), dsh(ns1dim)  ! aux storage
+
+      double precision               :: ef_conversion, dbf
+      integer                        :: i, n, i1, i2, nh, ielastic
 
       ef_conversion = 2*Pi*eunit/Planckkonstante*tunit
 
+!! first remove zeroes from both ends
+l1:  do i=1,ns
+        if(ss(i) .ne. 0d0) then
+          i1 = i
+          exit  l1
+        endif
+      enddo l1
+l2:   do i= ns,1,-1
+        if(ss(i) .ne. 0d0) then
+          i2 = i
+          exit l2
+        endif
+      enddo l2
 
-                                                                        
-      if (es(jbeg).gt.-emir) then 
-        if (es(jbeg).gt.0.0) then 
-          write(6,'(a,i3)') 'Fatal: No elastic line ' 
-          ns1=0 
-          return 
-        else 
-          write(6,'(a,i3)') 'Warning: Cut elastic line ' 
-        end if 
-      end if 
-                                                                        
-      j1=1 
-                                                                        
-      if (emir.le.0.0) then 
-        jlim=jbeg 
-        goto 120 
-      end if 
-                                                                        
-      do je=jend,jbeg,-1 
-        ee=es(je) 
-        if (ee.le.emir) goto 100 
-        es1(j1)=-ef_conversion*ee             !!! >>> !!! -[2*pi*eunit/h * tunit] *ee 
-        dbf=exp(fdbf*ee)                      !!! detailed balance factor
-        ss1(j1)=dbf*ss(je)/ef_conversion      !!! >>> !!! dbf*ss(je)*[1/(2*pi*eunit/h * tunit)]
-        ds1(j1)=dbf*ds(je)/ef_conversion
-        j1=j1+1
-        if(j1.gt.ns1) then
-          write(6,*)'uni_mirror: dimension of output vector too low (1) !'
-          return
-        endif 
-      end do 
-      stop 
-                                                                        
-  100 do je=jbeg,jend 
-        if (es(je).ge.-emir) goto 110 
-      end do 
-      stop 
-                                                                        
-  110 jlim=je 
-  120 do je=jlim,jend 
-        ee=es(je) 
-        es1(j1)=ef_conversion*ee 
-        dbf=exp(fdbf*ee) 
-        ss1(j1)=dbf*ss(je)/ef_conversion
-        ds1(j1)=dbf*ds(je)/ef_conversion
-        j1=j1+1 
-        if(j1.gt.ns1) then
-          write(6,*)'uni_mirror: dimension of output vector too low (2) !'
-          return
-        endif 
-      end do 
-                                                                        
-      ns1=j1-1 
-                                                                        
-  900 return 
-      END  SUBROUTINE uni_mirror                                         
-                                                                        
+      nh  = i2-i1+1
+!!
+!! check for elastic line inclusion
+      if(es(i1)*es(i2) >= 0d0 .or. nh < 1) then
+         write(6,*)'Mirror: elastic position no contained !'
+         ns1 = 0
+         return
+      endif
+!!
+      esh = es(i1:i2) 
+      ssh = ss(i1:i2)  
+      dsh = ds(i1:i2)
+
+ 
+      ssh(1:nh) = ssh(1:nh) * exp( fdbf * esh(1:nh) ) / ef_conversion
+      dsh(1:nh) = dsh(1:nh) * exp( fdbf * esh(1:nh) ) / ef_conversion
+      esh(1:nh) = esh(1:nh) * ef_conversion
 
 
+      
+      if(abs(esh(1))     >= esh(nh)) then
+!! case 1  fill missing values at the end of the spectrum
+         es1(1:nh) = esh(1:nh)
+         ss1(1:nh) = ssh(1:nh)
+         ds1(1:nh) = dsh(1:nh)
+         ielastic  = minloc(abs(esh(1:nh)),1)
+         i1        = minloc(abs(esh(1:ielastic)+esh(nh)),1)-1
+         n         = nh
+         do i = i1,1,-1
+           n      = min(n+1,ns1dim) 
+           es1(n) = -esh(i)
+           ss1(n) =  ssh(i)
+           ds1(n) =  dsh(i)
+         enddo
+         ns1 = n
+      else if(abs(esh(1)) < esh(nh)) then
+!! case 2  fill missing values at the beginnig of the spectrum
+         ielastic  = minloc(abs(esh(1:nh)),1)
+         i1        = minloc(abs(esh(ielastic:nh)+esh(1)),1)-1+ielastic
+         ns1  = min(nh+nh-i1,ns1dim)
+         do i = 1, nh-i1
+           es1(i) = -esh(i1+i)
+           ss1(i) =  ssh(i1+i)
+           ds1(i) =  dsh(i1+i)
+         enddo
+         es1(nh-i1+1:ns1) = esh(1:nh)
+         ss1(nh-i1+1:ns1) = ssh(1:nh)
+         ds1(nh-i1+1:ns1) = dsh(1:nh)
+
+      endif
+           
+      END  SUBROUTINE uni_mirror1                                         
+                                                                        
+
+!>                                                                        
+!>      SUBROUTINE uni_mirror(es,ss,ds,jbeg,jend,fdbf,emir,es1,ss1,ds1,ns1,eunit,tunit)
+!>                                                                        
+!>!     This subroutine mirrors the high energy part of the spectrum      
+!>!     to complement the energy loss side. At the same time it transforms
+!>!     from S(Q,E) to S(Q,omega).                                        
+!>                                                                        
+!>      implicit none
+!>                                                                 
+!>      integer, intent(in)           :: jbeg, jend
+!>      integer, intent(inout)        :: ns1      
+!>      double precision, intent(in)  :: es(jend),ss(jend),ds(jend) 
+!>      double precision, intent(out) :: es1(ns1),ss1(ns1),ds1(ns1) 
+!>      double precision, intent(in)  :: fdbf, emir, eunit, tunit
+!>
+!>      integer                       :: j1, je, jlim
+!>      double precision              :: ee, dbf
+!>      double precision              :: ef_conversion
+!>
+!>
+!>      ef_conversion = 2*Pi*eunit/Planckkonstante*tunit
+!>
+!>
+!>                                                                        
+!>      if (es(jbeg).gt.-emir) then 
+!>        if (es(jbeg).gt.0.0) then 
+!>          write(6,'(a,i3)') 'Fatal: No elastic line ' 
+!>          ns1=0 
+!>          return 
+!>        else 
+!>          write(6,'(a,i3)') 'Warning: Cut elastic line ' 
+!>        end if 
+!>      end if 
+!>                                                                        
+!>      j1=1 
+!>                                                                        
+!>      if (emir.le.0.0) then 
+!>        jlim=jbeg 
+!>        goto 120 
+!>      end if 
+!>                                                                        
+!>      do je=jend,jbeg,-1 
+!>        ee=es(je) 
+!>        if (ee.le.emir) goto 100 
+!>        es1(j1)=-ef_conversion*ee             !!! >>> !!! -[2*pi*eunit/h * tunit] *ee 
+!>        dbf=exp(fdbf*ee)                      !!! detailed balance factor
+!>        ss1(j1)=dbf*ss(je)/ef_conversion      !!! >>> !!! dbf*ss(je)*[1/(2*pi*eunit/h * tunit)]
+!>        ds1(j1)=dbf*ds(je)/ef_conversion
+!>        j1=j1+1
+!>        if(j1.gt.ns1) then
+!>          write(6,*)'uni_mirror: dimension of output vector too low (1) !'
+!>          return
+!>        endif 
+!>      end do 
+!>      stop 
+!>                                                                        
+!>  100 do je=jbeg,jend 
+!>        if (es(je).ge.-emir) goto 110 
+!>      end do 
+!>      stop 
+!>                                                                        
+!>  110 jlim=je 
+!>  120 do je=jlim,jend 
+!>        ee=es(je) 
+!>        es1(j1)=ef_conversion*ee 
+!>        dbf=exp(fdbf*ee) 
+!>        ss1(j1)=dbf*ss(je)/ef_conversion
+!>        ds1(j1)=dbf*ds(je)/ef_conversion
+!>        j1=j1+1 
+!>        if(j1.gt.ns1) then
+!>          write(6,*)'uni_mirror: dimension of output vector too low (2) !'
+!>          return
+!>        endif 
+!>      end do 
+!>                                                                        
+!>      ns1=j1-1 
+!>                                                                        
+!>  900 return 
+!>      END  SUBROUTINE uni_mirror                                         
+!>                                                                        
+!>
+!>
 
 
                                                                         
