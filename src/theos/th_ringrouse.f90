@@ -8,8 +8,8 @@
       implicit none  
       double precision, parameter :: Pi                  =     3.141592653589793238462643d0    
                                                  
-      CHARACTER(len=8), intent(inout) :: thnam, parnam (20) 
-      real, intent(in)                :: x,  pa (20)
+      CHARACTER(len=8), intent(inout) :: thnam, parnam (*) 
+      real, intent(in)                :: x,  pa (*)
       integer, intent(in)             :: ini, mbuf
       integer, intent(inout)          :: npar
       integer, intent(inout)          :: nopar            ! Anzahl der Parameter data
@@ -24,6 +24,7 @@
       double precision :: sq, sqt
       double precision :: diff, r02, tc, a_cross, nu_subdiff, rr
       double precision :: amod(1000)    ! quick an dirty upper limit for mode modifiers
+      double precision :: pmin, pwidth
       
       REAL             :: qget, tget 
       integer          :: n
@@ -37,7 +38,7 @@
        if(ini.eq.0) then
          thnam = 'ringrous'
  !##!        thnam = 'nrouse_h'
-         nparx = 18
+         nparx = 20
          if(npar.lt.nparx) then
            write(6,1)thnam,nparx,npar
 1          format(' theory: ',a8,' no of parametrs=',i8,' exceeds current max. = ',i8)
@@ -64,6 +65,8 @@
          parnam(16)= 'a7_mod  '   ! mode modifying factor
          parnam(17)= 'a8_mod  '   ! mode modifying factor
          parnam(18)= 'a9_mod  '   ! mode modifying factor
+         parnam(19)= 'pmin    '   ! additional mode spectrum multiplication factor (Fermi) a(p) = 1 /(1+exp(-(p-pmin)/pwidth))
+         parnam(20)= 'pwidth  '   ! additional mode spectrum width factor
 
          th_ringrouse = 0
          return
@@ -83,6 +86,13 @@
        a_cross    = abs(pa(9)) ! 1=>smooth crossover .... 100=>sharp crossover
        amod       = 1d0
        amod(1:9)  = abs(pa(10:18))
+       pmin       = pa(19)
+       pwidth     = abs(pa(20))
+       
+       if(pwidth == 0d0) then
+          pwidth = 10
+          pmin   = -100
+       endif
 
        qget = 0.01
        call        parget('q       ',qget,iadda,ier)
@@ -99,7 +109,7 @@
          sqof0 = .true.
        endif
              
-       call Nrouse_ring(qz,tau,Wl4,N,R,amod,l, Sq,Sqt)
+       call Nrouse_ring(qz,tau,Wl4,N,R,amod,pmin,pwidth,l, Sq,Sqt)
  
        if(sqof0) then
           th_ringrouse =  a0 * Sqt
@@ -124,7 +134,7 @@
 
 
 
-       subroutine Nrouse_ring(q,t,Wl4,Nb,R,amod,l,SqAve,SqtAve)
+       subroutine Nrouse_ring(q,t,Wl4,Nb,R,amod,pmin,pwidth,l,SqAve,SqtAve)
 !      ======================================================
 !
 ! Rouse expression for a ring polymer
@@ -151,6 +161,8 @@
 
        double precision, intent(in)     ::  q,t,Wl4,R
        double precision, intent(in)     ::  amod(1000)
+       double precision, intent(in)     ::  pmin         ! pmin in ring mode counting (i.e p--> p/2)
+       double precision, intent(in)     ::  pwidth 
        double precision, intent(out)    ::  l, SqAve, SqtAve
        integer,          intent(in)     ::  Nb
 
@@ -211,6 +223,7 @@
                 rate_p = 2*W*(1-cos((pi*p)/dfloat(N)))   ! only even modes for ring
                  
                 wmode = amod(p/2)
+                wmode = wmode  / (1d0+exp(-(p/2-pmin)/pwidth))
                    
                 a0    = -t * rate_p
 
