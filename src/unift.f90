@@ -420,9 +420,9 @@ l2:   do i= ns,1,-1
            de       = (esh(i2-1) + esh(i))/(esh(i2-1)-esh(i2))
            sright   = ssh(i2-1)*(1d0-de) + ssh(i2)*de 
            dsright  = sqrt((dsh(i2-1)*(1d0-de))**2 + (dsh(i2)*de)**2)    ! ??
-           tx       = 2*esh(i)*eunit/Boltzmannkonstante / log(sleft/sright)
+           tx       = esh(i)*eunit/Boltzmannkonstante / log(sleft/sright)
 
-           dtx      = 2*abs(esh(i))*eunit/Boltzmannkonstante * &
+           dtx      = abs(esh(i))*eunit/Boltzmannkonstante * &
                       sqrt(((sleft*dsright)**2+(sright*dsleft)**2)/(log(sleft/sright)**4 * sleft**2 *sright**2))
 
            if( abs(tx) < 1000d0 .and. abs(tx) > 1d0 ) then

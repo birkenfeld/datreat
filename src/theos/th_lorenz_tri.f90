@@ -18,11 +18,13 @@
       double precision :: lambda0, lambda1
       double precision :: delta_lambda
       real             :: q, temp, alam, dlam
+      real             :: qw
+      logical          :: sqwswit
 !                                                                       
 ! ----- initialisation -----                                            
       IF (ini.eq.0) then 
          thnam = 'lortri' 
-         nparx = 4 
+         nparx = 5 
          IF (npar.lt.nparx) then 
             WRITE (6, 1) thnam, nparx, npar 
     1 FORMAT     (' theory: ',a8,' no of parametrs=',i8,                &
@@ -35,38 +37,58 @@
          parnam (1) = 'amplit' 
          parnam (2) = 'd'       ! in units derived form q and x units
          parnam (3) = 'fwhm'    ! resolution widthd 
-         parnam (4) = 'offset'  ! omega offset                                                               
+         parnam (4) = 'offset'  ! omega offset
+         parnam (5) = 'sqwswit' ! switch to select sqw instead of TOF
                                                                         
          th_lortri = 0.0 
                                                                         
          RETURN 
-      ENDIF 
+      ENDIF
+
+      D     = pa (2)**2        ! square of diffusion constatnt ! 
+      delta = abs (pa (3) )
+
+
+      if(nint(pa(5)) .eq. 1 ) then
+         sqwswit = .true.
+      else
+         sqwswit = .false.
+      endif
+      
 !                                                                       
-! ---- calculate theory here -----                                      
-      q = 0.0 
-      CALL getpar ('q       ', q,nopar ,params,napar,mbuf, ier)  
-      IF (q.eq.0) write (6, * ) 'ERROR: q not found' 
+! ---- calculate theory here -----
+      !
+      if(sqwswit) then 
+        qw = 0.0 
+        CALL getpar ('q       ', qw,nopar ,params,napar,mbuf, ier)  
+        IF (q.eq.0) write (6, * ) 'ERROR: q not found' 
+        alam = 6d0
+        dlam = alam/1000
+      else  
+        CALL getpar ('angle   ', angle_2tht ,nopar ,params,napar,mbuf, ier)  
+        if(ier.ne.0) then
+          write(6,*)'ERROR: Parameter angle is missing in parameterlist of record!'
+          th_lortri = 0
+          return
+        endif
 
-      CALL getpar ('angle   ', angle_2tht ,nopar ,params,napar,mbuf, ier)  
-      if(ier.ne.0) then
-        write(6,*)'ERROR: Parameter angle is missing in parameterlist of record!'
-        th_lortri = 0
-        return
-      endif
+        CALL getpar ('lambda  ', alam ,nopar ,params,napar,mbuf, ier)
+        if(ier.ne.0) then
+          write(6,*)'ERROR: Parameter lambda is missing in parameterlist of record!'
+          th_lortri = 0
+          return
+        endif
 
-      CALL getpar ('lambda  ', alam ,nopar ,params,napar,mbuf, ier)
-      if(ier.ne.0) then
-        write(6,*)'ERROR: Parameter lambda is missing in parameterlist of record!'
-        th_lortri = 0
-        return
-      endif
+        CALL getpar ('dlambda ', dlam ,nopar ,params,napar,mbuf, ier)
+        if(ier.ne.0) then
+          write(6,*)'ERROR: Parameter dlambda (channel dist) is missing in parameterlist of record!'
+          th_lortri = 0
+          return
+        endif
 
-      CALL getpar ('dlambda ', dlam ,nopar ,params,napar,mbuf, ier)
-      if(ier.ne.0) then
-        write(6,*)'ERROR: Parameter dlambda (channel dist) is missing in parameterlist of record!'
-        th_lortri = 0
-        return
-      endif
+      endif   
+
+
 
       CALL getpar ('temp    ', temp ,nopar ,params,napar,mbuf, ier)
       if(ier.ne.0) then
@@ -77,6 +99,8 @@
 !
 ! and assume x is lambda
 !
+
+     if( .not. sqwswit) then
       alam = alam - pa(4)
 
       lambda0        = x    * 1d-10                      ! das ist lambda_final
@@ -92,14 +116,17 @@
 !      omega = x - pa(4)
 
       omega = dE*2*Pi/Planckkonstante / 1d9
-
-
-
-
-      D     = pa (2)**2        ! square of diffusion constatnt ! 
-      delta = abs (pa (3) )
-
       q = ((2*Pi/alam)**2+(2*Pi/x)**2 - 2*COS(angle_2tht*Pi/180d0)*(2*Pi/alam)*(2*Pi/x))  ! q-squared !!
+    else
+      omega = x - pa(4)
+      dE    = omega * 1d9 * Planckkonstante / (2*Pi)
+      q     = qw**2
+    endif
+
+
+
+
+
 
 ! convolution of a lorenzian (simple diffusion, Gamma proto D*q**2) 
 ! with a simple triangular resolution function with fwhm = delta
@@ -112,6 +139,7 @@
                     /0.3141592653589793D1/delta**2/2d0 &
                  * pa(1)
 
+    if(.not.sqwswit) then
 !          
 !    Detailed balance factor, kinematic factor and channelwidth  if available
 !          
@@ -136,6 +164,10 @@
 !     envetually missing: detector efficiency correction
 !     maybe we do it elsewhere
 !
+     else
+       dbf     = exp(0.5d0*dE/(temp*Boltzmannkonstante))
+       th_lortri = th_lortri*dbf
+     endif
 
 
 !      write(6,'(11e14.7)')x,temp,dbf, abs(dee/de0), lambda1, delta_lambda, e0, e1, de, de0, dee
