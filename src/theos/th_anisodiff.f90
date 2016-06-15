@@ -15,16 +15,19 @@
 
       double precision, parameter    :: Pi = 4*atan(1d0)
       double precision :: q, tau, diffusion, lz       ! will be valid in the scope of sqt_ker and used there, keep the names!
-      double precision :: adapint, erracc, eps = 1d-8
-      integer          :: maxit = 1000
+      double precision :: adapint, erracc, eps = 1d-12
+      integer          :: maxit = 10000
       integer          :: mode
 
+      double precision :: wtextur = 1d0
+      double precision :: theta0  = 0d0
+      double precision :: wnorm
 
 !                                                                       
 ! ----- initialisation -----                                            
       IF (ini.eq.0) then 
          thnam = 'anisodi' 
-         nparx = 6
+         nparx = 8
          IF (npar.lt.nparx) then 
             WRITE (6, 1) thnam, nparx, npar 
     1 FORMAT     (' theory: ',a8,' no of parametrs=',i8,                &
@@ -40,6 +43,8 @@
          parnam (4) = 'qval'    ! q (if in data params will be from there)
          parnam (5) = 'tau'     ! tau (if in data params will be taken from there)
          parnam (6) = 'mode'    ! mode 0 x=tau, mode 1 x= q, mode 2 x = q*q*tau ==> PFG NMR data 
+         parnam (7) = 'theta0'  ! textur center default 0
+         parnam (8) = 'wtextur' ! textur weite
                                                                         
                                                                         
          th_anisodiff = 0.0 
@@ -60,6 +65,9 @@
       diffusion   = abs(pa(2))
       lz          = abs(pa(3))
       mode        = nint(pa(6))
+
+      theta0      = abs(pa(7))
+      wtextur     = abs(pa(8))
      
       select case(mode)
       case (0)       ! x axis is assumed to be time (std sqt), q from params or fit params
@@ -71,6 +79,10 @@
       case (2)       ! pfg scale x=q*q*tau
          q = sqrt(x / tau)
          th_anisodiff = pa(1) * 0.5d0 * adapint(sqt_ker,0d0, Pi, eps, maxit, erracc) 
+      case (3)       ! pfg scale x=q*q*tau mit textur
+         q = sqrt(x / tau)
+         wnorm        = adapint(w_textur_ker,0d0, Pi, eps, maxit, erracc)
+         th_anisodiff = pa(1) * adapint(sqt_textur_ker,0d0, Pi, eps, maxit, erracc) / wnorm
       case default
         write(6,*)"anisodiff mode: ",mode, " not supported"
         th_anisodiff = 0
@@ -162,6 +174,31 @@ double precision function sqt_ker(theta)
 
 
 end function sqt_ker
+
+double precision function w_textur(theta)
+   implicit none 
+   double precision, intent(in) ::  theta
+
+   w_textur = exp(-(((theta-theta0)/(wtextur))**2)/2d0)
+
+end function w_textur
+
+double precision function w_textur_ker(theta)
+   implicit none 
+   double precision, intent(in) ::  theta
+
+   w_textur_ker = w_textur(theta) * sin(theta)
+
+end function w_textur_ker
+
+
+double precision function sqt_textur_ker(theta)
+   implicit none 
+   double precision, intent(in) ::  theta
+   
+   sqt_textur_ker = w_textur(theta) * sqt(diffusion, q * cos(theta), lz, tau) * sin(theta)
+
+end function sqt_textur_ker
 
 
 
