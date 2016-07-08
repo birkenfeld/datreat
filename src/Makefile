@@ -1,3 +1,4 @@
+
 .SUFFIXES:
 .SUFFIXES: .f90 .f .o .F90
 SHELL = /bin/sh
@@ -14,13 +15,15 @@ ifneq "$(wildcard /usr/local/lib/libgr.*)" ""
       ADDLIBGR=-lgr
 	  OBJ_GR=datreat_plot2gr.o
 else ifneq "$(wildcard /usr/local/gr/lib/libgr*.*)" ""
-      ADDLIBGR=-lgrsoft_gfortran
+      ADDLIBGR=-lgrsoft_ifort
 	  OBJ_GR=datreat_plot2gr.o	  
 else
       ADDLIBGR=
 	  OBJ_GR=datreat_plot2gr_dummy.o
 endif
-
+#
+# 
+#
 #  path to XmGrace (to libgrace_np.a)  and takes the first found 
 #  standard path is  /usr/local/grace/lib  or in ubuntu /usr/lib/)
 #  ---- add your path at the end if dirs here
@@ -51,13 +54,13 @@ endif
 
 SRCSTHEO=  $(wildcard theos/*.f) $(wildcard theos/*.f90) $(wildcard theos/*.i90)
 
-FC=gfortran
-FFLAGS=-march=core2 -O2 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -msse4a -mfpmath=sse -Wunused-function -Wunused-variable
-#FC=ifort
-#FFLAGS=-march=core2 -O2  -save -fPIC  -mfpmath=sse -I$LOCAL -heap_arrays 100 
+#FC=gfortran
+#FFLAGS=-march=core2 -O2 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -msse4a -mfpmath=sse -I$LOCAL -Wunused-function -Wunused-variable
+FC=ifort
+FFLAGS=-march=core2 -O2  -save -fPIC  -mfpmath=sse -I$LOCAL -heap_arrays 100 
 
 #-fbounds-check
-LDFLAGS = -DPATH_TO_LOCAL_DATREAT=\"$(LOCAL)\" -Wl,-rpath,/usr/local/gr/lib
+LDFLAGS = -DPATH_TO_LOCAL_DATREAT=\"$(LOCAL)\"
 
 
 OBJS = datreat05_2.o dataconvolution4.o dtpur.o util_get_y_value.o \
@@ -81,9 +84,7 @@ MODS = PhysicalConstantsPlus.f90 commons_mod.f90 unift.f90
 
 
 datreat: $(OBJS) $(LIBS) $(OBJ_GR)
-	$(FC) -o datreat $(FFLAGS) $(OBJS) $(LIBS) $(LDFLAGS) -L$(GRACE) $(OBJ_GR) -l$(GRACENP) \
-        -L/usr/local/gr/lib -lgrsoft_gfortran -lGKS -Wl,-rpath,/usr/local/gr/lib -lifcore -limf -lintlc -llapack_gfortran -lblas_gfortran  
-# -L/usr/local/gr/lib -lgrsoft_ifort -lGKS -Wl,-rpath,/usr/local/gr/lib
+	$(FC) -o datreat $(FFLAGS) $(OBJS) $(LIBS) $(LDFLAGS) -L$(GRACE) $(OBJ_GR) -l$(GRACENP)  -L/usr/local/gr/lib $(ADDLIBGR) $(ADDLIBGKS) -Wl,-rpath,/usr/local/intel/lib/intel64 -lifcore -limf -lintlc -llapack_ifort -lblas_ifort  
 	@/bin/mv datreat ../bin
 	@/bin/ln -sf $(LOCAL)/bin/datreat ~/bin
 	@echo "___________________________________________________________________"
