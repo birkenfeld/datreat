@@ -125,9 +125,6 @@ theos/libtheos.a:$(SRCSTHEO)
 
 #	make -C theos FC=$(FC) FFLAGS="$(FFLAGS)"
 
-
-	
-
 clean:
 	make -C lib/dtpurcollection clean
 	make -C lib/fftpack5 clean
@@ -137,6 +134,10 @@ clean:
 	rm -f *.o
 	rm -f *.mod
 	rm -f unused_theos/*.o
+	
+
+	gfortran -o extract_th extract_th.f90
+	mv extract_th ../bin
 	
 
 

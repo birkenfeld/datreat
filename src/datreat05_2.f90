@@ -2936,6 +2936,7 @@ drer1:    do ik=1,n
            do i=1,nwert(ia)
                xxxx = xwerte(i,ia)
                yyyy = ywerte(i,ia)
+               yyee = yerror(i,ia)
                call evaluate(yformel,val8y,iery)
                yerror(i,ia) = val8y
            enddo
@@ -3817,7 +3818,17 @@ exclude:   if(found('exclude  ')) then
 !
        if (comand.eq.'numorpls') then
 !                    -----------> change offset between files
-         numpls = rpar(1) + 0.001
+         numpls = Nint(rpar(1)) 
+         goto 2000
+       endif
+
+       if (comand.eq.'numorchg') then
+!                    -----------> change numor
+         if(nsel > 0) then
+           write(6,*)"chnage numor of record:",isels(1)," from ",numor(isels(1))," to ", Nint(rpar(1)) 
+           numor(isels(1)) = Nint(rpar(1))
+         endif
+ 
          goto 2000
        endif
 !

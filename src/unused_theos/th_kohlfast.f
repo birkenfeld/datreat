@@ -129,7 +129,7 @@ c ---- calculate theory here -----
        xwidth       = abs(pa(13))
 
        eisf2        = pa(14)
-       taufast      = pa(15)
+       taufast      = abs(pa(15))
        betafast     = pa(16)
 
 
@@ -138,7 +138,7 @@ c ---- calculate theory here -----
 
      
        if(epsilon.eq.0.0d0) epsilon = 1.0d-7
-       maxit = 1000
+       maxit = 10000
 
         qget = 0.0
         call        parget('q       ',qget,iadda,ier)
@@ -372,7 +372,7 @@ c
        external rlnor_kernel
 
 
-       maxit   =  500
+       maxit   =  5000
        epsilon =  1d-5
 
 

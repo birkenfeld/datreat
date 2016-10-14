@@ -152,47 +152,47 @@ c mz
 
 c mz
         
-c        do i=1,m
-
-cC Loese Gleichung alphap*tan(alphap)-mue=0 mit Newton'schen Naeherungsverfahren
-cC setze Startwert fuer alphap nahe (i-0.5)*pi
-c          alphap=(i-0.5d0)*pi-0.1d-3
-
-c          do j=1,150
-          
-c          diffe=alphap*dtan(alphap)-mue
-
-
-c          if(abs(diffe).lt.0.1d-1) goto 122
-
-c          alphap=alphap-(alphap*dtan(alphap)-mue)/
-c     _       (dtan(alphap)+alphap*(1.d0+(dtan(alphap))**2))
-         
-c          enddo
-
-c 122    CONTINUE
-c        alp=alphap
-
-c         arg1=-td*4.d0*alp**2/pi**2
-c         if(arg1.lt.-300.d0) arg1=-300.d0
-c         if(arg1.gt.300.d0) arg1=300.d0
-
-c         sum = sum + 1.d0/(alp**2*(mue**2+alp**2+mue))*
-c     _               (dsin(alp))**2*
-c     _               dexp(arg1)
-
-
-c         sumt0 = sumt0 + 1.d0/(alp**2*(mue**2+alp**2+mue))*
-c     _                   (dsin(alp))**2
-
-
-c        enddo
-
-
-C       sum = sum/sumt0 *eqd
-
-c       sum = sum/sumt0
-
+!        do i=1,m
+!
+!C Loese Gleichung alphap*tan(alphap)-mue=0 mit Newton'schen Naeherungsverfahren
+!C setze Startwert fuer alphap nahe (i-0.5)*pi
+!          alphap=(i-0.5d0)*pi-0.1d-3
+!
+!          do j=1,150
+!         
+!          diffe=alphap*dtan(alphap)-mue
+!
+!
+!          if(abs(diffe).lt.0.1d-1) goto 122
+!
+!          alphap=alphap-(alphap*dtan(alphap)-mue)/
+!     _       (dtan(alphap)+alphap*(1.d0+(dtan(alphap))**2))
+!        
+!          enddo
+!
+! 122    CONTINUE
+!        alp=alphap
+!
+!         arg1=-td*4.d0*alp**2/pi**2
+!         if(arg1.lt.-300.d0) arg1=-300.d0
+!         if(arg1.gt.300.d0) arg1=300.d0
+!
+!         sum = sum + 1.d0/(alp**2*(mue**2+alp**2+mue))*
+!     _               (dsin(alp))**2*
+!     _               dexp(arg1)
+!
+!
+!         sumt0 = sumt0 + 1.d0/(alp**2*(mue**2+alp**2+mue))*
+!     _                   (dsin(alp))**2
+!
+!
+!        enddo
+!
+!
+!       sum = sum/sumt0 *eqd
+!
+!       sum = sum/sumt0
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  
 C alternative Berechnung des Roehrenformfaktors   
 C       argd=q**2*n*13.05/6.d0
@@ -211,7 +211,7 @@ C       eqd=dexp(-(n*d**2/3.d0/13.05/deb))
 
 
 c mz
-       likhtman = (1.d0-eqd)*tx + eqd*sumlik
+       likhtman = (1.d0-eqd)*tx + eqd*sumlik 
 c mz
 
        return

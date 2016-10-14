@@ -2845,6 +2845,7 @@ text
            do i=1,nwert(ia)
                xxxx = xwerte(i,ia)
                yyyy = ywerte(i,ia)
+               yyee = yerror(i,ia)
                call evaluate(yformel,val8y,iery)
                yerror(i,ia) = val8y
            enddo
