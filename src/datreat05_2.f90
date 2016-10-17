@@ -31,6 +31,7 @@
       use dimensions
       use cincom
       use cincoc
+      use cmargs
       use xoutxx
       use cdata
       use outlev
@@ -181,25 +182,25 @@
                         !! Clears Signals
        call sig_Reset()
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-			write(6,*)
-			write(6,*)'======================================================='
-			write(6,*)'=   datreat12_2     Version: mm-develop 2.0           ='
-			write(6,*)'=   -----------     --------                          ='
-			write(6,*)'=   Author: M.Monkenbusch  R. Biehl, O.Holderer, JCNS ='
-			write(6,*)'======================================================='
+                        write(6,*)
+                        write(6,*)'======================================================='
+                        write(6,*)'=   datreat12_2     Version: mm-develop 2.0           ='
+                        write(6,*)'=   -----------     --------                          ='
+                        write(6,*)'=   Author: M.Monkenbusch  R. Biehl, O.Holderer, JCNS ='
+                        write(6,*)'======================================================='
                         write(6,*)
                         write(6,*)
                         write(6,*)
-			write(6,*)'=================================================================='
-			write(6,*)'=  NEW NEW NEW NEW NEW                                           ='
-			write(6,*)'=  sel : advanced functions, type "sel help" to learn more       ='
-			write(6,*)'=  average : combine data,   type "average help"                 ='
-			write(6,*)'=  copy : copy selected, if x1 <x1> x2 <x2> are given            ='
-			write(6,*)'=         copy only that range                                   ='
-			write(6,*)'=  sequence: replace x-values by sequence nubers 1..n            ='
-			write(6,*)'=  swapxy:   exchange x and y values, discard errors             ='
-			write(6,*)'=================================================================='
-			write(6,*)' Pi = ',pi
+                        write(6,*)'=================================================================='
+                        write(6,*)'=  NEW NEW NEW NEW NEW                                           ='
+                        write(6,*)'=  sel : advanced functions, type "sel help" to learn more       ='
+                        write(6,*)'=  average : combine data,   type "average help"                 ='
+                        write(6,*)'=  copy : copy selected, if x1 <x1> x2 <x2> are given            ='
+                        write(6,*)'=         copy only that range                                   ='
+                        write(6,*)'=  sequence: replace x-values by sequence nubers 1..n            ='
+                        write(6,*)'=  swapxy:   exchange x and y values, discard errors             ='
+                        write(6,*)'=================================================================='
+                        write(6,*)' Pi = ',pi
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
 !       pi   = 4 * atan(1.0)
@@ -982,7 +983,7 @@
           if(vname(i).eq.'nonorm  ') withmo = .false.
           if(vname(i).eq.'div     ') idimux = 1
           if(vname(i).eq.'mult    ') idimux = 2
-          if(vname(i).eq.'to      ') newnum = rpar(j) * 1.0000001
+          if(vname(i).eq.'to      ') newnum = Nint(rpar(j))
           if(vname(i).eq.'sc      ') then
             num1 = rpar(j) * 1.0000001
             num2 = rpar(j+1)*1.0000001
@@ -992,7 +993,7 @@
           if(vname(i).eq.'factor2 '.or.vname(i).eq.'f2      ')          &
      &                                                 facto2 = rpar(j)
  4711    continue
-! --- figuer out the adresses ---
+! --- figure out the adresses ---
          if(nsel.eq.2) then
            iad1 = isels(1)
            iad2 = isels(2)
@@ -1000,10 +1001,11 @@
            iad1 = 0
            iad2 = 0
          endif
-         do 4713 i=1,nbuf
+da1:     do i=1,nbuf
+          if(numor(i) == 0 ) cycle da1
           if(numor(i).eq.num1) iad1 = i
           if(numor(i).eq.num2) iad2 = i
- 4713    continue
+         enddo  da1
          if(iad1.eq.0) then
            write(6,*)'file :',num1,' not found'
            goto 2000
@@ -1174,10 +1176,11 @@
            iad1 = 0
            iad2 = 0
          endif
-         do i=1,nbuf
+da12:    do i=1,nbuf
+          if(numor(i) == 0 ) cycle da12
           if(numor(i).eq.num1) iad1 = i
           if(numor(i).eq.num2) iad2 = i
-         enddo
+         enddo da12
          if(iad1.eq.0) then
            write(6,*)'file :',num1,' not found'
            goto 2000
@@ -1321,7 +1324,7 @@
          nwert(iad1) = nwert(iad1)+1
          xwerte( nwert(iad1), iad1 ) = rpar(1)
          ywerte( nwert(iad1), iad1 ) = rpar(2)
-         yerror( nwert(iad1), iad1 ) = rpar(2)
+         yerror( nwert(iad1), iad1 ) = rpar(3)
 
          goto 2000
        endif
@@ -3268,10 +3271,10 @@ exclude:   if(found('exclude  ')) then
                 isels(m) = l
                 ifits(m) = 0
                 m = m + 1
-					enddo
+                                        enddo
                m = m - 1
              endif
- 				enddo
+                                enddo
             nsel = m
          endif
 
@@ -3468,13 +3471,14 @@ exclude:   if(found('exclude  ')) then
 ! ----------> write data onto buffer <---------------------------------
          call savdat('datbuf  ',ispc)
 ! ----------> enter the system editor with that file <-----------------
-         call system('emacs datbuf')
+!         call system('emacs datbuf')
+         call system('open -eW datbuf')
 ! --- reread it to the same place ---
          nbuff = nbuf
          nbuf = ispc - 1
          inames = 3
          ipars = 0
-         vname(1) = 'datbuf  '
+         argvals(1) = 'datbuf  '
          call input
          nbuf = nbuff
          goto 2000
@@ -3489,9 +3493,9 @@ exclude:   if(found('exclude  ')) then
          if(ispc.eq.0) ispc = isels(1)
          do i=1,inames
            if(trim(vname(i)).eq.'to'.and.i.lt.inames) then
-					 		fsname = vname(i+1)
-							exit
-					 endif
+              fsname = vname(i+1)
+              exit
+           endif
          enddo
          do j=1,inames
          if(vname(1).eq.'sc      '.or.vname(j).eq.'numor   ') then
@@ -3514,7 +3518,7 @@ exclude:   if(found('exclude  ')) then
              ispc = i
              goto 4598
             endif
- 			  enddo
+           enddo
           write(6,*)'data with name ',vname(2),' not found!'
           ierrs = 201
           goto 2000
@@ -3533,7 +3537,7 @@ exclude:   if(found('exclude  ')) then
        if(comand.eq.'msave   ') then
 !                    -----
          fsname = 'lastsave'
-         if(inames.gt.0)   fsname =vname(1)
+         if(inames.gt.0)   fsname = argvals(1)
          call msavdat(fsname)
          goto 2000
        endif
@@ -3570,7 +3574,7 @@ exclude:   if(found('exclude  ')) then
        endif
 !
         if(comand.eq.'th_init  ') then
-				write(*,*) 'not yet implemented, sorry will coming soon'
+                                write(*,*) 'not yet implemented, sorry will coming soon'
         !call init_theories(thenam,thparn,nthpar,thrapar,thramin,thramax,mth,mtpar)
          goto 2000
        endif
@@ -3673,27 +3677,27 @@ exclude:   if(found('exclude  ')) then
 !
        if(comand.eq.'theos   ') then
 !                    -----> list available theories
-			write(6,*)' ***** theories available *****'
-			ileng=len_trim(vname(1))
-			if (ileng.gt.0) then
-				do i=1,mth
-					if (thenam(i)(:ileng).eq.vname(1)(:ileng)) then
-						write(6,*)'______________________________________'
-						write(6,'(i3,": ",a8,i3)') i,thenam(i),nthpar(i)
-						write(6,*)(trim(thparn(j,i))//' ',j=1,mtpar)
-					endif
-				enddo
-			else
-				do i=1,mth
-					if (thenam(i).ne.' ') then  !   kein name!!!
-						write(6,*)'-------------------------------------'
-						write(6,'(i3,": ",a8,i3)') i,thenam(i),nthpar(i)
-						write(6,*)(trim(thparn(j,i))//' ',j=1,mtpar)
-					endif
-				enddo
-			endif
+                        write(6,*)' ***** theories available *****'
+                        ileng=len_trim(vname(1))
+                        if (ileng.gt.0) then
+                                do i=1,mth
+                                        if (thenam(i)(:ileng).eq.vname(1)(:ileng)) then
+                                                write(6,*)'______________________________________'
+                                                write(6,'(i3,": ",a8,i3)') i,thenam(i),nthpar(i)
+                                                write(6,*)(trim(thparn(j,i))//' ',j=1,mtpar)
+                                        endif
+                                enddo
+                        else
+                                do i=1,mth
+                                        if (thenam(i).ne.' ') then  !   kein name!!!
+                                                write(6,*)'-------------------------------------'
+                                                write(6,'(i3,": ",a8,i3)') i,thenam(i),nthpar(i)
+                                                write(6,*)(trim(thparn(j,i))//' ',j=1,mtpar)
+                                        endif
+                                enddo
+                        endif
 
-			goto 2000
+                        goto 2000
       endif
 !
        if(comand.eq.'activate'.or.comand.eq.'ac      ') then
@@ -3785,6 +3789,28 @@ exclude:   if(found('exclude  ')) then
          goto 2000
        endif
 !
+
+       if(comand.eq.'get_th'.or.comand.eq.'gth      ') then
+!                    -----> get theory appended to an file created by msave and copy it to lassth
+!                           and load it
+         if(inames == 1) then
+!           i = LEN_TRIM(argvals(1))
+!           write(6,*)"argvals: ",argvals(1)(1:i)
+!           call extract_th(argvals(1)(1:i)//" ")
+           call extract_th(argvals(1))
+           if(ierrr==0) then 
+             call activa(3)
+             call activa(2)
+           endif
+         else
+           call errsig(999,"need exactly one filename as argument!")
+         endif
+         goto 2000
+       endif
+!
+
+
+
        if(comand.eq.'gplot    '.or.comand.eq.'gp      ') then
 !                    -----> plot selected curves
          call gplot()
@@ -4140,9 +4166,16 @@ exclude:   if(found('exclude  ')) then
         endif
 !
 
-
-
-
+!============================================== Checkings =================
+       if(comand.eq.'argvals  ') then
+         write(6,*)' inmames   = ', inames
+         write(6,*)' argvals(1)= ', argvals(1)(1:60), ' ... '
+         write(6,*)' argvals(2)= ', argvals(2)(1:60), ' ... '
+         write(6,*)' argvals(3)= ', argvals(3)(1:60), ' ... '
+         write(6,*)' argvals(4)= ', argvals(4)(1:60), ' ... '
+         write(6,*)' argvals(5)= ', argvals(5)(1:60), ' ... '
+         goto 2000
+       endif
 
 
 
