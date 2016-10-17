@@ -12,7 +12,8 @@ else
       ADDLIBGKS=
 endif
 ifneq "$(wildcard /usr/local/lib/libgr.*)" ""
-      ADDLIBGR=-lgr
+##      ADDLIBGR=-lgr
+      ADDLIBGR=-lgrsoft_ifort
 	  OBJ_GR=datreat_plot2gr.o
 else ifneq "$(wildcard /usr/local/gr/lib/libgr*.*)" ""
       ADDLIBGR=-lgrsoft_ifort

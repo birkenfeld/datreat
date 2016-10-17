@@ -1,4 +1,4 @@
-      FUNCTION th_ringrouse (x, pa, thnam, parnam, npar, ini, nopar ,params,napar,mbuf) 
+      FUNCTION th_ringrouse2 (x, pa, thnam, parnam, npar, ini, nopar ,params,napar,mbuf) 
 !     ================================================================================               
 !                                                                       
 ! -------> nrouse_sh4 <--------
@@ -15,16 +15,15 @@
       integer, intent(inout)          :: nopar            ! Anzahl der Parameter data
       character*80, intent(inout)     :: napar(mbuf)      ! name des parameters n
       real, intent(inout)             :: params(mbuf)     ! value des parameters n
-      real                            :: th_ringrouse
+      real                            :: th_ringrouse2
 
       integer          :: ier, nparx
 
       double precision :: temp, tau, q, wl4, l 
       double precision :: a0 , qz, R, dr
       double precision :: sq, sqt
-      double precision :: diff, r02, tc, a_cross, nu_subdiff, rr
-      double precision :: amod(1000)    ! quick an dirty upper limit for mode modifiers
-      double precision :: pmin, pwidth
+      double precision :: diff, r02, tc, a_cross, nu_subdiff, rr, t_cross, nu
+      double precision :: amod(1000), bmod(1000)    ! quick an dirty upper limit for mode modifiers
       
       REAL             :: qget, tget 
       integer          :: n
@@ -36,13 +35,13 @@
  
  ! ----- initialisation -----
        if(ini.eq.0) then
-         thnam = 'ringrous'
+         thnam = 'ringrou2'
  !##!        thnam = 'nrouse_h'
-         nparx = 20
+         nparx = 29
          if(npar.lt.nparx) then
            write(6,1)thnam,nparx,npar
 1          format(' theory: ',a8,' no of parametrs=',i8,' exceeds current max. = ',i8)
-           th_ringrouse = 0
+           th_ringrouse2 = 0
            return
          endif
          npar = nparx
@@ -65,10 +64,19 @@
          parnam(16)= 'a7_mod  '   ! mode modifying factor
          parnam(17)= 'a8_mod  '   ! mode modifying factor
          parnam(18)= 'a9_mod  '   ! mode modifying factor
-         parnam(19)= 'pmin    '   ! additional mode spectrum multiplication factor (Fermi) a(p) = 1 /(1+exp(-(p-pmin)/pwidth))
-         parnam(20)= 'pwidth  '   ! additional mode spectrum width factor
+         parnam(19)= 't_cross '   ! crossover time in p**4 term
+         parnam(20)= 'b1_mod  '   ! mode modifying factor p**4 term
+         parnam(21)= 'b2_mod  '   ! mode modifying factor p**4 term
+         parnam(22)= 'b3_mod  '   ! mode modifying factor p**4 term
+         parnam(23)= 'b4_mod  '   ! mode modifying factor p**4 term
+         parnam(24)= 'b5_mod  '   ! mode modifying factor p**4 term
+         parnam(25)= 'b6_mod  '   ! mode modifying factor p**4 term
+         parnam(26)= 'b7_mod  '   ! mode modifying factor p**4 term
+         parnam(27)= 'b8_mod  '   ! mode modifying factor p**4 term
+         parnam(28)= 'b9_mod  '   ! mode modifying factor p**4 term
+         parnam(29)= 'nu      '   ! mode modifying factor p**4 term
 
-         th_ringrouse = 0
+         th_ringrouse2 = 0
          return
        endif
  
@@ -85,14 +93,11 @@
        nu_subdiff = abs(pa(8))
        a_cross    = abs(pa(9)) ! 1=>smooth crossover .... 100=>sharp crossover
        amod       = 1d0
+       bmod       = 0d0
        amod(1:9)  = abs(pa(10:18))
-       pmin       = pa(19)
-       pwidth     = abs(pa(20))
-       
-       if(pwidth == 0d0) then
-          pwidth = 10
-          pmin   = -100
-       endif
+       t_cross    = abs(pa(19))
+       bmod(1:9)  = abs(pa(20:28))
+       nu         = abs(pa(29))
 
        qget = 0.01
        call        parget('q       ',qget,iadda,ier)
@@ -109,17 +114,17 @@
          sqof0 = .true.
        endif
              
-       call Nrouse_ring(qz,tau,Wl4,N,R,amod,pmin,pwidth,l, Sq,Sqt)
+       call Nrouse_ring2(qz,tau,Wl4,N,R,amod,bmod,t_cross,nu,l, Sq,Sqt)
  
        if(sqof0) then
-          th_ringrouse =  a0 * Sqt
+          th_ringrouse2 =  a0 * Sqt
        else
-          th_ringrouse =  a0 * Sqt/Sq
+          th_ringrouse2 =  a0 * Sqt/Sq
        endif
 
 !!! Multiply the subdiff expression !!!
        rr = ( (r02*(tau/tc)**nu_subdiff)**a_cross + (6*diff*tau)**a_cross)**(1d0/a_cross)
-       th_ringrouse = th_ringrouse * exp( -qz*qz*rr/6d0 )
+       th_ringrouse2 = th_ringrouse2 * exp( -qz*qz*rr/6d0 )
          
 
  
@@ -134,8 +139,8 @@
 
 
 
-       subroutine Nrouse_ring(q,t,Wl4,Nb,R,amod,pmin,pwidth,l,SqAve,SqtAve)
-!      ======================================================
+       subroutine Nrouse_ring2(q,t,Wl4,Nb,R,amod,bmod,t_cross,nu,l,SqAve,SqtAve)
+!      ========================================================================
 !
 ! Rouse expression for a ring polymer
 ! with Nb segments each, the ideal Ree of the linear version of the polymer is given by R.
@@ -161,8 +166,9 @@
 
        double precision, intent(in)     ::  q,t,Wl4,R
        double precision, intent(in)     ::  amod(1000)
-       double precision, intent(in)     ::  pmin         ! pmin in ring mode counting (i.e p--> p/2)
-       double precision, intent(in)     ::  pwidth 
+       double precision, intent(in)     ::  bmod(1000)
+       double precision, intent(in)     ::  t_cross
+       double precision, intent(in)     ::  nu
        double precision, intent(out)    ::  l, SqAve, SqtAve
        integer,          intent(in)     ::  Nb
 
@@ -171,6 +177,7 @@
        double precision :: W, rate_p, kbt, Sq0, arg1, arg2, Dr
        double precision :: a0,e0, ff2, ffc,    arg10,arg20
        double precision :: aa1 , aa2, weight, Sqt, Sq, weightsum, wmode
+       double precision :: fmode, e1
 
 
  
@@ -213,9 +220,12 @@
 ! ---- Do the sums -----
            do nn = n1,n2
             do mm = n1,n2
-              arg1 = -(q**2)*(       abs(nn-mm)*(N-abs(nn-mm))*(l**2)/(6.0d0*N))
-              arg10= -(q**2)*(       abs(nn-mm)*(N-abs(nn-mm))*(l**2)/(6.0d0*N))
-              ff2  = -2*N*(l*q)**2/(3*pi**2)
+!              arg1 = -(q**2)*(       abs(nn-mm)*(N-abs(nn-mm))*(l**2)/(6.0d0*N))
+!              arg10= -(q**2)*(       abs(nn-mm)*(N-abs(nn-mm))*(l**2)/(6.0d0*N))
+              arg1 = -(q**2)*(      dble( abs(nn-mm)*(N-abs(nn-mm)) )**(2*nu)  *(l**2)/(6.0d0*N))
+              arg10= -(q**2)*(      dble( abs(nn-mm)*(N-abs(nn-mm)) )**(2*nu)  *(l**2)/(6.0d0*N))
+!              ff2  = -2*N*(l*q)**2/(3*pi**2)
+              ff2  = -2* dble(N)**(2*nu) *(l*q)**2/(3*pi**2)
         
               arg2 = 0
               arg20= 0
@@ -223,17 +233,19 @@
                 rate_p = 2*W*(1-cos((pi*p)/dfloat(N)))   ! only even modes for ring
                  
                 wmode = amod(p/2)
-                wmode = wmode  / (1d0+exp(-(p/2-pmin)/pwidth))
+                fmode = bmod(p/2)
                    
                 a0    = -t * rate_p
 
                 e0    = 1.0d0-exp(a0)
+
+                e1    = 1.0d0-exp(-t*p**4/t_cross)
                 
                 ffc   = cos((pi*p*(nn-mm))/dfloat(N)) 
                 ffc   = ffc / (p**2)
-                ffc   = ffc * wmode                    !####new
+!                ffc   = ffc * wmode                    !####new
     
-                arg2  = arg2  + ffc*e0  
+                arg2  = arg2  + ffc * ( wmode * e0  + fmode * e1 )
                 arg20 = arg20 + ffc
     
               enddo   

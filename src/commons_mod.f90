@@ -197,17 +197,18 @@
           return
         endif
 
-        xwerte(1:c_MWERT,idestination) =  xwerte(1:c_MWERT,isource)
-        ywerte(1:c_MWERT,idestination) =  ywerte(1:c_MWERT,isource)
-        yerror(1:c_MWERT,idestination) =  yerror(1:c_MWERT,isource)
+        xwerte(:,idestination)         =  xwerte(:,isource)
+        ywerte(:,idestination)         =  ywerte(:,isource)
+        yerror(:,idestination)         =  yerror(:,isource)
         xname(idestination)            =  xname(isource)
         yname(idestination)            =  yname(isource)
         name(idestination)             =  name(isource)
         nwert(idestination)            =  nwert(isource)
         numor(idestination)            =  numor(isource)
         coment(idestination)           =  coment(isource)
-        params(1:c_MPAR,idestination)  =  params(1:c_MPAR,isource)
-        napar(1:c_MPAR,idestination)   =  napar(1:c_MPAR,isource)
+        params(:,idestination)         =  params(:,isource)
+        napar(:,idestination)          =  napar(:,isource)
+        nopar(idestination)            =  nopar(isource)
 
         if(idestination.gt.nbuf) nbuf=idestination
 

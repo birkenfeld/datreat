@@ -20,7 +20,7 @@
          DIMENSION       pa(20),qq(3)
          DATA            zpi/6.283185/
 
-         double precision w,d,q,n,ne,likhtman,t,a,l,taud,tau0,td2
+         double precision w,d,q,n,ne,likhtman,t,a,l,taud,tau0,td2,alpha
 
 
  
@@ -31,7 +31,7 @@ c
 c ----- initialisation -----
        if(ini.eq.0) then
          thnam = 'likhtman '
-         nparx =  6
+         nparx =  7
          if(npar.lt.nparx) then
            write(6,1)thnam,nparx,npar
 1          format(' theory: ',a8,' no of parametrs=',i8,
@@ -47,6 +47,7 @@ c        --------------> set the number of parameters
          parnam(4) = 'n       '
          parnam(5) = 'l       '
          parnam(6) = 'td2     '
+         parnam(7) = 'alpha   '
 c
          th_likhtman = 0
          return
@@ -59,6 +60,7 @@ c ---- calculate theory here -----
         n       = pa(4)   ! no of segments of polymer
         l       = pa(5)   ! segment length 
         td2     = pa(6)
+        alpha   = abs(pa(7))
 
         call parget('q       ',xh ,iadda,ier)
         if(ier.eq.0) then
@@ -69,7 +71,7 @@ c ---- calculate theory here -----
  
         t = x 
  
-        th_likhtman = likhtman(t,q,d,W,n,l,ne,taud,tau0,td2)
+        th_likhtman = likhtman(t,q,d,W,n,l,ne,taud,tau0,td2,alpha)
 
         th_likhtman = th_likhtman * a
 
@@ -81,7 +83,8 @@ c ---- calculate theory here -----
         end 
 
 
-       double precision function likhtman(t,q,d,W,n,l,ne,taud,tau0,td2)
+      double precision function likhtman(t,q,d,W,n,l,ne, 
+     *                                   taud,tau0,td2,alpha)
 !      -------------------------------------------------------------
 !
 ! siehe P.Schleger et. al. PRL 81, p.124 (1998)
@@ -93,7 +96,7 @@ c ---- calculate theory here -----
        double precision tau0, taud, t0, td,td2
        double precision n, ne, l, y, sum, eqd,deb,argd,npl
 
-       double precision mue,alphap,sumt0,alp
+       double precision mue,alphap,sumt0,alp,alpha
        double precision diffe
 c mz
        double precision taue, num, st, sumlik, sumlik0
@@ -137,7 +140,8 @@ C *******
         mue=q**2*npl*l**2/12.d0
 c mz
         num = n/ne
-        st = 0.5d0*((1.5d0/num)*(t/taue)**0.25)
+!        st = 0.5d0*((1.5d0/num)*(t/taue)**0.25)
+        st = 0.5d0*((alpha/num)*(t/taue)**0.25)
 
         sumlik = (n/(2*mue**2))*(2*mue+dexp(-2*mue)+2.d0-4*mue*st-4*
      +       dexp(-2*mue*st)+dexp(-4*mue*st))

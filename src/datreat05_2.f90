@@ -155,12 +155,22 @@
        real             :: detector_sensitivity, detsens, lambdaA
 
 
+       double precision :: unift_range_expand     = 1d0
+       double precision :: unift_resolution_limit = 0.1d0
+       
+
          real  :: lambda0, lambda1, delta_lambda, temp,angle_2tht 
          real  :: e0, e1, dE, de0, dee, dbb, omega, om_cm, qrc, qa, q
          real  :: kinetic_factor, channel_factor,channel_width,channel_width0
          real  :: sume, sumq
   
-       integer :: irstp, recstep = 1    
+       integer :: irstp, recstep = 1   
+
+
+       real    ::   lower_range 
+       real    ::   upper_range
+       logical ::   range_is_y  
+ 
 
 ! ---- initialisations ----
 ! ---- error-set ----------
@@ -939,11 +949,21 @@
          ia1 = nbuf+1
          ia1 = intval('store_at',ia1,inew)
 
+         if(found('resnorm  ') ) then
+            write(6,*)"Option:   resnorm    ==> use resolution for intensity normalisation also"
+         else
+            write(6,*)"NO option: resnorm  specified ==> use resolution for shape deconvolution ONLY"
+         endif
+
+         unift_range_expand     = getval('rexpand ',unift_range_expand,ier)
+         unift_resolution_limit = getval('reslim  ',unift_resolution_limit,ier)
+
+         
          write(6,*)'uni_ft: selected records and store data beginning from recordnr.:',ia1
          if (nsel.eq.1) then 
            isels(2) = 0
          endif
-         call uni_ft(isels(1), isels(2), ia1)
+         call uni_ft(isels(1), isels(2), ia1, found('resnorm  '), unift_range_expand, unift_resolution_limit )
 
          goto 2000
        endif
@@ -1815,6 +1835,56 @@
          goto 2000
        endif
 !
+
+
+       if(comand.eq.'rerange ') then
+!                    ----->    neuer x-range durch selektion
+!                              neuen Platz
+! 
+         lower_range = rpar(1)
+         upper_range = rpar(2)
+         range_is_y  = found('y       ')
+
+!     >  copy first  
+         if(nsel+nbuf.gt.mbuf) then
+           write(6,*)'ERROR: copying selection would exceed max records'
+           goto 2000
+         endif 
+         do i=1,nsel
+           ia = isels(i)
+           ib = nbuf+1
+           write(6,*)'copy record: ',ia,' to record: ',ib
+           call DataCopy(ia,ib)
+           isels(i) = ib
+         enddo
+!     <  end copy
+ 
+         do i=1,nsel
+          ia = isels(i)
+          n  = nwert(ia)
+          j  = 0
+drer1:    do ik=1,n
+             if(range_is_y) then
+               if(ywerte(ik,ia) < lower_range .or. ywerte(ik,ia) > upper_range) cycle drer1
+             else
+               if(xwerte(ik,ia) < lower_range .or. xwerte(ik,ia) > upper_range) cycle drer1
+             endif
+             j = j+1
+             xwerte(j,ia) = xwerte(ik,ia)
+             ywerte(j,ia) = ywerte(ik,ia)
+             yerror(j,ia) = yerror(ik,ia)
+          enddo drer1
+
+          nwert(ia)=j
+          numor(ia)=numor(ia)+10000
+          if(range_is_y) write(6,'(a)',advance='no') "Y-"
+          write(6,'(a,i4,a,2e14.6)')'range of[',ia,'] limited to ',lower_range, upper_range 
+         enddo
+         goto 2000
+       endif
+!
+
+
 
 
        if(comand.eq.'swapxy   ') then
@@ -3714,7 +3784,8 @@ exclude:   if(found('exclude  ')) then
          goto 2000
        endif
 !
-       if(comand.eq.'gplot    '.or.comand.eq.'gp      ') then
+!       if(comand.eq.'gplot    '.or.comand.eq.'gp      ') then
+       if(comand.eq.'gplot    '.or.comand.eq.'ugly    ') then
 !                    -----> plot selected curves
          call gplot()
          goto 2000

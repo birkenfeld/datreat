@@ -366,8 +366,7 @@ rloop: DO it=1,nft
       double precision               :: esh(ns1dim), ssh(ns1dim), dsh(ns1dim)  ! aux storage
 
       double precision               :: ef_conversion, dbf
-      double precision               :: e_range0, teff, dteff, tx, dtx, sleft, sright, dsleft, dsright, de 
-      integer                        :: i, n, i1, i2, nh, ielastic, ih
+      integer                        :: i, n, i1, i2, nh, ielastic
 
       ef_conversion = 2*Pi*eunit/Planckkonstante*tunit
 
@@ -397,57 +396,6 @@ l2:   do i= ns,1,-1
       esh = es(i1:i2) 
       ssh = ss(i1:i2)  
       dsh = ds(i1:i2)
-
-!! get some information on asymmetry by detailed balance and create warning if the energy scale seems inverse
-      if(fdbf .ne. 0d0) then     ! skip this for resolution (flagged by fdbf=0)
-         e_range0 = min(abs(esh(1)),abs(esh(nh)))
-         ielastic = minloc(abs(esh(1:nh)),1)
-         !  use the outer halve of the spectrum for symmetry/temperature check
-         i1 = minloc(abs(abs(esh(1:ielastic)) -e_range0),1)
-         i2 = minloc(abs(abs(esh(ielastic:nh))-e_range0),1) + ielastic  
-         ih = ielastic - (ielastic-i1)/6d0
-
-!         write(6,*)"e_range0 = ",e_range0
-!         write(6,*)"ielastic = ",ielastic, nh
-!         write(6,*)"i1,i2,ih = ",i1,i2,ih
-
-         teff   = 0d0
-         dteff  = 9d99
-         do i = i1,ih
-           sleft    = ssh(i)
-           dsleft   = dsh(i)
-           i2       = minloc(abs(abs(esh(ielastic:nh))-abs(esh(i))),1) + ielastic
-           de       = (esh(i2-1) + esh(i))/(esh(i2-1)-esh(i2))
-           sright   = ssh(i2-1)*(1d0-de) + ssh(i2)*de 
-           dsright  = sqrt((dsh(i2-1)*(1d0-de))**2 + (dsh(i2)*de)**2)    ! ??
-           tx       = esh(i)*eunit/Boltzmannkonstante / log(sleft/sright)
-
-           dtx      = abs(esh(i))*eunit/Boltzmannkonstante * &
-                      sqrt(((sleft*dsright)**2+(sright*dsleft)**2)/(log(sleft/sright)**4 * sleft**2 *sright**2))
-
-           if( abs(tx) < 1000d0 .and. abs(tx) > 1d0 ) then
-             teff     = (tx * (1d0/dtx)**2 + teff * (1d0/dteff)**2)/((1d0/dtx)**2 + (1d0/dteff)**2) 
-             dteff    = sqrt(1d0/((1d0/dtx)**2 + (1d0/dteff)**2))
-           endif 
-
-  ! write(6,'(2i6,7e14.6)') i, i2, sleft, sright, esh(i), esh(i2), tx, dtx, teff
-
-         enddo        
-         
-
-         write(6,'(a                 )')  "#    ------------------------------------------------------------- "
-         write(6,'(a                 )')  "#    Symmetry analysis and temperature estimate (detailed balance) "
-         write(6,'(a,3i5             )')  "#    start and end channel , elastic position channel:  ",i1,ih,ielastic
-         write(6,'(a,f12.6,a,f12.6,a )')  "#    effectice temperature =  ", teff, "+-", dteff," K"
-         if(teff < 0d0 ) then
-         write(6,'(a                 )')  "#    WARNING: neg. effectice temperature, is the E-scale sign ok?"
-         endif
-         write(6,'(a                 )')  "#    ------------------------------------------------------------- "
-
-         
-      endif
-
-      
 
  
       ssh(1:nh) = ssh(1:nh) * exp( fdbf * esh(1:nh) ) / ef_conversion
