@@ -308,7 +308,8 @@
        if(comand.eq.'?       '.or.comand.eq.'help    ') then
 !                    -                       ----
 !         call system('firefox '//datreat_path//'/doc/DatreatManual6.html &')
-         write(*,*)"Please check datreat../doc/DatreatManual6.html for help"
+         call command_list()
+         write(*,*)"Please check datreat../doc/DatreatManual6.html for more help"
          goto 2000
        endif
 !
@@ -3803,7 +3804,7 @@ exclude:   if(found('exclude  ')) then
              call activa(2)
            endif
          else
-           call errsig(999,"need exactly one filename as argument!")
+           call errsig(999,"need exactly one filename as argument!$")
          endif
          goto 2000
        endif
@@ -4502,3 +4503,96 @@ d2:       do j=1,number_of_data_points
 
 
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!! help functions
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+ subroutine command_list()
+  write(6,*) " command name               " , " parameters: "
+  write(6,*) "?         (synonym) help    " , " " 
+  write(6,*) "acl       (synonym) aclast  " , " "
+  write(6,*) "activate  (synonym) ac      " , " <theory_name> "
+  write(6,*) "activlst  (synonym) al      " , " "
+  write(6,*) "addsels                     " , " "
+  write(6,*) "addval                      " , " "
+  write(6,*) "argvals                     " , " "
+  write(6,*) "arit                        " , " f1 <factor1>  f2 <factor2> to <numor> [div | mult | (no)norm ]"
+  write(6,*) "arit2                       " , " f1 <factor1>  f2 <factor2> to <numor> [div | mult | (no)norm ]"
+  write(6,*) "average                     " , " "
+  write(6,*) "chgthpar                    " , " "
+  write(6,*) "clip                        " , " "
+  write(6,*) "close                       " , " "
+  write(6,*) "combine                     " , " "
+  write(6,*) "copy                        " , " "
+  write(6,*) "couple                      " , " "
+  write(6,*) "cs        (synonym) clearsel" , " "
+  write(6,*) "des       (synonym) desmear " , " "
+  write(6,*) "desactiv  (synonym) dac     " , " "
+  write(6,*) "detsens                     " , " "
+  write(6,*) "dir                         " , " "
+  write(6,*) "dispsel   (synonym) dsl     " , " "
+  write(6,*) "dmx                         " , " "
+  write(6,*) "echocurv                    " , " "
+  write(6,*) "edit                        " , " "
+  write(6,*) "ercorrc   (synonym) ecc     " , " "
+  write(6,*) "fft                         " , " "
+  write(6,*) "fftmx     (synonym) fft-ms  " , " "
+  write(6,*) "fftrand                     " , " "
+  write(6,*) "fit                         " , " "
+  write(6,*) "fun       (synonym) function" , " "
+  write(6,*) "funfun                      " , " "
+  write(6,*) "ga_fit                      " , " "
+  write(6,*) "gaiscale                    " , " "
+  write(6,*) "gdos_q                      " , " "
+  write(6,*) "gen.res                     " , " "
+  write(6,*) "get_th  (synonym) gth       " , " "
+  write(6,*) "gplot      (synonym) gp     " , " "
+  write(6,*) "hiqextra                    " , " "
+  write(6,*) "ia        (synonym) i-abso  " , " "
+  write(6,*) "in        (synonym) input   " , " "
+  write(6,*) "inscn                       " , " "
+  write(6,*) "integrat                    " , " "
+  write(6,*) "interpol                    " , " "
+  write(6,*) "invers                      " , " "
+  write(6,*) "kz                          " , " "
+  write(6,*) "label                       " , " "
+  write(6,*) "m         (synonym) mirror  " , " "
+  write(6,*) "msave                       " , " "
+  write(6,*) "mux                         " , " "
+  write(6,*) "noise                       " , " "
+  write(6,*) "open                        " , " "
+  write(6,*) "out_gli   (synonym) gli     " , " "
+  write(6,*) "paraout                     " , " "
+  write(6,*) "parextra                    " , " "
+  write(6,*) "plot      (synonym) p       " , " "
+  write(6,*) "plot0     (synonym) p0      " , " "
+  write(6,*) "purge                       " , " "
+  write(6,*) "putpar                      " , " "
+  write(6,*) "qc        (synonym) q-conv  " , " "
+  write(6,*) "rebin                       " , " "
+  write(6,*) "recsum                      " , " "
+  write(6,*) "rename                      " , " "
+  write(6,*) "rerange                     " , " "
+  write(6,*) "save                        " , " "
+  write(6,*) "scale                       " , " "
+  write(6,*) "sel                         " , " "
+  write(6,*) "sequence                    " , " "
+  write(6,*) "seterr                      " , " "
+  write(6,*) "sp        (synonym) spline  " , " "
+  write(6,*) "swapxy                      " , " "
+  write(6,*) "sym                         " , " "
+  write(6,*) "th_init                     " , " "
+  write(6,*) "thc                         " , " "
+  write(6,*) "theos                       " , " "
+  write(6,*) "title     (synonym) tit     " , " "
+  write(6,*) "tofdos                      " , " "
+  write(6,*) "tracorr                     " , " "
+  write(6,*) "uni_ft                      " , " "
+  write(6,*) "write                       " , " "
+  write(6,*) "xformel                     " , " "
+  write(6,*) "yfitform                    " , " "
+  write(6,*) "yformel                     " , " "
+  write(6,*) "z         (synonym) zero    " , " "
+  write(6,*) "zero                        " , " "
+end subroutine command_list
