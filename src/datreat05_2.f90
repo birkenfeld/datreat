@@ -3791,11 +3791,6 @@ exclude:   if(found('exclude  ')) then
          goto 2000
        endif
 !
-<<<<<<< HEAD
-!       if(comand.eq.'gplot    '.or.comand.eq.'gp      ') then
-       if(comand.eq.'gplot    '.or.comand.eq.'ugly    ') then
-=======
-
        if(comand.eq.'get_th'.or.comand.eq.'gth      ') then
 !                    -----> get theory appended to an file created by msave and copy it to lassth
 !                           and load it
@@ -3815,10 +3810,7 @@ exclude:   if(found('exclude  ')) then
        endif
 !
 
-
-
        if(comand.eq.'gplot    '.or.comand.eq.'gp      ') then
->>>>>>> 3e23d634dff48c3c63df8eb8f2bf5636d9cab8bb
 !                    -----> plot selected curves
          call gplot()
          goto 2000
