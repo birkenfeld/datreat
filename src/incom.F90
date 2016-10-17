@@ -124,7 +124,7 @@
            reslin= rlbuf
            ipmls = 0
            if(ktop.eq.0)write(6,*)' command input back to keybord'
-			write(6,*)' #-###->'
+!			write(6,*)' #-###->'
            if(ioldc.ne.0) then
              inline = reslin
 
@@ -133,7 +133,8 @@
          endif
  1002    continue
         if(ktop.eq.0) then
-            write(6,*)' #-->'
+!            write(6,*)' #-->'
+            write(6,'(a)',advance='no') prompt
             ipmls = 0
 		endif
         read(kanal(ktop),"(a)",end=1001) inread
