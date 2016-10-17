@@ -81,15 +81,13 @@
        dummy = sofqq(x,par,thenam(39),thparn(:,39),nthpar(39),ini,idum ,idum,idum,idum)
        nthpar(40) = mtpar 
        dummy = th_star(x,par,thenam(40),thparn(:,40),nthpar(40),ini,idum ,idum,idum,idum)
-        write(6,*) "Warning to many theories in directory theos"
-        write(6,*) "Warning to many theories in directory theos"
-        write(6,*) "Warning to many theories in directory theos"
-        write(6,*) "Warning to many theories in directory theos"
-        write(6,*) "Warning to many theories in directory theos"
-        write(6,*) "Warning to many theories in directory theos"
-        write(6,*) "ONLY 40 are allowd"                         
-        write(6,*) "ONLY 40 are allowd"                         
-        write(6,*) "ONLY 40 are allowd"                         
-        write(6,*) "ONLY 40 are allowd some were truncated"     
+       nthpar(41) = mtpar 
+       dummy = strexpo(x,par,thenam(41),thparn(:,41),nthpar(41),ini,idum ,idum,idum,idum)
+       nthpar(42) = mtpar 
+       dummy = thick_co2(x,par,thenam(42),thparn(:,42),nthpar(42),ini,idum ,idum,idum,idum)
+       nthpar(43) = mtpar 
+       dummy = th_zgbic2(x,par,thenam(43),thparn(:,43),nthpar(43),ini,idum ,idum,idum,idum)
+       nthpar(44) = mtpar 
+       dummy = zimm(x,par,thenam(44),thparn(:,44),nthpar(44),ini,idum ,idum,idum,idum)
        ntheos=0
 ! ---- initialize theory tables ende----

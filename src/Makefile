@@ -136,10 +136,6 @@ clean:
 	rm -f unused_theos/*.o
 	
 
-	gfortran -o extract_th extract_th.f90
-	mv extract_th ../bin
-	
-
 
 cleanall:
 	make -C lib/dtpurcollection cleanall

@@ -7,7 +7,7 @@
    integer, parameter :: c_MBUF        = 1200
    integer, parameter :: c_MWERT       = 10000
    integer, parameter :: c_MPAR        = 400
-   integer, parameter :: c_MTH         = 40
+   integer, parameter :: c_MTH         = 80
    integer, parameter :: c_MTPAR       = 40
    integer, parameter :: c_MTCAL       = 40
    integer, parameter :: c_MCOUP       = 10
@@ -76,6 +76,7 @@
 		character*20 arglst(c_MINC)
 		character*20 pmlist(c_MINC,2)
 		character*1024 rlbuf
+                character(len=20) :: prompt = "--> "
 	end module cincoc
 
 	module icpathes
