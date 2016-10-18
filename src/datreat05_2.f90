@@ -4559,6 +4559,8 @@ d2:       do j=1,number_of_data_points
   write(6,*) "msave                       " , " "
   write(6,*) "mux                         " , " "
   write(6,*) "noise                       " , " "
+  write(6,*) "numorchg                    " , " "
+  write(6,*) "numorpls                    " , " "
   write(6,*) "open                        " , " "
   write(6,*) "out_gli   (synonym) gli     " , " "
   write(6,*) "paraout                     " , " "
