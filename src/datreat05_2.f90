@@ -188,7 +188,7 @@
                         write(6,*)'=   -----------     --------                          ='
                         write(6,*)'=   Author: M.Monkenbusch  R. Biehl, O.Holderer, JCNS ='
                         write(6,*)'======================================================='
-                        prompt = "#mm-develop 2.1 -> " 
+                        prompt = "#mm-develop 2.2 -> " 
                         write(6,*)
                         write(6,*)
                         write(6,*)
@@ -200,6 +200,11 @@
                         write(6,*)'=         copy only that range                                   ='
                         write(6,*)'=  sequence: replace x-values by sequence nubers 1..n            ='
                         write(6,*)'=  swapxy:   exchange x and y values, discard errors             ='
+                        write(6,*)'=  numorchg: change numor of selected record                     ='
+                        write(6,*)'=  arit:     better interpolation (former arit2)                 ='
+                        write(6,*)'=  arit0:    previous arit version                               ='
+                        write(6,*)'=  get_th:   activates theory of msave files:: gth <filenam>     ='
+                        write(6,*)'=  msave:    unlimited filename length                           ='
                         write(6,*)'=================================================================='
                         write(6,*)' Pi = ',pi
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -972,7 +977,7 @@
        endif
 
 !
-       if(comand.eq.'arit    ') then
+       if(comand.eq.'arit0    ') then ! alte version von arit 
 !                    ----
          newnum = 777777
          idimux = 0
@@ -1147,7 +1152,7 @@ da1:     do i=1,nbuf
        endif
 !
 !
-       if(comand.eq.'arit2   ') then  ! deals better with interpolation at boundaries of range !
+       if(comand.eq.'arit    ') then  ! deals better with interpolation at boundaries of range (vorher arit2)!
 !                    ----
          newnum = 777777
          idimux = 0
