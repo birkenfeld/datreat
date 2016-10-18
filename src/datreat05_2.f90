@@ -184,7 +184,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                         write(6,*)
                         write(6,*)'======================================================='
-                        write(6,*)'=   datreat12_2     Version: mm-develop 2.1           ='
+                        write(6,*)'=   datreat12_2     Version: mm-develop 2.2           ='
                         write(6,*)'=   -----------     --------                          ='
                         write(6,*)'=   Author: M.Monkenbusch  R. Biehl, O.Holderer, JCNS ='
                         write(6,*)'======================================================='
@@ -992,8 +992,8 @@
           if(vname(i).eq.'mult    ') idimux = 2
           if(vname(i).eq.'to      ') newnum = Nint(rpar(j))
           if(vname(i).eq.'sc      ') then
-            num1 = rpar(j) * 1.0000001
-            num2 = rpar(j+1)*1.0000001
+            num1 = Nint(rpar(j))
+            num2 = Nint(rpar(j+1))
           endif
           if(vname(i).eq.'factor1 '.or.vname(i).eq.'f1      ')          &
      &                                                 facto1 = rpar(j)
@@ -1165,10 +1165,10 @@ da1:     do i=1,nbuf
           if(vname(i).eq.'nonorm  ') withmo = .false.
           if(vname(i).eq.'div     ') idimux = 1
           if(vname(i).eq.'mult    ') idimux = 2
-          if(vname(i).eq.'to      ') newnum = rpar(j) * 1.0000001
+          if(vname(i).eq.'to      ') newnum = Nint(rpar(j))
           if(vname(i).eq.'sc      ') then
-            num1 = rpar(j) * 1.0000001
-            num2 = rpar(j+1)*1.0000001
+            num1 = Nint(rpar(j))
+            num2 = Nint(rpar(j+1))
           endif
           if(vname(i).eq.'factor1 '.or.vname(i).eq.'f1      ')          &
      &                                                 facto1 = rpar(j)
@@ -1402,12 +1402,12 @@ da12:    do i=1,nbuf
           if(vname(i).eq.'raster  ') then
            x1raster = rpar(j)
            x2raster = rpar(j+1)
-           nraster  = rpar(j+2) * 1.00000001d0
+           nraster  = Nint(rpar(j+2))
           endif
-          if(vname(i).eq.'to      ') newnum = rpar(j) * 1.0000001d0
+          if(vname(i).eq.'to      ') newnum = Nint(rpar(j))
           if(vname(i).eq.'sc      ') then
              do 48181 l=1,k
-               nnumi(l) = rpar(l-1+j)*1.0000001d0
+               nnumi(l) = Nint(rpar(l-1+j))
 48181        continue
              call search(nnumi,k)
           endif
@@ -3078,7 +3078,7 @@ drer1:    do ik=1,n
            goto 18051
          endif
          do 1801 i=1,ipars
-           ia = rpar(i) * 1.000001
+           ia = Nint(rpar(i))
            write(6,*)'purging no.: ',ia,' ...'
             do j=1,mwert
              xwerte(j,ia) = 0
@@ -3264,7 +3264,7 @@ exclude:   if(found('exclude  ')) then
            else
 
             do i=1,ipars
-             iss      = rpar(i) * 1.0000001
+             iss      = Nint(rpar(i))
              if(iss.gt.0) write(6,*)'select adress   ',iss
              m = m + 1
              isels(m) = iss
@@ -3325,7 +3325,7 @@ exclude:   if(found('exclude  ')) then
            endif
            if(vname(i).eq.'sc      ') then
              do 181 l=1,k
-               nnumi(l) = rpar(l-1+j)*1.0000001
+               nnumi(l) = Nint(rpar(l-1+j))
   181        continue
              call search(nnumi,k)
            endif
@@ -3336,7 +3336,7 @@ exclude:   if(found('exclude  ')) then
              do 183 l=1,k
                kk = l+nsel
                if(kk.gt.minc) goto 183
-                 nnumi(kk) = rpar(l-1+j)*1.0000001
+                 nnumi(kk) = Nint(rpar(l-1+j))
                  iprs      = kk
   183        continue
              call search(nnumi,iprs)

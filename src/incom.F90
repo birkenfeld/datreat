@@ -441,7 +441,7 @@
        if(comand.eq.'iout    ') then
 !                    ----
          ioold= iot
-         iot  = rpar(1)*1.0000000001d0
+         iot  = Nint(rpar(1))
          if(vname(1).eq.'old     ') iot = ioold
          write(6,*)'outputlevel is now ',iot
          goto 8888

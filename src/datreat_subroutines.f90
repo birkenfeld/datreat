@@ -296,7 +296,7 @@
        if(vname(i).eq.'scans   '.or.vname(i).eq.'sc      ') then
          nspf = inpar(i)
          do 7001 l=1,nspf
-          numv(l) = rpar(j+l-1) * 1.0000001
+          numv(l) = Nint(rpar(j+l-1))
  7001    continue
        endif
        if(ci.eq.'maxfn   '                    ) maxfn = rpar(j) + 0.001
@@ -697,7 +697,7 @@
        if(vname(i).eq.'scans   '.or.vname(i).eq.'sc      ') then
          nspf = inpar(i)
          do 7001 l=1,nspf
-          numv(l) = rpar(j+l-1) * 1.0000001
+          numv(l) = Nint(rpar(j+l-1))
  7001    continue
        endif
        if(ci.eq.'npop    '                    ) npop      = nint(rpar(j))
@@ -2244,7 +2244,7 @@
           name(nbuf) = vname(1)
           yname(nbuf) = vname(2)
           xname(nbuf) = vname(4)
-          numor(nbuf) = rpar(1) * 1.000001
+          numor(nbuf) = Nint(rpar(1)) 
           goto 2000
 		else ! --  identification & comment-line        evrything else
 			if ( coment(nbuf).eq. ''  ) then
