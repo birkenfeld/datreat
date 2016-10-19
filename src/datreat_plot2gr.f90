@@ -68,6 +68,43 @@
       integer irfcu, i, j, icco, ik, ip, ircu, laenge, nsy, npic, nnpi, it
       integer npicf, npar, nfkurv, nco, ltext, lopt, lxx, lyy, l, ith, ircf
 
+
+
+      if(found('help    ')) then 
+       write(6,*)'=============================================================================='
+       write(6,*)'= plot                                                                       ='
+       write(6,*)'=    plots selected records                                                  ='
+       write(6,*)'=    parameters:                                                             ='
+       write(6,*)'=      xmin  <val>    :  start of x-plottimg range                           ='
+       write(6,*)'=      xmax  <val>    :  end   of x-plottimg range                           ='
+       write(6,*)'=      ymin  <val>    :  start of y-plottimg range                           ='
+       write(6,*)'=      ymax  <val>    :  end   of y-plottimg range                           ='
+       write(6,*)'=      symb  <list>   :  integer synbmbol list (sequence = selected)         ='
+       write(6,*)'=      icolo <list>   :  integer color    list (sequence = selected)         ='
+       write(6,*)'=      errplo         :  adds error bars                                     ='
+       write(6,*)'=      noerrplo       :  suppress error bars                                 ='
+       write(6,*)'=      parplo         :  sets parameter value listing                        ='
+       write(6,*)'=      noparplo p1 p2.:  suppress parameter listing except for p1 p2 ...     ='
+       write(6,*)'=      lin_x | log_x  :  lin or log x scale                                  ='
+       write(6,*)'=      lin_y | log_y  :  lin or log y scale                                  ='
+       write(6,*)'=        for further options see manual ....                                 ='
+       write(6,*)'= HINTS:  (prior to plot)                                                    ='
+       write(6,*)'=       use the:  title    command to set a plot title                       ='
+       write(6,*)'=       use the:  rename   command to change x-axis and y-axis names         ='
+       write(6,*)'= PRINTING/SAVING:                                                           ='
+       write(6,*)'=       to create a gli##.eps output file issue the plot command again       ='
+       write(6,*)'=       select 62  as output option (instead of 211 for screen display)      ='
+       write(6,*)'=       check name of created file by -> ls -ltr                             ='
+       write(6,*)'=       copy gli##.eps to a name of your choice -> cp gli##.eps myplot1.eps  ='
+       write(6,*)'=       and or print it by: lpr -Pprinter gli##.eps                          ='
+       write(6,*)'=============================================================================='
+       return
+      endif
+
+
+
+
+
 ! ----- parameter retrieving from stack -----
       nkurv  = 0
       nfkurv = 0
