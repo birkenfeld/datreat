@@ -186,7 +186,7 @@
 !       -------------------------------------------
         implicit none
         integer, intent(inout) :: isource, idestination
-        integer                :: i
+!?        integer                :: i
         
         if(isource.le.0 .or. isource.gt.c_MBUF) then
           write(6,*)'cdata:DataCopy: isource out of range: ',isource,' NO ACTION '

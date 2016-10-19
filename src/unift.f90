@@ -34,8 +34,10 @@
       double precision       :: es1(mwert), ss1(mwert), ds1(mwert)
       double precision       :: er(mwert) , sr(mwert) , dr(mwert)    !! Referenz
       double precision       :: er1(mwert), sr1(mwert), dr1(mwert)
-      integer                :: ndats, ndats1                        !! number of valid data-points
-      integer                :: ndatr, ndatr1                        !! number of valid ref-points
+!?      integer                :: ndats, ndats1                        !! number of valid data-points
+!?      integer                :: ndatr, ndatr1                        !! number of valid ref-points
+      integer                :: ndats                                !! number of valid data-points
+      integer                :: ndatr                                !! number of valid ref-points
       integer                :: ns1, nr1                             !! number of points of mirrored vec's
 
       double precision       :: tv(mwert)                            !! Timevektor for FT's
@@ -57,10 +59,11 @@
        
       real                   :: temp
 
-      integer                :: i, it, ier
+!?      integer                :: i, it, ier
+      integer                :: it, ier
       integer                :: ipoint_out
       integer                :: iout
-      integer                :: ida1 = 2
+ !?     integer                :: ida1 = 2
       integer                :: ielastic, nft, nft_result
 
 !     ------------------------------------------------------------
@@ -365,7 +368,8 @@ rloop: DO it=1,nft
 
       double precision               :: esh(ns1dim), ssh(ns1dim), dsh(ns1dim)  ! aux storage
 
-      double precision               :: ef_conversion, dbf
+!?      double precision               :: ef_conversion, dbf
+      double precision               :: ef_conversion
       double precision               :: e_range0, teff, dteff, tx, dtx, sleft, sright, dsleft, dsright, de 
       integer                        :: i, n, i1, i2, nh, ielastic, ih
 

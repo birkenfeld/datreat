@@ -474,7 +474,7 @@
 !
        do 10 i=1,inames
          if(vname(i).eq.pname) then
-            intval = rpar(inapa(i))*1.0000000001d0
+            intval = Nint(rpar(inapa(i)))
             inew = i
             lstpar = inapa(i)
             lstnam = i
@@ -505,7 +505,7 @@
        intnxt    = idef
        if(ipars.le.lstpar) return
 
-       intnxt = rpar(lstpar+1)*1.0000000001d0
+       intnxt = Nint(rpar(lstpar+1))
        inew   = lstpar+1
        lstpar = lstpar
 
@@ -727,7 +727,7 @@
        intvno    = idef
        if(ipars.lt.ipnum) return
 
-       intvno = rpar(ipnum) * 1.0000000001d0
+       intvno = Nint(rpar(ipnum))
        inew      = ipnum
        lstpar    = ipnum
 

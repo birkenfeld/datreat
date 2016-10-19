@@ -161,7 +161,8 @@
        
 
          real  :: lambda0, lambda1, delta_lambda, temp,angle_2tht 
-         real  :: e0, e1, dE, de0, dee, dbb, omega, om_cm, qrc, qa, q
+!?         real  :: e0, e1, dE, de0, dee, dbb, omega, om_cm, qrc, qa, q
+         real  :: e0, e1, dE, de0, dee, dbb, omega, om_cm, qa, q
          real  :: kinetic_factor, channel_factor,channel_width,channel_width0
          real  :: sume, sumq
   
@@ -1154,6 +1155,18 @@ da1:     do i=1,nbuf
 !
        if(comand.eq.'arit    ') then  ! deals better with interpolation at boundaries of range (vorher arit2)!
 !                    ----
+          if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= arit f1 <factor1> f2 <factor2> [to <numor>]  [options]                      '
+           write(6,*)'=      adds the two selected records with factors 1,2 and stores as numor     '
+           write(6,*)'=      for nonmatchig x-values interpolation is applied                       '
+           write(6,*)'=   options:                                                                  '
+           write(6,*)'=            div     : divides (instead of adding)                            '
+           write(6,*)'=            mult    : multiplies (instead of adding)                         '
+           write(6,*)'=            sc <numor1> <numor2>  : selection by numor match instead of sel  '
+           write(6,*)'=============================================================================='
+        endif
+
          newnum = 777777
          idimux = 0
 
@@ -1319,6 +1332,14 @@ da12:    do i=1,nbuf
 !
        if(comand.eq.'addval  ') then
 !                    ------
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= addval <x> <y> <err>                                                        '
+           write(6,*)'=    appends one data point to selected record                                '
+           write(6,*)'=    only the first selected record is treated                                '
+           write(6,*)'=============================================================================='
+        endif
+
          if(nsel.eq.1) then
            iad1 = isels(1)
          else
@@ -1340,7 +1361,17 @@ da12:    do i=1,nbuf
 !                    --------           approximates integral from binned data
 !                                       by simple summation of data times bin-width
 !                                       there may be better interpolation based schemes
-!                                       but this is clear an simple
+!                                       but this is clear an simple                        
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= integrat <x1> <x2>                                                          '
+           write(6,*)'=        approximates integral from binned data over the given range          '
+           write(6,*)'=        by simple summation of data times bin-width                          '
+           write(6,*)'=        there may be better interpolation based schemes                      '
+           write(6,*)'=        but this is clear an simple                                          '
+           write(6,*)'=        only the first select record is used                                 '
+           write(6,*)'=============================================================================='
+        endif
          if(nsel.eq.1) then
            iad1 = isels(1)
          else
@@ -1696,6 +1727,17 @@ da12:    do i=1,nbuf
        if(comand.eq.'kz      ') then
 !                    -->    kanalzusammenfassung
 ! ---- build now the symmetric average on the right side ---
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= kz <nk>                                                                     '
+           write(6,*)'=    contraction of spectra by adding <nk> adjacent channele                  '
+           write(6,*)'=    channel width paramezters etc. are update in the parameterlist           '
+           write(6,*)'=    such that spectra fitting stays with the proper _xwidth                  '
+           write(6,*)'=    The contratction is on place (i.e.)                                      '
+           write(6,*)'=    All selected items are treated                                           '
+           write(6,*)'=============================================================================='
+        endif
+
          kz = NINT(rpar(1))
          if(kz.lt.2) goto 2000
          if(nsel.lt.1) then
@@ -1765,6 +1807,16 @@ da12:    do i=1,nbuf
 !                    ----->    kanalzusammenfassung mit Kopie auf
 !                              neuen Platz
 ! 
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= rebin <nk>                                                                  '
+           write(6,*)'=    contraction of spectra by adding <nk> adjacent channele                  '
+           write(6,*)'=    channel width paramezters etc. are update in the parameterlist           '
+           write(6,*)'=    such that spectra fitting stays with the proper _xwidth                  '
+           write(6,*)'=    The contracted spectra are stored on new records.                        '
+           write(6,*)'=    All selected items are treated   (similar kz)                            '
+           write(6,*)'=============================================================================='
+        endif
          kz = NINT(rpar(1))
          if(kz.lt.2) goto 2000
          if(nsel.lt.1) then
@@ -1850,7 +1902,17 @@ da12:    do i=1,nbuf
        if(comand.eq.'rerange ') then
 !                    ----->    neuer x-range durch selektion
 !                              neuen Platz
-! 
+!           
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= rerange <min> <max>     [y]                                                 '
+           write(6,*)'=    copy of selected records such that                                       '
+           write(6,*)'=    only values betwen min < x|y < max  are retained , y: yrange             '
+           write(6,*)'=    without option x-range is pertained                                      '
+           write(6,*)'=============================================================================='
+        endif
+
+
          lower_range = rpar(1)
          upper_range = rpar(2)
          range_is_y  = found('y       ')
@@ -1900,6 +1962,14 @@ drer1:    do ik=1,n
        if(comand.eq.'swapxy   ') then
 !                    ----->    vertauschen von x und y
 !                              
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= swapxy                                                                      '
+           write(6,*)'=    role of x amd y-values are exchanged                                     '
+           write(6,*)'=    NOTE: y-errors are lost                                                  '
+           write(6,*)'=    operation is on place no new copies!                                     '
+           write(6,*)'=============================================================================='
+        endif
 ! 
          if(nsel.lt.1) then
            write(6,*)'no items selected, use sel !'
@@ -1928,6 +1998,14 @@ drer1:    do ik=1,n
        if(comand.eq.'sequence   ') then
 !                    ----->  sequence  
 !                                       
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= sequence                                                                    '
+           write(6,*)'=    replace x-values by sequence numbers 1..n                                '
+           write(6,*)'=    operation is on place, previous x-values are lost                        '
+           write(6,*)'=============================================================================='
+        endif
+
          if(nsel.lt.1) then
            write(6,*)'no items selected, use sel !'
            goto 2000
@@ -1949,6 +2027,14 @@ drer1:    do ik=1,n
        if(comand.eq.'copy   ') then
 !                    ----->  copy 
 !                                       
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= copy [x1 <min> x2 <max>                                                     '
+           write(6,*)'=    copy of selected records to new record buffers                           '
+           write(6,*)'=    if x1, x2 are given only x-values within the interval are copied         '
+           write(6,*)'=============================================================================='
+        endif
+
          if(nsel.lt.1) then
            write(6,*)'no items selected, use sel !'
            goto 2000
@@ -1991,7 +2077,15 @@ drer1:    do ik=1,n
 
        if(comand.eq.'scale   ') then
 !                    ----->    Skalierung der Intesnitaet          
-!                              
+
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= scale <factor>                                                              '
+           write(6,*)'=    scales selected spectra with a factor, bookkeeping in parameter section  '
+           write(6,*)'=    also for gaussian resolution parameters and errors                       '
+           write(6,*)'=============================================================================='
+        endif
+                              
          if(ipars.ne.1) then
            write(6,*)'ERROR: need just one value as parameter..'
            ierrs = 1
@@ -2047,6 +2141,14 @@ drer1:    do ik=1,n
        if(comand.eq.'gaiscale') then
 !                    -------->    Skalierung der Aufloesungsparameter
 !                              
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= gaiscale <factor>                                                           '
+           write(6,*)'=    scaling of the gaussian resolution parameters associated                 '
+           write(6,*)'=    with the selected spectra                                                '
+           write(6,*)'=============================================================================='
+        endif
+
          if(ipars.ne.1) then
            write(6,*)'ERROR: need just one value as parameter..'
            ierrs = 1
@@ -2075,6 +2177,16 @@ drer1:    do ik=1,n
        if(comand.eq.'interpol') then
 !                    ---->  interpolate
 ! ---- build now the symmetric average on the right side ---
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= interpol <n>                                                                '
+           write(6,*)'=    creates a clone of the firts (only) item of the selection list           '
+           write(6,*)'=    by interpolating y-values such that the x-range is covered by <n>        '
+           write(6,*)'=    equidistant points.                                                      '
+           write(6,*)'=    Errors are NOT treated (yet)                                             '
+           write(6,*)'=============================================================================='
+        endif
+
          ia = isels(1)
          ib = nbuf+1
          if(ib.gt.mbuf) ib=mbuf
@@ -2097,6 +2209,13 @@ drer1:    do ik=1,n
 !
        if(comand.eq.'addsels ') then
 !                    ---->  summation over selected records : will become obsolete due to name
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= addsels                                                                     '
+           write(6,*)'=    creates record containing the sum of all selected (compatible)           '
+           write(6,*)'=    records.      (similar recsum)                                           '
+           write(6,*)'=============================================================================='
+        endif
          call sumseldat
          goto 2000
        endif
@@ -2104,6 +2223,13 @@ drer1:    do ik=1,n
 !
        if(comand.eq.'recsum  ') then
 !                    ---->  summation over selected records: the new one
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= recsum from <n1> to <n2>                                                    '
+           write(6,*)'=    creates record containing the sum of all records from a continuous       '
+           write(6,*)'=    address range <n1> .. <n2>      (similar addsels)                        '
+           write(6,*)'=============================================================================='
+        endif
          if(found('from    ')) then
            ia = intval('from    ',isels(1),inew)
            ib = intval('to      ',isels(nsel),inew)
@@ -2120,6 +2246,16 @@ drer1:    do ik=1,n
 !
        if(comand.eq.'parextra') then
 !                    ---> parabola extrapolation to q--> 0
+
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= parextra                                                                    '
+           write(6,*)'=    adds a point with x = 0 by parabola extrapolation of data starting with  '
+           write(6,*)'=    finite x-values (e.g. extrapolation of SANS data to q=0)                 '
+           write(6,*)'=    only the first selected record is treated                                '
+           write(6,*)'=============================================================================='
+        endif
+
          if(nsel.eq.0) then
            write(6,*)'no curve selected'
            goto 2000
@@ -2161,6 +2297,13 @@ drer1:    do ik=1,n
        if(comand.eq.'hiqextra') then
 !                    ---> extrapolation for high q .
 !                         data == a*q^z
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= hiqextra <xcut>                                                             '
+           write(6,*)'=    adds points from hiq x (q) extrapolation by a*q^z  up to x=xcut          '
+           write(6,*)'=    only the first selected record is treated                                '
+           write(6,*)'=============================================================================='
+        endif
          if(nsel.eq.0) then
            write(6,*)'no curve selected'
            goto 2000
@@ -3358,22 +3501,33 @@ exclude:   if(found('exclude  ')) then
 !
        if(comand.eq.'rename  ') then
 !                    ------
-         do j=1,inames
-           do i=1,nsel
-             iaddp = isels(i)
-             if(vname(j).eq.'xaxis   ') xname(iaddp) = vname(j+1)
-             if(vname(j).eq.'yaxis   ') yname(iaddp) = vname(j+1)
-             if(vname(j).eq.'name    ')  name(iaddp) = vname(j+1)
-           enddo
-           do i=1,nfsel
-             iaddp = isfits(i)
-             if(vname(j).eq.'xaxis   ') xname(iaddp) = vname(j+1)
-             if(vname(j).eq.'yaxis   ') yname(iaddp) = vname(j+1)
-             if(vname(j).eq.'name    ')  name(iaddp) = vname(j+1)
-           enddo
-         enddo
-         goto 2000
-       endif
+          if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= rename  xaxis <xaxisname>                                                   '
+           write(6,*)'= rename  yaxis <yaxisname>                                                   '
+           write(6,*)'= rename  name  <shortname>                                                   '
+           write(6,*)'=                                                                             '
+           write(6,*)'= max. length of names: ', len(xname(1)), len(yname(1)), len(name(1))
+           write(6,*)'= for compatibility reasons try to stay with length of 8                      '
+           write(6,*)'=============================================================================='
+        endif
+
+             do j=1,inames
+               do i=1,nsel
+                 iaddp = isels(i)
+                 if(vname(j).eq.'xaxis   ') xname(iaddp) = argvals(j+1)(1:len(xname(1)))
+                 if(vname(j).eq.'yaxis   ') yname(iaddp) = argvals(j+1)(1:len(yname(1)))
+                 if(vname(j).eq.'name    ')  name(iaddp) = argvals(j+1)(1:len( name(1)))
+               enddo
+               do i=1,nfsel
+                 iaddp = isfits(i)
+                 if(vname(j).eq.'xaxis   ') xname(iaddp) = argvals(j+1)(1:len(xname(1)))
+                 if(vname(j).eq.'yaxis   ') yname(iaddp) = argvals(j+1)(1:len(yname(1)))
+                 if(vname(j).eq.'name    ')  name(iaddp) = argvals(j+1)(1:len( name(1)))
+               enddo
+             enddo
+             goto 2000
+           endif
 !
 !
        if(comand.eq.'dispsel '.or.comand.eq.'dsl     ') then
@@ -3443,6 +3597,7 @@ exclude:   if(found('exclude  ')) then
 !
        if(comand.eq.'edit    ') then
 !                    ----
+
          ispc = rpar(1) + 0.001
          if(ispc.eq.0) ispc = isels(1)
          if(vname(1).eq.'sc      '.or.vname(1).eq.'numor   ') then
@@ -4223,7 +4378,8 @@ exclude:   if(found('exclude  ')) then
          
 
        integer              :: i, j, jc, ii
-       real                 :: x, xx, y1, y2, e1, e2, dist,p,y,ye
+!?       real                 :: x, xx, y1, y2, e1, e2, dist,p,y,ye
+       real                 :: x, xx, dist,p,y,ye
  
        nout = 0
 ! assuming nontrivial length check
@@ -4352,7 +4508,8 @@ exclude:   if(found('exclude  ')) then
 
       double precision, save        :: xcatch = 0.05d0
       integer                       :: inew, ier
-      integer                       :: i,j,k,n
+!?      integer                       :: i,j,k,n
+      integer                       :: i,j,n
       integer                       :: number_of_data_points
       integer                       :: n_result_point
       character(len=8)              :: cbuf

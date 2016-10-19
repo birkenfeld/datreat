@@ -826,7 +826,7 @@ END Module PhysicalConstantsPlus
 ! in SI units (i.e. in 1/m)
     implicit none
 
-    double precision              :: number_of_segments
+!?    double precision              :: number_of_segments
     double precision              :: volume_per_segment
     double precision              :: molweight_per_segment
 

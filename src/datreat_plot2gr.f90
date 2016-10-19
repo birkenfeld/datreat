@@ -56,9 +56,11 @@
      &          ,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41  &
      &          ,42,43/
       real :: txsize=.45,sysize=.1
-      real :: framx=23.,framy=23.,yensca=0.,frlux=4.,frluy=4.
+!?      real :: framx=23.,framy=23.,yensca=0.,frlux=4.,frluy=4.
+      real :: framx=23.,framy=23.,frlux=4.,frluy=4.
       real :: epscl=0.001
-      integer :: ifont=1, icol0=1, ixmode=1
+!?      integer :: ifont=1, icol0=1, ixmode=1
+      integer :: ifont=1, icol0=1
       real :: txsizt=.23,xtshft=0.,ytshft=0.
 
       real frxx, fryy, ytxs, yma_s, ymi_s, xh, xtxs, sysiz, ytx
@@ -154,7 +156,7 @@
             do 5 l=1,inpar(i)
              nkurv = nkurv + 1
              if(nkurv.gt.minc) goto 31
-             irecv(nkurv) = rpar(j) * 1.000001
+             irecv(nkurv) = Nint(rpar(j))
              j = j + 1
     5       continue
           endif
@@ -166,7 +168,7 @@
             do 641 l=1,inpar(i)
              nfkurv = nfkurv + 1
              if(nfkurv.gt.minc) goto 64
-             ifrec(nfkurv) = rpar(j) * 1.000001
+             ifrec(nfkurv) = Nint(rpar(j))
              j = j + 1
   641       continue
           endif
@@ -672,12 +674,14 @@ scl:   if(found('scaled  ')) then
        real*8 dble, getval, val
 !
       real :: xmin=0.,xmax=4.,ymin=0.,ymax=2.
-      integer :: nkurv=0, ifont=1, icol0=1, ixmode=1
+!?      integer :: nkurv=0, ifont=1, icol0=1, ixmode=1
+      integer :: ifont=1, icol0=1
       data isymb/4,5,23,6,16,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21  &
      &          ,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41  &
      &          ,42,43/
       real :: txsize=.45,sysize=.1
-      real :: framx=23.,framy=23.,yensca=0.,frlux=4.,frluy=4.
+!      real :: framx=23.,framy=23.,yensca=0.,frlux=4.,frluy=4.
+      real :: framx=23.,framy=23.,frlux=4.,frluy=4.
       real :: epscl=0.001
       data icolo/minc * 1/
       DATA OPART/'X=1     ','Y=1     ','I       ','A       ',           &
