@@ -267,8 +267,8 @@
       logical :: final_thc=.false., sqwbuf=.false.
 
 ! ---- defaults for parameters -----
-       integer :: maxfn = 500, ngood = 0, maxit = 0, iprint = 1, irecse = 0
-       real :: stpsz = 0.0, trure = 0.0
+       integer :: maxfn = 100, ngood = 0, maxit = 0, iprint = 1, irecse = 0
+       real    :: stpsz = 0.0, trure = 0.0
 
 ! ---- take parameters from stack ----
        sqwght= sqwbuf
@@ -299,9 +299,9 @@
           numv(l) = Nint(rpar(j+l-1))
  7001    continue
        endif
-       if(ci.eq.'maxfn   '                    ) maxfn = rpar(j) + 0.001
-       if(ci.eq.'maxit   '                    ) maxit = rpar(j) + 0.001
-       if(ci.eq.'ngood   '                    ) ngood = rpar(j) + 0.001
+       if(ci.eq.'maxfn   '                    ) maxfn = Nint(rpar(j))
+       if(ci.eq.'maxit   '                    ) maxit = Nint(rpar(j))
+       if(ci.eq.'ngood   '                    ) ngood = Nint(rpar(j))
        if(ci.eq.'maxstep '                    ) stpsz = rpar(j)
        if(ci.eq.'trustreg'                    ) trure = rpar(j)
        if(ci.eq.'relerr  '                    ) lerrel= .true.
@@ -339,7 +339,8 @@
       if(igo.eq.0) return
  1000 continue
 !
-          iprt = iprint
+          icall = 0
+          iprt  = iprint
 !
           write(6,*)' startparameters : '
           call activa(2)
@@ -347,6 +348,7 @@
 ! ---- prepare startvalues -----
           if(ntheos.eq.0) then
             write(6,*)' fit ==> no theories activated ...'
+            call errsig(999,"ERROR: fit no theories active!$")
             return
           endif
 !
@@ -376,6 +378,17 @@
         write(6,*)' no. of sample points m = ',m
         if(.not.autox1) write(6,*)'set lower limit of x: x1=',x1
         if(.not.autox2) write(6,*)'set upper limit of x: x2=',x2
+!
+!>
+        if(n<=0) then
+          call errsig(999,"ERROR: fit number of fitparameters is 0!$")
+          return
+        endif
+        if(m<=0) then
+          call errsig(999,"ERROR: fit number of active data points is 0!$")
+          return
+        endif
+!<
 !
 ! ------ imsl version 10 :  setup of some new vectors ------------------
 !        to meet the function of the old zxssq approximately
@@ -866,13 +879,13 @@
        implicit none
        integer m, nff
        real      x(mfit),f(msmpl)
-       integer npar, nfit, n, mn, ith, isel, ipt, it, ip, ier, icall, iad1, iad2, i
+       integer npar, nfit, n, mn, ith, isel, ipt, it, ip, ier, iad1, iad2, i
        real xx, ssq, ferr
 
 !
 ! ---- restore startvalues & parameters ----
 !
-          icall = 0
+
           nfit = 0
           do 10 it =1,ntheos
             ith = nthtab(it)
@@ -959,7 +972,7 @@
 ! ---- output if option is set ---
        ssq = ssq/m
        if(iprt.gt.0) write(6,200)icall,ssq,(x(i),i=1,nfit)
-  200  format(' ',i4,': ssq=',5e12.4/(23x,4e12.4))
+  200  format(' ',i8,': ssq=',5e12.4/(23x,4e12.4))
        call setudf('ssq0 ',dble(ssq),ier)
        fcssq = ssq
 !

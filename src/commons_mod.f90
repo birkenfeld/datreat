@@ -3,7 +3,7 @@
    save
    integer, parameter :: c_MINC        = 40
    integer, parameter :: c_MDEPTH      = 20
-   integer, parameter :: c_MUSEVAR     = 100
+   integer, parameter :: c_MUSEVAR     = 300
    integer, parameter :: c_MBUF        = 1200
    integer, parameter :: c_MWERT       = 10000
    integer, parameter :: c_MPAR        = 400
@@ -457,6 +457,7 @@
                 use dimensions
 		save
 		integer iprt
+                integer :: icall
 		logical sqwght
 		real x1
 		real x2

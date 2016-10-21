@@ -1397,58 +1397,59 @@ da12:    do i=1,nbuf
 !                                       but this is clear an simple                        
         if(found('help    ')) then 
            write(6,*)'=============================================================================='
-           write(6,*)'= integrat <x1> <x2>                                                          '
+           write(6,*)'= integrat x1 <x1> x2 <x2>                                                    '
            write(6,*)'=        approximates integral from binned data over the given range          '
            write(6,*)'=        by simple summation of data times bin-width                          '
            write(6,*)'=        there may be better interpolation based schemes                      '
            write(6,*)'=        but this is clear an simple                                          '
-           write(6,*)'=        only the first select record is used                                 '
-           write(6,*)'=============================================================================='
+            write(6,*)'=============================================================================='
+           goto 2000
         endif
-         if(nsel.eq.1) then
-           iad1 = isels(1)
-         else
-           write(6,*)'select one and only one record'
-           ierrs= 1
+         if(nsel<1) then
+           call errsig(200,"ERROR: integrat slect at least one record$")
            goto 2000
          endif
 ! --- start the computation --- these are the integration limits
+ 
          x1int        = getval('x1      ',dble(x1int),inew)
          x2int        = getval('x2      ',dble(x2int),inew)
-         
-         i1int = 1
-         i2int = nwert(iad1)
-         
-         do i=1,nwert(iad1)-1
-          if(xwerte(i,iad1).le.x1int .and.xwerte(i+1,iad1).gt.x1int) i1int=i
-          if(xwerte(i,iad1).le.x2int .and.xwerte(i+1,iad1).gt.x2int) i2int=i
-         enddo
-
-         
-         sum   = (xwerte(i1int,iad1)-x1int)*ywerte(i1int,iad1)
-         sumer = ((xwerte(i1int,iad1)-x1int)*yerror(i1int,iad1))**2       
-
-         sum   = sum + (x2int-xwerte(i2int,iad1))*ywerte(i2int,iad1)
-         sumer = sumer + ((x2int-xwerte(i2int,iad1))*yerror(i2int,iad1))**2
-         do i=i1int+1,i2int-1
-           sum   = sum   + (xwerte(i+1,iad1)-xwerte(i,iad1))*ywerte(i+1,iad1)
-           sumer = sumer + ((xwerte(i+1,iad1)-xwerte(i,iad1))*yerror(i+1,iad1))**2
-         enddo
-        
-         sumer = sqrt(sumer)
-
-         write(6,'(a,e13.6,a,e13.6)')'integral from: ',x1int,' (',xwerte(i1int,iad1),' )'
-         write(6,'(a,e13.6,a,e13.6)')'           to: ',x2int,' (',xwerte(i2int,iad1),' )'
+ 
+         do j=1,nsel
+            iad1 = isels(j)         
+            i1int = 1
+            i2int = nwert(iad1)
+            
+            do i=1,nwert(iad1)-1
+             if(xwerte(i,iad1).le.x1int .and.xwerte(i+1,iad1).gt.x1int) i1int=i
+             if(xwerte(i,iad1).le.x2int .and.xwerte(i+1,iad1).gt.x2int) i2int=i
+            enddo
        
-         write(6,*                  )'         ===>: ',sum, '+-', sumer
-!         xwerte( nwert(iad1), iad1 ) = rpar(1)
-!         ywerte( nwert(iad1), iad1 ) = rpar(2)
-!         yerror( nwert(iad1), iad1 ) = rpar(2)
-
-         call parset ('integral',sum        ,iad1 ) 
-         call parset ('x1integ ',x1int      ,iad1 ) 
-         call parset ('x2integ ',x2int      ,iad1 ) 
-
+            
+            sum   = (xwerte(i1int,iad1)-x1int)*ywerte(i1int,iad1)
+            sumer = ((xwerte(i1int,iad1)-x1int)*yerror(i1int,iad1))**2       
+       
+            sum   = sum + (x2int-xwerte(i2int,iad1))*ywerte(i2int,iad1)
+            sumer = sumer + ((x2int-xwerte(i2int,iad1))*yerror(i2int,iad1))**2
+            do i=i1int+1,i2int-1
+              sum   = sum   + (xwerte(i+1,iad1)-xwerte(i,iad1))*ywerte(i+1,iad1)
+              sumer = sumer + ((xwerte(i+1,iad1)-xwerte(i,iad1))*yerror(i+1,iad1))**2
+            enddo
+           
+            sumer = sqrt(sumer)
+       
+            write(6,*)"================= Record: ",iad1,"  ===================="
+            write(6,'(a,i9,1x,e13.6,a,e13.6,a)')'integral from: ',i1int,x1int,' (',xwerte(i1int,iad1),' )'
+            write(6,'(a,i9,1x,e13.6,a,e13.6,a)')'           to: ',i2int,x2int,' (',xwerte(i2int,iad1),' )'
+          
+            write(6,*                  )'         ===>: ',sum, '+-', sumer
+!            xwerte( nwert(iad1), iad1 ) = rpar(1)
+!            ywerte( nwert(iad1), iad1 ) = rpar(2)
+!            yerror( nwert(iad1), iad1 ) = rpar(2)
+       
+            call parset ('integral',sum        ,iad1 ) 
+            call parset ('x1integ ',x1int      ,iad1 ) 
+            call parset ('x2integ ',x2int      ,iad1 ) 
+         enddo 
          goto 2000
        endif
 !
