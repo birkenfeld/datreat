@@ -1995,6 +1995,7 @@
       else
         write(6,*)'uservar set: buffer is full ! error'
         ier = 200
+        call errsig(200,"ERROR: uservar buffer is full!$")
       endif
       return
       END

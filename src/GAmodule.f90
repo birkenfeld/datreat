@@ -414,6 +414,11 @@
    write(6,*)' variables       : ', nx
    write(6,*)'==================================='
 
+   if(nx <= 0) then
+     call errsig(999,"ERROR GA evolve: number of variables is zero!$")
+     return
+   endif
+
    mutation_probability     = mutation_rate
    bitcoding                = bitresolution
 

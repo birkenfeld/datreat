@@ -448,6 +448,25 @@
 
        if(comand.eq.'echocurv') then
 !                    ---------
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= echocurv j <j> ......                                                       '
+           write(6,*)'=    computation of simulated phase scan of NSE for a simple Lorenzian spect. '
+           write(6,*)'=    ft by integration assuming gaussian distribution functions               '
+           write(6,*)'=    parameters:                                                              '
+           write(6,*)'=      j   <val>        : field integral                                      '
+           write(6,*)'=      dj  <val>        : asymmetry (phase0)                                  '
+           write(6,*)'=      j0delta <val>    : inhomogeneity offset (external fields..)            '
+           write(6,*)'=      ddj <val>        : phase scan step (field integral)                    '
+           write(6,*)'=      n <val>          : number of points in scan                            '
+           write(6,*)'=      cdelta <val>     : relative inhomogeneity                              '
+           write(6,*)'=      lambda0 <val>    : wavelength                                          '
+           write(6,*)'=      dlambda <val>    : wavelength width                                    '
+           write(6,*)'=      tau <val>        : relaxation time --> spectrum                        '
+           write(6,*)'=      errabs <> errel <> maxint  : integration parameters                    '
+           write(6,*)'=============================================================================='
+        endif
+
          if(nbuf.lt.mbuf) then
             ia1  =  nbuf+1
             nbuf =  ia1
@@ -932,6 +951,20 @@
 
        if(comand.eq.'uni_ft   ') then
 !                    -------
+          if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= uni_ft [store_at <n>] [resnorm]  [rexpand <val>]  [reslim <val>]            '
+           write(6,*)'=      performs fourier transform of the first selected records               '
+           write(6,*)'=      the second selected record (may) hold the resolution                   '
+           write(6,*)'=   options:                                                                  '
+           write(6,*)'=            resnorm : normalisation to resolution intensity                  '
+           write(6,*)'=            rexpand : multiplies (instead of adding)                         '
+           write(6,*)'=            reslim:   limit for resolution at deconvolution                  '
+           write(6,*)'=   spectrum x-axis unit given by valid names: micro-eV, meV, GHz, omega      '
+           write(6,*)'=   intermediate results (Ft(data), Ft(res), ..) are stored on etra records   '
+           write(6,*)'=============================================================================='
+           goto 2000
+        endif
 
          if(nsel.le.0) then
            write(6,*)'error: no data records selected: no action !'
@@ -939,7 +972,7 @@
            write(6,*)'select the data record and the resolution record '
            write(6,*)'using the sel command; sequence of selcted items matters! '
            write(6,*)'if only one record is selected, only simple FT without '
-           write(6,*)'deconvolution si performed'
+           write(6,*)'deconvolution is performed'
            ierrs = 1
            goto 2000
          endif 
