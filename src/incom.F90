@@ -394,8 +394,12 @@
              enddo
           endif
          endif
-         call system(trim(buf))
-         goto 8888
+         write(6,'(a,a,a)')"! system command: >",trim(buf),"<"
+ !        call system(trim(buf))
+         call execute_command_line (trim(buf), exitstat=irc)
+         mask_err =.false.
+         if(irc.ne.0) call errsig(1000+irc,"system command return code is nonzero$")
+        goto 8888
        endif
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ! history anzeigen                             | history    hist
@@ -420,7 +424,9 @@
        endif
 !
 
- !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+!!!! OSOLETES !!>>>
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ! cd - kommando absetzen                             | cd <dir >
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
        if(comand.eq.'cd     ') then
@@ -442,6 +448,8 @@
          call system('pwd')
                         goto 8888
        endif
+!!!<<<<<
+
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ! output"level" setzen:                               | iout <iout>
@@ -819,8 +827,18 @@
                                 enddo
           endif
          endif
-                call system(trim(buf))
-                If (irc .ne. -1) return
+         
+         write(6,'(a,a,a)')"! system command: >",trim(buf),"<"
+!         call system(trim(buf))
+         call execute_command_line (trim(buf), exitstat=irc)
+ !        write(6,*)"IRC = ",irc
+         if(irc.ne.0) then
+           call errsig(1000+irc,"system command return code is nonzero$")
+         else
+           ierrr = 0
+         endif
+        
+         If (irc .ne. -1) return
 
 !        back from (s)hell
 !###################################################

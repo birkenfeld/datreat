@@ -209,6 +209,10 @@
                         write(6,*)'=  .... up to 80 theories, 40 th-params, 300 uservars            ='
                         write(6,*)'=  fit: maxfn , ngood  parameters revitalized                    ='
                         write(6,*)'=  .... more commands with help option, try <cmd> help           ='
+                        write(6,*)'=  .... improved output formats in plots and lastth              ='
+                        write(6,*)'=  .... observes ERROR (and stops makros in expression eval)     ='
+                        write(6,*)'=  HINT: use sys to issue system commands including -,+ ...      ='
+                        write(6,*)'=        do this always in makros                                ='
                         write(6,*)'=================================================================='
                         write(6,*)' Pi = ',pi
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -4008,13 +4012,13 @@ exclude:   if(found('exclude  ')) then
        endif
 !
 
-       if(comand.eq.'gplot    '.or.comand.eq.'gp      ') then
+       if(comand.eq.'gplot    ') then
 !                    -----> plot selected curves
          call gplot()
          goto 2000
        endif
 !
-       if(comand.eq.'plot    '.or.comand.eq.'p       ') then
+       if(comand.eq.'plot    '.or.comand.eq.'p       '.or.comand.eq.'gp      ') then
 !                    -----> plot selected curves
          call splot(.true.)
 !         ibild1 = ibild

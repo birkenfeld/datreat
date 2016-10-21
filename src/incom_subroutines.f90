@@ -240,6 +240,8 @@
       subroutine errsig(ierr,say)
 !     ================================
       use xoutxx
+      use cincoc
+      use imargs
       implicit none
       integer ierr, laenge, lsay
       character*128 say, sayit
@@ -253,8 +255,13 @@
       ierrr = ierr
       lsay = laenge(say,80,'$')
       sayit = say(1:lsay)
-      write(6,*)'error:',ierr,' ',trim(sayit)
-      return
+      write(6,*)"!====================================================== "
+      write(6,*)"!!ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR "
+      write(6,*)"!! ",trim(sayit)
+      write(6,*)"!!Macro nesting level: ",ktop
+      write(6,*)"!!last input: ",trim(inline)
+      write(6,*)"!====================================================== "
+       return
       END
 
 
@@ -1860,7 +1867,7 @@
        if(ierrx.ne.0 .and. iout.ge.1) write(6,*)'evaluate: ',(formula(i),i=0,len),' to ',val
 
 !>new
-       if(ierr.ne.0) call errsig(999,"ERROR: term evaluation failed!$")
+       if(ierr.ne.0) call errsig(999,"ERROR: term evaluation>"//trim(f)//"< failed!$")
 
        return
       END
