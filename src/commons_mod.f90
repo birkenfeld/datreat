@@ -126,6 +126,7 @@
 		save
 		integer :: iot=0
 		integer :: ierrr=0
+                logical :: mask_err = .false.
 	end module xoutxx
 
 	module xroxxx

@@ -246,6 +246,10 @@
 ! ----------------------------------------------------------------------
 !  error signalisierung
 ! ----------------------------------------------------------------------
+!
+! if Masked stay tacid !
+      if(mask_err) return
+
       ierrr = ierr
       lsay = laenge(say,80,'$')
       sayit = say(1:lsay)
@@ -1854,7 +1858,11 @@
 
        call scan(formula,valnum,ierrx)
        if(ierrx.ne.0 .and. iout.ge.1) write(6,*)'evaluate: ',(formula(i),i=0,len),' to ',val
-			 return
+
+!>new
+       if(ierr.ne.0) call errsig(999,"ERROR: term evaluation failed!$")
+
+       return
       END
 
 

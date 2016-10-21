@@ -1893,7 +1893,7 @@
               write(buf1,*)'theory   ',thenam(ith)
            endif
            if(thrapar(i).ne.'        ') then
-              write(buf2,'(2a8,a5,e13.6,a5,e13.6)')' range ',           &
+              write(buf2,'(2a8,a5,g13.6,a5,g13.6)')' range ',           &
      &             thrapar(i),' min ',thramin(i),' max ', thramax(i)
            else
               buf2 = ' '
@@ -1926,8 +1926,8 @@
              write(kk,170)thpala(j,i),thparn(j,ith),thparx(j,i),        &
      &                    thpsca(j,i),therro(j,i),                      &
      &                    (thpalc(l,j,i),thpafc(l,j,i),l=1,ncoup(j,i))
-  170      format(1x,a4,1x,a8,1x,e12.4,1x,e8.1,1x,e9.2,                 &
-     &                                              10(1x,a4,1x,f5.2))
+  170      format(1x,a4,1x,a8,1x,g15.7,1x,g10.3,1x,g12.5,             &
+     &                                              10(3x,a4,1x,g12.5))
   150     continue
           write(kk,*)'end'
           if(thenam(nthtab(1)).eq.'eval    ') write(kk,*)yfitform
@@ -4471,8 +4471,6 @@
 
 
 
-
-
       subroutine usrfun(nam,x,nx,ier)
 !     -------------------------------
 
@@ -4530,6 +4528,7 @@
         endif
         ibuf = x(nx-1)+0.01
         iwert= x(nx)  +0.01
+        call index_check(iwert,ibuf)
         x(nx-1) = ywerte(iwert,ibuf)
         nx = nx-1
         return
@@ -4542,6 +4541,7 @@
         endif
         ibuf = x(nx-1)+0.01
         iwert= x(nx)  +0.01
+        call index_check(iwert,ibuf)
         x(nx-1) = xwerte(iwert,ibuf)
         nx = nx-1
         return
@@ -4554,6 +4554,7 @@
         endif
         ibuf = x(nx-1)+0.01
         iwert= x(nx)  +0.01
+        call index_check(iwert,ibuf)
         x(nx-1) = yerror(iwert,ibuf)
         nx = nx-1
         return
@@ -4566,6 +4567,7 @@
         endif
         ibuf = x(nx-1)+0.01
         iwert= x(nx)  +0.01
+        call index_check(iwert,ibuf)
         x(nx-1) = tof_omega(iwert,ibuf)
         nx = nx-1
         return
@@ -4578,6 +4580,7 @@
         endif
         ibuf = x(nx-1)+0.01
         iwert= x(nx)  +0.01
+        call index_check(iwert,ibuf)
         x(nx-1) = tof_omega(iwert,ibuf)*Planckkonstante/2/Pi/Elektronenladung*1d3
         nx = nx-1
         return
@@ -4607,8 +4610,10 @@
           return
         endif
         inumr= NINT(x(nx))
+        iwert =1
+        call index_check(iwert,inumr)
         iadr = nwert(inumr)
-        x(nx) = iadr*1.00000001
+        x(nx) = iadr + 1d-6
         return
       endif
 
@@ -4617,7 +4622,9 @@
           ier =1
           return
         endif
-        inumr= x(nx)+0.001
+        inumr= Nint(x(nx))
+        iwert =1
+        call index_check(iwert,inumr)
         iadr = numor(inumr)
         x(nx) = iadr*1.00000001
         return
@@ -4628,7 +4635,9 @@
           ier =1
           return
         endif
-        inumr= x(nx)+0.001
+        inumr= Nint(x(nx))
+        iwert =1
+        call index_check(iwert,inumr)
         iadr = isels(inumr)
         x(nx) = iadr*1.00000001
         return
@@ -4639,9 +4648,11 @@
           ier =1
           return
         endif
-        ibuf  = x(nx-2)+0.01
-        iwert = x(nx-1)+0.01
-        iwert2= x(nx  )+0.01
+        ibuf  = Nint(x(nx-2))
+        iwert = Nint(x(nx-1))
+        iwert2= Nint(x(nx  ))
+        call index_check(iwert,inumr)
+        call index_check(iwert2,inumr)
         sum = 0
 !        write(6,*) iwert,min(iwert,nwert(ibuf))
 !        write(6,*) iwert2,min(iwert2,nwert(ibuf))
@@ -4658,9 +4669,12 @@
           ier =1
           return
         endif
-        ibuf  = x(nx-2)+0.01
-        iwert = x(nx-1)+0.01
-        iwert2= x(nx  )+0.01
+
+        ibuf  = Nint(x(nx-2))
+        iwert = Nint(x(nx-1))
+        iwert2= Nint(x(nx  ))
+        call index_check(iwert,inumr)
+        call index_check(iwert2,inumr)
         sum = 0
 !        write(6,*) iwert,min(iwert,nwert(ibuf))
 !        write(6,*) iwert2,min(iwert2,nwert(ibuf))
@@ -4677,9 +4691,12 @@
           ier =1
           return
         endif
-        ibuf  = x(nx-2)+0.01
-        iwert = x(nx-1)+0.01
-        iwert2= x(nx  )+0.01
+
+        ibuf  = Nint(x(nx-2))
+        iwert = Nint(x(nx-1))
+        iwert2= Nint(x(nx  ))
+        call index_check(iwert,inumr)
+        call index_check(iwert2,inumr)
         sum = 0
         do i=min(iwert,nwert(ibuf)),min(iwert2,nwert(ibuf))
           sum = sum + xwerte(i,ibuf)
@@ -4696,6 +4713,8 @@
         endif
         ibuf  = x(nx-1)+0.01
         xh    = x(nx  )
+        iwert = 1
+        call index_check(iwert,ibuf)
 
         if(xh.lt.xwerte(1,ibuf) .or. xh.gt.xwerte(nwert(ibuf),ibuf))then
           x(nx-1) = 0
@@ -4722,6 +4741,9 @@
         endif
         ibuf  = x(nx-1)+0.01
         xh    = x(nx  )
+
+        iwert = 1
+        call index_check(iwert,ibuf)
 
         if(xh.lt.xwerte(1,ibuf) .or. xh.gt.xwerte(nwert(ibuf),ibuf))then
           x(nx-1) = 0
@@ -4755,8 +4777,9 @@
           ier =1
           return
         endif
-        iparn = x(nx-1)+0.01
-        itheo = x(nx  )+0.01
+        iparn = Nint(x(nx-1))
+        itheo = Nint(x(nx  ))
+        call index_check_th(iparn,itheo)
         x(nx-1) = thparx(iparn,itheo)
         nx = nx-1
         return
@@ -4768,9 +4791,10 @@
           ier =1
           return
         endif
-        iparn = x(nx-1)+0.01
-        itheo = x(nx  )+0.01
-        x(nx-1) = therro(iparn,itheo)
+        iparn = Nint(x(nx-1))
+        itheo = Nint(x(nx  ))
+        call index_check_th(iparn,itheo)
+         x(nx-1) = therro(iparn,itheo)
         nx = nx-1
         return
       endif
@@ -4782,12 +4806,61 @@
        pname(i:i) = nam(i:i)
       enddo
   111 continue
-      iiadr = x(nx) + 0.001
+      iiadr = Nint(x(nx))
+      iwert = 1
+      call index_check(iwert,iiadr)
       call parget (pname,pvalue,iiadr,ier)
       x(nx) = pvalue
 
+      if(ier .ne. 0) then
+        call errsig(999,"ERROR: parameter not found$")
+        write(6,*) pname,"(",iiadr,")"
+      endif
+
       return
-      END
+
+
+      CONTAINS
+
+      subroutine index_check(ipoint,irec)
+         implicit none
+         integer, intent(inout)  :: ipoint
+         integer, intent(inout)  :: irec          
+
+         if( irec < 1 .or. irec > nbuf) then
+           call errsig(999,"ERROR: index check record is out of range!$")
+           write(6,*)      " --> ", irec, "   max: ",nbuf
+           irec = 1
+         endif
+
+         if( ipoint < 1 .or. ipoint > nwert(irec)) then
+           call errsig(999,"ERROR: index check point number is out of range!$")
+           write(6,*)      " --> ", ipoint, "   max: ", nwert(irec)
+           ipoint = 1
+         endif
+
+      end subroutine index_check    
+
+       subroutine index_check_th(iparam,itheo)
+         implicit none
+         integer, intent(inout)  :: iparam
+         integer, intent(inout)  :: itheo          
+
+         if( itheo < 1 .or. itheo > ntheos) then
+           call errsig(999,"ERROR: index check th theorie is out of range!$")
+           write(6,*)      " --> ", itheo, "   max: ",ntheos
+           itheo = 1
+         endif
+
+         if( iparam < 1 .or. iparam > nthpar(itheo)) then
+           call errsig(999,"ERROR: index check point th parameter number is out of range!$")
+           write(6,*)      " --> ", iparam, "   max: ", nthpar(itheo)
+           iparam = 1
+         endif
+
+      end subroutine index_check_th    
+
+     END subroutine usrfun
 
 
       subroutine usrextr(nam,val,ier)

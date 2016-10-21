@@ -543,7 +543,8 @@ scl:   if(found('scaled  ')) then
              npar = nthpar(ith)
              if(npar.ne.0) then
                do 117 ip = 1,npar
-               write(xtext,'(a8,1h=,1e12.4,2h+-,e9.2,e8.1)')thparn(ip,ith),thparx(ip,it),therro(ip,it),thpsca(ip,it)
+!               write(xtext,'(a8,1h=,1e12.4,2h+-,e9.2,e8.1)')thparn(ip,ith),thparx(ip,it),therro(ip,it),thpsca(ip,it)
+               write(xtext,'(a8,1h=,1es12.5,2h+-,es9.2,es8.1)')thparn(ip,ith),thparx(ip,it),therro(ip,it),thpsca(ip,it)
                  call grtxt(xtx,ytx,33,xtext)
                  ytx = ytx - 1.7*txsizt
   117          continue
@@ -553,7 +554,7 @@ scl:   if(found('scaled  ')) then
 ! ---- plotted items ----
          do 101 i=1,nkurv
            ircu = isels(i)
-           write(xtext,'(a8,i14,a7,e13.6)') name(ircu),numor(ircu),' scale ',p_scale(i)
+           write(xtext,'(a8,i14,a7,es13.6)') name(ircu),numor(ircu),' scale ',p_scale(i)
            xtxs = xtx - 2*txsizt
            ytxs = ytx + txsizt / 2
            icco=mod(icolo(i),7) + 1
@@ -569,15 +570,16 @@ scl:   if(found('scaled  ')) then
            ytx = ytx - 1.7 * txsizt
            if(paplo) then
            do 1012 l=1,nopar(ircu)
-           write(xtext,'(a8,e14.5)')napar(l,ircu),params(l,ircu)
+ !          write(xtext,'(a8,e14.5)')napar(l,ircu),params(l,ircu)
+           write(xtext,'(a8,es14.6)')napar(l,ircu),params(l,ircu)
            call grtxt(xtx,ytx,22,xtext)
            ytx = ytx - 1.7 * txsizt
  1012      continue
            else
            do l=1,nopar(ircu)
             if(found(napar(l,ircu)//' ')) then
-              write(xtext,'(a8,e14.5)')napar(l,ircu),                   &
-     &                                 params(l,ircu)
+              write(xtext,'(a8,es14.6)')napar(l,ircu),                   &
+     &                                  params(l,ircu)
               call grtxt(xtx,ytx,22,xtext)
               ytx = ytx - 1.7 * txsizt
             endif
@@ -586,7 +588,7 @@ scl:   if(found('scaled  ')) then
 
            ircu = ifits(i)
            if(ircu.gt.0) then
-             write(xtext,'(a8,i14,a7,e13.6)') name(ircu),numor(ircu),' scale ',p_scale(i)
+             write(xtext,'(a8,i14,a7,es13.6)') name(ircu),numor(ircu),' scale ',p_scale(i)
              xtxs = xtx - 2*txsizt
              ytxs = ytx + txsizt / 2
              icco=mod(icolo(i),7) + 1
@@ -602,14 +604,14 @@ scl:   if(found('scaled  ')) then
              ytx = ytx - 1.7 * txsizt
              if(paplo) then
              do  l=1,nopar(ircu)
-             write(xtext,'(a8,e14.5)')napar(l,ircu),params(l,ircu)
+             write(xtext,'(a8,es14.6)')napar(l,ircu),params(l,ircu)
              call grtxt(xtx,ytx,22,xtext)
              ytx = ytx - 1.7 * txsizt
              enddo
              else
              do l=1,nopar(ircu)
               if(found(napar(l,ircu)//' ')) then
-                write(xtext,'(a8,e14.5)')napar(l,ircu),                 &
+                write(xtext,'(a8,es14.6)')napar(l,ircu),                 &
      &                                   params(l,ircu)
                 call grtxt(xtx,ytx,22,xtext)
                 ytx = ytx - 1.7 * txsizt

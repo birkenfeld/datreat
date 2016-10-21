@@ -185,11 +185,11 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                         write(6,*)
                         write(6,*)'======================================================='
-                        write(6,*)'=   datreat12_2     Version: mm-develop 2.2           ='
+                        write(6,*)'=   datreat12_2     Version: mm-develop 2.3           ='
                         write(6,*)'=   -----------     --------                          ='
                         write(6,*)'=   Author: M.Monkenbusch  R. Biehl, O.Holderer, JCNS ='
                         write(6,*)'======================================================='
-                        prompt = "#mm-develop 2.2 -> " 
+                        prompt = "#mm-develop 2.3 -> " 
                         write(6,*)
                         write(6,*)
                         write(6,*)
@@ -206,6 +206,9 @@
                         write(6,*)'=  arit0:    previous arit version                               ='
                         write(6,*)'=  get_th:   activates theory of msave files:: gth <filenam>     ='
                         write(6,*)'=  msave:    unlimited filename length                           ='
+                        write(6,*)'=  .... up to 80 theories, 40 th-params, 300 uservars            ='
+                        write(6,*)'=  fit: maxfn , ngood  parameters revitalized                    ='
+                        write(6,*)'=  .... more commands with help option, try <cmd> help           ='
                         write(6,*)'=================================================================='
                         write(6,*)' Pi = ',pi
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -302,6 +305,7 @@
          endif
        endif
        ierrs = 0
+!       mask_err = .false.
 !
 
        iibuf= isels(1)
