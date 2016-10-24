@@ -54,21 +54,21 @@ c
 
        real*8 a,b, domega, o0
        real*8 adapint, sum, result, result2, err, erraccu
-       real*8 kch3_kernel
-       external kch3_kernel
+!       real*8 kch3_kernel
+!       external kch3_kernel
 
 ! communication with Kernel
        double precision  ::  q, nch, nmg, rhh, betakww, taukww, uu
        double precision  ::  betafast, taufast, eisf2
-       common /ckohlch3/ q, nch, nmg, rhh, betakww, taukww, uu,
-     *                   betafast, taufast, eisf2
+!       common /ckohlch3/ q, nch, nmg, rhh, betakww, taukww, uu,
+!     *                   betafast, taufast, eisf2
 
 
        real*8 Omega, str_beta, str_tau0, str_delta, xwidth
-       common /cstrex1/Omega, str_beta, str_tau0, str_delta, xwidth
+!       common /cstrex1/Omega, str_beta, str_tau0, str_delta, xwidth
 
        real*8 ln_tau0, ln_beta, ln_width, cl_t
-       common /crlognor/ ln_tau0, ln_beta, ln_width, cl_t
+!       common /crlognor/ ln_tau0, ln_beta, ln_width, cl_t
 
 
 c
@@ -295,9 +295,13 @@ c ---- calculate theory here -----
        th_kohlfast = a0*sum 
 c
        return
-       end
+!       end
 
 
+
+
+
+       contains
 
 
        function kch3_kernel(t)
@@ -305,11 +309,11 @@ c
        implicit none
 
        double precision :: kch3_kernel
-       real*8 ftsq, t
+       real*8 t
       
 
-       real*8 Omega, str_beta, str_tau0, str_delta, xwidth
-       common /cstrex1/Omega, str_beta, str_tau0, str_delta, xwidth
+!       real*8 Omega, str_beta, str_tau0, str_delta, xwidth
+!       common /cstrex1/Omega, str_beta, str_tau0, str_delta, xwidth
 
        kch3_kernel= 
      *  ftsq(t) * 
@@ -327,12 +331,12 @@ c
        double precision :: ftsq       
 
 
-       double precision  ::  q, nch, nmg, rhh, betakww, taukww, uu
-       double precision  ::  betafast, taufast, eisf2
-       common /ckohlch3/ q, nch, nmg, rhh, betakww, taukww, uu,
-     *                   betafast, taufast, eisf2
+!       double precision  ::  q, nch, nmg, rhh, betakww, taukww, uu
+!       double precision  ::  betafast, taufast, eisf2
+!       common /ckohlch3/ q, nch, nmg, rhh, betakww, taukww, uu,
+!     *                   betafast, taufast, eisf2
 
-       double precision ::  f_rlognor, t
+       double precision ::  t
 
        double precision :: eisf, skww_inc, s_rot, dwf
        double precision :: skww_fast
@@ -357,19 +361,19 @@ c
 
        real*8 f_rlognor, t
 
-       real*8 Omega, str_beta, str_tau0, str_delta, xwidth
-       common /cstrex1/Omega, str_beta, str_tau0, str_delta, xwidth
+!       real*8 Omega, str_beta, str_tau0, str_delta, xwidth
+!       common /cstrex1/Omega, str_beta, str_tau0, str_delta, xwidth
 
-       real*8 ln_tau0, ln_beta, ln_width, cl_t
-       common /crlognor/ ln_tau0, ln_beta, ln_width, cl_t
+!       real*8 ln_tau0, ln_beta, ln_width, cl_t
+!       common /crlognor/ ln_tau0, ln_beta, ln_width, cl_t
 
        real*8 a,b
        real*8 a2dapint, result, err, erraccu, epsilon
 
        integer maxit
 
-       real*8   rlnor_kernel
-       external rlnor_kernel
+!      real*8   rlnor_kernel
+!      external rlnor_kernel
 
 
        maxit   =  5000
@@ -397,11 +401,11 @@ c
 
        real*8 rlnor_kernel, lt
 
-       real*8 Omega, str_beta, str_tau0, str_delta, xwidth
-       common /cstrex1/Omega, str_beta, str_tau0, str_delta, xwidth
+!      real*8 Omega, str_beta, str_tau0, str_delta, xwidth
+!       common /cstrex1/Omega, str_beta, str_tau0, str_delta, xwidth
 
-       real*8 ln_tau0, ln_beta, ln_width, cl_t
-       common /crlognor/ ln_tau0, ln_beta, ln_width, cl_t
+!       real*8 ln_tau0, ln_beta, ln_width, cl_t
+!       common /crlognor/ ln_tau0, ln_beta, ln_width, cl_t
 
 
        real*8 arg1, arg2, arg
@@ -421,3 +425,5 @@ c
       
        return
        end
+
+       end function th_kohlfast
