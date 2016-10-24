@@ -108,7 +108,7 @@
        ierrr = 0
 !
 !
-       mask_err =.false.
+!?       mask_err =.false.
 ! ---- input a line or take nodecode rest of previous line ----
        if(ioldc.eq.0) then
          goto 1002
@@ -660,8 +660,9 @@
                                 if (inpar(i).eq.1) then
                                 call setudf(vname(i)//' ',rpar(inapa(i)),ier)
                                 else
-                                        write(6,*)'error in value cannot be evaluated     '//trim(vname(i))
-                          endif
+                                write(6,*)'error in value cannot be evaluated     '//trim(vname(i))
+                                call errsig(999,"ERROR set "//trim(vname(i))//" $") 
+                          Endif
          enddo
          goto 8888
        endif

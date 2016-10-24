@@ -314,6 +314,11 @@
 
        iibuf= isels(1)
        iadda= isels(1)
+       mask_err = .false.   ! expression evaluation error detection is activated
+                            ! since evaluation is done in an early stage of line interpretation
+                            ! this error should be masked if comment lines etc. are read
+                            ! e.g. in input in order to avoid erroneous error messages
+                            ! when constructions that resemble expression are contained.
 
        call incom(comand)
 !      ------------------
@@ -331,10 +336,12 @@
 !
        if(comand.eq.'in      '.or.comand.eq.'input   ') then
 !                    --                      -----
+         mask_err = .true.
          call input
          nsel = 1
          isels(1) = nbuf
          ifits(1) = 0
+         mask_err = .false.
          goto 2000
        endif
 !
