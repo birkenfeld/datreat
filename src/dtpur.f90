@@ -60,9 +60,10 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
        mode = 2
        iflag = 2
        write(6,*)" .... calling Minpack Levenberg-Marquart routine lmdif "
-       write(6,'(a,g14.7,a)') "    ftol = ",ftol,"  end condition for ssq reduction per step"
-       write(6,'(a,g14.7,a)') "    xtol = ",xtol,"  end condition for param change per  step"
-       write(6,'(a,g14.7,a)') "    gtol = ",gtol,"  end condition for vector rotation per step"
+       write(6,'(a,g14.7,a)') "    ftol  = ",ftol ,"  end condition for ssq reduction per step"
+       write(6,'(a,g14.7,a)') "    xtol  = ",xtol ,"  end condition for param change per  step (ngood)"
+       write(6,'(a,g14.7,a)') "    gtol  = ",gtol ,"  end condition for vector rotation per step"
+       write(6,'(a,i14,a)'  ) "    maxfn = ",maxfn,"  maximum number of function evaluations" 
        write(6,*)
 ! 
        call lmdif(func,m,n,x,f,ftol,xtol,gtol,maxfn,                    &

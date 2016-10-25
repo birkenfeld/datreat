@@ -971,8 +971,12 @@
        icall = icall + 1
 ! ---- output if option is set ---
        ssq = ssq/m
-       if(iprt.gt.0) write(6,200)icall,ssq,(x(i),i=1,nfit)
-  200  format(' ',i8,': ssq=',5e12.4/(23x,4e12.4))
+!       if(iprt.gt.0) write(6,200)icall,ssq,(x(i),i=1,nfit)
+!  200  format(' ',i8,': ssq=',5e12.4/(23x,4e12.4))
+       if(iprt.gt.0) then
+         write(6,'(i8,": ssq=",es12.4," par:")',advance='no') icall,ssq
+         write(6,'(20es12.4)')(x(i),i=1,nfit)
+       endif
        call setudf('ssq0 ',dble(ssq),ier)
        fcssq = ssq
 !
