@@ -422,23 +422,23 @@
         if(iout.gt.0) write(6,*)'final   iparam=',iparam
         if(iout.gt.0) write(6,*)'final   rparam=',rparam
 !
-        icode = iercd()
-!       ---------------> get the errorcode
-! ----- output -----
-        write(6,*)'icode = ',icode
-        if(icode.eq.1) write(6,*)' **-1- : no longer converging   *****'
-        if(icode.eq.2) write(6,*)' **-2- : conv. to a noncritical pnt *'
-        if(icode.eq.3) write(6,*)' **-3- : maxfn exceeded *************'
-        if(icode.eq.4) write(6,*)' **-4- : maxit exceeded *************'
-        if(icode.eq.5) write(6,*)' **-5- : 5 steps with max steplength*'
-!
-        write(6,501)iparam(4),iparam(3),iparam(2)
-  501   format(                                                         &
-     &   ' no. of func calls ..... ',i6/                                &
-     &   ' est. no. of sig. dig. . ',i6/                                &
-     &   ' no of iterations ...... ',i6/)
-!
-!
+!!>        icode = iercd()
+!!>!       ---------------> get the errorcode
+!!>! ----- output -----
+!!>        write(6,*)'icode = ',icode
+!!>        if(icode.eq.1) write(6,*)' **-1- : no longer converging   *****'
+!!>        if(icode.eq.2) write(6,*)' **-2- : conv. to a noncritical pnt *'
+!!>        if(icode.eq.3) write(6,*)' **-3- : maxfn exceeded *************'
+!!>        if(icode.eq.4) write(6,*)' **-4- : maxit exceeded *************'
+!!>        if(icode.eq.5) write(6,*)' **-5- : 5 steps with max steplength*'
+!!>!
+!!>        write(6,501)iparam(4),iparam(3),iparam(2)
+!!>  501   format(                                                         &
+!!>     &   ' no. of func calls ..... ',i6/                                &
+!!>     &   ' est. no. of sig. dig. . ',i6/                                &
+!!>     &   ' no of iterations ...... ',i6/)
+!!>!
+!!>!
 
 ! ----- error-determination ?? test ?? -----------------------------
 !

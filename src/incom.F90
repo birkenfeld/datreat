@@ -45,6 +45,9 @@
        integer       ilma, i, j, k, l, ii, irc, ipmlen, isum, ioold
        integer       ier, ierr, ioldna, inew, iival
 
+       integer :: irc2
+       character(len=1024) :: cmsg
+
        integer :: init_run = 1
        real*8 val
        real getval
@@ -394,9 +397,11 @@
              enddo
           endif
          endif
-         write(6,'(a,a,a)')"! system command: >",trim(buf),"<"
+         write(6,'(a,a,a)')"! system command(1): >",trim(buf),"<"
  !        call system(trim(buf))
-         call execute_command_line (trim(buf), exitstat=irc)
+          call execute_command_line (trim(buf), exitstat=irc,cmdstat=irc2,cmdmsg=cmsg)
+         write(6,*)"IRC = ",irc,irc2,cmsg
+ !       call execute_command_line (trim(buf), exitstat=irc)
          mask_err =.false.
          if(irc.ne.0) call errsig(1000+irc,"system command return code is nonzero$")
         goto 8888
@@ -829,10 +834,10 @@
           endif
          endif
          
-         write(6,'(a,a,a)')"! system command: >",trim(buf),"<"
+         write(6,'(a,a,a)')"! system command(2): >",trim(buf),"<"
 !         call system(trim(buf))
-         call execute_command_line (trim(buf), exitstat=irc)
- !        write(6,*)"IRC = ",irc
+         call execute_command_line (trim(buf), exitstat=irc,cmdstat=irc2,cmdmsg=cmsg)
+         write(6,*)"IRC = ",irc
          if(irc.ne.0) then
            call errsig(1000+irc,"system command return code is nonzero$")
          else

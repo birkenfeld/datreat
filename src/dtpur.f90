@@ -952,8 +952,8 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
 
       subroutine u4lsf()
 
-      write(*,*)'IMSL routine u4lsf called,'
-      write(*,*)'not used with minpack...'
+!      write(*,*)'IMSL routine u4lsf called,'
+!      write(*,*)'not used with minpack...'
       return
       END
 
@@ -962,6 +962,7 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
       write(*,*)'IMSL routine dsvrgp called,'
       write(*,*)'not replaced yet...'
       write(*,*)'ERROR!!!!!!!!'
+      stop
       return
       END
 
@@ -970,6 +971,7 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
       write(*,*)'IMSL routine dpermu called,'
       write(*,*)'not replaced yet...'
       write(*,*)'ERROR!!!!!!!!'
+      stop
        return
       END
 
@@ -979,6 +981,7 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
       write(*,*)'not yet replaced!!!!!!!!'
       write(*,*)'ERROR!!!!!!!!'
       Dsi=0
+      stop
       return
       END
 
