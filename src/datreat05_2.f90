@@ -3457,7 +3457,13 @@ exclude:   if(found('exclude  ')) then
 
             do i=1,ipars
              iss      = Nint(rpar(i))
-             if(iss.gt.0) write(6,*)'select adress   ',iss
+             if(iss > 0 .and. iss < nbuf ) then
+               write(6,*)'select adress   ',iss
+             else
+               write(6,*)"selected=",iss,"  nbuf=", nbuf
+               call errsig(999,"ERROR: sel selcted address is out of range$")
+               goto 2000
+             endif
              m = m + 1
              isels(m) = iss
              ifits(m) = 0
