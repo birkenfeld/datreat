@@ -2266,6 +2266,9 @@
 		else ! --  identification & comment-line        evrything else
 			if ( coment(nbuf).eq. ''  ) then
 				coment(nbuf)= rline
+                                if(rline(1:1) == '"') then
+                                  coment(nbuf) = rline(2:len_trim(rline)-1)
+                                endif
 			else
 				write(6,*) 'Comment ignor: ',trim(rline)
 			endif
@@ -3267,7 +3270,7 @@
 			endif
          write(6,*)'opening:',trim(outfile),'....'
          open(18,file=trim(outfile),status='UNKNOWN',err=999)
-         write(18,'(a)')trim(coment(ispc))
+         write(18,'(a)')'"'//trim(coment(ispc))//'"'
          write(18,'(a,a,a,a,a,i14)')trim(finame(index(finame,'/',back=.true.)+1:)),' ',yname(ispc)(1:20),' vs ',xname(ispc)(1:20),numor(ispc)
          write(18,'(2x,a8,10x,e14.7)')(napar(i,ispc),params(i,ispc),i=1,nopar(ispc))
          write(18,*)' '

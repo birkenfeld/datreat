@@ -214,6 +214,8 @@
                         write(6,*)'=  HINT: use sys to issue system commands including -,+ ...      ='
                         write(6,*)'=        do this always in makros                                ='
                         write(6,*)'=  In parameter list quotes are respected to protect strings     ='
+                        write(6,*)'=  (internal incom: we only assume evaluation if 1st char is     ='
+                        write(6,*)'=  .(+-1..9)                                                     =' 
                         write(6,*)'=================================================================='
                         write(6,*)' Pi = ',pi
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -3458,7 +3460,7 @@ exclude:   if(found('exclude  ')) then
 
             do i=1,ipars
              iss      = Nint(rpar(i))
-             if(iss > 0 .and. iss < nbuf ) then
+             if(iss > 0 .and. iss <= nbuf ) then
                write(6,*)'select adress   ',iss
              else
                write(6,*)"selected=",iss,"  nbuf=", nbuf

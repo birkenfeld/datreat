@@ -333,11 +333,12 @@
                         name = .true.
                         ! starts with
 
-                        if((scan('(+-0123456789',buf(1:1)).gt.0) .or. &         !number starts with number or +-
-                      ('.'.eq.buf(1:1) .and. scan('(0123456789',buf(2:2)).gt.0)  .or. &  ! number omitted 0 like .534
-                                ((scan(buf(1:len(buf)),'()+-*/^').gt.0 .and.buf(1:2).ne.'./'.and.&
-                                                 scan('/^*.',buf(1:1)).eq.0.and. scan('/^*.',buf(len_trim(buf):len_trim(buf))).eq.0 ))  & ! this is a formula   !
-                                )   name = .false.       ! then it is a number or should be evaluated as formula
+                        if(     (scan('(+-0123456789',buf(1:1)).gt.0) .or.                &   ! number starts with number or +-
+                                ('.'.eq.buf(1:1) .and. scan('(0123456789',buf(2:2)).gt.0) &   ! number omitted 0 like .534
+!?                            .or.                                                          &  
+!?                                ((scan(buf(1:len(buf)),'()+-*/^').gt.0 .and.buf(1:2).ne.'./'.and.                        & ! NO we do not want this
+!?                                  scan('/^*.',buf(1:1)).eq.0.and. scan('/^*.',buf(len_trim(buf):len_trim(buf))).eq.0 ))  & ! this is a formula   !
+                            )   name = .false.                                                ! then it is a number or should be evaluated as formula
 !!+
 !!+ todo in den vorgehenden Zeilen, +-  etc im inneren eines Names sind nicht zu beachten !!! 
 !!+ aber jetzt erstmal die kompatible Abfangroutine
