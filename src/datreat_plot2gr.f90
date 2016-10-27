@@ -96,7 +96,7 @@
        write(6,*)'=       select 62  as output option (instead of 211 for screen display)      ='
        write(6,*)'=       check name of created file by -> ls -ltr                             ='
        write(6,*)'=       copy gli##.eps to a name of your choice -> cp gli##.eps myplot1.eps  ='
-       write(6,*)'=       and or print it by: lpr -Pprinter gli##.eps                          ='
+       write(6,*)'= VERSION 2.4                                                                ='
        write(6,*)'=============================================================================='
        return
       endif
@@ -284,7 +284,7 @@ scl:   if(found('scaled  ')) then
 ! ---- identify scantyp ----
 !
        if(log_x) then
-         lxx   = laenge(xname(isels(1)),80,' ')
+         lxx   = len_trim(yname(isels(1)))
          xtext = 'log10('//xname(isels(1))(1:lxx)//')'
          xmi_s = log10(abs(xmin)+1e-33)
          xma_s = log10(abs(xmax)+1e-33)
@@ -299,7 +299,7 @@ scl:   if(found('scaled  ')) then
          xma_s = xmax
        endif
        if(log_y) then
-         lyy   = laenge(yname(isels(1)),80,' ')
+         lyy   = len_trim(yname(isels(1)))
          ytext = 'log10('//yname(isels(1))(1:lyy)//')'
          ymi_s = log10(abs(ymin)+1e-33)
          yma_s = log10(abs(ymax)+1e-33)
@@ -326,9 +326,12 @@ scl:   if(found('scaled  ')) then
          lxx = 0
          lyy = 0
        else
-         lxx = laenge(xtext,80,' ')
-         lyy = laenge(ytext,80,' ')
+ !        lxx = laenge(xtext,80,' ')
+ !        lyy = laenge(ytext,80,' ')
+         lxx = len_trim(xtext)
+         lyy = len_trim(ytext)
        endif
+write(6,*)"test1:",xtext,ytext,lxx,lyy
        if(paxis) call graxs(lopt,option,lxx,xtext,lyy,ytext)
 !
 !
@@ -921,6 +924,7 @@ scl:   if(found('scaled  ')) then
           lxtxt = 0
           lytxt = 0
        endif
+  write(6,*)"test2:",xtext,ytext,lxtxt,lytxt
        if(paxis) call graxs(lopt,option,lxtxt,xtext,lytxt,ytext)
 !
        return

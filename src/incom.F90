@@ -37,6 +37,7 @@
        character*8   glabel,xlab,itypc,vnamef
        character*1024 buf,bla132
        character*1   blank,csep,numtst(14),numeqv*14,inread*1024
+       character(len=1) :: quote 
        character*8   cmd
        equivalence  (numeqv,numtst(1))
        logical :: name, lmakro = .false., found, fileda
@@ -80,6 +81,7 @@
        blank= ' '  !              = --> parameter separator
        numeqv = '(.+-0123456789' !=> to reckognize the beginning of a number
        bla132 = ' '
+       quote  = '"' ! to allow quoted names that are protected form evaluation               
 !
 
  8888  continue ! startingpoint of incom loop
@@ -294,9 +296,24 @@
                         enddo
                         l = i+1
 !   ---- look for the end of the currend item -----
+!+ if we a a qouted string look for the end quote otherwise the sandard blank
+
+         if(inline(i+1:i+1) == quote) then
+                        j=i+SCAN(inline(i+2:len(inline)),quote)      ! j = next quote
+                        if (j.eq.i) then
+                          call errsig(999,"ERROR unmatched quotes$")
+                        endif     
+                        j=j+1
+                        buf = inline(i+1:j)
+!                       write(6,*)"is a quoted item:",trim(buf),  "<",trim(inline),i,j
+         else 
                         j=i+SCAN(inline(i+1:len(inline)),blank)      ! j = next blank
                         if (j.eq.i) j=len(inline)+1       ! no further blanks till end j=ende+1 virtuell blank
                         buf = inline(i+1:j-1)
+         endif 
+
+
+
         ! --- prepare the textlist of formal makro arguments --
                         iargs = iargs + 1
                         arglst(iargs) = buf(1:20)
@@ -321,6 +338,16 @@
                                 ((scan(buf(1:len(buf)),'()+-*/^').gt.0 .and.buf(1:2).ne.'./'.and.&
                                                  scan('/^*.',buf(1:1)).eq.0.and. scan('/^*.',buf(len_trim(buf):len_trim(buf))).eq.0 ))  & ! this is a formula   !
                                 )   name = .false.       ! then it is a number or should be evaluated as formula
+!!+
+!!+ todo in den vorgehenden Zeilen, +-  etc im inneren eines Names sind nicht zu beachten !!! 
+!!+ aber jetzt erstmal die kompatible Abfangroutine
+!!+
+                        if(buf(1:1) == quote) then
+                           buf = buf(2:len_trim(buf)-1)
+                           name = .true.
+                        endif 
+!!+
+!!+
                         if(.not.name) then ! .not.name = zahl oder formel
                                 call evaluate( buf//' ', val, ierr)
                                 if(ierr.eq.0) then

@@ -1,6 +1,5 @@
 makro
 
-gplot start legend 1.1,1;page size 600, 400;xaxis label "x-Achse";yaxis  label "Y-Werte"
 
 plot0 xmin 0 xmax 100 ymin 0 ymax 1 errplo
 
