@@ -427,7 +427,7 @@
          write(6,'(a,a,a)')"! system command(1): >",trim(buf),"<"
  !        call system(trim(buf))
           call execute_command_line (trim(buf), exitstat=irc,cmdstat=irc2,cmdmsg=cmsg)
-         write(6,*)"IRC = ",irc,irc2,cmsg
+ !        write(6,*)"IRC = ",irc,irc2,cmsg
  !       call execute_command_line (trim(buf), exitstat=irc)
          mask_err =.false.
          if(irc.ne.0) call errsig(1000+irc,"system command return code is nonzero$")
@@ -864,7 +864,7 @@
          write(6,'(a,a,a)')"! system command(2): >",trim(buf),"<"
 !         call system(trim(buf))
          call execute_command_line (trim(buf), exitstat=irc,cmdstat=irc2,cmdmsg=cmsg)
-         write(6,*)"IRC = ",irc
+!         write(6,*)"IRC = ",irc
          if(irc.ne.0) then
            call errsig(1000+irc,"system command return code is nonzero$")
          else
