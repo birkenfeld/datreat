@@ -3457,7 +3457,7 @@ exclude:   if(found('exclude  ')) then
 
             do i=1,ipars
              iss      = Nint(rpar(i))
-             if(iss > 0 .and. iss < nbuf ) then
+             if(iss > 0 .and. iss <= nbuf ) then
                write(6,*)'select adress   ',iss
              else
                write(6,*)"selected=",iss,"  nbuf=", nbuf
