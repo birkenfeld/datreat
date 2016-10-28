@@ -203,7 +203,7 @@
                         write(6,*)'=  swapxy:   exchange x and y values, discard errors             ='
                         write(6,*)'=  numorchg: change numor of selected record                     ='
                         write(6,*)'=  arit:     back to old one                                     ='
-                        write(6,*)'=  arit2:    check! seems to have a problem                      ='
+                        write(6,*)'=  arit2:    note needs sorted data...                           ='
                         write(6,*)'=  get_th:   activates theory of msave files:: gth <filenam>     ='
                         write(6,*)'=  msave:    unlimited filename length                           ='
                         write(6,*)'=  .... up to 80 theories, 40 th-params, 300 uservars            ='
@@ -3238,7 +3238,7 @@ drer1:    do ik=1,n
 
            if(iy.ne.0) then
            write(6,171) csel,i,numor(i),name(i),xname(i),yname(i)       &
-     &    ,coment(i)(1:len_comm),pastring(1:ip*21)
+     &    ,'"'//coment(i)(1:len_comm)//'"',pastring(1:ip*21)
   171    format(1x,a1,i4,':#',i14,' : ',a8,':',a8,' vs ',a8,'>',a,' ',a)
            endif
   170    continue
@@ -3642,7 +3642,7 @@ exclude:   if(found('exclude  ')) then
            if(iy.ne.0) then
            write(6,'(1x,a1,i4,2H [,i4,1H],2H:#,i14,3H : ,a8,1H:,a8,4H vs ,a8,1H>,a,1x,a)') &
      &     csel,i,ifits(l),numor(i),name(i),xname(i),yname(i)       &
-     &    ,coment(i)(1:len_comm),pastring(1:ip*21)
+     &    ,'"'//coment(i)(1:len_comm)//'"',pastring(1:ip*21)
            endif
          enddo
 
@@ -4444,23 +4444,27 @@ exclude:   if(found('exclude  ')) then
 ! assuming nontrivial length check
        if(n1.lt.2 .or. n2.lt.2) then
          write(6,*)'at least one of the vectors has too few components:',n1,n2
+         call errsig(990,"ERROR: vectors dont length-match$")
          return
        endif
 ! assuming equal length check
        if(n1.ne.n2) then
          write(6,*)'vectors have different number of components:',n1,n2
+         call errsig(991,"ERROR: vectors dont length-match$")
          return
        endif
 ! assuming ordered vectors CHECK
        do i=1,n1-1
         if(xin1(i).ge.xin1(i+1)) then
-          write(6,*)'vector 1 is not ordered '
+          write(6,*)'vector 1 is not ordered ',i,xin1(i),xin1(i+1)
+          call errsig(992,"ERROR: vectors must be x-sequentially ordered $")
           return
         endif
        enddo
        do i=1,n2-1
         if(xin2(i).ge.xin2(i+1)) then
-          write(6,*)'vector 2 is not ordered '
+          write(6,*)'vector 2 is not ordered ',i,xin2(i),xin2(i+1)
+         call errsig(992,"ERROR: vectors must be x-sequentially ordered $")
           return
         endif
        enddo
