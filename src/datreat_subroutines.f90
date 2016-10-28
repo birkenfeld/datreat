@@ -251,6 +251,7 @@
        real divis, ermat, f, gmat, fscale, ginv
        real*8 ssq
 
+ 
        character*8 ci
        real*8 getval
       dimension iparam(6),rparam(7),x(mfit),f(msmpl),xjac(msmpl,mfit),  &
@@ -304,6 +305,7 @@
        if(ci.eq.'ngood   '                    ) ngood = Nint(rpar(j))
        if(ci.eq.'maxstep '                    ) stpsz = rpar(j)
        if(ci.eq.'trustreg'                    ) trure = rpar(j)
+       if(ci.eq.'parwght '                    ) pardev_scale = rpar(j)
        if(ci.eq.'relerr  '                    ) lerrel= .true.
        if(ci.eq.'abserr  '                    ) lerrel= .false.
        if(ci.eq.'wrtfit  '                    ) lwrtfitdat = .true.
@@ -371,6 +373,23 @@
    20     continue
    10   continue
 !
+!+
+!+ store initial parameter if parameter deviation shall be included into the fit signal
+!+
+        if(pardev_scale > 0d0) then
+          write(6,'(a)')"+++++++++++++++++++++++++++++++++++++++++++++++++++"
+          write(6,'(a)')"++ pardev_scaling in effect                      ++"
+           write(6,'(a,es14.7)')"++ parameter weigth parwght =",pardev_scale
+         write(6,'(a)')"+++++++++++++++++++++++++++++++++++++++++++++++++++"
+         xinitial(1:nfit) = x(1:nfit)
+         m = m + nfit
+         if(m > msmpl) then
+           call errsig(999,"number of smaple points too large$")
+           return
+         endif
+        endif
+
+
         n     = nfit
         ixjac = msmpl
         call func(m,n,x,f)
@@ -881,6 +900,7 @@
        real      x(mfit),f(msmpl)
        integer npar, nfit, n, mn, ith, isel, ipt, it, ip, ier, iad1, iad2, i
        real xx, ssq, ferr
+       real :: ssq2
 
 !
 ! ---- restore startvalues & parameters ----
@@ -969,16 +989,36 @@
           endif
 !
        icall = icall + 1
+
+
+
 ! ---- output if option is set ---
        ssq = ssq/m
 !       if(iprt.gt.0) write(6,200)icall,ssq,(x(i),i=1,nfit)
 !  200  format(' ',i8,': ssq=',5e12.4/(23x,4e12.4))
+
+!+     
+       ssq2 = 0
+       if(pardev_scale > 0d0) then
+         do i = 1,nfit
+           m = m+1
+           f(m) = (xinitial(i)-x(i)) * pardev_scale
+           ssq2 = ssq2 + f(m)**2
+         enddo 
+       endif
+       ssq2 = ssq2/nfit
+!+
+       ssq = ssq  
        if(iprt.gt.0) then
-         write(6,'(i8,": ssq=",es12.4," par:")',advance='no') icall,ssq
+         write(6,'(i8,": ssq=",es12.4)',advance='no') icall,ssq
+         if(pardev_scale > 0d0) then
+           write(6,'(" ssq2=",es12.4)',advance='no') ssq2
+         endif
+         write(6,'(a)',advance='no') " : "
          write(6,'(20es12.4)')(x(i),i=1,nfit)
        endif
        call setudf('ssq0 ',dble(ssq),ier)
-       fcssq = ssq
+       fcssq = ssq + ssq2
 !
 !
        if(lwrtfitdat) then

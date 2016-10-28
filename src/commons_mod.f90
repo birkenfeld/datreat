@@ -19,6 +19,7 @@
    integer, parameter :: c_NODELIMS      = 7
    integer, parameter :: c_MSMPL         = 10000
    integer, parameter :: c_MDIM          = 2048
+   integer, parameter :: c_MFIT          = 100
 ! ---- communication common block containig the analysed inputline       
 !      comand   = actual command keyword                               
 !      vname(*) = names stack                                           
@@ -465,6 +466,8 @@
 		logical :: autox1 = .true.
 		logical :: autox2 = .true.
 		real ferror(c_MSMPL)
+                real    :: xinitial(c_MFIT)
+                double precision :: pardev_scale = 0d0
 	end module cfunc
 
 
@@ -542,7 +545,7 @@
 		! ---  fit dimensions ---                                               
 		!  -- mfit = max no. of fitted parameters                               
 		!     msmpl= max no. of datapoints in fit                               
-       		integer, parameter :: mfit=100,msmpl=c_MSMPL
+       		integer, parameter :: mfit=c_MFIT,msmpl=c_MSMPL
 		integer, parameter :: musevar=c_MUSEVAR
 		integer, parameter :: maxformlength=c_MAXFORMLENGTH
 		integer, parameter :: maxitemlength=c_MAXITEMLENGTH
