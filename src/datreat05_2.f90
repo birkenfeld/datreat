@@ -185,11 +185,11 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                         write(6,*)
                         write(6,*)'======================================================='
-                        write(6,*)'=   datreat12_2     Version: mm-develop 2.4           ='
+                        write(6,*)'=   datreat12_2     Version: mm-develop 2.4a          ='
                         write(6,*)'=   -----------     --------                          ='
                         write(6,*)'=   Author: M.Monkenbusch  R. Biehl, O.Holderer, JCNS ='
                         write(6,*)'======================================================='
-                        prompt = "#mm-develop 2.4 -> " 
+                        prompt = "#mm-develop 2.4a -> " 
                         write(6,*)
                         write(6,*)
                         write(6,*)
@@ -216,6 +216,7 @@
                         write(6,*)'=  In parameter list quotes are respected to protect strings     ='
                         write(6,*)'=  (internal incom: we only assume evaluation if 1st char is     ='
                         write(6,*)'=  .(+-1..9)                                                     =' 
+                        write(6,*)'=  with fit: parameter parwght                                   =' 
                         write(6,*)'=================================================================='
                         write(6,*)' Pi = ',pi
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
