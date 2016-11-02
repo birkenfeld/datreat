@@ -185,11 +185,11 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                         write(6,*)
                         write(6,*)'======================================================='
-                        write(6,*)'=   datreat12_2     Version: mm-develop 2.4a          ='
+                        write(6,*)'=   datreat12_2     Version: mm-develop 2.4b          ='
                         write(6,*)'=   -----------     --------                          ='
                         write(6,*)'=   Author: M.Monkenbusch  R. Biehl, O.Holderer, JCNS ='
                         write(6,*)'======================================================='
-                        prompt = "#mm-develop 2.4a -> " 
+                        prompt = "#mm-develop 2.4b -> " 
                         write(6,*)
                         write(6,*)
                         write(6,*)
@@ -216,7 +216,7 @@
                         write(6,*)'=  In parameter list quotes are respected to protect strings     ='
                         write(6,*)'=  (internal incom: we only assume evaluation if 1st char is     ='
                         write(6,*)'=  .(+-1..9)                                                     =' 
-                        write(6,*)'=  with fit: parameter parwght                                   =' 
+                        write(6,*)'=  with fit: parameter parwght  , go, help, couple               =' 
                         write(6,*)'=================================================================='
                         write(6,*)' Pi = ',pi
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -3558,6 +3558,17 @@ exclude:   if(found('exclude  ')) then
          enddo
          goto 2000
        endif
+
+       if(comand.eq.'parlev  ') then
+!                    ------   set display level
+
+           do i=1,nsel
+              iaddp = isels(i)
+              call parset_display (vname(1),Nint(rpar(1)),iaddp)
+           enddo
+
+         goto 2000
+       endif
 !
        if(comand.eq.'rename  ') then
 !                    ------
@@ -3773,21 +3784,13 @@ exclude:   if(found('exclude  ')) then
        endif
 !
        if(comand.eq.'fit     ') then
-         if(nsel.ge.1) then
-           call fit
-         else
-           write(*,*) 'No datarecord selected!'
-         endif
+         call fit
          goto 2000
        endif
 
        if(comand.eq.'ga_fit  ') then
-         if(nsel.ge.1) then
-           call ga_fit
-         else
-           write(*,*) 'No datarecord selected!'
-         endif
-         goto 2000
+          call ga_fit
+          goto 2000
        endif
 
        if(comand.eq.'paraout     ') then
@@ -3995,7 +3998,7 @@ exclude:   if(found('exclude  ')) then
        if(comand.eq.'acl     '.or.comand.eq.'aclast  ') then
 !                    -----> reactivate theories as stored in lastth
          call activa(3)
-         if(iout.ge.0) call activa(2)
+         if(ierrr.eq.0. .and. iout.ge.0) call activa(2)
          goto 2000
        endif
 !
@@ -4021,7 +4024,7 @@ exclude:   if(found('exclude  ')) then
            call extract_th(argvals(1))
            if(ierrr==0) then 
              call activa(3)
-             call activa(2)
+             if(ierrr==0) call activa(2)
            endif
          else
            call errsig(999,"need exactly one filename as argument!$")
@@ -4795,6 +4798,7 @@ d2:       do j=1,number_of_data_points
   write(6,*) "plot0     (synonym) p0      " , " "
   write(6,*) "purge                       " , " "
   write(6,*) "putpar                      " , " "
+  write(6,*) "parlev                      " , " "
   write(6,*) "qc        (synonym) q-conv  " , " "
   write(6,*) "rebin                       " , " "
   write(6,*) "recsum                      " , " "

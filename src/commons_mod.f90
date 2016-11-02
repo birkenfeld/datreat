@@ -180,6 +180,7 @@
 		real params(c_MPAR,c_MBUF)
 		character*80 napar(c_MPAR,c_MBUF)
 		integer nopar(c_MBUF)
+                integer :: params_display_level(c_MPAR,c_MBUF) = 0
 
 
         CONTAINS
@@ -210,6 +211,7 @@
         numor(idestination)            =  numor(isource)
         coment(idestination)           =  coment(isource)
         params(:,idestination)         =  params(:,isource)
+        params_display_level(:,idestination)         =  params_display_level(:,isource)
         napar(:,idestination)          =  napar(:,isource)
         nopar(idestination)            =  nopar(isource)
 

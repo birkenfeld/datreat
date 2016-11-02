@@ -68,6 +68,8 @@
       integer irfcu, i, j, icco, ik, ip, ircu, laenge, nsy, npic, nnpi, it
       integer npicf, npar, nfkurv, nco, ltext, lopt, lxx, lyy, l, ith, ircf
 
+      integer, save :: iplevel = 0
+
 
 
       if(found('help    ')) then 
@@ -84,6 +86,7 @@
        write(6,*)'=      errplo         :  adds error bars                                     ='
        write(6,*)'=      noerrplo       :  suppress error bars                                 ='
        write(6,*)'=      parplo         :  sets parameter value listing                        ='
+       write(6,*)'=      parlev         :  sets level for (more) parameter lsiting             ='
        write(6,*)'=      noparplo p1 p2.:  suppress parameter listing except for p1 p2 ...     ='
        write(6,*)'=      lin_x | log_x  :  lin or log x scale                                  ='
        write(6,*)'=      lin_y | log_y  :  lin or log y scale                                  ='
@@ -144,6 +147,7 @@
           if(vname(i).eq.'font    ') ifont = rpar(j) +0.0001
           if(vname(i).eq.'color   ') icol0 = rpar(j) +0.0001
           if(vname(i).eq.'sysize  ') sysize= rpar(j)
+          if(vname(i).eq.'parlev  ') iplevel = Nint(rpar(j))
           if(vname(i).eq.'parplo  ') paplo=.true.
           if(vname(i).eq.'noparplo') paplo=.false.
           if(vname(i).eq.'errplo  ') errplo=.true.
@@ -573,20 +577,22 @@ write(6,*)"test1:",xtext,ytext,lxx,lyy
            ytx = ytx - 1.7 * txsizt
            if(paplo) then
            do 1012 l=1,nopar(ircu)
+            if(params_display_level(l,ircu) > iplevel) cycle
  !          write(xtext,'(a8,e14.5)')napar(l,ircu),params(l,ircu)
            write(xtext,'(a8,es14.6)')napar(l,ircu),params(l,ircu)
            call grtxt(xtx,ytx,22,xtext)
            ytx = ytx - 1.7 * txsizt
  1012      continue
            else
-           do l=1,nopar(ircu)
-            if(found(napar(l,ircu)//' ')) then
+ dap01:     do l=1,nopar(ircu)
+             if(params_display_level(l,ircu) > iplevel) cycle dap01
+             if(found(napar(l,ircu)//' ')) then
               write(xtext,'(a8,es14.6)')napar(l,ircu),                   &
      &                                  params(l,ircu)
               call grtxt(xtx,ytx,22,xtext)
               ytx = ytx - 1.7 * txsizt
             endif
-           enddo
+           enddo dap01
            endif
 
            ircu = ifits(i)
@@ -606,20 +612,22 @@ write(6,*)"test1:",xtext,ytext,lxx,lyy
              call grtxt(xtx,ytx,80,coment(ircu))
              ytx = ytx - 1.7 * txsizt
              if(paplo) then
-             do  l=1,nopar(ircu)
-             write(xtext,'(a8,es14.6)')napar(l,ircu),params(l,ircu)
-             call grtxt(xtx,ytx,22,xtext)
-             ytx = ytx - 1.7 * txsizt
-             enddo
+ dap1:      do  l=1,nopar(ircu)
+               if(params_display_level(l,ircu) > iplevel) cycle dap1
+               write(xtext,'(a8,es14.6)')napar(l,ircu),params(l,ircu)
+               call grtxt(xtx,ytx,22,xtext)
+               ytx = ytx - 1.7 * txsizt
+             enddo dap1
              else
-             do l=1,nopar(ircu)
+ dap2:      do l=1,nopar(ircu)
+              if(params_display_level(l,ircu) > iplevel) cycle dap2
               if(found(napar(l,ircu)//' ')) then
                 write(xtext,'(a8,es14.6)')napar(l,ircu),                 &
      &                                   params(l,ircu)
                 call grtxt(xtx,ytx,22,xtext)
                 ytx = ytx - 1.7 * txsizt
               endif
-             enddo
+             enddo dap2
              endif
            endif
   101    continue
