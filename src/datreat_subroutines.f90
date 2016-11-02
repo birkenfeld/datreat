@@ -271,6 +271,56 @@
        integer :: maxfn = 100, ngood = 0, maxit = 0, iprint = 1, irecse = 0
        real    :: stpsz = 0.0, trure = 0.0
 
+
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= fit                                                                         '
+           write(6,*)'=    fitting of selected data to the active theory model (see ac, acl, dac)   '
+           write(6,*)'=    available theories (models) may be listed by the  > theos < command      '
+           write(6,*)'=              theories may be combined (default is addition)                 '
+           write(6,*)'=              theories may be combined with attribute multiply (see chgthpar)'
+           write(6,*)'=              parameters may be coupled                                      '
+           write(6,*)'=         theories may use appropriate file parameter values for e.g. q, temp '
+           write(6,*)'=         when multiple records for e.g. different q or temp are fitted simult'
+           write(6,*)'=         theorie definitions may be restricted to some parameter value range '
+           write(6,*)'=         e.g.: theory xyz range <parnam> min <p1> max <p2>                   '
+           write(6,*)'=    these theory definitions must be set prior to invoking > fit <           '
+           write(6,*)'=    parameters to fit:                                                       '
+           write(6,*)'=      maxfn <mf>       : maximum number of function evaluations (approx.)    '
+           write(6,*)'=      ngood <ng>       : desired number of good digits in resulting pars     '
+           write(6,*)'=      x1    <x1>       : lower limit of fit range                            '
+           write(6,*)'=      x2    <x2>       : upper value of fit range                            '
+           write(6,*)'=      relerr           : use relative errors                                 '
+           write(6,*)'=      abserr           : use absolute errors (sqrt weighted)   (default)     '
+           write(6,*)'=      wlin             : use absolute errors (linaer weighted)               '
+           write(6,*)'=      parwght <w>      : adds parameter deviation (scaled)*w as error signal '
+           write(6,*)'=      wrtfit           : write intermediate fit data (default) -> fitdat.tmp '    
+           write(6,*)'=      nowrtfit         : dont write intermediate fit data                    '
+           write(6,*)'=      map <np>         : create a map of ssq                                 '
+           write(6,*)'=      div <div>        : map division                                        '
+           write(6,*)'=                                                                             '
+           write(6,*)'=   INTERRUPT:                                                                '
+           write(6,*)'=      to interrupt fitting type Crtl-C twice                                 '
+           write(6,*)'=      in that case the actual evaluation of fit curves is finished           '
+           write(6,*)'=      and then the fitting is interrupted                                    '
+           write(6,*)'=      NOTE: the parameter errors after interruption have no meaning  !       '
+           write(6,*)'=      to interrupt datreat completely: type Crtl-C many times                '
+           write(6,*)'=                                                                             '
+           write(6,*)'=   HINT: immediately after fit has been finihed you may save the relevant    '
+           write(6,*)'=         by msave <any_name>                                                 '
+           write(6,*)'=         get it back by > in <any_name>                                      '
+           write(6,*)'=         theorie setting by > get_th <any_name>                              '
+           write(6,*)'=   TRY ALSO: > ga_fit >                                                      '
+           write(6,*)'=============================================================================='
+           return
+        endif
+
+      if(nsel <= 0 ) then
+        call errsig(999,"ERROR: fit no datarecord selected ! $")
+        return
+      endif 
+
+
 ! ---- take parameters from stack ----
        sqwght= sqwbuf
       igo = 0
@@ -338,7 +388,7 @@
         endif
        endif
 !
-      if(igo.eq.0) return
+!      if(igo.eq.0) return
  1000 continue
 !
           icall = 0
@@ -697,6 +747,61 @@
 ! ---- defaults for parameters -----
        integer :: maxfn = 500, ngood = 0, maxit = 0, iprint = 1, irecse = 0
        real :: stpsz = 0.0, trure = 0.0
+
+
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= ga_fit                                                                      '
+           write(6,*)'=    fitting of selected data using a genetic algorithm                       '
+           write(6,*)'=    to the active theory model (see ac, acl, dac)                            '
+           write(6,*)'=    available theories (models) may be listed by the  > theos < command      '
+           write(6,*)'=              theories may be combined (default is addition)                 '
+           write(6,*)'=              theories may be combined with attribute multiply (see chgthpar)'
+           write(6,*)'=              parameters may be coupled                                      '
+           write(6,*)'=         theories may use appropriate file parameter values for e.g. q, temp '
+           write(6,*)'=         when multiple records for e.g. different q or temp are fitted simult'
+           write(6,*)'=         theorie definitions may be restricted to some parameter value range '
+           write(6,*)'=         e.g.: theory xyz range <parnam> min <p1> max <p2>                   '
+           write(6,*)'=    these theory definitions must be set prior to invoking > fit <           '
+           write(6,*)'=    parameters to fit:                                                       '
+           write(6,*)'=      maxfn <mf>       : maximum number of function evaluations (approx.)    '
+           write(6,*)'=      ngood <ng>       : desired number of good digits in resulting pars     '
+           write(6,*)'=      x1    <x1>       : lower limit of fit range                            '
+           write(6,*)'=      x2    <x2>       : upper value of fit range                            '
+           write(6,*)'=      relerr           : use relative errors                                 '
+           write(6,*)'=      abserr           : use absolute errors (sqrt weighted)   (default)     '
+           write(6,*)'=      wlin             : use absolute errors (linaer weighted)               '
+           write(6,*)'=      npop             : size of population                                  ' 
+           write(6,*)'=      ngen             : number of generations                               ' 
+           write(6,*)'=      mutation         : muation rate                                        ' 
+           write(6,*)'=      trace            : trace on / off                                      ' 
+           write(6,*)'=      bits             : number of bits                                      ' 
+           write(6,*)'=      wrtfit           : write intermediate fit data (default) -> fitdat.tmp '
+           write(6,*)'=      nowrtfit         : dont write intermediate fit data                    '
+           write(6,*)'=                                                                             '
+           write(6,*)'=   INTERRUPT:                                                                '
+           write(6,*)'=      to interrupt fitting type Crtl-C twice                                 '
+           write(6,*)'=      in that case the actual evaluation of fit curves is finished           '
+           write(6,*)'=      and then the fitting is interrupted                                    '
+           write(6,*)'=      NOTE: the parameter errors after interruption have no meaning  !       '
+           write(6,*)'=      to interrupt datreat completely: type Crtl-C many times                '
+           write(6,*)'=  NOTE:                                                                      '
+           write(6,*)'=      the result depends on randomly chosen mutations                        '
+           write(6,*)'=      repeated runs may yield (slightly) different resultsxs                   '
+           write(6,*)'=   HINT: immediately after fit has been finihed you may save the relevant    '
+           write(6,*)'=         by msave <any_name>                                                 '
+           write(6,*)'=         get it back by > in <any_name>                                      '
+           write(6,*)'=         theorie setting by > get_th <any_name>                              '
+           write(6,*)'=   TRY ALSO: > fit <                                                         '
+           write(6,*)'=============================================================================='
+           return
+        endif
+
+
+      if(nsel <= 0 ) then
+        call errsig(999,"ERROR: ga_fit no datarecord selected ! $")
+        return
+      endif 
 
 
 

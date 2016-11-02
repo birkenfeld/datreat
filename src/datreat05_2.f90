@@ -3773,21 +3773,13 @@ exclude:   if(found('exclude  ')) then
        endif
 !
        if(comand.eq.'fit     ') then
-         if(nsel.ge.1) then
-           call fit
-         else
-           write(*,*) 'No datarecord selected!'
-         endif
+         call fit
          goto 2000
        endif
 
        if(comand.eq.'ga_fit  ') then
-         if(nsel.ge.1) then
-           call ga_fit
-         else
-           write(*,*) 'No datarecord selected!'
-         endif
-         goto 2000
+          call ga_fit
+          goto 2000
        endif
 
        if(comand.eq.'paraout     ') then
