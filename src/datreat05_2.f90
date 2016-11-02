@@ -3558,6 +3558,17 @@ exclude:   if(found('exclude  ')) then
          enddo
          goto 2000
        endif
+
+       if(comand.eq.'parlev  ') then
+!                    ------   set display level
+
+           do i=1,nsel
+              iaddp = isels(i)
+              call parset_display (vname(1),Nint(rpar(1)),iaddp)
+           enddo
+
+         goto 2000
+       endif
 !
        if(comand.eq.'rename  ') then
 !                    ------
@@ -4787,6 +4798,7 @@ d2:       do j=1,number_of_data_points
   write(6,*) "plot0     (synonym) p0      " , " "
   write(6,*) "purge                       " , " "
   write(6,*) "putpar                      " , " "
+  write(6,*) "parlev                      " , " "
   write(6,*) "qc        (synonym) q-conv  " , " "
   write(6,*) "rebin                       " , " "
   write(6,*) "recsum                      " , " "

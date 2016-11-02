@@ -1408,18 +1408,65 @@
          endif
   100  continue
        if (np.ge.mpar) then
+         write(6,*)'impossible to find ',pname,' in parameterlist of '   &
+     &      ,numor(iadd)
+         write(6,*)' ...trying to add it'
+         return
+       endif
+!
+       if(np >= mpar) then
+         call errsig(999,"ERROR: putpar, too many parameters$")
+         return
+       endif
+       np = np + 1
+       nopar(iadd) = np
+       params(np,iadd) = pvalue
+       params_display_level(np,iadd) = 0
+       napar(np,iadd) = pname
+       return
+!
+      END  subroutine parset
+
+
+       subroutine parset_display (pname,level,iadd)
+!      =====================================
+!
+! ---- this routine changes or adds a parameter ----
+!
+       use cdata
+       use constants
+       implicit none
+
+       character*8 pname
+       integer, intent(in) :: level
+
+       integer i,np, iadd
+
+       np = nopar(iadd)
+
+       if(pname == "ALL     ") then
+         do i=1,np
+           params_display_level(i,iadd) = level
+         enddo
+         write(6,*)"ALL parameters display levels of record:",iadd," are set to: ",level
+         return
+       endif
+
+
+       do 100 i=1,np
+         if (napar(i,iadd).eq.pname) then
+           params_display_level(i,iadd) = level
+           return
+         endif
+  100  continue
+       if (np.ge.mpar) then
          write(6,*)'impossible to add ',pname,' to parameterlist of '   &
      &      ,numor(iadd)
          return
        endif
 !
-       np = np + 1
-       nopar(iadd) = np
-       params(np,iadd) = pvalue
-       napar(np,iadd) = pname
-       return
 !
-      END  subroutine parset
+      END  subroutine parset_display
 
 
 
@@ -2063,9 +2110,13 @@
               if(ifits(lf).gt.0) then
                call parset(combinam,thparx(j,i),ifits(lf))
                call parset('e'//combinam(1:7),therro(j,i),ifits(lf))
+               call parset_display(combinam          , 1 ,ifits(lf))
+               call parset_display('e'//combinam(1:7), 1 ,ifits(lf))
               endif
               if(isels(lf).gt.0) then
                call parset(combinam,thparx(j,i),isels(lf))
+               call parset_display(combinam, 1 ,isels(lf))
+               call parset_display('e'//combinam(1:7), 1 ,isels(lf))
 !!??               call parset('e'//combinam(1:7),therro(j,i),isels(lf))
               endif
              enddo
@@ -2403,6 +2454,7 @@
 			endif
 			params(nopar(nbuf),nbuf) = rpar(inapa(1))
 			napar (nopar(nbuf),nbuf) = vname(1)
+ 			params_display_level(nopar(nbuf),nbuf) = Nint(rpar(inapa(1)+1))                       
 			goto 2000
        !endif ! parameters
 		elseif(vname(3).eq.'vs      '.or.vname(3).eq.'versus  ') then !!1   a line to set x ,y axis names
@@ -3345,6 +3397,7 @@
        nopar(ib)=np
         do 10 i=1,np
           params(i,ib)=params(i,ia)
+          params_display_level(i,ib) = params_display_level(i,ia)
           napar(i,ib)=napar(i,ia)
    10   continue
        name(ib)  = name(ia)
@@ -3377,6 +3430,7 @@
     5  continue
        do 10 i=1,np
          params(i,ib)=params(i,ia)
+         params_display_level(i,ib) = params_display_level(i,ia)
          napar(i,ib)=napar(i,ia)
    10  continue
        name(ib)  = name(ia)
@@ -3420,7 +3474,8 @@
          open(18,file=trim(outfile),status='UNKNOWN',err=999)
          write(18,'(a)')'"'//trim(coment(ispc))//'"'
          write(18,'(a,a,a,a,a,i14)')trim(finame(index(finame,'/',back=.true.)+1:)),' ',yname(ispc)(1:20),' vs ',xname(ispc)(1:20),numor(ispc)
-         write(18,'(2x,a8,10x,e14.7)')(napar(i,ispc),params(i,ispc),i=1,nopar(ispc))
+!         write(18,'(2x,a8,10x,e14.7)')(napar(i,ispc),params(i,ispc),i=1,nopar(ispc))
+         write(18,'(2x,a8,10x,e14.7,i8)')(napar(i,ispc),params(i,ispc),params_display_level(i,ispc),i=1,nopar(ispc))
          write(18,*)' '
          write(18,501)(xwerte(i,ispc),ywerte(i,ispc),yerror(i,ispc),i=1,nwert(ispc))
 ! 501      format(2x,'x  ',e14.7,5x,'y  ',e14.7,5x,'e  ',e14.7)
@@ -3468,7 +3523,8 @@
 				ispc = isels(l)
 				write(18,'(a)')trim(coment(ispc) )
 				write(18,'(a,a,a,a,a,i14)')trim(name(ispc)(index(name(ispc),'/',back=.true.)+1:)),' ',yname(ispc)(1:20), ' vs ',xname(ispc)(1:20),numor(ispc)
-				write(18,'(2x,a8,10x,e14.7)')(napar(i,ispc),params(i,ispc),i= 1,nopar(ispc))
+!				write(18,'(2x,a8,10x,e14.7)')(napar(i,ispc),params(i,ispc),i= 1,nopar(ispc))
+				write(18,'(2x,a8,10x,e14.7,i8)')(napar(i,ispc),params(i,ispc),params_display_level(i,ispc),i= 1,nopar(ispc))
 				write(18,*)' '
 				write(18,501)(xwerte(i,ispc),ywerte(i,ispc),yerror(i,ispc),i=1,nwert(ispc))
 501	      format(2x,'   ',e14.7,5x,'   ',e14.7,5x,'   ',e14.7)
