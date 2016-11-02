@@ -2133,12 +2133,14 @@
                          if(label.eq.thpala(jj,ii)) goto 50
    40              continue
                       write(6,*)'couple: label=',label,' not found'
+                      call errsig(999,"ERROR: couple, missing label!$")
                       ierrs = 800
    50              continue
                    if((j.eq.jj).and.(i.eq.ii)) then
                       write(6,*)'couple: label=',label,' points to ',   &
      &                          'itself'
                       ierrs = 801
+                      call errsig(999,"ERROR: couple self reference is not allowed$")
                    endif
 !           ---- do the coupling ----
                    if(ierrs.eq.0) y = y + thpafc(l,j,i) * thparx(jj,ii)
@@ -2148,6 +2150,7 @@
                    if(iout.gt.5) write(6,*)'couple i,j,y =',i,j,y
                    if(thpsca(j,i).ne.0) then
                       write(6,*)'couple: force scale (',j,',',i,') to 0'
+                      call errsig(999,"ERROR: couple scale must be 0 for coupled item!$")
                       thpsca(j,i) = 0
                    endif
                 else

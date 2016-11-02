@@ -185,11 +185,11 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                         write(6,*)
                         write(6,*)'======================================================='
-                        write(6,*)'=   datreat12_2     Version: mm-develop 2.4a          ='
+                        write(6,*)'=   datreat12_2     Version: mm-develop 2.4b          ='
                         write(6,*)'=   -----------     --------                          ='
                         write(6,*)'=   Author: M.Monkenbusch  R. Biehl, O.Holderer, JCNS ='
                         write(6,*)'======================================================='
-                        prompt = "#mm-develop 2.4a -> " 
+                        prompt = "#mm-develop 2.4b -> " 
                         write(6,*)
                         write(6,*)
                         write(6,*)
@@ -216,7 +216,7 @@
                         write(6,*)'=  In parameter list quotes are respected to protect strings     ='
                         write(6,*)'=  (internal incom: we only assume evaluation if 1st char is     ='
                         write(6,*)'=  .(+-1..9)                                                     =' 
-                        write(6,*)'=  with fit: parameter parwght                                   =' 
+                        write(6,*)'=  with fit: parameter parwght  , go, help, couple               =' 
                         write(6,*)'=================================================================='
                         write(6,*)' Pi = ',pi
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -3987,7 +3987,7 @@ exclude:   if(found('exclude  ')) then
        if(comand.eq.'acl     '.or.comand.eq.'aclast  ') then
 !                    -----> reactivate theories as stored in lastth
          call activa(3)
-         if(iout.ge.0) call activa(2)
+         if(ierrr.eq.0. .and. iout.ge.0) call activa(2)
          goto 2000
        endif
 !
@@ -4013,7 +4013,7 @@ exclude:   if(found('exclude  ')) then
            call extract_th(argvals(1))
            if(ierrr==0) then 
              call activa(3)
-             call activa(2)
+             if(ierrr==0) call activa(2)
            endif
          else
            call errsig(999,"need exactly one filename as argument!$")
