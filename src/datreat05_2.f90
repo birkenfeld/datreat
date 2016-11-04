@@ -185,11 +185,11 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                         write(6,*)
                         write(6,*)'======================================================='
-                        write(6,*)'=   datreat12_2     Version: mm-develop 2.4b          ='
+                        write(6,*)'=   datreat12_2     Version: mm-develop 2.4c          ='
                         write(6,*)'=   -----------     --------                          ='
                         write(6,*)'=   Author: M.Monkenbusch  R. Biehl, O.Holderer, JCNS ='
                         write(6,*)'======================================================='
-                        prompt = "#mm-develop 2.4b -> " 
+                        prompt = "#mm-develop 2.4c -> " 
                         write(6,*)
                         write(6,*)
                         write(6,*)
@@ -218,6 +218,7 @@
                         write(6,*)'=  .(+-1..9)                                                     =' 
                         write(6,*)'=  with fit: parameter parwght  , go, help, couple               =' 
                         write(6,*)'=  new parameter display level ; parlev <dl> ; plot parlev <dl>  =' 
+                        write(6,*)'=  range reset if not specified                                  =' 
                         write(6,*)'=================================================================='
                         write(6,*)' Pi = ',pi
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

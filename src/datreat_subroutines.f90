@@ -1781,6 +1781,8 @@
      &                 thramin(ntheos), thramax(ntheos)
          else
             thrapar(ntheos) = '        '
+            thramin(ntheos) = -1d30
+            thramax(ntheos) =  1d30
          endif
 
            do  i=1,npar
