@@ -185,11 +185,11 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                         write(6,*)
                         write(6,*)'======================================================='
-                        write(6,*)'=   datreat12_2     Version: mm-develop 2.4b          ='
+                        write(6,*)'=   datreat12_2     Version: mm-develop 2.4c          ='
                         write(6,*)'=   -----------     --------                          ='
                         write(6,*)'=   Author: M.Monkenbusch  R. Biehl, O.Holderer, JCNS ='
                         write(6,*)'======================================================='
-                        prompt = "#mm-develop 2.4b -> " 
+                        prompt = "#mm-develop 2.4c -> " 
                         write(6,*)
                         write(6,*)
                         write(6,*)
@@ -217,6 +217,8 @@
                         write(6,*)'=  (internal incom: we only assume evaluation if 1st char is     ='
                         write(6,*)'=  .(+-1..9)                                                     =' 
                         write(6,*)'=  with fit: parameter parwght  , go, help, couple               =' 
+                        write(6,*)'=  new parameter display level ; parlev <dl> ; plot parlev <dl>  =' 
+                        write(6,*)'=  range reset if not specified                                  =' 
                         write(6,*)'=================================================================='
                         write(6,*)' Pi = ',pi
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -395,10 +397,26 @@
 !
        if(comand.eq.'noise   ') then
 !                    -----
-         if(nsel.eq.0) then
-           write(6,*)'no item selected'
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= noise                                                                       '
+           write(6,*)'=    add gaussian noise to the selected data record                           '
+           write(6,*)'=    parameters:                                                              '
+           write(6,*)'=      a   <val>        : factor scaling ydata to original counts for errdet  '
+           write(6,*)'=      iseed  <val>     : seed for random number generator                    '
+           write(6,*)'=      errors           : option, if there: estimae errors from plain ydata   '
+           write(6,*)'=                         otherwise form noisy ydata                          '
+           write(6,*)'=   RESULT: a copy on a new record is generated     xs                          '
+           write(6,*)'=============================================================================='
+           goto 2000
+        endif
+
+         if(nsel.ne.1) then
+           write(6,*)'wrong number of selected items ',nsel
+           call errsig(999,"ERROR: noise no or more than one record was selected$")
            goto 2000
          endif
+ 
          iadd = isels(1)
          nbuf = nbuf + 1
          if(nbuf.gt.mbuf) nbuf = mbuf
@@ -484,6 +502,7 @@
            write(6,*)'=      tau <val>        : relaxation time --> spectrum                        '
            write(6,*)'=      errabs <> errel <> maxint  : integration parameters                    '
            write(6,*)'=============================================================================='
+           goto 2000
         endif
 
          if(nbuf.lt.mbuf) then
@@ -584,7 +603,7 @@
          ia1    = isels(1)
          call parget ('n0      ',an0     ,ia1 ,ier)
          if(ier.eq.0) then
-           n0 = an0+0.1
+           n0 = Nint(an0)
          else
            n0 = nwert(ia1)/2
          endif
@@ -1032,6 +1051,19 @@
 !
        if(comand.eq.'arit    ') then ! alte version von arit 
 !                    ----
+          if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= arit f1 <factor1> f2 <factor2> [to <numor>]  [options]                      '
+           write(6,*)'=      adds the two selected records with factors 1,2 and stores as numor     '
+           write(6,*)'=      for nonmatchig x-values interpolation is applied                       '
+           write(6,*)'=   options:                                                                  '
+           write(6,*)'=            div     : divides (instead of adding)                            '
+           write(6,*)'=            mult    : multiplies (instead of adding)                         '
+           write(6,*)'=            sc <numor1> <numor2>  : selection by numor match instead of sel  '
+           write(6,*)'=   old version                                                               '
+           write(6,*)'=============================================================================='
+           goto 2000
+        endif
          newnum = 777777
          idimux = 0
 
@@ -1209,15 +1241,16 @@ da1:     do i=1,nbuf
 !                    ----
           if(found('help    ')) then 
            write(6,*)'=============================================================================='
-           write(6,*)'= arit f1 <factor1> f2 <factor2> [to <numor>]  [options]                      '
+           write(6,*)'= arit2 f1 <factor1> f2 <factor2> [to <numor>]  [options]                     '
            write(6,*)'=      adds the two selected records with factors 1,2 and stores as numor     '
            write(6,*)'=      for nonmatchig x-values interpolation is applied                       '
            write(6,*)'=   options:                                                                  '
            write(6,*)'=            div     : divides (instead of adding)                            '
            write(6,*)'=            mult    : multiplies (instead of adding)                         '
            write(6,*)'=            sc <numor1> <numor2>  : selection by numor match instead of sel  '
-           write(6,*)'=   CHECK FUNCTIONALITY!!!!!!                                                 '
+           write(6,*)'=   new  version requires sorted data                                         '
            write(6,*)'=============================================================================='
+           goto 2000
         endif
 
          newnum = 777777
@@ -1391,6 +1424,7 @@ da12:    do i=1,nbuf
            write(6,*)'=    appends one data point to selected record                                '
            write(6,*)'=    only the first selected record is treated                                '
            write(6,*)'=============================================================================='
+           goto 2000
         endif
 
          if(nsel.eq.1) then
@@ -1422,7 +1456,7 @@ da12:    do i=1,nbuf
            write(6,*)'=        by simple summation of data times bin-width                          '
            write(6,*)'=        there may be better interpolation based schemes                      '
            write(6,*)'=        but this is clear an simple                                          '
-            write(6,*)'=============================================================================='
+           write(6,*)'=============================================================================='
            goto 2000
         endif
          if(nsel<1) then
@@ -1654,8 +1688,18 @@ da12:    do i=1,nbuf
 !
        if(comand.eq.'ercorrc '.or.comand.eq.'ecc     ') then
 !                    -------                 ---
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= ercorrc n <n> a <a> ri <ri> r0 <r0> d0 <d0> ncut <nc>                       '
+           write(6,*)'=    NSE correction coil design special function                              '
+           write(6,*)'=    check what this reall does (remove?)xs                                     '
+           write(6,*)'=============================================================================='
+           goto 2000
+        endif
+
           if(nbuf.eq.mbuf) then
             write(6,*)' no space for an additional item'
+            call errsig(999,"ERROR: ercorrc $")
             goto 2000
           endif
          nbuf = nbuf+1
@@ -1676,6 +1720,7 @@ da12:    do i=1,nbuf
 
          if(n.gt.mwert) then
            write(6,*) ' n is too large'
+           call errsig(999,"ERROR: ercorrc $")
            goto 2000
          endif
 
@@ -1683,9 +1728,11 @@ da12:    do i=1,nbuf
 
          if(ncut.gt.mcut) then
            write(6,*)' ncut is too large max=',mcut
+           call errsig(999,"ERROR: ercorrc $")
            goto 2000
          endif
 
+         a = aa !??
          write(6,*)' a ........ = ',a
          write(6,*)' ri ....... = ',ri
          write(6,*)' r0 ....... = ',r0
