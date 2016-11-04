@@ -583,6 +583,7 @@
         if(ier.ne.0) ssq = 0
         do i=1,nsel
           call parset ('ssq     ',sngl(ssq),ifits(i))
+          call parset ('parwght ',sngl(pardev_scale),ifits(i))
         enddo
 !
         call couple(1)
@@ -1119,8 +1120,8 @@
          if(pardev_scale > 0d0) then
            write(6,'(" ssq2=",es12.4)',advance='no') ssq2
          endif
-         write(6,'(a)',advance='no') " : "
-         write(6,'(20es12.4)')(x(i),i=1,nfit)
+         write(6,'(a)',advance='yes') " : "
+         write(6,'(t28,8es12.4)')(x(i),i=1,nfit)
        endif
        call setudf('ssq0 ',dble(ssq),ier)
        fcssq = ssq + ssq2

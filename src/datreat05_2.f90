@@ -3949,27 +3949,53 @@ exclude:   if(found('exclude  ')) then
 !
        if(comand.eq.'theos   ') then
 !                    -----> list available theories
-                        write(6,*)' ***** theories available *****'
-                        ileng=len_trim(vname(1))
-                        if (ileng.gt.0) then
-                                do i=1,mth
-                                        if (thenam(i)(:ileng).eq.vname(1)(:ileng)) then
-                                                write(6,*)'______________________________________'
-                                                write(6,'(i3,": ",a8,i3)') i,thenam(i),nthpar(i)
-                                                write(6,*)(trim(thparn(j,i))//' ',j=1,mtpar)
-                                        endif
-                                enddo
-                        else
-                                do i=1,mth
-                                        if (thenam(i).ne.' ') then  !   kein name!!!
-                                                write(6,*)'-------------------------------------'
-                                                write(6,'(i3,": ",a8,i3)') i,thenam(i),nthpar(i)
-                                                write(6,*)(trim(thparn(j,i))//' ',j=1,mtpar)
-                                        endif
-                                enddo
-                        endif
+        if(found('help    ')) then 
+         write(6,*)'=============================================================================='
+         write(6,*)'= theos [thnam]                                                              ='
+         write(6,*)'=     optional parameter theory name (only ckeck for this theory and list it ='
+         write(6,*)'=     otherwise give a list of all available (linked) theories               ='
+         write(6,*)'=                                                                            ='
+         write(6,*)'= HINT: the theory impementations are stored as *.f or *.f90 sourecs in      ='
+         write(6,*)'=       subdirectory ~/datreat/src/theos                                     ='
+         write(6,*)'=       other theroies may be found in ~/datreat/src/unused_theos            ='
+         write(6,*)'=       moving of the sources form unused_theos to theos and subseqeunt      ='
+         write(6,*)'=       make clean  and make (from subdir src) will install the new config.  ='
+         write(6,*)'=       available theories in theos may serve as templates for own creations ='
+         write(6,*)'=                                                                            ='
+         write(6,*)'=  theos <name> will check for a theory and set the uservar theoryok = 1     ='
+         write(6,*)'=               if the theory is available                                   ='
+         write(6,*)'=                                                                            ='
+         write(6,*)'=============================================================================='
+         goto 2000
+      endif
 
-                        goto 2000
+         ileng=len_trim(vname(1))
+
+         if (ileng.gt.0) then
+            call setudf('theoryok ',0d0,ier)
+            if(ier.ne.0) call errsig(999,"ERROR: cannot create/set uservar theoryok!$")
+            do i=1,mth
+               if (thenam(i)(:ileng).eq.vname(1)(:ileng)) then
+                       write(6,*)'______________________________________'
+                       write(6,'(i3,": ",a8,i3)') i,thenam(i),nthpar(i)
+                       write(6,*)(trim(thparn(j,i))//' ',j=1,mtpar)
+                       write(6,*)'______________________________________'
+                       call setudf('theoryok ',1d0,ier)
+               endif
+            enddo
+         else
+           write(6,*)' ***** theories available *****'
+           write(6,*)'-------------------------------------'
+           do i=1,mth
+               if (thenam(i).ne.' ') then  !   kein name!!!
+                       write(6,'(i3,": ",a8,i3," :")',advance='no') i,thenam(i),nthpar(i)
+                       write(6,'(30a)')(trim(thparn(j,i))//' ',j=1,mtpar)
+               endif
+           enddo
+           write(6,*)'-------------------------------------'
+         endif
+   
+         goto 2000
       endif
 !
        if(comand.eq.'activate'.or.comand.eq.'ac      ') then
