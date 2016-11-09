@@ -52,19 +52,61 @@
 
       real :: xmin=0.,xmax=1.,ymin=0.,ymax=1.
       integer :: nkurv=0
-      data isymb/4,5,23,6,16,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21  &
+      data isymb/2,5,23,6,16,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21  &
      &          ,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41  &
      &          ,42,43/
       real :: txsize=.45,sysize=.1
-      real :: framx=23.,framy=23.,yensca=0.,frlux=4.,frluy=4.
+!?      real :: framx=23.,framy=23.,yensca=0.,frlux=4.,frluy=4.
+      real :: framx=23.,framy=23.,frlux=4.,frluy=4.
       real :: epscl=0.001
-      integer :: ifont=1, icol0=1, ixmode=1
+!?      integer :: ifont=1, icol0=1, ixmode=1
+      integer :: ifont=1, icol0=1
       real :: txsizt=.23,xtshft=0.,ytshft=0.
 
       real frxx, fryy, ytxs, yma_s, ymi_s, xh, xtxs, sysiz, ytx
       real yepl, yeml, xtx, xmi_s,xma_s
       integer irfcu, i, j, icco, ik, ip, ircu, laenge, nsy, npic, nnpi, it
       integer npicf, npar, nfkurv, nco, ltext, lopt, lxx, lyy, l, ith, ircf
+
+      integer, save :: iplevel = 0
+
+
+
+      if(found('help    ')) then 
+       write(6,*)'=============================================================================='
+       write(6,*)'= plot                                                                       ='
+       write(6,*)'=    plots selected records                                                  ='
+       write(6,*)'=    parameters:                                                             ='
+       write(6,*)'=      xmin  <val>    :  start of x-plotting range                           ='
+       write(6,*)'=      xmax  <val>    :  end   of x-plotting range                           ='
+       write(6,*)'=      ymin  <val>    :  start of y-plotting range                           ='
+       write(6,*)'=      ymax  <val>    :  end   of y-plotting range                           ='
+       write(6,*)'=      symb  <list>   :  integer synbmbol list (sequence = selected)         ='
+       write(6,*)'=      icolo <list>   :  integer color    list (sequence = selected)         ='
+       write(6,*)'=      errplo         :  adds error bars                                     ='
+       write(6,*)'=      noerrplo       :  suppress error bars                                 ='
+       write(6,*)'=      parplo         :  sets parameter value listing                        ='
+       write(6,*)'=      parlev         :  sets level for (more) parameter lsiting             ='
+       write(6,*)'=      noparplo p1 p2.:  suppress parameter listing except for p1 p2 ...     ='
+       write(6,*)'=      lin_x | log_x  :  lin or log x scale                                  ='
+       write(6,*)'=      lin_y | log_y  :  lin or log y scale                                  ='
+       write(6,*)'=        for further options see manual ....                                 ='
+       write(6,*)'= HINTS:  (prior to plot)                                                    ='
+       write(6,*)'=       use the:  title    command to set a plot title                       ='
+       write(6,*)'=       use the:  rename   command to change x-axis and y-axis names         ='
+       write(6,*)'= PRINTING/SAVING:                                                           ='
+       write(6,*)'=       to create a gli##.eps output file issue the plot command again       ='
+       write(6,*)'=       select 62  as output option (instead of 211 for screen display)      ='
+       write(6,*)'=       check name of created file by -> ls -ltr                             ='
+       write(6,*)'=       copy gli##.eps to a name of your choice -> cp gli##.eps myplot1.eps  ='
+       write(6,*)'= VERSION 2.4                                                                ='
+       write(6,*)'=============================================================================='
+       return
+      endif
+
+
+
+
 
 ! ----- parameter retrieving from stack -----
       nkurv  = 0
@@ -105,6 +147,7 @@
           if(vname(i).eq.'font    ') ifont = rpar(j) +0.0001
           if(vname(i).eq.'color   ') icol0 = rpar(j) +0.0001
           if(vname(i).eq.'sysize  ') sysize= rpar(j)
+          if(vname(i).eq.'parlev  ') iplevel = Nint(rpar(j))
           if(vname(i).eq.'parplo  ') paplo=.true.
           if(vname(i).eq.'noparplo') paplo=.false.
           if(vname(i).eq.'errplo  ') errplo=.true.
@@ -154,7 +197,7 @@
             do 5 l=1,inpar(i)
              nkurv = nkurv + 1
              if(nkurv.gt.minc) goto 31
-             irecv(nkurv) = rpar(j) * 1.000001
+             irecv(nkurv) = Nint(rpar(j))
              j = j + 1
     5       continue
           endif
@@ -166,7 +209,7 @@
             do 641 l=1,inpar(i)
              nfkurv = nfkurv + 1
              if(nfkurv.gt.minc) goto 64
-             ifrec(nfkurv) = rpar(j) * 1.000001
+             ifrec(nfkurv) = Nint(rpar(j))
              j = j + 1
   641       continue
           endif
@@ -245,7 +288,7 @@ scl:   if(found('scaled  ')) then
 ! ---- identify scantyp ----
 !
        if(log_x) then
-         lxx   = laenge(xname(isels(1)),80,' ')
+         lxx   = len_trim(yname(isels(1)))
          xtext = 'log10('//xname(isels(1))(1:lxx)//')'
          xmi_s = log10(abs(xmin)+1e-33)
          xma_s = log10(abs(xmax)+1e-33)
@@ -260,7 +303,7 @@ scl:   if(found('scaled  ')) then
          xma_s = xmax
        endif
        if(log_y) then
-         lyy   = laenge(yname(isels(1)),80,' ')
+         lyy   = len_trim(yname(isels(1)))
          ytext = 'log10('//yname(isels(1))(1:lyy)//')'
          ymi_s = log10(abs(ymin)+1e-33)
          yma_s = log10(abs(ymax)+1e-33)
@@ -287,9 +330,12 @@ scl:   if(found('scaled  ')) then
          lxx = 0
          lyy = 0
        else
-         lxx = laenge(xtext,80,' ')
-         lyy = laenge(ytext,80,' ')
+ !        lxx = laenge(xtext,80,' ')
+ !        lyy = laenge(ytext,80,' ')
+         lxx = len_trim(xtext)
+         lyy = len_trim(ytext)
        endif
+write(6,*)"test1:",xtext,ytext,lxx,lyy
        if(paxis) call graxs(lopt,option,lxx,xtext,lyy,ytext)
 !
 !
@@ -504,7 +550,8 @@ scl:   if(found('scaled  ')) then
              npar = nthpar(ith)
              if(npar.ne.0) then
                do 117 ip = 1,npar
-               write(xtext,'(a8,1h=,1e12.4,2h+-,e9.2,e8.1)')thparn(ip,ith),thparx(ip,it),therro(ip,it),thpsca(ip,it)
+!               write(xtext,'(a8,1h=,1e12.4,2h+-,e9.2,e8.1)')thparn(ip,ith),thparx(ip,it),therro(ip,it),thpsca(ip,it)
+               write(xtext,'(a8,1h=,1es12.5,2h+-,es9.2,es8.1)')thparn(ip,ith),thparx(ip,it),therro(ip,it),thpsca(ip,it)
                  call grtxt(xtx,ytx,33,xtext)
                  ytx = ytx - 1.7*txsizt
   117          continue
@@ -514,7 +561,7 @@ scl:   if(found('scaled  ')) then
 ! ---- plotted items ----
          do 101 i=1,nkurv
            ircu = isels(i)
-           write(xtext,'(a8,i14,a7,e13.6)') name(ircu),numor(ircu),' scale ',p_scale(i)
+           write(xtext,'(a8,i14,a7,es13.6)') name(ircu),numor(ircu),' scale ',p_scale(i)
            xtxs = xtx - 2*txsizt
            ytxs = ytx + txsizt / 2
            icco=mod(icolo(i),7) + 1
@@ -530,24 +577,27 @@ scl:   if(found('scaled  ')) then
            ytx = ytx - 1.7 * txsizt
            if(paplo) then
            do 1012 l=1,nopar(ircu)
-           write(xtext,'(a8,e14.5)')napar(l,ircu),params(l,ircu)
+            if(params_display_level(l,ircu) > iplevel) cycle
+ !          write(xtext,'(a8,e14.5)')napar(l,ircu),params(l,ircu)
+           write(xtext,'(a8,es14.6)')napar(l,ircu),params(l,ircu)
            call grtxt(xtx,ytx,22,xtext)
            ytx = ytx - 1.7 * txsizt
  1012      continue
            else
-           do l=1,nopar(ircu)
-            if(found(napar(l,ircu)//' ')) then
-              write(xtext,'(a8,e14.5)')napar(l,ircu),                   &
-     &                                 params(l,ircu)
+ dap01:     do l=1,nopar(ircu)
+             if(params_display_level(l,ircu) > iplevel) cycle dap01
+             if(found(napar(l,ircu)//' ')) then
+              write(xtext,'(a8,es14.6)')napar(l,ircu),                   &
+     &                                  params(l,ircu)
               call grtxt(xtx,ytx,22,xtext)
               ytx = ytx - 1.7 * txsizt
             endif
-           enddo
+           enddo dap01
            endif
 
            ircu = ifits(i)
            if(ircu.gt.0) then
-             write(xtext,'(a8,i14,a7,e13.6)') name(ircu),numor(ircu),' scale ',p_scale(i)
+             write(xtext,'(a8,i14,a7,es13.6)') name(ircu),numor(ircu),' scale ',p_scale(i)
              xtxs = xtx - 2*txsizt
              ytxs = ytx + txsizt / 2
              icco=mod(icolo(i),7) + 1
@@ -562,20 +612,22 @@ scl:   if(found('scaled  ')) then
              call grtxt(xtx,ytx,80,coment(ircu))
              ytx = ytx - 1.7 * txsizt
              if(paplo) then
-             do  l=1,nopar(ircu)
-             write(xtext,'(a8,e14.5)')napar(l,ircu),params(l,ircu)
-             call grtxt(xtx,ytx,22,xtext)
-             ytx = ytx - 1.7 * txsizt
-             enddo
+ dap1:      do  l=1,nopar(ircu)
+               if(params_display_level(l,ircu) > iplevel) cycle dap1
+               write(xtext,'(a8,es14.6)')napar(l,ircu),params(l,ircu)
+               call grtxt(xtx,ytx,22,xtext)
+               ytx = ytx - 1.7 * txsizt
+             enddo dap1
              else
-             do l=1,nopar(ircu)
+ dap2:      do l=1,nopar(ircu)
+              if(params_display_level(l,ircu) > iplevel) cycle dap2
               if(found(napar(l,ircu)//' ')) then
-                write(xtext,'(a8,e14.5)')napar(l,ircu),                 &
+                write(xtext,'(a8,es14.6)')napar(l,ircu),                 &
      &                                   params(l,ircu)
                 call grtxt(xtx,ytx,22,xtext)
                 ytx = ytx - 1.7 * txsizt
               endif
-             enddo
+             enddo dap2
              endif
            endif
   101    continue
@@ -672,12 +724,14 @@ scl:   if(found('scaled  ')) then
        real*8 dble, getval, val
 !
       real :: xmin=0.,xmax=4.,ymin=0.,ymax=2.
-      integer :: nkurv=0, ifont=1, icol0=1, ixmode=1
+!?      integer :: nkurv=0, ifont=1, icol0=1, ixmode=1
+      integer :: ifont=1, icol0=1
       data isymb/4,5,23,6,16,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21  &
      &          ,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41  &
      &          ,42,43/
       real :: txsize=.45,sysize=.1
-      real :: framx=23.,framy=23.,yensca=0.,frlux=4.,frluy=4.
+!      real :: framx=23.,framy=23.,yensca=0.,frlux=4.,frluy=4.
+      real :: framx=23.,framy=23.,frlux=4.,frluy=4.
       real :: epscl=0.001
       data icolo/minc * 1/
       DATA OPART/'X=1     ','Y=1     ','I       ','A       ',           &
@@ -878,6 +932,7 @@ scl:   if(found('scaled  ')) then
           lxtxt = 0
           lytxt = 0
        endif
+  write(6,*)"test2:",xtext,ytext,lxtxt,lytxt
        if(paxis) call graxs(lopt,option,lxtxt,xtext,lytxt,ytext)
 !
        return

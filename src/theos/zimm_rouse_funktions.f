@@ -554,6 +554,108 @@
        return
        end
 
+       real*8 function SQ_rouseW(t,Q,Wl4)
+!!     ==================================
+!!  from scratch
+!!
+
+        implicit none
+        double precision, intent(in) ::  t, Q, Wl4
+!        Parameter (kb=1.380662d-23)
+!        Parameter (Pi=3.141592654d0)
+ 
+        real*8 t_SI, Q_SI, Gamk
+        real*8 Gamkt
+        real*8 Bint_end
+        real*8 adapint
+        real*8 epsilon2, erraccu
+        real*8 b,xi
+
+        real*8 SQ_rouse_kernel
+        real*8 GamktAxp
+        common/sqrokc/GamktAxp 
+        real*8 axp, epsilon_c
+        common /crouse/ axp, epsilon_c
+        integer maxit2 
+
+        integer iadda
+        common/thiadd/iadda
+ 
+
+        external SQ_rouse_kernel
+
+        epsilon2  = 1d-6
+        epsilon_c = epsilon2
+        Bint_end = -dlog(epsilon_c)
+        maxit2   = 1300
+
+        Axp = 1.0d0/2.0d0
+
+
+  !      t_SI = t * 1d-9
+  !      Q_SI = Q * 1d10
+  !
+  !      Gamkt = (kb * temp)*b*b/(12*xi) 
+  !      Wl4   = 36*Gamkt 
+  !      call parset('wl4     ',sngl(wl4*1d31),iadda) ! in A**4ns
+  !      Gamkt = (Gamkt*Q_SI)*Q_SI*(Q_SI*t_SI)*Q_SI
+        Gamkt = (Wl4/36) * Q**4 * t
+        GamktAxp = Gamkt**Axp
+
+        SQ_rouseW = adapint( SQ_rouse_kernel, 0d0, Bint_end,
+     *                    epsilon2, maxit2, erraccu)
+     
+       return
+       end
+
+       real*8 function SQ_rouseTW(t,Q,Wl4)
+!!     ===================================
+!!     from table
+!!
+        implicit none
+        double precision, intent(in) ::  t, Q, Wl4
+ 
+        real*8 t_SI, Q_SI, Gamk
+        real*8 Gamkt
+        real*8 Bint_end
+        real*8 adapint
+        real*8 epsilon2, erraccu
+        real*8 b,xi
+
+        real*8 SQ_rouse_kernel
+        real*8 GamktAxp
+        common/sqrokc/GamktAxp 
+        real*8 axp, epsilon_c
+        common /crouse/ axp, epsilon_c
+        integer maxit2 
+        real*8 rouse_table
+
+        integer iadda
+        common/thiadd/iadda
+ 
+        epsilon2 = 1d-6
+        if(epsilon2.ne.epsilon_c) then
+          call create_rouse_table(epsilon2)
+        endif
+
+        Axp = 1.0d0/2.0d0
+
+
+        t_SI = t * 1d-9
+        Q_SI = Q * 1d10
+
+!        Gamkt = (kb * temp)*b*b/(12*xi)
+!        Wl4   = 36*Gamkt 
+!        call parset('wl4     ',sngl(wl4*1d31),iadda) ! in A**4 ns
+        Gamkt = (wL4/36)*q**4*t
+        GamktAxp = Gamkt**Axp
+
+        SQ_rouseTW = rouse_table(GamktAxp)
+
+     
+       return
+       end
+
                 
        real*8 function  SQ_rouse_kernel(u)
 !!     ----------------------------------

@@ -240,17 +240,28 @@
       subroutine errsig(ierr,say)
 !     ================================
       use xoutxx
+      use cincoc
+      use imargs
       implicit none
       integer ierr, laenge, lsay
       character*128 say, sayit
 ! ----------------------------------------------------------------------
 !  error signalisierung
 ! ----------------------------------------------------------------------
+!
+! if Masked stay tacid !
+      if(mask_err) return
+
       ierrr = ierr
       lsay = laenge(say,80,'$')
       sayit = say(1:lsay)
-      write(6,*)'error:',ierr,' ',trim(sayit)
-      return
+      write(6,*)"!====================================================== "
+      write(6,*)"!!ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR "
+      write(6,*)"!! ",trim(sayit)
+      write(6,*)"!!Macro nesting level: ",ktop
+      write(6,*)"!!last input: ",trim(inline)
+      write(6,*)"!====================================================== "
+       return
       END
 
 
@@ -474,7 +485,7 @@
 !
        do 10 i=1,inames
          if(vname(i).eq.pname) then
-            intval = rpar(inapa(i))*1.0000000001d0
+            intval = Nint(rpar(inapa(i)))
             inew = i
             lstpar = inapa(i)
             lstnam = i
@@ -505,7 +516,7 @@
        intnxt    = idef
        if(ipars.le.lstpar) return
 
-       intnxt = rpar(lstpar+1)*1.0000000001d0
+       intnxt = Nint(rpar(lstpar+1))
        inew   = lstpar+1
        lstpar = lstpar
 
@@ -727,7 +738,7 @@
        intvno    = idef
        if(ipars.lt.ipnum) return
 
-       intvno = rpar(ipnum) * 1.0000000001d0
+       intvno = Nint(rpar(ipnum))
        inew      = ipnum
        lstpar    = ipnum
 
@@ -1854,7 +1865,11 @@
 
        call scan(formula,valnum,ierrx)
        if(ierrx.ne.0 .and. iout.ge.1) write(6,*)'evaluate: ',(formula(i),i=0,len),' to ',val
-			 return
+
+!>new
+       if(ierr.ne.0) call errsig(999,"ERROR: term evaluation>"//trim(f)//"< failed!$")
+
+       return
       END
 
 
@@ -1995,6 +2010,7 @@
       else
         write(6,*)'uservar set: buffer is full ! error'
         ier = 200
+        call errsig(200,"ERROR: uservar buffer is full!$")
       endif
       return
       END

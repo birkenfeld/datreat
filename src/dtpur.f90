@@ -27,6 +27,8 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
 
        integer m,n, iparam
        real xguess, xscale, xjac, rparam, fscale, x, f
+
+       integer :: ngood
 !
       external func
 ! ---- OH: additional parameters for minpack and lapack
@@ -43,19 +45,33 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
 
        data nsig/6/,eps/1.d-5/,delta/1.d-5/,maxfn/50/,iopt/0/
 
+       ngood = iparam(2)
+       maxfn = iparam(4)
+
+
        ftol = eps
-       xtol = eps
+       if(ngood <= 0) then
+          xtol = eps
+       else
+          xtol = 10d0**(-ngood)
+       endif
        gtol = zero
        epsfcn = 2.d-7
        mode = 2
        iflag = 2
-       write(6,*)' so weit, so gut  *****'
+       write(6,*)" .... calling Minpack Levenberg-Marquart routine lmdif "
+       write(6,'(a,g14.7,a)') "    ftol  = ",ftol ,"  end condition for ssq reduction per step"
+       write(6,'(a,g14.7,a)') "    xtol  = ",xtol ,"  end condition for param change per  step (ngood)"
+       write(6,'(a,g14.7,a)') "    gtol  = ",gtol ,"  end condition for vector rotation per step"
+       write(6,'(a,i14,a)'  ) "    maxfn = ",maxfn,"  maximum number of function evaluations" 
+       write(6,*)
+! 
        call lmdif(func,m,n,x,f,ftol,xtol,gtol,maxfn,                    &
      &            epsfcn,xscale,mode,1.0,iprint,icode,nfev,xjac,ixjac,  &
      &            iwa, qtf,wa1,wa2, wa3,wa4)
        call fdjac2(func,m,n,x,f,xjac,ixjac,iflag,epsfcn,wa4)
 
-       write(6,*)' und nu???'
+       write(6,*)" .... lmdif returns code for:"
         if(icode.eq.0) write(6,*)' **-0- : improper input params  *****'
         if(icode.eq.1) write(6,*)' **-1- : ftol reached           *****'
         if(icode.eq.2) write(6,*)' **-2- : xtol reached           *****'
@@ -68,10 +84,187 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
 
         return
       END
-
-
-
-
+!! 
+!!               Documentation for MINPACK subroutine LMDIF
+!! 
+!!                         Double precision version
+!! 
+!!                       Argonne National Laboratory
+!! 
+!!          Burton S. Garbow, Kenneth E. Hillstrom, Jorge J. More
+!! 
+!!                                March 1980
+!! 
+!! 
+!!  1. Purpose.
+!! 
+!!        The purpose of LMDIF is to minimize the sum of the squares of M
+!!        nonlinear functions in N variables by a modification of the
+!!        Levenberg-Marquardt algorithm.  The user must provide a subrou-
+!!        tine which calculates the functions.  The Jacobian is then cal-
+!!        culated by a forward-difference approximation.
+!! 
+!! 
+!!  2. Subroutine and type statements.
+!! 
+!!        SUBROUTINE LMDIF(FCN,M,N,X,FVEC,FTOL,XTOL,GTOL,MAXFEV,EPSFCN,
+!!       *                 DIAG,MODE,FACTOR,NPRINT,INFO,NFEV,FJAC,LDFJAC,
+!!       *                 IPVT,QTF,WA1,WA2,WA3,WA4)
+!!        INTEGER M,N,MAXFEV,MODE,NPRINT,INFO,NFEV,LDFJAC
+!!        INTEGER IPVT(N)
+!!        DOUBLE PRECISION FTOL,XTOL,GTOL,EPSFCN,FACTOR
+!!        DOUBLE PRECISION X(N),FVEC(M),DIAG(N),FJAC(LDFJAC,N),QTF(N),
+!!       *                 WA1(N),WA2(N),WA3(N),WA4(M)
+!!        EXTERNAL FCN
+!! 
+!! 
+!!  3. Parameters.
+!! 
+!!        Parameters designated as input parameters must be specified on
+!!        entry to LMDIF and are not changed on exit, while parameters
+!!        designated as output parameters need not be specified on entry
+!!        and are set to appropriate values on exit from LMDIF.
+!! 
+!!        FCN is the name of the user-supplied subroutine which calculates
+!!          the functions.  FCN must be declared in an EXTERNAL statement
+!!          in the user calling program, and should be written as follows.
+!! 
+!!          SUBROUTINE FCN(M,N,X,FVEC,IFLAG)
+!!          INTEGER M,N,IFLAG
+!!          DOUBLE PRECISION X(N),FVEC(M)
+!!          ----------
+!!          CALCULATE THE FUNCTIONS AT X AND
+!!          RETURN THIS VECTOR IN FVEC.
+!!          ----------
+!!          RETURN
+!!          END
+!! 
+!! 
+!!                                                                  Page 2
+!! 
+!!          The value of IFLAG should not be changed by FCN unless the
+!!          user wants to terminate execution of LMDIF.  In this case set
+!!          IFLAG to a negative integer.
+!! 
+!!        M is a positive integer input variable set to the number of
+!!          functions.
+!! 
+!!        N is a positive integer input variable set to the number of
+!!          variables.  N must not exceed M.
+!! 
+!!        X is an array of length N.  On input X must contain an initial
+!!          estimate of the solution vector.  On output X contains the
+!!          final estimate of the solution vector.
+!! 
+!!        FVEC is an output array of length M which contains the functions
+!!          evaluated at the output X.
+!! 
+!!        FTOL is a nonnegative input variable.  Termination occurs when
+!!          both the actual and predicted relative reductions in the sum
+!!          of squares are at most FTOL.  Therefore, FTOL measures the
+!!          relative error desired in the sum of squares.  Section 4 con-
+!!          tains more details about FTOL.
+!! 
+!!        XTOL is a nonnegative input variable.  Termination occurs when
+!!          the relative error between two consecutive iterates is at most
+!!          XTOL.  Therefore, XTOL measures the relative error desired in
+!!          the approximate solution.  Section 4 contains more details
+!!          about XTOL.
+!! 
+!!        GTOL is a nonnegative input variable.  Termination occurs when
+!!          the cosine of the angle between FVEC and any column of the
+!!          Jacobian is at most GTOL in absolute value.  Therefore, GTOL
+!!          measures the orthogonality desired between the function vector
+!!          and the columns of the Jacobian.  Section 4 contains more
+!!          details about GTOL.
+!! 
+!!        MAXFEV is a positive integer input variable.  Termination occurs
+!!          when the number of calls to FCN is at least MAXFEV by the end
+!!          of an iteration.
+!! 
+!!        EPSFCN is an input variable used in determining a suitable step
+!!          for the forward-difference approximation.  This approximation
+!!          assumes that the relative errors in the functions are of the
+!!          order of EPSFCN.  If EPSFCN is less than the machine preci-
+!!          sion, it is assumed that the relative errors in the functions
+!!          are of the order of the machine precision.
+!! 
+!!        DIAG is an array of length N.  If MODE = 1 (see below), DIAG is
+!!          internally set.  If MODE = 2, DIAG must contain positive
+!!          entries that serve as multiplicative scale factors for the
+!!          variables.
+!! 
+!!        MODE is an integer input variable.  If MODE = 1, the variables
+!!          will be scaled internally.  If MODE = 2, the scaling is
+!! 
+!! 
+!!                                                                  Page 3
+!! 
+!!          specified by the input DIAG.  Other values of MODE are equiva-
+!!          lent to MODE = 1.
+!! 
+!!        FACTOR is a positive input variable used in determining the ini-
+!!          tial step bound.  This bound is set to the product of FACTOR
+!!          and the Euclidean norm of DIAG*X if nonzero, or else to FACTOR
+!!          itself.  In most cases FACTOR should lie in the interval
+!!          (.1,100.).  100. is a generally recommended value.
+!! 
+!!        NPRINT is an integer input variable that enables controlled
+!!          printing of iterates if it is positive.  In this case, FCN is
+!!          called with IFLAG = 0 at the beginning of the first iteration
+!!          and every NPRINT iterations thereafter and immediately prior
+!!          to return, with X and FVEC available for printing.  If NPRINT
+!!          is not positive, no special calls of FCN with IFLAG = 0 are
+!!          made.
+!! 
+!!        INFO is an integer output variable.  If the user has terminated
+!!          execution, INFO is set to the (negative) value of IFLAG.  See
+!!          description of FCN.  Otherwise, INFO is set as follows.
+!! 
+!!          INFO = 0  Improper input parameters.
+!! 
+!!          INFO = 1  Both actual and predicted relative reductions in the
+!!                    sum of squares are at most FTOL.
+!! 
+!!          INFO = 2  Relative error between two consecutive iterates is
+!!                    at most XTOL.
+!! 
+!!          INFO = 3  Conditions for INFO = 1 and INFO = 2 both hold.
+!! 
+!!          INFO = 4  The cosine of the angle between FVEC and any column
+!!                    of the Jacobian is at most GTOL in absolute value.
+!! 
+!!          INFO = 5  Number of calls to FCN has reached or exceeded
+!!                    MAXFEV.
+!! 
+!!          INFO = 6  FTOL is too small.  No further reduction in the sum
+!!                    of squares is possible.
+!! 
+!!          INFO = 7  XTOL is too small.  No further improvement in the
+!!                    approximate solution X is possible.
+!! 
+!!          INFO = 8  GTOL is too small.  FVEC is orthogonal to the
+!!                    columns of the Jacobian to machine precision.
+!! 
+!!          Sections 4 and 5 contain more details about INFO.
+!! 
+!!        NFEV is an integer output variable set to the number of calls to
+!!          FCN.
+!! 
+!!        FJAC is an output M by N array.  The upper N by N submatrix of
+!!          FJAC contains an upper triangular matrix R with diagonal ele-
+!!          ments of nonincreasing magnitude such that
+!! 
+!! 
+!!                                                                  Page 4
+!! 
+!!                 T     T           T
+!!                P *(JAC *JAC)*P = R *R,
+!! 
+!!          where P is a permutation matrix and JAC is the final calcu-
+!!          lated J
+!! 
+!! 
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
@@ -759,8 +952,8 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
 
       subroutine u4lsf()
 
-      write(*,*)'IMSL routine u4lsf called,'
-      write(*,*)'not used with minpack...'
+!      write(*,*)'IMSL routine u4lsf called,'
+!      write(*,*)'not used with minpack...'
       return
       END
 
@@ -769,6 +962,7 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
       write(*,*)'IMSL routine dsvrgp called,'
       write(*,*)'not replaced yet...'
       write(*,*)'ERROR!!!!!!!!'
+      stop
       return
       END
 
@@ -777,6 +971,7 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
       write(*,*)'IMSL routine dpermu called,'
       write(*,*)'not replaced yet...'
       write(*,*)'ERROR!!!!!!!!'
+      stop
        return
       END
 
@@ -786,6 +981,7 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
       write(*,*)'not yet replaced!!!!!!!!'
       write(*,*)'ERROR!!!!!!!!'
       Dsi=0
+      stop
       return
       END
 

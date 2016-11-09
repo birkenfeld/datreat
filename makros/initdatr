@@ -1,6 +1,8 @@
 makro
 
-gp start legend 1.1,1;page size 600, 400;xaxis label "\xt\f{} / ns";yaxis  label "S(q,\xt\f{}) / S(q,0)"
+
+plot0 xmin 0 xmax 100 ymin 0 ymax 1 errplo
+
 
 
 

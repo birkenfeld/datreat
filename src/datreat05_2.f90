@@ -31,6 +31,7 @@
       use dimensions
       use cincom
       use cincoc
+      use cmargs
       use xoutxx
       use cdata
       use outlev
@@ -118,6 +119,11 @@
        real*4           dirpav(20)
 
        real          :: y_scaling
+       real          :: diffscal, diffrouse
+
+
+
+       character(len=80) :: cbuffer
 
 
 !
@@ -126,6 +132,7 @@
 !
 !
        real :: errabs=1.0,errel=1.e-2
+       real :: xcopy1, xcopy2
 
 !
 ! lokale Hilfsvariablen fuer arit2 (geht noch besser) !
@@ -149,12 +156,23 @@
        real             :: detector_sensitivity, detsens, lambdaA
 
 
+       double precision :: unift_range_expand     = 1d0
+       double precision :: unift_resolution_limit = 0.1d0
+       
+
          real  :: lambda0, lambda1, delta_lambda, temp,angle_2tht 
-         real  :: e0, e1, dE, de0, dee, dbb, omega, om_cm, qrc, qa, q
+!?         real  :: e0, e1, dE, de0, dee, dbb, omega, om_cm, qrc, qa, q
+         real  :: e0, e1, dE, de0, dee, dbb, omega, om_cm, qa, q
          real  :: kinetic_factor, channel_factor,channel_width,channel_width0
          real  :: sume, sumq
   
-       integer :: irstp, recstep = 1    
+       integer :: irstp, recstep = 1   
+
+
+       real    ::   lower_range 
+       real    ::   upper_range
+       logical ::   range_is_y  
+ 
 
 ! ---- initialisations ----
 ! ---- error-set ----------
@@ -165,39 +183,44 @@
                         !! Clears Signals
        call sig_Reset()
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-			write(6,*)
-			write(6,*)'======================================================='
-			write(6,*)'=   datreat12_2     Version: mm-develop 1.0           ='
-			write(6,*)'=   -----------     --------                          ='
-			write(6,*)'=   changed to fortran 90 format and gfortran         ='
-			write(6,*)'=   gplot ?  shows help for plotting in xmgrace       ='
-			write(6,*)'=          or simply try "gp  "          :-)          ='
-			write(6,*)'=   for new theories put them in src/theos and        ='
-			write(6,*)'=                              recompile with "make"  ='
-			write(6,*)'=   this is version with only gpl routines            ='
-			write(6,*)'=   compile with "make" in src/ help with "make ?"    ='
-			write(6,*)'=                                                     ='
-			write(6,*)'=    22.11.2005  NEWS NEW  NEW  NEW                   ='
-			write(6,*)'=    #non datreat commands used as shell commands     ='
- 			write(6,*)'=         try ls, or pwd ; cd changes working dir     ='
-			write(6,*)'=    # path shows default data,save and macr path     ='
-			write(6,*)'=    # use  _?? to redo last command starting with ?? ='
-			write(6,*)'=    # input accepts long filenames including the path='
-			write(6,*)'=    #    save,msave accept this too='
-			write(6,*)'=        see datreat/doc for NEW dokumentation        ='
-			write(6,*)'=     try> cd test;testmac                            ='
-			write(6,*)'=     initdatr  is an initialisation makro at startup ='
-			write(6,*)'=                                                     ='
-			write(6,*)'=    #NEW input routine accepts nearly everything     ='
-			write(6,*)'=                   TEST!!                            ='
-			write(6,*)'=                changed by R.Biehl and O.Holderer    ='
-			write(6,*)'=              in collaboration with M.Monkenbusch    ='
-			write(6,*)'======================================================='
-			write(6,*)'=   for laptop users                                  ='
-			write(6,*)'=  use the 5.1.20 version of grace_np to have a       ='
-			write(6,*)'=      single grace plot after system calls           ='
-			write(6,*)'======================================================='
-			write(6,*)' Pi = ',pi
+                        write(6,*)
+                        write(6,*)'======================================================='
+                        write(6,*)'=   datreat12_2     Version: mm-develop 2.4d          ='
+                        write(6,*)'=   -----------     --------                          ='
+                        write(6,*)'=   Author: M.Monkenbusch  R. Biehl, O.Holderer, JCNS ='
+                        write(6,*)'======================================================='
+                        prompt = "#mm-develop 2.4d -> " 
+                        write(6,*)
+                        write(6,*)
+                        write(6,*)
+                        write(6,*)'=================================================================='
+                        write(6,*)'=  NEW NEW NEW NEW NEW                                           ='
+                        write(6,*)'=  sel : advanced functions, type "sel help" to learn more       ='
+                        write(6,*)'=  average : combine data,   type "average help"                 ='
+                        write(6,*)'=  copy : copy selected, if x1 <x1> x2 <x2> are given            ='
+                        write(6,*)'=         copy only that range                                   ='
+                        write(6,*)'=  sequence: replace x-values by sequence nubers 1..n            ='
+                        write(6,*)'=  swapxy:   exchange x and y values, discard errors             ='
+                        write(6,*)'=  numorchg: change numor of selected record                     ='
+                        write(6,*)'=  arit:     back to old one                                     ='
+                        write(6,*)'=  arit2:    note needs sorted data...                           ='
+                        write(6,*)'=  get_th:   activates theory of msave files:: gth <filenam>     ='
+                        write(6,*)'=  msave:    unlimited filename length                           ='
+                        write(6,*)'=  .... up to 80 theories, 40 th-params, 300 uservars            ='
+                        write(6,*)'=  fit: maxfn , ngood  parameters revitalized                    ='
+                        write(6,*)'=  .... more commands with help option, try <cmd> help           ='
+                        write(6,*)'=  .... improved output formats in plots and lastth              ='
+                        write(6,*)'=  .... observes ERROR (and stops makros in expression eval)     ='
+                        write(6,*)'=  HINT: use sys to issue system commands including -,+ ...      ='
+                        write(6,*)'=        do this always in makros                                ='
+                        write(6,*)'=  In parameter list quotes are respected to protect strings     ='
+                        write(6,*)'=  (internal incom: we only assume evaluation if 1st char is     ='
+                        write(6,*)'=  .(+-1..9)                                                     =' 
+                        write(6,*)'=  with fit: parameter parwght  , go, help, couple               =' 
+                        write(6,*)'=  new parameter display level ; parlev <dl> ; plot parlev <dl>  =' 
+                        write(6,*)'=  range reset if not specified                                  =' 
+                        write(6,*)'=================================================================='
+                        write(6,*)' Pi = ',pi
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
 !       pi   = 4 * atan(1.0)
@@ -292,10 +315,16 @@
          endif
        endif
        ierrs = 0
+!       mask_err = .false.
 !
 
        iibuf= isels(1)
        iadda= isels(1)
+       mask_err = .false.   ! expression evaluation error detection is activated
+                            ! since evaluation is done in an early stage of line interpretation
+                            ! this error should be masked if comment lines etc. are read
+                            ! e.g. in input in order to avoid erroneous error messages
+                            ! when constructions that resemble expression are contained.
 
        call incom(comand)
 !      ------------------
@@ -305,17 +334,61 @@
        if(comand.eq.'?       '.or.comand.eq.'help    ') then
 !                    -                       ----
 !         call system('firefox '//datreat_path//'/doc/DatreatManual6.html &')
-         write(*,*)"Please check datreat../doc/DatreatManual6.html for help"
+         call command_list()
+         write(*,*)"Please check datreat../doc/DatreatManual6.html for more help"
          goto 2000
        endif
 !
 !
+       if(comand.eq.'prompt  ') then
+!                    ------ 
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= prompt <name>                                                               '
+           write(6,*)'=    replaeces chars 2:9 of prompt by the given <name>                        '
+           write(6,*)'=    thus a datreat session can be given an easy identifier if several are run'
+           write(6,*)'=============================================================================='
+           goto 2000
+        endif
+                   
+         if(inames .ne. 1) then
+           call errsig(999,"ERROR: prompt modification requires exactly 1 name$")
+         else
+           prompt = "# "//trim(vname(1))//":"//trim(prompt(len_trim(prompt)-7:))//" "
+         endif
+         goto 2000
+       endif
+
+       if(comand.eq.'title   ') then
+!                    ------ 
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= title "some string"                                                         '
+           write(6,*)'=    other than tit with evaluation                                           '
+           write(6,*)'=============================================================================='
+           goto 2000
+        endif
+                   
+         if(inames < 1) then
+           call errsig(999,"ERROR: title modification requires  1 (long)name$")
+         else
+          title = " "
+          do i=1,inames
+           title = trim(title)//" "// argvals(i)(1:len(title))
+          enddo
+         endif
+         write(6,'(a,a)')"current plot title: ",trim(title)
+         goto 2000
+       endif
+
        if(comand.eq.'in      '.or.comand.eq.'input   ') then
 !                    --                      -----
+         mask_err = .true.
          call input
          nsel = 1
          isels(1) = nbuf
          ifits(1) = 0
+         mask_err = .false.
          goto 2000
        endif
 !
@@ -365,10 +438,26 @@
 !
        if(comand.eq.'noise   ') then
 !                    -----
-         if(nsel.eq.0) then
-           write(6,*)'no item selected'
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= noise                                                                       '
+           write(6,*)'=    add gaussian noise to the selected data record                           '
+           write(6,*)'=    parameters:                                                              '
+           write(6,*)'=      a   <val>        : factor scaling ydata to original counts for errdet  '
+           write(6,*)'=      iseed  <val>     : seed for random number generator                    '
+           write(6,*)'=      errors           : option, if there: estimae errors from plain ydata   '
+           write(6,*)'=                         otherwise form noisy ydata                          '
+           write(6,*)'=   RESULT: a copy on a new record is generated     xs                          '
+           write(6,*)'=============================================================================='
+           goto 2000
+        endif
+
+         if(nsel.ne.1) then
+           write(6,*)'wrong number of selected items ',nsel
+           call errsig(999,"ERROR: noise no or more than one record was selected$")
            goto 2000
          endif
+ 
          iadd = isels(1)
          nbuf = nbuf + 1
          if(nbuf.gt.mbuf) nbuf = mbuf
@@ -437,6 +526,26 @@
 
        if(comand.eq.'echocurv') then
 !                    ---------
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= echocurv j <j> ......                                                       '
+           write(6,*)'=    computation of simulated phase scan of NSE for a simple Lorenzian spect. '
+           write(6,*)'=    ft by integration assuming gaussian distribution functions               '
+           write(6,*)'=    parameters:                                                              '
+           write(6,*)'=      j   <val>        : field integral                                      '
+           write(6,*)'=      dj  <val>        : asymmetry (phase0)                                  '
+           write(6,*)'=      j0delta <val>    : inhomogeneity offset (external fields..)            '
+           write(6,*)'=      ddj <val>        : phase scan step (field integral)                    '
+           write(6,*)'=      n <val>          : number of points in scan                            '
+           write(6,*)'=      cdelta <val>     : relative inhomogeneity                              '
+           write(6,*)'=      lambda0 <val>    : wavelength                                          '
+           write(6,*)'=      dlambda <val>    : wavelength width                                    '
+           write(6,*)'=      tau <val>        : relaxation time --> spectrum                        '
+           write(6,*)'=      errabs <> errel <> maxint  : integration parameters                    '
+           write(6,*)'=============================================================================='
+           goto 2000
+        endif
+
          if(nbuf.lt.mbuf) then
             ia1  =  nbuf+1
             nbuf =  ia1
@@ -535,7 +644,7 @@
          ia1    = isels(1)
          call parget ('n0      ',an0     ,ia1 ,ier)
          if(ier.eq.0) then
-           n0 = an0+0.1
+           n0 = Nint(an0)
          else
            n0 = nwert(ia1)/2
          endif
@@ -921,6 +1030,20 @@
 
        if(comand.eq.'uni_ft   ') then
 !                    -------
+          if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= uni_ft [store_at <n>] [resnorm]  [rexpand <val>]  [reslim <val>]            '
+           write(6,*)'=      performs fourier transform of the first selected records               '
+           write(6,*)'=      the second selected record (may) hold the resolution                   '
+           write(6,*)'=   options:                                                                  '
+           write(6,*)'=            resnorm : normalisation to resolution intensity                  '
+           write(6,*)'=            rexpand : multiplies (instead of adding)                         '
+           write(6,*)'=            reslim:   limit for resolution at deconvolution                  '
+           write(6,*)'=   spectrum x-axis unit given by valid names: micro-eV, meV, GHz, omega      '
+           write(6,*)'=   intermediate results (Ft(data), Ft(res), ..) are stored on etra records   '
+           write(6,*)'=============================================================================='
+           goto 2000
+        endif
 
          if(nsel.le.0) then
            write(6,*)'error: no data records selected: no action !'
@@ -928,7 +1051,7 @@
            write(6,*)'select the data record and the resolution record '
            write(6,*)'using the sel command; sequence of selcted items matters! '
            write(6,*)'if only one record is selected, only simple FT without '
-           write(6,*)'deconvolution si performed'
+           write(6,*)'deconvolution is performed'
            ierrs = 1
            goto 2000
          endif 
@@ -947,18 +1070,41 @@
          ia1 = nbuf+1
          ia1 = intval('store_at',ia1,inew)
 
+         if(found('resnorm  ') ) then
+            write(6,*)"Option:   resnorm    ==> use resolution for intensity normalisation also"
+         else
+            write(6,*)"NO option: resnorm  specified ==> use resolution for shape deconvolution ONLY"
+         endif
+
+         unift_range_expand     = getval('rexpand ',unift_range_expand,ier)
+         unift_resolution_limit = getval('reslim  ',unift_resolution_limit,ier)
+
+         
          write(6,*)'uni_ft: selected records and store data beginning from recordnr.:',ia1
          if (nsel.eq.1) then 
            isels(2) = 0
          endif
-         call uni_ft(isels(1), isels(2), ia1)
+         call uni_ft(isels(1), isels(2), ia1, found('resnorm  '), unift_range_expand, unift_resolution_limit )
 
          goto 2000
        endif
 
 !
-       if(comand.eq.'arit    ') then
+       if(comand.eq.'arit    ') then ! alte version von arit 
 !                    ----
+          if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= arit f1 <factor1> f2 <factor2> [to <numor>]  [options]                      '
+           write(6,*)'=      adds the two selected records with factors 1,2 and stores as numor     '
+           write(6,*)'=      for nonmatchig x-values interpolation is applied                       '
+           write(6,*)'=   options:                                                                  '
+           write(6,*)'=            div     : divides (instead of adding)                            '
+           write(6,*)'=            mult    : multiplies (instead of adding)                         '
+           write(6,*)'=            sc <numor1> <numor2>  : selection by numor match instead of sel  '
+           write(6,*)'=   old version                                                               '
+           write(6,*)'=============================================================================='
+           goto 2000
+        endif
          newnum = 777777
          idimux = 0
 
@@ -970,17 +1116,17 @@
           if(vname(i).eq.'nonorm  ') withmo = .false.
           if(vname(i).eq.'div     ') idimux = 1
           if(vname(i).eq.'mult    ') idimux = 2
-          if(vname(i).eq.'to      ') newnum = rpar(j) * 1.0000001
+          if(vname(i).eq.'to      ') newnum = Nint(rpar(j))
           if(vname(i).eq.'sc      ') then
-            num1 = rpar(j) * 1.0000001
-            num2 = rpar(j+1)*1.0000001
+            num1 = Nint(rpar(j))
+            num2 = Nint(rpar(j+1))
           endif
           if(vname(i).eq.'factor1 '.or.vname(i).eq.'f1      ')          &
      &                                                 facto1 = rpar(j)
           if(vname(i).eq.'factor2 '.or.vname(i).eq.'f2      ')          &
      &                                                 facto2 = rpar(j)
  4711    continue
-! --- figuer out the adresses ---
+! --- figure out the adresses ---
          if(nsel.eq.2) then
            iad1 = isels(1)
            iad2 = isels(2)
@@ -988,10 +1134,11 @@
            iad1 = 0
            iad2 = 0
          endif
-         do 4713 i=1,nbuf
+da1:     do i=1,nbuf
+          if(numor(i) == 0 ) cycle da1
           if(numor(i).eq.num1) iad1 = i
           if(numor(i).eq.num2) iad2 = i
- 4713    continue
+         enddo  da1
          if(iad1.eq.0) then
            write(6,*)'file :',num1,' not found'
            goto 2000
@@ -1131,8 +1278,22 @@
        endif
 !
 !
-       if(comand.eq.'arit2   ') then  ! deals better with interpolation at boundaries of range !
+       if(comand.eq.'arit2    ') then  ! deals better with interpolation at boundaries of range (vorher arit2)!
 !                    ----
+          if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= arit2 f1 <factor1> f2 <factor2> [to <numor>]  [options]                     '
+           write(6,*)'=      adds the two selected records with factors 1,2 and stores as numor     '
+           write(6,*)'=      for nonmatchig x-values interpolation is applied                       '
+           write(6,*)'=   options:                                                                  '
+           write(6,*)'=            div     : divides (instead of adding)                            '
+           write(6,*)'=            mult    : multiplies (instead of adding)                         '
+           write(6,*)'=            sc <numor1> <numor2>  : selection by numor match instead of sel  '
+           write(6,*)'=   new  version requires sorted data                                         '
+           write(6,*)'=============================================================================='
+           goto 2000
+        endif
+
          newnum = 777777
          idimux = 0
 
@@ -1144,10 +1305,10 @@
           if(vname(i).eq.'nonorm  ') withmo = .false.
           if(vname(i).eq.'div     ') idimux = 1
           if(vname(i).eq.'mult    ') idimux = 2
-          if(vname(i).eq.'to      ') newnum = rpar(j) * 1.0000001
+          if(vname(i).eq.'to      ') newnum = Nint(rpar(j))
           if(vname(i).eq.'sc      ') then
-            num1 = rpar(j) * 1.0000001
-            num2 = rpar(j+1)*1.0000001
+            num1 = Nint(rpar(j))
+            num2 = Nint(rpar(j+1))
           endif
           if(vname(i).eq.'factor1 '.or.vname(i).eq.'f1      ')          &
      &                                                 facto1 = rpar(j)
@@ -1162,10 +1323,11 @@
            iad1 = 0
            iad2 = 0
          endif
-         do i=1,nbuf
+da12:    do i=1,nbuf
+          if(numor(i) == 0 ) cycle da12
           if(numor(i).eq.num1) iad1 = i
           if(numor(i).eq.num2) iad2 = i
-         enddo
+         enddo da12
          if(iad1.eq.0) then
            write(6,*)'file :',num1,' not found'
            goto 2000
@@ -1297,6 +1459,15 @@
 !
        if(comand.eq.'addval  ') then
 !                    ------
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= addval <x> <y> <err>                                                        '
+           write(6,*)'=    appends one data point to selected record                                '
+           write(6,*)'=    only the first selected record is treated                                '
+           write(6,*)'=============================================================================='
+           goto 2000
+        endif
+
          if(nsel.eq.1) then
            iad1 = isels(1)
          else
@@ -1309,7 +1480,7 @@
          nwert(iad1) = nwert(iad1)+1
          xwerte( nwert(iad1), iad1 ) = rpar(1)
          ywerte( nwert(iad1), iad1 ) = rpar(2)
-         yerror( nwert(iad1), iad1 ) = rpar(2)
+         yerror( nwert(iad1), iad1 ) = rpar(3)
 
          goto 2000
        endif
@@ -1318,51 +1489,62 @@
 !                    --------           approximates integral from binned data
 !                                       by simple summation of data times bin-width
 !                                       there may be better interpolation based schemes
-!                                       but this is clear an simple
-         if(nsel.eq.1) then
-           iad1 = isels(1)
-         else
-           write(6,*)'select one and only one record'
-           ierrs= 1
+!                                       but this is clear an simple                        
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= integrat x1 <x1> x2 <x2>                                                    '
+           write(6,*)'=        approximates integral from binned data over the given range          '
+           write(6,*)'=        by simple summation of data times bin-width                          '
+           write(6,*)'=        there may be better interpolation based schemes                      '
+           write(6,*)'=        but this is clear an simple                                          '
+           write(6,*)'=============================================================================='
+           goto 2000
+        endif
+         if(nsel<1) then
+           call errsig(200,"ERROR: integrat slect at least one record$")
            goto 2000
          endif
 ! --- start the computation --- these are the integration limits
+ 
          x1int        = getval('x1      ',dble(x1int),inew)
          x2int        = getval('x2      ',dble(x2int),inew)
-         
-         i1int = 1
-         i2int = nwert(iad1)
-         
-         do i=1,nwert(iad1)-1
-          if(xwerte(i,iad1).le.x1int .and.xwerte(i+1,iad1).gt.x1int) i1int=i
-          if(xwerte(i,iad1).le.x2int .and.xwerte(i+1,iad1).gt.x2int) i2int=i
-         enddo
-
-         
-         sum   = (xwerte(i1int,iad1)-x1int)*ywerte(i1int,iad1)
-         sumer = ((xwerte(i1int,iad1)-x1int)*yerror(i1int,iad1))**2       
-
-         sum   = sum + (x2int-xwerte(i2int,iad1))*ywerte(i2int,iad1)
-         sumer = sumer + ((x2int-xwerte(i2int,iad1))*yerror(i2int,iad1))**2
-         do i=i1int+1,i2int-1
-           sum   = sum   + (xwerte(i+1,iad1)-xwerte(i,iad1))*ywerte(i+1,iad1)
-           sumer = sumer + ((xwerte(i+1,iad1)-xwerte(i,iad1))*yerror(i+1,iad1))**2
-         enddo
-        
-         sumer = sqrt(sumer)
-
-         write(6,'(a,e13.6,a,e13.6)')'integral from: ',x1int,' (',xwerte(i1int,iad1),' )'
-         write(6,'(a,e13.6,a,e13.6)')'           to: ',x2int,' (',xwerte(i2int,iad1),' )'
+ 
+         do j=1,nsel
+            iad1 = isels(j)         
+            i1int = 1
+            i2int = nwert(iad1)
+            
+            do i=1,nwert(iad1)-1
+             if(xwerte(i,iad1).le.x1int .and.xwerte(i+1,iad1).gt.x1int) i1int=i
+             if(xwerte(i,iad1).le.x2int .and.xwerte(i+1,iad1).gt.x2int) i2int=i
+            enddo
        
-         write(6,*                  )'         ===>: ',sum, '+-', sumer
-!         xwerte( nwert(iad1), iad1 ) = rpar(1)
-!         ywerte( nwert(iad1), iad1 ) = rpar(2)
-!         yerror( nwert(iad1), iad1 ) = rpar(2)
-
-         call parset ('integral',sum        ,iad1 ) 
-         call parset ('x1integ ',x1int      ,iad1 ) 
-         call parset ('x2integ ',x2int      ,iad1 ) 
-
+            
+            sum   = (xwerte(i1int,iad1)-x1int)*ywerte(i1int,iad1)
+            sumer = ((xwerte(i1int,iad1)-x1int)*yerror(i1int,iad1))**2       
+       
+            sum   = sum + (x2int-xwerte(i2int,iad1))*ywerte(i2int,iad1)
+            sumer = sumer + ((x2int-xwerte(i2int,iad1))*yerror(i2int,iad1))**2
+            do i=i1int+1,i2int-1
+              sum   = sum   + (xwerte(i+1,iad1)-xwerte(i,iad1))*ywerte(i+1,iad1)
+              sumer = sumer + ((xwerte(i+1,iad1)-xwerte(i,iad1))*yerror(i+1,iad1))**2
+            enddo
+           
+            sumer = sqrt(sumer)
+       
+            write(6,*)"================= Record: ",iad1,"  ===================="
+            write(6,'(a,i9,1x,e13.6,a,e13.6,a)')'integral from: ',i1int,x1int,' (',xwerte(i1int,iad1),' )'
+            write(6,'(a,i9,1x,e13.6,a,e13.6,a)')'           to: ',i2int,x2int,' (',xwerte(i2int,iad1),' )'
+          
+            write(6,*                  )'         ===>: ',sum, '+-', sumer
+!            xwerte( nwert(iad1), iad1 ) = rpar(1)
+!            ywerte( nwert(iad1), iad1 ) = rpar(2)
+!            yerror( nwert(iad1), iad1 ) = rpar(2)
+       
+            call parset ('integral',sum        ,iad1 ) 
+            call parset ('x1integ ',x1int      ,iad1 ) 
+            call parset ('x2integ ',x2int      ,iad1 ) 
+         enddo 
          goto 2000
        endif
 !
@@ -1380,12 +1562,12 @@
           if(vname(i).eq.'raster  ') then
            x1raster = rpar(j)
            x2raster = rpar(j+1)
-           nraster  = rpar(j+2) * 1.00000001d0
+           nraster  = Nint(rpar(j+2))
           endif
-          if(vname(i).eq.'to      ') newnum = rpar(j) * 1.0000001d0
+          if(vname(i).eq.'to      ') newnum = Nint(rpar(j))
           if(vname(i).eq.'sc      ') then
              do 48181 l=1,k
-               nnumi(l) = rpar(l-1+j)*1.0000001d0
+               nnumi(l) = Nint(rpar(l-1+j))
 48181        continue
              call search(nnumi,k)
           endif
@@ -1547,8 +1729,18 @@
 !
        if(comand.eq.'ercorrc '.or.comand.eq.'ecc     ') then
 !                    -------                 ---
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= ercorrc n <n> a <a> ri <ri> r0 <r0> d0 <d0> ncut <nc>                       '
+           write(6,*)'=    NSE correction coil design special function                              '
+           write(6,*)'=    check what this reall does (remove?)xs                                     '
+           write(6,*)'=============================================================================='
+           goto 2000
+        endif
+
           if(nbuf.eq.mbuf) then
             write(6,*)' no space for an additional item'
+            call errsig(999,"ERROR: ercorrc $")
             goto 2000
           endif
          nbuf = nbuf+1
@@ -1569,6 +1761,7 @@
 
          if(n.gt.mwert) then
            write(6,*) ' n is too large'
+           call errsig(999,"ERROR: ercorrc $")
            goto 2000
          endif
 
@@ -1576,9 +1769,11 @@
 
          if(ncut.gt.mcut) then
            write(6,*)' ncut is too large max=',mcut
+           call errsig(999,"ERROR: ercorrc $")
            goto 2000
          endif
 
+         a = aa !??
          write(6,*)' a ........ = ',a
          write(6,*)' ri ....... = ',ri
          write(6,*)' r0 ....... = ',r0
@@ -1674,6 +1869,17 @@
        if(comand.eq.'kz      ') then
 !                    -->    kanalzusammenfassung
 ! ---- build now the symmetric average on the right side ---
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= kz <nk>                                                                     '
+           write(6,*)'=    contraction of spectra by adding <nk> adjacent channele                  '
+           write(6,*)'=    channel width paramezters etc. are update in the parameterlist           '
+           write(6,*)'=    such that spectra fitting stays with the proper _xwidth                  '
+           write(6,*)'=    The contratction is on place (i.e.)                                      '
+           write(6,*)'=    All selected items are treated                                           '
+           write(6,*)'=============================================================================='
+        endif
+
          kz = NINT(rpar(1))
          if(kz.lt.2) goto 2000
          if(nsel.lt.1) then
@@ -1743,6 +1949,16 @@
 !                    ----->    kanalzusammenfassung mit Kopie auf
 !                              neuen Platz
 ! 
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= rebin <nk>                                                                  '
+           write(6,*)'=    contraction of spectra by adding <nk> adjacent channele                  '
+           write(6,*)'=    channel width paramezters etc. are update in the parameterlist           '
+           write(6,*)'=    such that spectra fitting stays with the proper _xwidth                  '
+           write(6,*)'=    The contracted spectra are stored on new records.                        '
+           write(6,*)'=    All selected items are treated   (similar kz)                            '
+           write(6,*)'=============================================================================='
+        endif
          kz = NINT(rpar(1))
          if(kz.lt.2) goto 2000
          if(nsel.lt.1) then
@@ -1825,9 +2041,193 @@
 !
 
 
+       if(comand.eq.'rerange ') then
+!                    ----->    neuer x-range durch selektion
+!                              neuen Platz
+!           
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= rerange <min> <max>     [y]                                                 '
+           write(6,*)'=    copy of selected records such that                                       '
+           write(6,*)'=    only values betwen min < x|y < max  are retained , y: yrange             '
+           write(6,*)'=    without option x-range is pertained                                      '
+           write(6,*)'=============================================================================='
+        endif
+
+
+         lower_range = rpar(1)
+         upper_range = rpar(2)
+         range_is_y  = found('y       ')
+
+!     >  copy first  
+         if(nsel+nbuf.gt.mbuf) then
+           write(6,*)'ERROR: copying selection would exceed max records'
+           goto 2000
+         endif 
+         do i=1,nsel
+           ia = isels(i)
+           ib = nbuf+1
+           write(6,*)'copy record: ',ia,' to record: ',ib
+           call DataCopy(ia,ib)
+           isels(i) = ib
+         enddo
+!     <  end copy
+ 
+         do i=1,nsel
+          ia = isels(i)
+          n  = nwert(ia)
+          j  = 0
+drer1:    do ik=1,n
+             if(range_is_y) then
+               if(ywerte(ik,ia) < lower_range .or. ywerte(ik,ia) > upper_range) cycle drer1
+             else
+               if(xwerte(ik,ia) < lower_range .or. xwerte(ik,ia) > upper_range) cycle drer1
+             endif
+             j = j+1
+             xwerte(j,ia) = xwerte(ik,ia)
+             ywerte(j,ia) = ywerte(ik,ia)
+             yerror(j,ia) = yerror(ik,ia)
+          enddo drer1
+
+          nwert(ia)=j
+          numor(ia)=numor(ia)+10000
+          if(range_is_y) write(6,'(a)',advance='no') "Y-"
+          write(6,'(a,i4,a,2e14.6)')'range of[',ia,'] limited to ',lower_range, upper_range 
+         enddo
+         goto 2000
+       endif
+!
+
+
+
+
+       if(comand.eq.'swapxy   ') then
+!                    ----->    vertauschen von x und y
+!                              
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= swapxy                                                                      '
+           write(6,*)'=    role of x amd y-values are exchanged                                     '
+           write(6,*)'=    NOTE: y-errors are lost                                                  '
+           write(6,*)'=    operation is on place no new copies!                                     '
+           write(6,*)'=============================================================================='
+        endif
+! 
+         if(nsel.lt.1) then
+           write(6,*)'no items selected, use sel !'
+           goto 2000
+         endif
+
+         do i=1,nsel
+          ia = isels(i)
+          n  = nwert(ia)
+          do l=1,n
+              xsum = xwerte(l,ia)
+              ysum = ywerte(l,ia)
+              xwerte(l,ia) = ysum
+              ywerte(l,ia) = xsum             
+              yerror(l,ia) = 0
+           enddo
+           cbuffer   = xname(ia)
+           xname(ia) = yname(ia)
+           yname(ia) = cbuffer
+           write(6,'(a,i5,a)')" x and y values of ",ia," have been swapped, errors set to zero!" 
+         enddo
+         goto 2000
+       endif
+!
+
+       if(comand.eq.'sequence   ') then
+!                    ----->  sequence  
+!                                       
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= sequence                                                                    '
+           write(6,*)'=    replace x-values by sequence numbers 1..n                                '
+           write(6,*)'=    operation is on place, previous x-values are lost                        '
+           write(6,*)'=============================================================================='
+        endif
+
+         if(nsel.lt.1) then
+           write(6,*)'no items selected, use sel !'
+           goto 2000
+         endif
+
+         do i=1,nsel
+          ia = isels(i)
+          n  = nwert(ia)
+          do l=1,n
+             xwerte(l,ia) = l
+          enddo
+           xname(ia) = "#"
+           write(6,'(a,i5,a)')" x values of ",ia," have been replace by sequence numbers" 
+         enddo
+         goto 2000
+       endif
+!
+!
+       if(comand.eq.'copy   ') then
+!                    ----->  copy 
+!                                       
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= copy [x1 <min> x2 <max>                                                     '
+           write(6,*)'=    copy of selected records to new record buffers                           '
+           write(6,*)'=    if x1, x2 are given only x-values within the interval are copied         '
+           write(6,*)'=============================================================================='
+        endif
+
+         if(nsel.lt.1) then
+           write(6,*)'no items selected, use sel !'
+           goto 2000
+         endif
+
+         xcopy1 = getval('x1      ',dble(xcopy1),ier)
+         xcopy2 = getval('x2      ',dble(xcopy2),ier)
+
+         do i=1,nsel
+          ia = isels(i)
+          if(nbuf < mbuf) then
+             nbuf = nbuf + 1
+          else
+             Write(6,*)"ERROR: too many records !"
+             goto 2000
+          endif
+
+           call DataCopy(ia,nbuf)
+           write(6,'(a,i5,a,i5)')" copy ", ia," to ",nbuf 
+           isels(i) = nbuf 
+
+           if(found('x1      ') .and. found('x2      ')) then
+             Write(6,'(a,2e14.6)')" ...restricted to the interval: ",xcopy1, xcopy2
+             nwert(nbuf) = 0
+             do j=1,nwert(ia)
+               if(xwerte(j,ia) >= xcopy1 .and. xwerte(j,ia) <= xcopy2) then
+                  nwert(nbuf) = nwert(nbuf) + 1
+                  xwerte(nwert(nbuf) ,ia)  = xwerte(j,ia)
+                  ywerte(nwert(nbuf) ,ia)  = ywerte(j,ia)
+                  yerror(nwert(nbuf) ,ia)  = yerror(j,ia)
+               endif
+             enddo
+           endif
+
+         enddo
+         goto 2000
+       endif
+!
+       
+
        if(comand.eq.'scale   ') then
 !                    ----->    Skalierung der Intesnitaet          
-!                              
+
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= scale <factor>                                                              '
+           write(6,*)'=    scales selected spectra with a factor, bookkeeping in parameter section  '
+           write(6,*)'=    also for gaussian resolution parameters and errors                       '
+           write(6,*)'=============================================================================='
+        endif
+                              
          if(ipars.ne.1) then
            write(6,*)'ERROR: need just one value as parameter..'
            ierrs = 1
@@ -1883,6 +2283,14 @@
        if(comand.eq.'gaiscale') then
 !                    -------->    Skalierung der Aufloesungsparameter
 !                              
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= gaiscale <factor>                                                           '
+           write(6,*)'=    scaling of the gaussian resolution parameters associated                 '
+           write(6,*)'=    with the selected spectra                                                '
+           write(6,*)'=============================================================================='
+        endif
+
          if(ipars.ne.1) then
            write(6,*)'ERROR: need just one value as parameter..'
            ierrs = 1
@@ -1911,6 +2319,16 @@
        if(comand.eq.'interpol') then
 !                    ---->  interpolate
 ! ---- build now the symmetric average on the right side ---
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= interpol <n>                                                                '
+           write(6,*)'=    creates a clone of the firts (only) item of the selection list           '
+           write(6,*)'=    by interpolating y-values such that the x-range is covered by <n>        '
+           write(6,*)'=    equidistant points.                                                      '
+           write(6,*)'=    Errors are NOT treated (yet)                                             '
+           write(6,*)'=============================================================================='
+        endif
+
          ia = isels(1)
          ib = nbuf+1
          if(ib.gt.mbuf) ib=mbuf
@@ -1933,6 +2351,13 @@
 !
        if(comand.eq.'addsels ') then
 !                    ---->  summation over selected records : will become obsolete due to name
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= addsels                                                                     '
+           write(6,*)'=    creates record containing the sum of all selected (compatible)           '
+           write(6,*)'=    records.      (similar recsum)                                           '
+           write(6,*)'=============================================================================='
+        endif
          call sumseldat
          goto 2000
        endif
@@ -1940,6 +2365,13 @@
 !
        if(comand.eq.'recsum  ') then
 !                    ---->  summation over selected records: the new one
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= recsum from <n1> to <n2>                                                    '
+           write(6,*)'=    creates record containing the sum of all records from a continuous       '
+           write(6,*)'=    address range <n1> .. <n2>      (similar addsels)                        '
+           write(6,*)'=============================================================================='
+        endif
          if(found('from    ')) then
            ia = intval('from    ',isels(1),inew)
            ib = intval('to      ',isels(nsel),inew)
@@ -1956,6 +2388,16 @@
 !
        if(comand.eq.'parextra') then
 !                    ---> parabola extrapolation to q--> 0
+
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= parextra                                                                    '
+           write(6,*)'=    adds a point with x = 0 by parabola extrapolation of data starting with  '
+           write(6,*)'=    finite x-values (e.g. extrapolation of SANS data to q=0)                 '
+           write(6,*)'=    only the first selected record is treated                                '
+           write(6,*)'=============================================================================='
+        endif
+
          if(nsel.eq.0) then
            write(6,*)'no curve selected'
            goto 2000
@@ -1997,6 +2439,13 @@
        if(comand.eq.'hiqextra') then
 !                    ---> extrapolation for high q .
 !                         data == a*q^z
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= hiqextra <xcut>                                                             '
+           write(6,*)'=    adds points from hiq x (q) extrapolation by a*q^z  up to x=xcut          '
+           write(6,*)'=    only the first selected record is treated                                '
+           write(6,*)'=============================================================================='
+        endif
          if(nsel.eq.0) then
            write(6,*)'no curve selected'
            goto 2000
@@ -2467,7 +2916,10 @@
                                        ifunx=7
                     if(inpar(i).ne.0)  sx   = rpar(j)
            endif
-           if(vname(i).eq.'rouse    ') ifunx=8
+           if(vname(i).eq.'rouse    ') then 
+                                       ifunx=8
+                                       ifuny=-1
+           endif
            if(vname(i).eq.'zimm     ') ifunx=9
 
            if(vname(i).eq.'y        ') ifuny=0
@@ -2538,6 +2990,7 @@
                                  ! Rouse Scaling !
              if(ifunx.eq.8) then
               if(i.eq.1) then
+               diffrouse = 0
                wl4 = getval('wl4     ',dble(wl4),inew)
                call  parget('wl4     ',wl4,ia,ier)
                call  parget('q       ',qrs,ia,ier)
@@ -2545,9 +2998,17 @@
                  call errsig(1111,'q-value not found ...$')
                endif
                call parset('wl4     ',wl4,ib)
+               cbuffer = chrval('usediff  ','none    ',inew)
+               if(cbuffer(1:4) .ne. 'none' ) then
+                  diffscal  = getval('unit    ', 1d7, ier)   ! default diffusion in cm**2/s ==> scale to A**2/ns
+                 call parget(cbuffer(1:8),diffrouse,ia,ier)
+                 diffrouse = diffrouse * diffscal
+                 write(6,'("scaling:",i6,"  at q= ",f12.6," with diff ",f12.6," A**2/ns  from:",a)')ia,qrs,diffrouse,cbuffer(1:8)
+               endif
               endif
-              ywerte(i,ib) = ywerte(i,ia)
-              yerror(i,ib) = yerror(i,ia)
+!!              write(6,*)i,ia,diffrouse,qrs,xwerte(i,ia), exp( +diffrouse *qrs**2 * xwerte(i,ia) )
+              ywerte(i,ib) = ywerte(i,ia) * exp( +diffrouse *qrs**2 * xwerte(i,ia) )
+              yerror(i,ib) = yerror(i,ia) * exp( +diffrouse *qrs**2 * xwerte(i,ia) )
               xwerte(i,ib) = (qrs**2)*sqrt(wl4*xwerte(i,ia))
              endif
 
@@ -2770,6 +3231,7 @@
            do i=1,nwert(ia)
                xxxx = xwerte(i,ia)
                yyyy = ywerte(i,ia)
+               yyee = yerror(i,ia)
                call evaluate(yformel,val8y,iery)
                yerror(i,ia) = val8y
            enddo
@@ -2865,7 +3327,7 @@
 
            if(iy.ne.0) then
            write(6,171) csel,i,numor(i),name(i),xname(i),yname(i)       &
-     &    ,coment(i)(1:len_comm),pastring(1:ip*21)
+     &    ,'"'//coment(i)(1:len_comm)//'"',pastring(1:ip*21)
   171    format(1x,a1,i4,':#',i14,' : ',a8,':',a8,' vs ',a8,'>',a,' ',a)
            endif
   170    continue
@@ -2901,7 +3363,7 @@
            goto 18051
          endif
          do 1801 i=1,ipars
-           ia = rpar(i) * 1.000001
+           ia = Nint(rpar(i))
            write(6,*)'purging no.: ',ia,' ...'
             do j=1,mwert
              xwerte(j,ia) = 0
@@ -3087,8 +3549,14 @@ exclude:   if(found('exclude  ')) then
            else
 
             do i=1,ipars
-             iss      = rpar(i) * 1.0000001
-             if(iss.gt.0) write(6,*)'select adress   ',iss
+             iss      = Nint(rpar(i))
+             if(iss > 0 .and. iss <= nbuf ) then
+               write(6,*)'select adress   ',iss
+             else
+               write(6,*)"selected=",iss,"  nbuf=", nbuf
+               call errsig(999,"ERROR: sel selcted address is out of range$")
+               goto 2000
+             endif
              m = m + 1
              isels(m) = iss
              ifits(m) = 0
@@ -3101,10 +3569,10 @@ exclude:   if(found('exclude  ')) then
                 isels(m) = l
                 ifits(m) = 0
                 m = m + 1
-					enddo
+                                        enddo
                m = m - 1
              endif
- 				enddo
+                                enddo
             nsel = m
          endif
 
@@ -3148,7 +3616,7 @@ exclude:   if(found('exclude  ')) then
            endif
            if(vname(i).eq.'sc      ') then
              do 181 l=1,k
-               nnumi(l) = rpar(l-1+j)*1.0000001
+               nnumi(l) = Nint(rpar(l-1+j))
   181        continue
              call search(nnumi,k)
            endif
@@ -3159,7 +3627,7 @@ exclude:   if(found('exclude  ')) then
              do 183 l=1,k
                kk = l+nsel
                if(kk.gt.minc) goto 183
-                 nnumi(kk) = rpar(l-1+j)*1.0000001
+                 nnumi(kk) = Nint(rpar(l-1+j))
                  iprs      = kk
   183        continue
              call search(nnumi,iprs)
@@ -3178,25 +3646,47 @@ exclude:   if(found('exclude  ')) then
          enddo
          goto 2000
        endif
+
+       if(comand.eq.'parlev  ') then
+!                    ------   set display level
+
+           do i=1,nsel
+              iaddp = isels(i)
+              call parset_display (vname(1),Nint(rpar(1)),iaddp)
+           enddo
+
+         goto 2000
+       endif
 !
        if(comand.eq.'rename  ') then
 !                    ------
-         do j=1,inames
-           do i=1,nsel
-             iaddp = isels(i)
-             if(vname(j).eq.'xaxis   ') xname(iaddp) = vname(j+1)
-             if(vname(j).eq.'yaxis   ') yname(iaddp) = vname(j+1)
-             if(vname(j).eq.'name    ')  name(iaddp) = vname(j+1)
-           enddo
-           do i=1,nfsel
-             iaddp = isfits(i)
-             if(vname(j).eq.'xaxis   ') xname(iaddp) = vname(j+1)
-             if(vname(j).eq.'yaxis   ') yname(iaddp) = vname(j+1)
-             if(vname(j).eq.'name    ')  name(iaddp) = vname(j+1)
-           enddo
-         enddo
-         goto 2000
-       endif
+          if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= rename  xaxis <xaxisname>                                                   '
+           write(6,*)'= rename  yaxis <yaxisname>                                                   '
+           write(6,*)'= rename  name  <shortname>                                                   '
+           write(6,*)'=                                                                             '
+           write(6,*)'= max. length of names: ', len(xname(1)), len(yname(1)), len(name(1))
+           write(6,*)'= for compatibility reasons try to stay with length of 8                      '
+           write(6,*)'=============================================================================='
+        endif
+
+             do j=1,inames
+               do i=1,nsel
+                 iaddp = isels(i)
+                 if(vname(j).eq.'xaxis   ') xname(iaddp) = argvals(j+1)(1:len(xname(1)))
+                 if(vname(j).eq.'yaxis   ') yname(iaddp) = argvals(j+1)(1:len(yname(1)))
+                 if(vname(j).eq.'name    ')  name(iaddp) = argvals(j+1)(1:len( name(1)))
+               enddo
+               do i=1,nfsel
+                 iaddp = isfits(i)
+                 if(vname(j).eq.'xaxis   ') xname(iaddp) = argvals(j+1)(1:len(xname(1)))
+                 if(vname(j).eq.'yaxis   ') yname(iaddp) = argvals(j+1)(1:len(yname(1)))
+                 if(vname(j).eq.'name    ')  name(iaddp) = argvals(j+1)(1:len( name(1)))
+               enddo
+             enddo
+             goto 2000
+           endif
 !
 !
        if(comand.eq.'dispsel '.or.comand.eq.'dsl     ') then
@@ -3252,7 +3742,7 @@ exclude:   if(found('exclude  ')) then
            if(iy.ne.0) then
            write(6,'(1x,a1,i4,2H [,i4,1H],2H:#,i14,3H : ,a8,1H:,a8,4H vs ,a8,1H>,a,1x,a)') &
      &     csel,i,ifits(l),numor(i),name(i),xname(i),yname(i)       &
-     &    ,coment(i)(1:len_comm),pastring(1:ip*21)
+     &    ,'"'//coment(i)(1:len_comm)//'"',pastring(1:ip*21)
            endif
          enddo
 
@@ -3266,6 +3756,7 @@ exclude:   if(found('exclude  ')) then
 !
        if(comand.eq.'edit    ') then
 !                    ----
+
          ispc = rpar(1) + 0.001
          if(ispc.eq.0) ispc = isels(1)
          if(vname(1).eq.'sc      '.or.vname(1).eq.'numor   ') then
@@ -3301,13 +3792,14 @@ exclude:   if(found('exclude  ')) then
 ! ----------> write data onto buffer <---------------------------------
          call savdat('datbuf  ',ispc)
 ! ----------> enter the system editor with that file <-----------------
-         call system('emacs datbuf')
+!         call system('emacs datbuf')
+         call system('open -eW datbuf')
 ! --- reread it to the same place ---
          nbuff = nbuf
          nbuf = ispc - 1
          inames = 3
          ipars = 0
-         vname(1) = 'datbuf  '
+         argvals(1) = 'datbuf  '
          call input
          nbuf = nbuff
          goto 2000
@@ -3322,9 +3814,9 @@ exclude:   if(found('exclude  ')) then
          if(ispc.eq.0) ispc = isels(1)
          do i=1,inames
            if(trim(vname(i)).eq.'to'.and.i.lt.inames) then
-					 		fsname = vname(i+1)
-							exit
-					 endif
+              fsname = vname(i+1)
+              exit
+           endif
          enddo
          do j=1,inames
          if(vname(1).eq.'sc      '.or.vname(j).eq.'numor   ') then
@@ -3347,7 +3839,7 @@ exclude:   if(found('exclude  ')) then
              ispc = i
              goto 4598
             endif
- 			  enddo
+           enddo
           write(6,*)'data with name ',vname(2),' not found!'
           ierrs = 201
           goto 2000
@@ -3366,7 +3858,7 @@ exclude:   if(found('exclude  ')) then
        if(comand.eq.'msave   ') then
 !                    -----
          fsname = 'lastsave'
-         if(inames.gt.0)   fsname =vname(1)
+         if(inames.gt.0)   fsname = argvals(1)
          call msavdat(fsname)
          goto 2000
        endif
@@ -3380,21 +3872,13 @@ exclude:   if(found('exclude  ')) then
        endif
 !
        if(comand.eq.'fit     ') then
-         if(nsel.ge.1) then
-           call fit
-         else
-           write(*,*) 'No datarecord selected!'
-         endif
+         call fit
          goto 2000
        endif
 
        if(comand.eq.'ga_fit  ') then
-         if(nsel.ge.1) then
-           call ga_fit
-         else
-           write(*,*) 'No datarecord selected!'
-         endif
-         goto 2000
+          call ga_fit
+          goto 2000
        endif
 
        if(comand.eq.'paraout     ') then
@@ -3403,7 +3887,7 @@ exclude:   if(found('exclude  ')) then
        endif
 !
         if(comand.eq.'th_init  ') then
-				write(*,*) 'not yet implemented, sorry will coming soon'
+                                write(*,*) 'not yet implemented, sorry will coming soon'
         !call init_theories(thenam,thparn,nthpar,thrapar,thramin,thramax,mth,mtpar)
          goto 2000
        endif
@@ -3506,27 +3990,53 @@ exclude:   if(found('exclude  ')) then
 !
        if(comand.eq.'theos   ') then
 !                    -----> list available theories
-			write(6,*)' ***** theories available *****'
-			ileng=len_trim(vname(1))
-			if (ileng.gt.0) then
-				do i=1,mth
-					if (thenam(i)(:ileng).eq.vname(1)(:ileng)) then
-						write(6,*)'______________________________________'
-						write(6,'(i3,": ",a8,i3)') i,thenam(i),nthpar(i)
-						write(6,*)(trim(thparn(j,i))//' ',j=1,mtpar)
-					endif
-				enddo
-			else
-				do i=1,mth
-					if (thenam(i).ne.' ') then  !   kein name!!!
-						write(6,*)'-------------------------------------'
-						write(6,'(i3,": ",a8,i3)') i,thenam(i),nthpar(i)
-						write(6,*)(trim(thparn(j,i))//' ',j=1,mtpar)
-					endif
-				enddo
-			endif
+        if(found('help    ')) then 
+         write(6,*)'=============================================================================='
+         write(6,*)'= theos [thnam]                                                              ='
+         write(6,*)'=     optional parameter theory name (only ckeck for this theory and list it ='
+         write(6,*)'=     otherwise give a list of all available (linked) theories               ='
+         write(6,*)'=                                                                            ='
+         write(6,*)'= HINT: the theory impementations are stored as *.f or *.f90 sourecs in      ='
+         write(6,*)'=       subdirectory ~/datreat/src/theos                                     ='
+         write(6,*)'=       other theroies may be found in ~/datreat/src/unused_theos            ='
+         write(6,*)'=       moving of the sources form unused_theos to theos and subseqeunt      ='
+         write(6,*)'=       make clean  and make (from subdir src) will install the new config.  ='
+         write(6,*)'=       available theories in theos may serve as templates for own creations ='
+         write(6,*)'=                                                                            ='
+         write(6,*)'=  theos <name> will check for a theory and set the uservar theoryok = 1     ='
+         write(6,*)'=               if the theory is available                                   ='
+         write(6,*)'=                                                                            ='
+         write(6,*)'=============================================================================='
+         goto 2000
+      endif
 
-			goto 2000
+         ileng=len_trim(vname(1))
+
+         if (ileng.gt.0) then
+            call setudf('theoryok ',0d0,ier)
+            if(ier.ne.0) call errsig(999,"ERROR: cannot create/set uservar theoryok!$")
+            do i=1,mth
+               if (thenam(i)(:ileng).eq.vname(1)(:ileng)) then
+                       write(6,*)'______________________________________'
+                       write(6,'(i3,": ",a8,i3)') i,thenam(i),nthpar(i)
+                       write(6,*)(trim(thparn(j,i))//' ',j=1,mtpar)
+                       write(6,*)'______________________________________'
+                       call setudf('theoryok ',1d0,ier)
+               endif
+            enddo
+         else
+           write(6,*)' ***** theories available *****'
+           write(6,*)'-------------------------------------'
+           do i=1,mth
+               if (thenam(i).ne.' ') then  !   kein name!!!
+                       write(6,'(i3,": ",a8,i3," :")',advance='no') i,thenam(i),nthpar(i)
+                       write(6,'(30a)')(trim(thparn(j,i))//' ',j=1,mtpar)
+               endif
+           enddo
+           write(6,*)'-------------------------------------'
+         endif
+   
+         goto 2000
       endif
 !
        if(comand.eq.'activate'.or.comand.eq.'ac      ') then
@@ -3602,7 +4112,7 @@ exclude:   if(found('exclude  ')) then
        if(comand.eq.'acl     '.or.comand.eq.'aclast  ') then
 !                    -----> reactivate theories as stored in lastth
          call activa(3)
-         if(iout.ge.0) call activa(2)
+         if(ierrr.eq.0. .and. iout.ge.0) call activa(2)
          goto 2000
        endif
 !
@@ -3618,13 +4128,32 @@ exclude:   if(found('exclude  ')) then
          goto 2000
        endif
 !
-       if(comand.eq.'gplot    '.or.comand.eq.'gp      ') then
+       if(comand.eq.'get_th'.or.comand.eq.'gth      ') then
+!                    -----> get theory appended to an file created by msave and copy it to lassth
+!                           and load it
+         if(inames == 1) then
+!           i = LEN_TRIM(argvals(1))
+!           write(6,*)"argvals: ",argvals(1)(1:i)
+!           call extract_th(argvals(1)(1:i)//" ")
+           call extract_th(argvals(1))
+           if(ierrr==0) then 
+             call activa(3)
+             if(ierrr==0) call activa(2)
+           endif
+         else
+           call errsig(999,"need exactly one filename as argument!$")
+         endif
+         goto 2000
+       endif
+!
+
+       if(comand.eq.'gplot    ') then
 !                    -----> plot selected curves
          call gplot()
          goto 2000
        endif
 !
-       if(comand.eq.'plot    '.or.comand.eq.'p       ') then
+       if(comand.eq.'plot    '.or.comand.eq.'p       '.or.comand.eq.'gp      ') then
 !                    -----> plot selected curves
          call splot(.true.)
 !         ibild1 = ibild
@@ -3651,7 +4180,17 @@ exclude:   if(found('exclude  ')) then
 !
        if (comand.eq.'numorpls') then
 !                    -----------> change offset between files
-         numpls = rpar(1) + 0.001
+         numpls = Nint(rpar(1)) 
+         goto 2000
+       endif
+
+       if (comand.eq.'numorchg') then
+!                    -----------> change numor
+         if(nsel > 0) then
+           write(6,*)"chnage numor of record:",isels(1)," from ",numor(isels(1))," to ", Nint(rpar(1)) 
+           numor(isels(1)) = Nint(rpar(1))
+         endif
+ 
          goto 2000
        endif
 !
@@ -3963,9 +4502,16 @@ exclude:   if(found('exclude  ')) then
         endif
 !
 
-
-
-
+!============================================== Checkings =================
+       if(comand.eq.'argvals  ') then
+         write(6,*)' inmames   = ', inames
+         write(6,*)' argvals(1)= ', argvals(1)(1:60), ' ... '
+         write(6,*)' argvals(2)= ', argvals(2)(1:60), ' ... '
+         write(6,*)' argvals(3)= ', argvals(3)(1:60), ' ... '
+         write(6,*)' argvals(4)= ', argvals(4)(1:60), ' ... '
+         write(6,*)' argvals(5)= ', argvals(5)(1:60), ' ... '
+         goto 2000
+       endif
 
 
 
@@ -4009,29 +4555,34 @@ exclude:   if(found('exclude  ')) then
          
 
        integer              :: i, j, jc, ii
-       real                 :: x, xx, y1, y2, e1, e2, dist,p,y,ye
+!?       real                 :: x, xx, y1, y2, e1, e2, dist,p,y,ye
+       real                 :: x, xx, dist,p,y,ye
  
        nout = 0
 ! assuming nontrivial length check
        if(n1.lt.2 .or. n2.lt.2) then
          write(6,*)'at least one of the vectors has too few components:',n1,n2
+         call errsig(990,"ERROR: vectors dont length-match$")
          return
        endif
 ! assuming equal length check
        if(n1.ne.n2) then
          write(6,*)'vectors have different number of components:',n1,n2
+         call errsig(991,"ERROR: vectors dont length-match$")
          return
        endif
 ! assuming ordered vectors CHECK
        do i=1,n1-1
         if(xin1(i).ge.xin1(i+1)) then
-          write(6,*)'vector 1 is not ordered '
+          write(6,*)'vector 1 is not ordered ',i,xin1(i),xin1(i+1)
+          call errsig(992,"ERROR: vectors must be x-sequentially ordered $")
           return
         endif
        enddo
        do i=1,n2-1
         if(xin2(i).ge.xin2(i+1)) then
-          write(6,*)'vector 2 is not ordered '
+          write(6,*)'vector 2 is not ordered ',i,xin2(i),xin2(i+1)
+         call errsig(992,"ERROR: vectors must be x-sequentially ordered $")
           return
         endif
        enddo
@@ -4138,7 +4689,8 @@ exclude:   if(found('exclude  ')) then
 
       double precision, save        :: xcatch = 0.05d0
       integer                       :: inew, ier
-      integer                       :: i,j,k,n
+!?      integer                       :: i,j,k,n
+      integer                       :: i,j,n
       integer                       :: number_of_data_points
       integer                       :: n_result_point
       character(len=8)              :: cbuf
@@ -4292,3 +4844,100 @@ d2:       do j=1,number_of_data_points
 
 
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!! help functions
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+ subroutine command_list()
+  write(6,*) " command name               " , " parameters: "
+  write(6,*) "?         (synonym) help    " , " " 
+  write(6,*) "acl       (synonym) aclast  " , " "
+  write(6,*) "activate  (synonym) ac      " , " <theory_name> "
+  write(6,*) "activlst  (synonym) al      " , " "
+  write(6,*) "addsels                     " , " "
+  write(6,*) "addval                      " , " "
+  write(6,*) "argvals                     " , " "
+  write(6,*) "arit                        " , " f1 <factor1>  f2 <factor2> to <numor> [div | mult | (no)norm ]"
+  write(6,*) "arit2                       " , " f1 <factor1>  f2 <factor2> to <numor> [div | mult | (no)norm ]"
+  write(6,*) "average                     " , " "
+  write(6,*) "chgthpar                    " , " "
+  write(6,*) "clip                        " , " "
+  write(6,*) "close                       " , " "
+  write(6,*) "combine                     " , " "
+  write(6,*) "copy                        " , " "
+  write(6,*) "couple                      " , " "
+  write(6,*) "cs        (synonym) clearsel" , " "
+  write(6,*) "des       (synonym) desmear " , " "
+  write(6,*) "desactiv  (synonym) dac     " , " "
+  write(6,*) "detsens                     " , " "
+  write(6,*) "dir                         " , " "
+  write(6,*) "dispsel   (synonym) dsl     " , " "
+  write(6,*) "dmx                         " , " "
+  write(6,*) "echocurv                    " , " "
+  write(6,*) "edit                        " , " "
+  write(6,*) "ercorrc   (synonym) ecc     " , " "
+  write(6,*) "fft                         " , " "
+  write(6,*) "fftmx     (synonym) fft-ms  " , " "
+  write(6,*) "fftrand                     " , " "
+  write(6,*) "fit                         " , " "
+  write(6,*) "fun       (synonym) function" , " "
+  write(6,*) "funfun                      " , " "
+  write(6,*) "ga_fit                      " , " "
+  write(6,*) "gaiscale                    " , " "
+  write(6,*) "gdos_q                      " , " "
+  write(6,*) "gen.res                     " , " "
+  write(6,*) "get_th  (synonym) gth       " , " "
+  write(6,*) "gplot      (synonym) gp     " , " "
+  write(6,*) "hiqextra                    " , " "
+  write(6,*) "ia        (synonym) i-abso  " , " "
+  write(6,*) "in        (synonym) input   " , " "
+  write(6,*) "inscn                       " , " "
+  write(6,*) "integrat                    " , " "
+  write(6,*) "interpol                    " , " "
+  write(6,*) "invers                      " , " "
+  write(6,*) "kz                          " , " "
+  write(6,*) "label                       " , " "
+  write(6,*) "m         (synonym) mirror  " , " "
+  write(6,*) "msave                       " , " "
+  write(6,*) "mux                         " , " "
+  write(6,*) "noise                       " , " "
+  write(6,*) "numorchg                    " , " "
+  write(6,*) "numorpls                    " , " "
+  write(6,*) "open                        " , " "
+  write(6,*) "out_gli   (synonym) gli     " , " "
+  write(6,*) "paraout                     " , " "
+  write(6,*) "parextra                    " , " "
+  write(6,*) "plot      (synonym) p       " , " "
+  write(6,*) "plot0     (synonym) p0      " , " "
+  write(6,*) "purge                       " , " "
+  write(6,*) "prompt                      " , " "
+  write(6,*) "putpar                      " , " "
+  write(6,*) "parlev                      " , " "
+  write(6,*) "qc        (synonym) q-conv  " , " "
+  write(6,*) "rebin                       " , " "
+  write(6,*) "recsum                      " , " "
+  write(6,*) "rename                      " , " "
+  write(6,*) "rerange                     " , " "
+  write(6,*) "save                        " , " "
+  write(6,*) "scale                       " , " "
+  write(6,*) "sel                         " , " "
+  write(6,*) "sequence                    " , " "
+  write(6,*) "seterr                      " , " "
+  write(6,*) "sp        (synonym) spline  " , " "
+  write(6,*) "swapxy                      " , " "
+  write(6,*) "sym                         " , " "
+  write(6,*) "th_init                     " , " "
+  write(6,*) "thc                         " , " "
+  write(6,*) "theos                       " , " "
+  write(6,*) "title     (synonym) tit     " , " "
+  write(6,*) "tofdos                      " , " "
+  write(6,*) "tracorr                     " , " "
+  write(6,*) "uni_ft                      " , " "
+  write(6,*) "write                       " , " "
+  write(6,*) "xformel                     " , " "
+  write(6,*) "yfitform                    " , " "
+  write(6,*) "yformel                     " , " "
+  write(6,*) "z         (synonym) zero    " , " "
+  write(6,*) "zero                        " , " "
+end subroutine command_list

@@ -3,11 +3,11 @@
    save
    integer, parameter :: c_MINC        = 40
    integer, parameter :: c_MDEPTH      = 20
-   integer, parameter :: c_MUSEVAR     = 100
+   integer, parameter :: c_MUSEVAR     = 300
    integer, parameter :: c_MBUF        = 1200
-   integer, parameter :: c_MWERT       = 2048
+   integer, parameter :: c_MWERT       = 10000
    integer, parameter :: c_MPAR        = 400
-   integer, parameter :: c_MTH         = 40
+   integer, parameter :: c_MTH         = 80
    integer, parameter :: c_MTPAR       = 40
    integer, parameter :: c_MTCAL       = 40
    integer, parameter :: c_MCOUP       = 10
@@ -19,6 +19,7 @@
    integer, parameter :: c_NODELIMS      = 7
    integer, parameter :: c_MSMPL         = 10000
    integer, parameter :: c_MDIM          = 2048
+   integer, parameter :: c_MFIT          = 100
 ! ---- communication common block containig the analysed inputline       
 !      comand   = actual command keyword                               
 !      vname(*) = names stack                                           
@@ -76,6 +77,7 @@
 		character*20 arglst(c_MINC)
 		character*20 pmlist(c_MINC,2)
 		character*1024 rlbuf
+                character(len=20) :: prompt = "--> "
 	end module cincoc
 
 	module icpathes
@@ -125,6 +127,7 @@
 		save
 		integer :: iot=0
 		integer :: ierrr=0
+                logical :: mask_err = .false.
 	end module xoutxx
 
 	module xroxxx
@@ -177,6 +180,7 @@
 		real params(c_MPAR,c_MBUF)
 		character*80 napar(c_MPAR,c_MBUF)
 		integer nopar(c_MBUF)
+                integer :: params_display_level(c_MPAR,c_MBUF) = 0
 
 
         CONTAINS
@@ -185,7 +189,7 @@
 !       -------------------------------------------
         implicit none
         integer, intent(inout) :: isource, idestination
-        integer                :: i
+!?        integer                :: i
         
         if(isource.le.0 .or. isource.gt.c_MBUF) then
           write(6,*)'cdata:DataCopy: isource out of range: ',isource,' NO ACTION '
@@ -197,17 +201,19 @@
           return
         endif
 
-        xwerte(1:c_MWERT,idestination) =  xwerte(1:c_MWERT,isource)
-        ywerte(1:c_MWERT,idestination) =  ywerte(1:c_MWERT,isource)
-        yerror(1:c_MWERT,idestination) =  yerror(1:c_MWERT,isource)
+        xwerte(:,idestination)         =  xwerte(:,isource)
+        ywerte(:,idestination)         =  ywerte(:,isource)
+        yerror(:,idestination)         =  yerror(:,isource)
         xname(idestination)            =  xname(isource)
         yname(idestination)            =  yname(isource)
         name(idestination)             =  name(isource)
         nwert(idestination)            =  nwert(isource)
         numor(idestination)            =  numor(isource)
         coment(idestination)           =  coment(isource)
-        params(1:c_MPAR,idestination)  =  params(1:c_MPAR,isource)
-        napar(1:c_MPAR,idestination)   =  napar(1:c_MPAR,isource)
+        params(:,idestination)         =  params(:,isource)
+        params_display_level(:,idestination)         =  params_display_level(:,isource)
+        napar(:,idestination)          =  napar(:,isource)
+        nopar(idestination)            =  nopar(isource)
 
         if(idestination.gt.nbuf) nbuf=idestination
 
@@ -455,12 +461,15 @@
                 use dimensions
 		save
 		integer iprt
+                integer :: icall
 		logical sqwght
 		real x1
 		real x2
 		logical :: autox1 = .true.
 		logical :: autox2 = .true.
 		real ferror(c_MSMPL)
+                real    :: xinitial(c_MFIT)
+                double precision :: pardev_scale = 0d0
 	end module cfunc
 
 
@@ -538,7 +547,7 @@
 		! ---  fit dimensions ---                                               
 		!  -- mfit = max no. of fitted parameters                               
 		!     msmpl= max no. of datapoints in fit                               
-       		integer, parameter :: mfit=100,msmpl=c_MSMPL
+       		integer, parameter :: mfit=c_MFIT,msmpl=c_MSMPL
 		integer, parameter :: musevar=c_MUSEVAR
 		integer, parameter :: maxformlength=c_MAXFORMLENGTH
 		integer, parameter :: maxitemlength=c_MAXITEMLENGTH

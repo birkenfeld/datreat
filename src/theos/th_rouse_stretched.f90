@@ -12,8 +12,8 @@
 			      REAL(8) temp, qz, tau, eta, yz, SQ_rouse, a, b, xi 
       REAL(8) R, W, Sq0, Sq, Sqt 
       REAL(8) a0, sum, sumnorm, q_width, dqw, qzz, fn 
-      REAL(8) epsilon, diff, dr, scos, SRouse 
-      REAL qget, tget 
+      REAL(8) epsilon, diff, dr, scos 
+      REAL qget, tget , srouse
       INTEGER n 
                                                                         
                                                                         
@@ -77,37 +77,17 @@
       ENDIF 
                                                                         
                                                                         
-      srouse = 0 
-      sum = 0 
-      sumnorm = 0 
-      nqw = 15 
-      dqw = 4 * q_width / nqw 
-      IF (q_width.eq.0) then 
-         nqw = 0 
-         q_width = 1.0d0 
-      ENDIF 
-                                                                        
-      DO i = - nqw, nqw 
-      qzz = qz + i * dqw 
-      IF (qzz.gt.0) then 
-         fn = dexp ( - (i * dqw / q_width) **2) 
-                                                                        
 ! --- include center of mass diffusion ---                              
 !         a = fn * a0 * dexp(-qzz*qzz*diff*tau)                         
          dr = diff 
                                                                         
-         CALL Srouse1 (qzz, tau, temp, dr, xi, N, R, W, scos, Sq, Sqt) 
-         sum = sum + fn * Sqt 
-         sumnorm = sumnorm + Sq * fn 
+         CALL Srouse1 (qz, tau, temp, dr, xi, N, R, W, scos, Sq, Sqt) 
                                                                         
-      ENDIF 
-      enddo 
-                                                                        
-      IF (sumnorm.gt.0.0d0) then 
-         srouse = sum / sumnorm 
-      ELSE 
-         srouse = 0 
-      ENDIF 
+     
+         srouse = Sqt/Sq
+
+!         write(6,*) Sq, Sqt, srouse
+         
                                                                         
       CALL setpar ('w       ', sngl (W) , nopar ,params,napar,mbuf, ier) 
                                         ! in cm**2/s                    
@@ -182,7 +162,9 @@
                                                                         
                                                                         
       Sq = srouse_stretch (q, t0, lcos, sig, W, N) 
-      Sqt = srouse_stretch (q, t, lcos, sig, W, N) 
+      Sqt = srouse_stretch (q, t, lcos, sig, W, N)
+
+!      write(6,'(a,7f14.7)')"#1:", q, t, lcos, w, dble(n), sq, sqt
                                                                         
       RETURN 
       END SUBROUTINE Srouse1                        
@@ -219,12 +201,14 @@
       sum = N * exp (f * r * g_rs (0.0d0) ) 
                                                                         
       DO i = 1, N 
-      arg = (f * (i + r * g_rs (i * i / (4 * W * t) ) ) ) 
-      IF (arg.lt. - 50.0d0) arg = - 50.0d0 
-      sum = sum + 2 * (N - i) * exp (arg) * cos (i * q * lcos) 
+          arg = (f * (i + r * g_rs (i * i / (4 * W * t) ) ) ) 
+          IF (arg.lt. - 50.0d0) arg = - 50.0d0 
+          sum = sum + 2 * (N - i) * exp (arg) * cos (i * q * lcos) 
       enddo 
                                                                         
-      srouse_stretch = sum / (N * N) 
+      srouse_stretch = sum / (N * N)
+
+ !     write(6,'(a,8f14.7)')"#2:",q, t, lcos, w, dble(n), f, r, sum
                                                                         
       RETURN 
       END FUNCTION srouse_stretch                   
@@ -258,7 +242,8 @@
 !                                                                       
       ifail = 0 
                                                           ! NAG subrouti
-      g_rs = exp ( - u) + sqrt (Pi * u) * ( - s15adf (sqrt (u), ifail) ) 
+!      g_rs = exp ( - u) + sqrt (Pi * u) * ( - s15adf (sqrt (u), ifail) ) 
+      g_rs = exp ( - u) + sqrt (Pi * u) * ( - erfc(sqrt (u)) ) 
                                                                         
       RETURN 
       END FUNCTION g_rs                             

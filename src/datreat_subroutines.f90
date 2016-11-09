@@ -251,6 +251,7 @@
        real divis, ermat, f, gmat, fscale, ginv
        real*8 ssq
 
+ 
        character*8 ci
        real*8 getval
       dimension iparam(6),rparam(7),x(mfit),f(msmpl),xjac(msmpl,mfit),  &
@@ -267,8 +268,58 @@
       logical :: final_thc=.false., sqwbuf=.false.
 
 ! ---- defaults for parameters -----
-       integer :: maxfn = 500, ngood = 0, maxit = 0, iprint = 1, irecse = 0
-       real :: stpsz = 0.0, trure = 0.0
+       integer :: maxfn = 100, ngood = 0, maxit = 0, iprint = 1, irecse = 0
+       real    :: stpsz = 0.0, trure = 0.0
+
+
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= fit                                                                         '
+           write(6,*)'=    fitting of selected data to the active theory model (see ac, acl, dac)   '
+           write(6,*)'=    available theories (models) may be listed by the  > theos < command      '
+           write(6,*)'=              theories may be combined (default is addition)                 '
+           write(6,*)'=              theories may be combined with attribute multiply (see chgthpar)'
+           write(6,*)'=              parameters may be coupled                                      '
+           write(6,*)'=         theories may use appropriate file parameter values for e.g. q, temp '
+           write(6,*)'=         when multiple records for e.g. different q or temp are fitted simult'
+           write(6,*)'=         theorie definitions may be restricted to some parameter value range '
+           write(6,*)'=         e.g.: theory xyz range <parnam> min <p1> max <p2>                   '
+           write(6,*)'=    these theory definitions must be set prior to invoking > fit <           '
+           write(6,*)'=    parameters to fit:                                                       '
+           write(6,*)'=      maxfn <mf>       : maximum number of function evaluations (approx.)    '
+           write(6,*)'=      ngood <ng>       : desired number of good digits in resulting pars     '
+           write(6,*)'=      x1    <x1>       : lower limit of fit range                            '
+           write(6,*)'=      x2    <x2>       : upper value of fit range                            '
+           write(6,*)'=      relerr           : use relative errors                                 '
+           write(6,*)'=      abserr           : use absolute errors (sqrt weighted)   (default)     '
+           write(6,*)'=      wlin             : use absolute errors (linaer weighted)               '
+           write(6,*)'=      parwght <w>      : adds parameter deviation (scaled)*w as error signal '
+           write(6,*)'=      wrtfit           : write intermediate fit data (default) -> fitdat.tmp '    
+           write(6,*)'=      nowrtfit         : dont write intermediate fit data                    '
+           write(6,*)'=      map <np>         : create a map of ssq                                 '
+           write(6,*)'=      div <div>        : map division                                        '
+           write(6,*)'=                                                                             '
+           write(6,*)'=   INTERRUPT:                                                                '
+           write(6,*)'=      to interrupt fitting type Crtl-C twice                                 '
+           write(6,*)'=      in that case the actual evaluation of fit curves is finished           '
+           write(6,*)'=      and then the fitting is interrupted                                    '
+           write(6,*)'=      NOTE: the parameter errors after interruption have no meaning  !       '
+           write(6,*)'=      to interrupt datreat completely: type Crtl-C many times                '
+           write(6,*)'=                                                                             '
+           write(6,*)'=   HINT: immediately after fit has been finihed you may save the relevant    '
+           write(6,*)'=         by msave <any_name>                                                 '
+           write(6,*)'=         get it back by > in <any_name>                                      '
+           write(6,*)'=         theorie setting by > get_th <any_name>                              '
+           write(6,*)'=   TRY ALSO: > ga_fit >                                                      '
+           write(6,*)'=============================================================================='
+           return
+        endif
+
+      if(nsel <= 0 ) then
+        call errsig(999,"ERROR: fit no datarecord selected ! $")
+        return
+      endif 
+
 
 ! ---- take parameters from stack ----
        sqwght= sqwbuf
@@ -296,14 +347,15 @@
        if(vname(i).eq.'scans   '.or.vname(i).eq.'sc      ') then
          nspf = inpar(i)
          do 7001 l=1,nspf
-          numv(l) = rpar(j+l-1) * 1.0000001
+          numv(l) = Nint(rpar(j+l-1))
  7001    continue
        endif
-       if(ci.eq.'maxfn   '                    ) maxfn = rpar(j) + 0.001
-       if(ci.eq.'maxit   '                    ) maxit = rpar(j) + 0.001
-       if(ci.eq.'ngood   '                    ) ngood = rpar(j) + 0.001
+       if(ci.eq.'maxfn   '                    ) maxfn = Nint(rpar(j))
+       if(ci.eq.'maxit   '                    ) maxit = Nint(rpar(j))
+       if(ci.eq.'ngood   '                    ) ngood = Nint(rpar(j))
        if(ci.eq.'maxstep '                    ) stpsz = rpar(j)
        if(ci.eq.'trustreg'                    ) trure = rpar(j)
+       if(ci.eq.'parwght '                    ) pardev_scale = rpar(j)
        if(ci.eq.'relerr  '                    ) lerrel= .true.
        if(ci.eq.'abserr  '                    ) lerrel= .false.
        if(ci.eq.'wrtfit  '                    ) lwrtfitdat = .true.
@@ -336,10 +388,11 @@
         endif
        endif
 !
-      if(igo.eq.0) return
+!      if(igo.eq.0) return
  1000 continue
 !
-          iprt = iprint
+          icall = 0
+          iprt  = iprint
 !
           write(6,*)' startparameters : '
           call activa(2)
@@ -347,6 +400,7 @@
 ! ---- prepare startvalues -----
           if(ntheos.eq.0) then
             write(6,*)' fit ==> no theories activated ...'
+            call errsig(999,"ERROR: fit no theories active!$")
             return
           endif
 !
@@ -369,6 +423,23 @@
    20     continue
    10   continue
 !
+!+
+!+ store initial parameter if parameter deviation shall be included into the fit signal
+!+
+        if(pardev_scale > 0d0) then
+          write(6,'(a)')"+++++++++++++++++++++++++++++++++++++++++++++++++++"
+          write(6,'(a)')"++ pardev_scaling in effect                      ++"
+           write(6,'(a,es14.7)')"++ parameter weigth parwght =",pardev_scale
+         write(6,'(a)')"+++++++++++++++++++++++++++++++++++++++++++++++++++"
+         xinitial(1:nfit) = x(1:nfit)
+         m = m + nfit
+         if(m > msmpl) then
+           call errsig(999,"number of smaple points too large$")
+           return
+         endif
+        endif
+
+
         n     = nfit
         ixjac = msmpl
         call func(m,n,x,f)
@@ -376,6 +447,17 @@
         write(6,*)' no. of sample points m = ',m
         if(.not.autox1) write(6,*)'set lower limit of x: x1=',x1
         if(.not.autox2) write(6,*)'set upper limit of x: x2=',x2
+!
+!>
+        if(n<=0) then
+          call errsig(999,"ERROR: fit number of fitparameters is 0!$")
+          return
+        endif
+        if(m<=0) then
+          call errsig(999,"ERROR: fit number of active data points is 0!$")
+          return
+        endif
+!<
 !
 ! ------ imsl version 10 :  setup of some new vectors ------------------
 !        to meet the function of the old zxssq approximately
@@ -409,23 +491,23 @@
         if(iout.gt.0) write(6,*)'final   iparam=',iparam
         if(iout.gt.0) write(6,*)'final   rparam=',rparam
 !
-        icode = iercd()
-!       ---------------> get the errorcode
-! ----- output -----
-        write(6,*)'icode = ',icode
-        if(icode.eq.1) write(6,*)' **-1- : no longer converging   *****'
-        if(icode.eq.2) write(6,*)' **-2- : conv. to a noncritical pnt *'
-        if(icode.eq.3) write(6,*)' **-3- : maxfn exceeded *************'
-        if(icode.eq.4) write(6,*)' **-4- : maxit exceeded *************'
-        if(icode.eq.5) write(6,*)' **-5- : 5 steps with max steplength*'
-!
-        write(6,501)iparam(4),iparam(3),iparam(2)
-  501   format(                                                         &
-     &   ' no. of func calls ..... ',i6/                                &
-     &   ' est. no. of sig. dig. . ',i6/                                &
-     &   ' no of iterations ...... ',i6/)
-!
-!
+!!>        icode = iercd()
+!!>!       ---------------> get the errorcode
+!!>! ----- output -----
+!!>        write(6,*)'icode = ',icode
+!!>        if(icode.eq.1) write(6,*)' **-1- : no longer converging   *****'
+!!>        if(icode.eq.2) write(6,*)' **-2- : conv. to a noncritical pnt *'
+!!>        if(icode.eq.3) write(6,*)' **-3- : maxfn exceeded *************'
+!!>        if(icode.eq.4) write(6,*)' **-4- : maxit exceeded *************'
+!!>        if(icode.eq.5) write(6,*)' **-5- : 5 steps with max steplength*'
+!!>!
+!!>        write(6,501)iparam(4),iparam(3),iparam(2)
+!!>  501   format(                                                         &
+!!>     &   ' no. of func calls ..... ',i6/                                &
+!!>     &   ' est. no. of sig. dig. . ',i6/                                &
+!!>     &   ' no of iterations ...... ',i6/)
+!!>!
+!!>!
 
 ! ----- error-determination ?? test ?? -----------------------------
 !
@@ -501,6 +583,7 @@
         if(ier.ne.0) ssq = 0
         do i=1,nsel
           call parset ('ssq     ',sngl(ssq),ifits(i))
+          call parset ('parwght ',sngl(pardev_scale),ifits(i))
         enddo
 !
         call couple(1)
@@ -667,6 +750,61 @@
        real :: stpsz = 0.0, trure = 0.0
 
 
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= ga_fit                                                                      '
+           write(6,*)'=    fitting of selected data using a genetic algorithm                       '
+           write(6,*)'=    to the active theory model (see ac, acl, dac)                            '
+           write(6,*)'=    available theories (models) may be listed by the  > theos < command      '
+           write(6,*)'=              theories may be combined (default is addition)                 '
+           write(6,*)'=              theories may be combined with attribute multiply (see chgthpar)'
+           write(6,*)'=              parameters may be coupled                                      '
+           write(6,*)'=         theories may use appropriate file parameter values for e.g. q, temp '
+           write(6,*)'=         when multiple records for e.g. different q or temp are fitted simult'
+           write(6,*)'=         theorie definitions may be restricted to some parameter value range '
+           write(6,*)'=         e.g.: theory xyz range <parnam> min <p1> max <p2>                   '
+           write(6,*)'=    these theory definitions must be set prior to invoking > fit <           '
+           write(6,*)'=    parameters to fit:                                                       '
+           write(6,*)'=      maxfn <mf>       : maximum number of function evaluations (approx.)    '
+           write(6,*)'=      ngood <ng>       : desired number of good digits in resulting pars     '
+           write(6,*)'=      x1    <x1>       : lower limit of fit range                            '
+           write(6,*)'=      x2    <x2>       : upper value of fit range                            '
+           write(6,*)'=      relerr           : use relative errors                                 '
+           write(6,*)'=      abserr           : use absolute errors (sqrt weighted)   (default)     '
+           write(6,*)'=      wlin             : use absolute errors (linaer weighted)               '
+           write(6,*)'=      npop             : size of population                                  ' 
+           write(6,*)'=      ngen             : number of generations                               ' 
+           write(6,*)'=      mutation         : muation rate                                        ' 
+           write(6,*)'=      trace            : trace on / off                                      ' 
+           write(6,*)'=      bits             : number of bits                                      ' 
+           write(6,*)'=      wrtfit           : write intermediate fit data (default) -> fitdat.tmp '
+           write(6,*)'=      nowrtfit         : dont write intermediate fit data                    '
+           write(6,*)'=                                                                             '
+           write(6,*)'=   INTERRUPT:                                                                '
+           write(6,*)'=      to interrupt fitting type Crtl-C twice                                 '
+           write(6,*)'=      in that case the actual evaluation of fit curves is finished           '
+           write(6,*)'=      and then the fitting is interrupted                                    '
+           write(6,*)'=      NOTE: the parameter errors after interruption have no meaning  !       '
+           write(6,*)'=      to interrupt datreat completely: type Crtl-C many times                '
+           write(6,*)'=  NOTE:                                                                      '
+           write(6,*)'=      the result depends on randomly chosen mutations                        '
+           write(6,*)'=      repeated runs may yield (slightly) different resultsxs                   '
+           write(6,*)'=   HINT: immediately after fit has been finihed you may save the relevant    '
+           write(6,*)'=         by msave <any_name>                                                 '
+           write(6,*)'=         get it back by > in <any_name>                                      '
+           write(6,*)'=         theorie setting by > get_th <any_name>                              '
+           write(6,*)'=   TRY ALSO: > fit <                                                         '
+           write(6,*)'=============================================================================='
+           return
+        endif
+
+
+      if(nsel <= 0 ) then
+        call errsig(999,"ERROR: ga_fit no datarecord selected ! $")
+        return
+      endif 
+
+
 
       GAtrace = 0                            ! default is restored, must be given explicit 'trace' 
                                              ! for each call
@@ -697,7 +835,7 @@
        if(vname(i).eq.'scans   '.or.vname(i).eq.'sc      ') then
          nspf = inpar(i)
          do 7001 l=1,nspf
-          numv(l) = rpar(j+l-1) * 1.0000001
+          numv(l) = Nint(rpar(j+l-1))
  7001    continue
        endif
        if(ci.eq.'npop    '                    ) npop      = nint(rpar(j))
@@ -866,13 +1004,14 @@
        implicit none
        integer m, nff
        real      x(mfit),f(msmpl)
-       integer npar, nfit, n, mn, ith, isel, ipt, it, ip, ier, icall, iad1, iad2, i
+       integer npar, nfit, n, mn, ith, isel, ipt, it, ip, ier, iad1, iad2, i
        real xx, ssq, ferr
+       real :: ssq2
 
 !
 ! ---- restore startvalues & parameters ----
 !
-          icall = 0
+
           nfit = 0
           do 10 it =1,ntheos
             ith = nthtab(it)
@@ -956,12 +1095,36 @@
           endif
 !
        icall = icall + 1
+
+
+
 ! ---- output if option is set ---
        ssq = ssq/m
-       if(iprt.gt.0) write(6,200)icall,ssq,(x(i),i=1,nfit)
-  200  format(' ',i4,': ssq=',5e12.4/(23x,4e12.4))
+!       if(iprt.gt.0) write(6,200)icall,ssq,(x(i),i=1,nfit)
+!  200  format(' ',i8,': ssq=',5e12.4/(23x,4e12.4))
+
+!+     
+       ssq2 = 0
+       if(pardev_scale > 0d0) then
+         do i = 1,nfit
+           m = m+1
+           f(m) = (xinitial(i)-x(i)) * pardev_scale
+           ssq2 = ssq2 + f(m)**2
+         enddo 
+       endif
+       ssq2 = ssq2/nfit
+!+
+       ssq = ssq  
+       if(iprt.gt.0) then
+         write(6,'(i8,": ssq=",es12.4)',advance='no') icall,ssq
+         if(pardev_scale > 0d0) then
+           write(6,'(" ssq2=",es12.4)',advance='no') ssq2
+         endif
+         write(6,'(a)',advance='yes') " : "
+         write(6,'(t28,8es12.4)')(x(i),i=1,nfit)
+       endif
        call setudf('ssq0 ',dble(ssq),ier)
-       fcssq = ssq
+       fcssq = ssq + ssq2
 !
 !
        if(lwrtfitdat) then
@@ -1172,17 +1335,17 @@
         nwert(inbuf) = n
 ! --- compute now...
 
-          do 1003 i=1,n
-             x = xwerte(i,inbuf)
-!
-
-            sum = thval(x)
-
-            xwerte(i,inbuf) = x
-            ywerte(i,inbuf) = sum
-            if(iout.gt.5) write(6,*)'i: ',i,'  ywerte=',sum
-
- 1003    continue
+!!>           do 1003 i=1,n
+!!>              x = xwerte(i,inbuf)
+!!> !
+!!> 
+!!>             sum = thval(x)
+!!> 
+!!>             xwerte(i,inbuf) = x
+!!>             ywerte(i,inbuf) = sum
+!!>             if(iout.gt.5) write(6,*)'i: ',i,'  ywerte=',sum
+!!> 
+!!>  1003    continue
 
 ! --- transfer the scanparameters ---
          call txfpar(iadd,inbuf)
@@ -1197,6 +1360,18 @@
 ! -------------------------
          if(iout.gt.3)write(6,*)'nbuf=',inbuf,'  numor=',numor(inbuf)
          nwert(inbuf) = n
+!!> neu
+         iadda = inbuf  ! hier wird erreicht, dass der neue x-vektor 
+                        ! auch bei z.B th_romanov gefunden wird..
+         do i=1,n
+              x = xwerte(i,inbuf)
+              sum = thval(x) 
+              xwerte(i,inbuf) = x
+              ywerte(i,inbuf) = sum
+              if(iout.gt.5) write(6,*)'i: ',i,'  ywerte=',sum
+         enddo
+!!> <
+         
 ! ----- convolution ------ ( subroutine has to be supplied ! ) ------
          if(convolute) then
            call datconv(inbuf,xwerte(1,inbuf),ywerte(1,inbuf),n,        &
@@ -1234,18 +1409,65 @@
          endif
   100  continue
        if (np.ge.mpar) then
+         write(6,*)'impossible to find ',pname,' in parameterlist of '   &
+     &      ,numor(iadd)
+         write(6,*)' ...trying to add it'
+         return
+       endif
+!
+       if(np >= mpar) then
+         call errsig(999,"ERROR: putpar, too many parameters$")
+         return
+       endif
+       np = np + 1
+       nopar(iadd) = np
+       params(np,iadd) = pvalue
+       params_display_level(np,iadd) = 0
+       napar(np,iadd) = pname
+       return
+!
+      END  subroutine parset
+
+
+       subroutine parset_display (pname,level,iadd)
+!      =====================================
+!
+! ---- this routine changes or adds a parameter ----
+!
+       use cdata
+       use constants
+       implicit none
+
+       character*8 pname
+       integer, intent(in) :: level
+
+       integer i,np, iadd
+
+       np = nopar(iadd)
+
+       if(pname == "ALL     ") then
+         do i=1,np
+           params_display_level(i,iadd) = level
+         enddo
+         write(6,*)"ALL parameters display levels of record:",iadd," are set to: ",level
+         return
+       endif
+
+
+       do 100 i=1,np
+         if (napar(i,iadd).eq.pname) then
+           params_display_level(i,iadd) = level
+           return
+         endif
+  100  continue
+       if (np.ge.mpar) then
          write(6,*)'impossible to add ',pname,' to parameterlist of '   &
      &      ,numor(iadd)
          return
        endif
 !
-       np = np + 1
-       nopar(iadd) = np
-       params(np,iadd) = pvalue
-       napar(np,iadd) = pname
-       return
 !
-      END  subroutine parset
+      END  subroutine parset_display
 
 
 
@@ -1316,6 +1538,40 @@
 !
 !
       END subroutine parget
+
+
+       subroutine get_full_xvec (iadd,n,xv)
+!      ===================================
+!
+! ---- this routine gets the value of a parameter ----
+!
+       use cdata
+       use outlev  
+       implicit none
+
+       integer, intent(in)   :: iadd
+       integer, intent(inout):: n
+       real,    intent(out)  :: xv(*)
+
+       if( iadd < 1 .or. iadd > nbuf) then
+          write(6,*)'get_full_xvec: iadd = ',iadd,' out of range !'
+          n = 0
+          ierrs = 800
+          return
+       endif     
+       if(nwert(iadd) > n) then
+          write(6,*)'get_full_xvec: too many tau points',n,nwert(iadd)
+          n = 0
+          ierrs = 800
+          return
+       endif
+
+       n = nwert(iadd)
+       
+       if(n <= 0) return
+       xv(1:n) = xwerte(1:n,iadd)
+!
+      END subroutine get_full_xvec
 
 
 
@@ -1526,6 +1782,8 @@
      &                 thramin(ntheos), thramax(ntheos)
          else
             thrapar(ntheos) = '        '
+            thramin(ntheos) = -1d30
+            thramax(ntheos) =  1d30
          endif
 
            do  i=1,npar
@@ -1834,7 +2092,7 @@
               write(buf1,*)'theory   ',thenam(ith)
            endif
            if(thrapar(i).ne.'        ') then
-              write(buf2,'(2a8,a5,e13.6,a5,e13.6)')' range ',           &
+              write(buf2,'(2a8,a5,g13.6,a5,g13.6)')' range ',           &
      &             thrapar(i),' min ',thramin(i),' max ', thramax(i)
            else
               buf2 = ' '
@@ -1855,9 +2113,13 @@
               if(ifits(lf).gt.0) then
                call parset(combinam,thparx(j,i),ifits(lf))
                call parset('e'//combinam(1:7),therro(j,i),ifits(lf))
+               call parset_display(combinam          , 1 ,ifits(lf))
+               call parset_display('e'//combinam(1:7), 1 ,ifits(lf))
               endif
               if(isels(lf).gt.0) then
                call parset(combinam,thparx(j,i),isels(lf))
+               call parset_display(combinam, 1 ,isels(lf))
+               call parset_display('e'//combinam(1:7), 1 ,isels(lf))
 !!??               call parset('e'//combinam(1:7),therro(j,i),isels(lf))
               endif
              enddo
@@ -1867,8 +2129,8 @@
              write(kk,170)thpala(j,i),thparn(j,ith),thparx(j,i),        &
      &                    thpsca(j,i),therro(j,i),                      &
      &                    (thpalc(l,j,i),thpafc(l,j,i),l=1,ncoup(j,i))
-  170      format(1x,a4,1x,a8,1x,e12.4,1x,e8.1,1x,e9.2,                 &
-     &                                              10(1x,a4,1x,f5.2))
+  170      format(1x,a4,1x,a8,1x,g15.7,1x,g10.3,1x,g12.5,             &
+     &                                              10(3x,a4,1x,g12.5))
   150     continue
           write(kk,*)'end'
           if(thenam(nthtab(1)).eq.'eval    ') write(kk,*)yfitform
@@ -1925,12 +2187,14 @@
                          if(label.eq.thpala(jj,ii)) goto 50
    40              continue
                       write(6,*)'couple: label=',label,' not found'
+                      call errsig(999,"ERROR: couple, missing label!$")
                       ierrs = 800
    50              continue
                    if((j.eq.jj).and.(i.eq.ii)) then
                       write(6,*)'couple: label=',label,' points to ',   &
      &                          'itself'
                       ierrs = 801
+                      call errsig(999,"ERROR: couple self reference is not allowed$")
                    endif
 !           ---- do the coupling ----
                    if(ierrs.eq.0) y = y + thpafc(l,j,i) * thparx(jj,ii)
@@ -1940,6 +2204,7 @@
                    if(iout.gt.5) write(6,*)'couple i,j,y =',i,j,y
                    if(thpsca(j,i).ne.0) then
                       write(6,*)'couple: force scale (',j,',',i,') to 0'
+                      call errsig(999,"ERROR: couple scale must be 0 for coupled item!$")
                       thpsca(j,i) = 0
                    endif
                 else
@@ -2007,7 +2272,7 @@
        endif
 
 ! pfad!!
-		infile =argvals(1)
+	infile =argvals(1)
 		!if local path by '.' or global path by / is indicated omit the datapath in front of content
       if (argvals(1)(1:1).ne.'.' .and. argvals(1)(1:1).ne.'/') infile = trim(uspfad)//infile
 !
@@ -2192,17 +2457,21 @@
 			endif
 			params(nopar(nbuf),nbuf) = rpar(inapa(1))
 			napar (nopar(nbuf),nbuf) = vname(1)
+ 			params_display_level(nopar(nbuf),nbuf) = Nint(rpar(inapa(1)+1))                       
 			goto 2000
        !endif ! parameters
 		elseif(vname(3).eq.'vs      '.or.vname(3).eq.'versus  ') then !!1   a line to set x ,y axis names
           name(nbuf) = vname(1)
           yname(nbuf) = vname(2)
           xname(nbuf) = vname(4)
-          numor(nbuf) = rpar(1) * 1.000001
+          numor(nbuf) = Nint(rpar(1)) 
           goto 2000
 		else ! --  identification & comment-line        evrything else
 			if ( coment(nbuf).eq. ''  ) then
 				coment(nbuf)= rline
+                                if(rline(1:1) == '"') then
+                                  coment(nbuf) = rline(2:len_trim(rline)-1)
+                                endif
 			else
 				write(6,*) 'Comment ignor: ',trim(rline)
 			endif
@@ -3131,6 +3400,7 @@
        nopar(ib)=np
         do 10 i=1,np
           params(i,ib)=params(i,ia)
+          params_display_level(i,ib) = params_display_level(i,ia)
           napar(i,ib)=napar(i,ia)
    10   continue
        name(ib)  = name(ia)
@@ -3163,6 +3433,7 @@
     5  continue
        do 10 i=1,np
          params(i,ib)=params(i,ia)
+         params_display_level(i,ib) = params_display_level(i,ia)
          napar(i,ib)=napar(i,ia)
    10  continue
        name(ib)  = name(ia)
@@ -3184,7 +3455,8 @@
        use cdata
        implicit none
 
-       character*1024 fname,finame,savepath, pathbuf, outfile
+       character(len=*), intent(in) :: fname
+       character*1024 finame,savepath, pathbuf, outfile
        integer i, ispc
 
 		 pathbuf = savepath()
@@ -3203,9 +3475,10 @@
 			endif
          write(6,*)'opening:',trim(outfile),'....'
          open(18,file=trim(outfile),status='UNKNOWN',err=999)
-         write(18,'(a)')trim(coment(ispc))
+         write(18,'(a)')'"'//trim(coment(ispc))//'"'
          write(18,'(a,a,a,a,a,i14)')trim(finame(index(finame,'/',back=.true.)+1:)),' ',yname(ispc)(1:20),' vs ',xname(ispc)(1:20),numor(ispc)
-         write(18,'(2x,a8,10x,e14.7)')(napar(i,ispc),params(i,ispc),i=1,nopar(ispc))
+!         write(18,'(2x,a8,10x,e14.7)')(napar(i,ispc),params(i,ispc),i=1,nopar(ispc))
+         write(18,'(2x,a8,10x,e14.7,i8)')(napar(i,ispc),params(i,ispc),params_display_level(i,ispc),i=1,nopar(ispc))
          write(18,*)' '
          write(18,501)(xwerte(i,ispc),ywerte(i,ispc),yerror(i,ispc),i=1,nwert(ispc))
 ! 501      format(2x,'x  ',e14.7,5x,'y  ',e14.7,5x,'e  ',e14.7)
@@ -3253,7 +3526,8 @@
 				ispc = isels(l)
 				write(18,'(a)')trim(coment(ispc) )
 				write(18,'(a,a,a,a,a,i14)')trim(name(ispc)(index(name(ispc),'/',back=.true.)+1:)),' ',yname(ispc)(1:20), ' vs ',xname(ispc)(1:20),numor(ispc)
-				write(18,'(2x,a8,10x,e14.7)')(napar(i,ispc),params(i,ispc),i= 1,nopar(ispc))
+!				write(18,'(2x,a8,10x,e14.7)')(napar(i,ispc),params(i,ispc),i= 1,nopar(ispc))
+				write(18,'(2x,a8,10x,e14.7,i8)')(napar(i,ispc),params(i,ispc),params_display_level(i,ispc),i= 1,nopar(ispc))
 				write(18,*)' '
 				write(18,501)(xwerte(i,ispc),ywerte(i,ispc),yerror(i,ispc),i=1,nwert(ispc))
 501	      format(2x,'   ',e14.7,5x,'   ',e14.7,5x,'   ',e14.7)
@@ -4411,8 +4685,6 @@
 
 
 
-
-
       subroutine usrfun(nam,x,nx,ier)
 !     -------------------------------
 
@@ -4470,6 +4742,7 @@
         endif
         ibuf = x(nx-1)+0.01
         iwert= x(nx)  +0.01
+        call index_check(iwert,ibuf)
         x(nx-1) = ywerte(iwert,ibuf)
         nx = nx-1
         return
@@ -4482,6 +4755,7 @@
         endif
         ibuf = x(nx-1)+0.01
         iwert= x(nx)  +0.01
+        call index_check(iwert,ibuf)
         x(nx-1) = xwerte(iwert,ibuf)
         nx = nx-1
         return
@@ -4494,6 +4768,7 @@
         endif
         ibuf = x(nx-1)+0.01
         iwert= x(nx)  +0.01
+        call index_check(iwert,ibuf)
         x(nx-1) = yerror(iwert,ibuf)
         nx = nx-1
         return
@@ -4506,6 +4781,7 @@
         endif
         ibuf = x(nx-1)+0.01
         iwert= x(nx)  +0.01
+        call index_check(iwert,ibuf)
         x(nx-1) = tof_omega(iwert,ibuf)
         nx = nx-1
         return
@@ -4518,6 +4794,7 @@
         endif
         ibuf = x(nx-1)+0.01
         iwert= x(nx)  +0.01
+        call index_check(iwert,ibuf)
         x(nx-1) = tof_omega(iwert,ibuf)*Planckkonstante/2/Pi/Elektronenladung*1d3
         nx = nx-1
         return
@@ -4547,8 +4824,10 @@
           return
         endif
         inumr= NINT(x(nx))
+        iwert =1
+        call index_check(iwert,inumr)
         iadr = nwert(inumr)
-        x(nx) = iadr*1.00000001
+        x(nx) = iadr + 1d-6
         return
       endif
 
@@ -4557,7 +4836,9 @@
           ier =1
           return
         endif
-        inumr= x(nx)+0.001
+        inumr= Nint(x(nx))
+        iwert =1
+        call index_check(iwert,inumr)
         iadr = numor(inumr)
         x(nx) = iadr*1.00000001
         return
@@ -4568,7 +4849,9 @@
           ier =1
           return
         endif
-        inumr= x(nx)+0.001
+        inumr= Nint(x(nx))
+        iwert =1
+        call index_check(iwert,inumr)
         iadr = isels(inumr)
         x(nx) = iadr*1.00000001
         return
@@ -4579,9 +4862,11 @@
           ier =1
           return
         endif
-        ibuf  = x(nx-2)+0.01
-        iwert = x(nx-1)+0.01
-        iwert2= x(nx  )+0.01
+        ibuf  = Nint(x(nx-2))
+        iwert = Nint(x(nx-1))
+        iwert2= Nint(x(nx  ))
+        call index_check(iwert,inumr)
+        call index_check(iwert2,inumr)
         sum = 0
 !        write(6,*) iwert,min(iwert,nwert(ibuf))
 !        write(6,*) iwert2,min(iwert2,nwert(ibuf))
@@ -4598,9 +4883,12 @@
           ier =1
           return
         endif
-        ibuf  = x(nx-2)+0.01
-        iwert = x(nx-1)+0.01
-        iwert2= x(nx  )+0.01
+
+        ibuf  = Nint(x(nx-2))
+        iwert = Nint(x(nx-1))
+        iwert2= Nint(x(nx  ))
+        call index_check(iwert,inumr)
+        call index_check(iwert2,inumr)
         sum = 0
 !        write(6,*) iwert,min(iwert,nwert(ibuf))
 !        write(6,*) iwert2,min(iwert2,nwert(ibuf))
@@ -4617,9 +4905,12 @@
           ier =1
           return
         endif
-        ibuf  = x(nx-2)+0.01
-        iwert = x(nx-1)+0.01
-        iwert2= x(nx  )+0.01
+
+        ibuf  = Nint(x(nx-2))
+        iwert = Nint(x(nx-1))
+        iwert2= Nint(x(nx  ))
+        call index_check(iwert,inumr)
+        call index_check(iwert2,inumr)
         sum = 0
         do i=min(iwert,nwert(ibuf)),min(iwert2,nwert(ibuf))
           sum = sum + xwerte(i,ibuf)
@@ -4636,6 +4927,8 @@
         endif
         ibuf  = x(nx-1)+0.01
         xh    = x(nx  )
+        iwert = 1
+        call index_check(iwert,ibuf)
 
         if(xh.lt.xwerte(1,ibuf) .or. xh.gt.xwerte(nwert(ibuf),ibuf))then
           x(nx-1) = 0
@@ -4662,6 +4955,9 @@
         endif
         ibuf  = x(nx-1)+0.01
         xh    = x(nx  )
+
+        iwert = 1
+        call index_check(iwert,ibuf)
 
         if(xh.lt.xwerte(1,ibuf) .or. xh.gt.xwerte(nwert(ibuf),ibuf))then
           x(nx-1) = 0
@@ -4695,8 +4991,9 @@
           ier =1
           return
         endif
-        iparn = x(nx-1)+0.01
-        itheo = x(nx  )+0.01
+        iparn = Nint(x(nx-1))
+        itheo = Nint(x(nx  ))
+        call index_check_th(iparn,itheo)
         x(nx-1) = thparx(iparn,itheo)
         nx = nx-1
         return
@@ -4708,9 +5005,10 @@
           ier =1
           return
         endif
-        iparn = x(nx-1)+0.01
-        itheo = x(nx  )+0.01
-        x(nx-1) = therro(iparn,itheo)
+        iparn = Nint(x(nx-1))
+        itheo = Nint(x(nx  ))
+        call index_check_th(iparn,itheo)
+         x(nx-1) = therro(iparn,itheo)
         nx = nx-1
         return
       endif
@@ -4722,12 +5020,61 @@
        pname(i:i) = nam(i:i)
       enddo
   111 continue
-      iiadr = x(nx) + 0.001
+      iiadr = Nint(x(nx))
+      iwert = 1
+      call index_check(iwert,iiadr)
       call parget (pname,pvalue,iiadr,ier)
       x(nx) = pvalue
 
+      if(ier .ne. 0) then
+        call errsig(999,"ERROR: parameter not found$")
+        write(6,*) pname,"(",iiadr,")"
+      endif
+
       return
-      END
+
+
+      CONTAINS
+
+      subroutine index_check(ipoint,irec)
+         implicit none
+         integer, intent(inout)  :: ipoint
+         integer, intent(inout)  :: irec          
+
+         if( irec < 1 .or. irec > nbuf) then
+           call errsig(999,"ERROR: index check record is out of range!$")
+           write(6,*)      " --> ", irec, "   max: ",nbuf
+           irec = 1
+         endif
+
+         if( ipoint < 1 .or. ipoint > nwert(irec)) then
+           call errsig(999,"ERROR: index check point number is out of range!$")
+           write(6,*)      " --> ", ipoint, "   max: ", nwert(irec)
+           ipoint = 1
+         endif
+
+      end subroutine index_check    
+
+       subroutine index_check_th(iparam,itheo)
+         implicit none
+         integer, intent(inout)  :: iparam
+         integer, intent(inout)  :: itheo          
+
+         if( itheo < 1 .or. itheo > ntheos) then
+           call errsig(999,"ERROR: index check th theorie is out of range!$")
+           write(6,*)      " --> ", itheo, "   max: ",ntheos
+           itheo = 1
+         endif
+
+         if( iparam < 1 .or. iparam > nthpar(itheo)) then
+           call errsig(999,"ERROR: index check point th parameter number is out of range!$")
+           write(6,*)      " --> ", iparam, "   max: ", nthpar(itheo)
+           iparam = 1
+         endif
+
+      end subroutine index_check_th    
+
+     END subroutine usrfun
 
 
       subroutine usrextr(nam,val,ier)
@@ -5470,3 +5817,58 @@
    end function wcyldet   
 
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! New Utilities
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+subroutine extract_th(filename)
+! get theory section appended on msave generated files
+! and write it to lastth
+! useage: exctract_th <filename>
+!
+implicit none
+character(len=*), intent(in) :: filename
+
+character(len=256) :: line
+integer            :: inunit, outunit
+integer            :: i, length, status
+character(len=256) :: val
+
+val = filename  
+
+open(newunit=inunit,file=val,iostat=status)
+if(status /= 0) then
+  call errsig(999,"ERROR #### extract_th: cannot open:"//trim(val)//"$")
+  return
+else
+  write(6,*)"EXTRACTING lastth from appendix of file: ",trim(val)
+endif
+
+l1: do 
+       read(inunit,'(a)',end=999) line
+       if(line(1:7) == " theory") exit l1
+    enddo l1
+
+open(newunit=outunit,file="lastth")
+
+write(outunit,'(a)') trim(line)
+l2: do
+       read(inunit,'(a)',end=998) line
+       write(outunit,'(a)') trim(line)      
+       if(adjustl(trim(line)) == "end") exit l2
+    enddo l2
+
+close(outunit)
+close(inunit)
+return
+
+998 continue
+  call errsig(999,"ERROR #### extract_th: theory end not found! $")
+  close(outunit)
+  close(inunit)
+  return
+999 continue
+  call errsig(999,"ERROR #### extract_th: theory section not found! $")
+  close(inunit)
+end subroutine extract_th

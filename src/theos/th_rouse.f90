@@ -37,7 +37,7 @@
          parnam (2) = 'xi_frict' 
          parnam (3) = 'b_segmnt' 
          parnam (4) = 'epsilon ' 
-      parnam (5)  = 'temp    ' 
+         parnam (5)  = 'temp    ' 
          parnam (6) = 'com_diff' 
          parnam (7) = 'q_width' 
                                                                         

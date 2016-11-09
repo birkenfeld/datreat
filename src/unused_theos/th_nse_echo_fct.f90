@@ -4,7 +4,7 @@
       FUNCTION echo (x, pa, thnam, parnam, npar, ini, nopar ,params,napar,mbuf) 
 !     ===================================================               
 !                                                                       
-! -------> echo <--------                                               
+!    nse echo function 
 !                                                                       
 !                                                                       
       CHARACTER(8) thnam, parnam (20) 
@@ -26,7 +26,7 @@
             WRITE (6, 1) thnam, nparx, npar 
     1 FORMAT     (' theory: ',a8,' no of parametrs=',i8,                &
      &      ' exceeds current max. = ',i8)                              
-            echo = 0
+            echo = 0 
             RETURN 
          ENDIF 
          npar = nparx 
@@ -64,7 +64,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                                                                         
 !                                                                       
-         echo = 0
+         echo = 0 
          RETURN 
       ENDIF 
 !                                                                       
