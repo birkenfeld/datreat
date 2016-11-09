@@ -185,11 +185,11 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                         write(6,*)
                         write(6,*)'======================================================='
-                        write(6,*)'=   datreat12_2     Version: mm-develop 2.4c          ='
+                        write(6,*)'=   datreat12_2     Version: mm-develop 2.4d          ='
                         write(6,*)'=   -----------     --------                          ='
                         write(6,*)'=   Author: M.Monkenbusch  R. Biehl, O.Holderer, JCNS ='
                         write(6,*)'======================================================='
-                        prompt = "#mm-develop 2.4c -> " 
+                        prompt = "#mm-develop 2.4d -> " 
                         write(6,*)
                         write(6,*)
                         write(6,*)
@@ -340,6 +340,47 @@
        endif
 !
 !
+       if(comand.eq.'prompt  ') then
+!                    ------ 
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= prompt <name>                                                               '
+           write(6,*)'=    replaeces chars 2:9 of prompt by the given <name>                        '
+           write(6,*)'=    thus a datreat session can be given an easy identifier if several are run'
+           write(6,*)'=============================================================================='
+           goto 2000
+        endif
+                   
+         if(inames .ne. 1) then
+           call errsig(999,"ERROR: prompt modification requires exactly 1 name$")
+         else
+           prompt = "# "//trim(vname(1))//":"//trim(prompt(len_trim(prompt)-7:))//" "
+         endif
+         goto 2000
+       endif
+
+       if(comand.eq.'title   ') then
+!                    ------ 
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= title "some string"                                                         '
+           write(6,*)'=    other than tit with evaluation                                           '
+           write(6,*)'=============================================================================='
+           goto 2000
+        endif
+                   
+         if(inames < 1) then
+           call errsig(999,"ERROR: title modification requires  1 (long)name$")
+         else
+          title = " "
+          do i=1,inames
+           title = trim(title)//" "// argvals(i)(1:len(title))
+          enddo
+         endif
+         write(6,'(a,a)')"current plot title: ",trim(title)
+         goto 2000
+       endif
+
        if(comand.eq.'in      '.or.comand.eq.'input   ') then
 !                    --                      -----
          mask_err = .true.
@@ -4870,6 +4911,7 @@ d2:       do j=1,number_of_data_points
   write(6,*) "plot      (synonym) p       " , " "
   write(6,*) "plot0     (synonym) p0      " , " "
   write(6,*) "purge                       " , " "
+  write(6,*) "prompt                      " , " "
   write(6,*) "putpar                      " , " "
   write(6,*) "parlev                      " , " "
   write(6,*) "qc        (synonym) q-conv  " , " "

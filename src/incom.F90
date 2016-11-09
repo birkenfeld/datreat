@@ -140,7 +140,7 @@
  1002    continue
         if(ktop.eq.0) then
 !            write(6,*)' #-->'
-            write(6,'(a)',advance='no') prompt
+            write(6,'(a,1x)',advance='no') trim(prompt)
             ipmls = 0
                 endif
         read(kanal(ktop),"(a)",end=1001) inread
@@ -251,9 +251,13 @@
          endif
 
 ! ---- dont analyse further if it is a title ----
-         if(comand.eq.'tit     '.or.comand.eq.'title   ') then
-           if(comand.eq.'tit     ') title = trim(inline(5:))
-           if(comand.eq.'title   ') title = trim(inline(7:))
+!?         if(comand.eq.'tit     '.or.comand.eq.'title   ') then
+!?           if(comand.eq.'tit     ') title = trim(inline(5:))
+!?           if(comand.eq.'title   ') title = trim(inline(7:))
+!?           goto 8888
+!?         endif
+         if(comand.eq.'tit     ') then
+           title = trim(inline(5:))
            goto 8888
          endif
 ! ---- dont analyse further if it is a message ---
