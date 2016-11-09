@@ -185,11 +185,11 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                         write(6,*)
                         write(6,*)'======================================================='
-                        write(6,*)'=   datreat12_2     Version: mm-develop 2.4d          ='
+                        write(6,*)'=   datreat12_2     Version: mm-develop 2.4e          ='
                         write(6,*)'=   -----------     --------                          ='
                         write(6,*)'=   Author: M.Monkenbusch  R. Biehl, O.Holderer, JCNS ='
                         write(6,*)'======================================================='
-                        prompt = "#mm-develop 2.4d -> " 
+                        prompt = "#mm-develop 2.4e -> " 
                         write(6,*)
                         write(6,*)
                         write(6,*)
@@ -369,14 +369,14 @@
            goto 2000
         endif
                    
-         if(inames < 1) then
-           call errsig(999,"ERROR: title modification requires  1 (long)name$")
-         else
+ !        if(inames < 1) then
+ !          call errsig(999,"ERROR: title modification requires  1 (long)name$")
+ !        else
           title = " "
-          do i=1,inames
+          do i=1,iargvs
            title = trim(title)//" "// argvals(i)(1:len(title))
           enddo
-         endif
+ !        endif
          write(6,'(a,a)')"current plot title: ",trim(title)
          goto 2000
        endif

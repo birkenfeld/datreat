@@ -108,12 +108,14 @@
 		save
 		character*1024 argvals(c_MINC)
 		character*80 pmlst(c_MDEPTH,c_MINC,2)
+                logical :: argquoted(c_MINC)
+		integer iargvs
 	end module cmargs
 	
 	module imargs
                 use dimensions
 		save
-		integer iargvs
+!		integer iargvs
 		integer ipmlst(c_MDEPTH)
 		integer kanal(0:c_MDEPTH)
 		integer ktop
