@@ -3550,7 +3550,7 @@ exclude:   if(found('exclude  ')) then
 
             do i=1,ipars
              iss      = Nint(rpar(i))
-             if(iss > 0 .and. iss <= nbuf ) then
+             if(abs(iss) <= nbuf ) then
                write(6,*)'select adress   ',iss
              else
                write(6,*)"selected=",iss,"  nbuf=", nbuf
@@ -3649,6 +3649,15 @@ exclude:   if(found('exclude  ')) then
 
        if(comand.eq.'parlev  ') then
 !                    ------   set display level
+          if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= parlev <parname> <level>                                                    '
+           write(6,*)'=        change display level of parameter                                    '
+           write(6,*)'=        only parammeters with level < 1 are displayed on plots with default  '
+           write(6,*)'=        -> plot parlev <level>    may shift the plot display level           '
+           write(6,*)'=============================================================================='
+           goto 2000
+        endif
 
            do i=1,nsel
               iaddp = isels(i)
@@ -3669,6 +3678,7 @@ exclude:   if(found('exclude  ')) then
            write(6,*)'= max. length of names: ', len(xname(1)), len(yname(1)), len(name(1))
            write(6,*)'= for compatibility reasons try to stay with length of 8                      '
            write(6,*)'=============================================================================='
+           goto 2000
         endif
 
              do j=1,inames

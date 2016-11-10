@@ -2130,7 +2130,7 @@
      &                    thpsca(j,i),therro(j,i),                      &
      &                    (thpalc(l,j,i),thpafc(l,j,i),l=1,ncoup(j,i))
   170      format(1x,a4,1x,a8,1x,g15.7,1x,g10.3,1x,g12.5,             &
-     &                                              10(3x,a4,1x,g12.5))
+     &                                              10(3x,a4,1x,g15.7))
   150     continue
           write(kk,*)'end'
           if(thenam(nthtab(1)).eq.'eval    ') write(kk,*)yfitform
@@ -2194,7 +2194,7 @@
                       write(6,*)'couple: label=',label,' points to ',   &
      &                          'itself'
                       ierrs = 801
-                      call errsig(999,"ERROR: couple self reference is not allowed$")
+                      call errsig(801,"ERROR: couple self reference is not allowed$")
                    endif
 !           ---- do the coupling ----
                    if(ierrs.eq.0) y = y + thpafc(l,j,i) * thparx(jj,ii)
@@ -2210,6 +2210,20 @@
                 else
                    thparx(j,i) = thpaco(j,i) + y
                 endif
+
+ chk1:         if(abs(thpafc(1,j,i)-1.0) < 1e-6) then
+                  if(n == 1 .and. (thenam(nthtab(i)) ==thenam(nthtab(ii))) ) then
+                    if(abs((thparx(j,i)-thparx(jj,ii))/(thparx(j,i)+thparx(jj,ii))) > 1d-6) then
+                      write(6,'(a,a,a,a,i3,3x,a,i3)')"WARNING: couplings of params:", &
+                            thparn(j,nthtab(i))," of theories: ",thenam(nthtab(i)),i,thenam(nthtab(ii)),ii
+                      write(6,'(a)')"WARNING: may be erroneous, should they have the same start values? "
+                      write(6,'(a)')"WARNING: reason there is only one coupling with coeff=1            "
+                      write(6,'(a)')"WARNING: this usually is done to keep params equal                 "
+                      write(6,'(a)')"WARNING: to suppress this warning set coupling to 0.9999 or so!    "
+                    endif
+                  endif
+                endif chk1
+
              endif
 !            ----- ( if(n.gt.0).... )
    20     continue
