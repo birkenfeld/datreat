@@ -562,3 +562,70 @@
 	end module constants
 
 
+
+
+ module theory_description
+   use dimensions
+   use theory
+   save
+        character(len=1),parameter :: cr = char(10)
+	character(len=8)           :: th_identifier(c_MTH) = " "
+	character(len=1024)        :: th_explanation(c_MTH)
+	character(len=1024)        :: th_citation(c_MTH) = " "
+	character(len=256)         :: th_param_desc(c_MTPAR,c_MTH)
+	integer, private           :: nthdesc = 0
+   
+   contains
+
+        integer function next_th_desc() 
+          implicit none
+          if(nthdesc < c_MTH) then
+            nthdesc = nthdesc+1
+          else
+            call errsig(9999,"Theory description fault!")
+          endif
+          next_th_desc = nthdesc
+        end function next_th_desc
+
+       logical function output_th_explanation( thn ) result(ok)
+          implicit none
+          character(len=8), intent(in) :: thn
+          
+          integer :: i, ith, ipa
+        
+!          write(6,*)'...searching for : ',thn, 'among: ',nthdesc
+
+
+nt:       do i=1,nthdesc
+            if(thn == th_identifier(i)) then
+              write(6,'(a)')"-----------------------------------------------------------------------------------"
+              write(6,'("theory id-name: ",a)')thn
+              write(6,'(a)')"-----------------------------------------------------------------------------------"
+              write(6,'(a)')trim(th_explanation(i))
+              write(6,'(a)')"-----------------------------------------------------------------------------------"
+dt:          do ith=1, c_MTH
+                if(thenam(ith) == thn) then
+                  write(6,'(a,i2,a)') "Parameters(",nthpar(ith),"): "
+                  do ipa=1,nthpar(ith)
+                    write(6,'(i3,": ",a8," > ",a)') ipa,thparn(ipa,ith), trim(th_param_desc(ipa,i))
+                  enddo
+                  exit dt
+                endif
+              enddo dt             
+              if(len_trim(th_citation(i)) > 1) then
+                write(6,'(a)')"..................................................................................."
+                write(6,'("cite: ",a," !")') trim(th_citation(i))
+              endif
+              write(6,'(a)')"-----------------------------------------------------------------------------------"
+              ok = .true.
+              return
+            endif
+          enddo nt
+
+          ok = .false.
+!          write(6,'(a,a)')"... no further info available for: ",thn
+
+       end function output_th_explanation
+ 
+
+ end module theory_description
