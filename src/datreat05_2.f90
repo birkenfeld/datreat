@@ -186,11 +186,11 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                         write(6,*)
                         write(6,*)'======================================================='
-                        write(6,*)'=   datreat12_2     Version: mm-develop 2.4e          ='
+                        write(6,*)'=   datreat12_2     Version: mm-develop 2.4f          ='
                         write(6,*)'=   -----------     --------                          ='
                         write(6,*)'=   Author: M.Monkenbusch  R. Biehl, O.Holderer, JCNS ='
                         write(6,*)'======================================================='
-                        prompt = "#mm-develop 2.4e -> " 
+                        prompt = "#mm-develop 2.4f -> " 
                         write(6,*)
                         write(6,*)
                         write(6,*)

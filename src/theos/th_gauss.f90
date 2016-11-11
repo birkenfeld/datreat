@@ -28,7 +28,7 @@
         idesc = next_th_desc()
         th_identifier(idesc)   = thnam
         th_explanation(idesc)  = "simple Gaussian function:                               "//cr//&
-                                 " th = intensity * exp[-{(x-center)/withd}**2]           "
+                                 " th = intensity * exp[ - { (x-center)/withd }**2 ]      "
             
 
 
