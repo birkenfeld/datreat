@@ -568,12 +568,17 @@
    use dimensions
    use theory
    save
+        integer, parameter         :: M_recin_par  = 30  
+        integer, parameter         :: M_recout_par = 30  
         character(len=1),parameter :: cr = char(10)
 	character(len=8)           :: th_identifier(c_MTH) = " "
 	character(len=1024)        :: th_explanation(c_MTH)
 	character(len=1024)        :: th_citation(c_MTH) = " "
 	character(len=256)         :: th_param_desc(c_MTPAR,c_MTH)
+	character(len=256)         :: th_file_param(M_recin_par,c_MTH)
+	character(len=256)         :: th_out_param(M_recout_par,c_MTH)
 	integer, private           :: nthdesc = 0
+        integer                    :: idesc
    
    contains
 
@@ -592,7 +597,8 @@
           character(len=8), intent(in) :: thn
           
           integer :: i, ith, ipa
-        
+          logical :: parout
+       
 !          write(6,*)'...searching for : ',thn, 'among: ',nthdesc
 
 
@@ -611,7 +617,33 @@ dt:          do ith=1, c_MTH
                   enddo
                   exit dt
                 endif
-              enddo dt             
+              enddo dt  
+
+             parout = .false.
+             do ipa = 1, 1,M_recin_par
+               parout = (len_trim(th_file_param(ipa,i)) > 0) .or. parout
+             enddo
+             if(parout) then
+               write(6,'(a)')"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+               write(6,'(a)')"INPUT: Parameters that are extracted from the actual considered data records:"
+                write(6,'(a)')"..there may be default assumption, but better make sure that these parameters are set properly!"
+  dt2:          do ipa = 1,M_recin_par
+                  if(len_trim(th_file_param(ipa,i)) > 0)  write(6,'(i3,": ",a)') ipa, trim(th_file_param(ipa,i))
+                enddo dt2
+             endif
+
+             parout = .false.
+             do ipa = 1, 1,M_recout_par
+               parout = (len_trim(th_out_param(ipa,i)) > 0) .or. parout
+             enddo
+             if(parout) then
+              write(6,'(a)')"==================================================================================="
+              write(6,'(a)')"OUTPUT: Parameters that are computed and added to the records parameters as information:"
+  dt3:         do ipa = 1,M_recout_par
+                 if(len_trim(th_out_param(ipa,i)) > 0)  write(6,'(i3,": ",a)') ipa, trim(th_out_param(ipa,i))
+               enddo dt3
+            endif
+          
               if(len_trim(th_citation(i)) > 1) then
                 write(6,'(a)')"..................................................................................."
                 write(6,'("cite: ",a," !")') trim(th_citation(i))

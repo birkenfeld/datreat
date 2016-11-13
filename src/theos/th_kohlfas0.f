@@ -42,7 +42,7 @@ c
        integer   inew
 
        integer   i
-       integer   :: idesc
+ !      integer   :: idesc
 
        real*4    kbolz
        Parameter (kbolz=1.380662e-23)
@@ -102,47 +102,62 @@ c ----- initialisation -----
 
          npar = nparx
 c        --------------> set the number of parameters
-         parnam(1)              = 'intensit'          ! prefactor (should be 1)
-         th_param_desc(1,idesc) = "prefactor (default 1) " 
+         parnam(1) = 'intensit'          ! prefactor (should be 1)
          parnam(2) = 'n_chain'           ! chain protons fraction
-         th_param_desc(2,idesc) = "fraction of (non-ch3) chain protons " 
          parnam(3) = 'n_ch3'             ! ch3-protons fraction
-         th_param_desc(3,idesc) = "fraction of -ch3 protons " 
          parnam(4) = 'tau_kww'           ! main-chain tau
-         th_param_desc(4,idesc) = "tau_kww (alpha relaxation) "//
-     *                            "time in units 1/units(xaxis) " 
          parnam(5) = 'beta_kww'          ! main-chain beta
-         th_param_desc(5,idesc) = "streching exponent of the KWW fkt." 
          parnam(6) = 'lntau_mg'          ! log of center of methyl tau's (here we enter ln(tau0) !! )
-         th_param_desc(6,idesc) = "log of center of methyl taus" 
          parnam(7) = 'sigma_mg'          ! width of lognormal distribution (sigma of the paper)
-         th_param_desc(7,idesc) = "log normal width methyl taus" 
          parnam(8) = 'beta_mg'           ! beta of mg rotation (paper ==> 1)
-         th_param_desc(8,idesc) = "stretching exp of methyl fkt." 
          parnam(9) = 'rhh'               ! radius of ch3-rotation (paper ==> 1.78 Angstroem)
-         th_param_desc(9,idesc) = "radius of ch3-rotation (==> 1.78A)" 
          parnam(10)= 'u_square'          ! <u**2> value for Debye-Waller-Factor
-         th_param_desc(10,idesc) = "u**2 value for Debye-Waller-Factor" 
          parnam(11)= 'omega0'            ! omega scale zero shift
-         th_param_desc(11,idesc) = "omega0 zero adjustment xaxis" 
          parnam(12)= 'epsilon'           ! accuracy parameter for FT-integrations (DO NOT FIT)
-         th_param_desc(12,idesc) = "accuracy FT-integ. (DO NOT FIT)" 
          parnam(13)= 'xwidth'            ! channelwidth
-         th_param_desc(13,idesc) = "channel width, set 0 if _xwidth "//
+         parnam(14)= 'rgeisf2'           ! "eisf" for the fast local motion as exp(-(1/3)(Rg*q)**2)
+         parnam(15)= 'tau_fast'          ! tau of fast component
+         parnam(16)= 'beta_fast'         ! beta of fast 
+         parnam(17)= 'qexpkww'           ! q exponent of tau kww
+         parnam(18)= 'qexpfast'          ! q exponent of fast component
+ 
+!
+        th_param_desc(1,idesc) = "prefactor (default 1) " 
+        th_param_desc(2,idesc) = "fraction of (non-ch3) chain protons " 
+        th_param_desc(3,idesc) = "fraction of -ch3 protons " 
+        th_param_desc(4,idesc) = "tau_kww (alpha relaxation) "//
+     *                            "time in units 1/units(xaxis) " 
+        th_param_desc(5,idesc) = "streching exponent of the KWW fkt." 
+        th_param_desc(6,idesc) = "log of center of methyl taus" 
+        th_param_desc(7,idesc) = "log normal width methyl taus" 
+        th_param_desc(8,idesc) = "stretching exp of methyl fkt." 
+        th_param_desc(9,idesc) = "radius of ch3-rotation (==> 1.78A)" 
+        th_param_desc(10,idesc) = "u**2 value for Debye-Waller-Factor" 
+        th_param_desc(11,idesc) = "omega0 zero adjustment xaxis" 
+        th_param_desc(12,idesc) = "accuracy FT-integ. (DO NOT FIT)" 
+        th_param_desc(13,idesc) = "channel width, set 0 if _xwidth "//
      *   "parameter is present in the data records"//cr// 
      *   "   takes care of proper integration of sharp features over"//
      *   " the experimental box width"
-         parnam(14)= 'rgeisf2'           ! "eisf" for the fast local motion as exp(-(1/3)(Rg*q)**2)
-         th_param_desc(14,idesc) = "eisf2= exp(-(1/3)( Rgeisf2 *q)**2) "       
-         parnam(15)= 'tau_fast'          ! tau of fast component
-         th_param_desc(15,idesc) = "characteristic time of fast comp. "       
-         parnam(16)= 'beta_fast'         ! beta of fast 
-         th_param_desc(16,idesc) = "stretching exponent of fast comp. "       
-         parnam(17)= 'qexpkww'           ! q exponent of tau kww
-         th_param_desc(17,idesc) = "exponent of tau_KWW dispersion  "       
-         parnam(18)= 'qexpfast'          ! q exponent of fast component
-         th_param_desc(18,idesc) = "exponent of tau_fast dispersion  "       
+        th_param_desc(14,idesc) = "eisf2= exp(-(1/3)( Rgeisf2 *q)**2) "       
+        th_param_desc(15,idesc) = "characteristic time of fast comp. "       
+        th_param_desc(16,idesc) = "stretching exponent of fast comp. "       
+        th_param_desc(17,idesc) = "exponent of tau_KWW dispersion  "       
+        th_param_desc(18,idesc) = "exponent of tau_fast dispersion  "       
 
+! 
+        th_file_param(:,idesc) = " "  
+        th_file_param(1,idesc) = 
+     *  " q     =  q value of the S(q,t), units THE LENGTH UNITS"
+        th_file_param(2,idesc) = 
+     *  " temp  =  T value in K (currently not used)"
+       th_file_param(3,idesc) = 
+     *  " _xwidth  =  channel width (x-channel)"
+       th_file_param(4,idesc) = 
+     *  " ga#inten, ga#witdh, ga#cente   #=1..8"//cr//
+     *  " Gaussian resolution parameter NEEDED at least #=1"
+
+         th_out_param(:,idesc)  = " "    
 
 c
          th_kohlfas0 = 0

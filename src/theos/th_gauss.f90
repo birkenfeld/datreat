@@ -11,7 +11,7 @@
 		character*80, intent(inout) :: napar(mbuf)              ! name des parameters n
 		real        , intent(inout) :: params(mbuf)             ! value des parameters n
 
-                integer :: idesc
+  !              integer :: idesc
 		DATA zpi / 6.283185 / 
 
 !                                                                       
@@ -29,7 +29,9 @@
         th_identifier(idesc)   = thnam
         th_explanation(idesc)  = "simple Gaussian function:                               "//cr//&
                                  " th = intensity * exp[ - { (x-center)/withd }**2 ]      "
-            
+ !
+        th_citation(idesc) = " ... den alten Carl Friedrich Gauss"
+           
 
 
          npar = nparx 
@@ -37,9 +39,10 @@
          parnam (1) = 'intensit' ; th_param_desc(1,idesc) = "prefactor "
          parnam (2) = 'width'    ; th_param_desc(2,idesc) = "width = sqrt(2)*sigma "
          parnam (3) = 'center'   ; th_param_desc(3,idesc) = "center of Gaussian "
-!
-         th_citation(idesc) = " ... den alten Carl Friedrich Gauss"
-!                                                                       
+! 
+         th_file_param(:,idesc) = " "                                                                      
+         th_out_param(:,idesc)  = " "    
+                                                                  
          thgauss = 0
          RETURN 
       ENDIF 

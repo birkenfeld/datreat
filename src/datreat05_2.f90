@@ -186,11 +186,11 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                         write(6,*)
                         write(6,*)'======================================================='
-                        write(6,*)'=   datreat12_2     Version: mm-develop 2.4f          ='
+                        write(6,*)'=   datreat12_2     Version: mm-develop 2.4g          ='
                         write(6,*)'=   -----------     --------                          ='
                         write(6,*)'=   Author: M.Monkenbusch  R. Biehl, O.Holderer, JCNS ='
                         write(6,*)'======================================================='
-                        prompt = "#mm-develop 2.4f -> " 
+                        prompt = "#mm-develop 2.4g -> " 
                         write(6,*)
                         write(6,*)
                         write(6,*)
@@ -3999,11 +3999,11 @@ exclude:   if(found('exclude  ')) then
          goto 2000
        endif
 !
-       if(comand.eq.'theos   ') then
+       if(comand.eq.'theos   ' .or. comand.eq.'th      ') then
 !                    -----> list available theories
         if(found('help    ')) then 
          write(6,*)'=============================================================================='
-         write(6,*)'= theos [thnam]                                                              ='
+         write(6,*)'= theos [thnam]            (short th)                                        ='
          write(6,*)'=     optional parameter theory name (only ckeck for this theory and list it ='
          write(6,*)'=     otherwise give a list of all available (linked) theories               ='
          write(6,*)'=                                                                            ='
