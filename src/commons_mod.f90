@@ -571,6 +571,7 @@
         integer, parameter         :: M_recin_par  = 30  
         integer, parameter         :: M_recout_par = 30  
         character(len=1),parameter :: cr = char(10)
+        character(len=16),parameter:: parspace = "                "
 	character(len=8)           :: th_identifier(c_MTH) = " "
 	character(len=1024)        :: th_explanation(c_MTH)
 	character(len=1024)        :: th_citation(c_MTH) = " "

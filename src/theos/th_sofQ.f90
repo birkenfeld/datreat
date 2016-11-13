@@ -8,8 +8,10 @@
 !              3       Sharma-Sharma form
 !              4       Critical diverg.
 !              5       none (sq=1.)
-!              6       PercusYevik
-!                                                                       
+!              6       PercusYevik                             
+!   
+      use theory_description
+                                                                    
       PARAMETER (pi = 3.141592654) 
       CHARACTER(8) thnam, parnam (20) 
       DIMENSION pa (20), qq (3) 
@@ -36,6 +38,23 @@
             sofqq = 0 
             RETURN 
          ENDIF 
+
+        idesc = next_th_desc()
+        th_identifier(idesc)   = thnam
+        th_explanation(idesc)  =  &
+         "      sofq  (typically used with attribute: multiply)         "//cr//&
+         "      calculates the structure factor according to            "//cr//&
+         "      mode=   1       Hayter-Penfold form                     "//cr//&
+         "              2       Shieu-Chen form                         "//cr//&
+         "              3       Sharma-Sharma form                      "//cr//&
+         "              4       Critical diverg.                        "//cr//&
+         "              5       none (sq=1.)                            "//cr//&
+         "              6       PercusYevik                             "
+  
+       th_citation(idesc)     = "Modified version of the Hayter-Penfold program  bye E.Sheu      (Exxon Res. & Eng.)" 
+
+
+
          npar = nparx 
 !        --------------> set the number of parameters                   
          parnam (1) = 'volfrac' 
@@ -43,6 +62,20 @@
          parnam (3) = 'gamma' 
          parnam (4) = 'r' 
          parnam (5) = 'mode' 
+!
+         th_param_desc(1,idesc) = "volume fraction of (spherical particles) "  
+         th_param_desc(2,idesc) = "characteristic length of the interaction screening length for mode=1,2"//cr//&
+                        parspace//"the width of the potential well for mode=3"  
+         th_param_desc(3,idesc) = "mode=1,2: gamma*exp(-r/scl) contact pot. "//cr//&    
+                        parspace//"mode=3:   depth of the potential well in units of kT, + = repulsive, - =attractive"                
+         th_param_desc(4,idesc) = "radius of the spheres"  
+         th_param_desc(5,idesc) = "selector (integer) of S(Q) type.   DO NOT FIT!"  
+
+
+         th_file_param(:,idesc) = " "
+
+         th_out_param(:,idesc)  = " "
+ 
 !                                                                       
          sofqq = 0 
          RETURN 

@@ -4014,7 +4014,7 @@ exclude:   if(found('exclude  ')) then
          write(6,*)'=       make clean  and make (from subdir src) will install the new config.  ='
          write(6,*)'=       available theories in theos may serve as templates for own creations ='
          write(6,*)'=                                                                            ='
-         write(6,*)'=  theos <name> will check for a theory and set the uservar theoryok = 1     ='
+         write(6,*)'=  th[eos] <name> will check for a theory and set the uservar theoryok = 1   ='
          write(6,*)'=               if the theory is available                                   ='
          write(6,*)'=                                                                            ='
          write(6,*)'=============================================================================='
@@ -4055,7 +4055,7 @@ exclude:   if(found('exclude  ')) then
              write(6,'(8(2x,a8))') thenam(1:mth)
           write(6,*)'----------------------------------------------------------------------------------'
           write(6,*)
-          write(6,*)' .... for more details on one of these: --> theos <theoryname> ! '
+          write(6,*)' .... for more details on one of these: --> th <theoryname> ! '
           write(6,*)
          endif
 
