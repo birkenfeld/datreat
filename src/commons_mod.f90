@@ -627,7 +627,7 @@ dt:          do ith=1, c_MTH
              if(parout) then
                write(6,'(a)')"++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
                write(6,'(a)')"INPUT: Parameters that are extracted from the actual considered data records:"
-                write(6,'(a)')"..there may be default assumption, but better make sure that these parameters are set properly!"
+                write(6,'(a)')"..there may be default assumptions, but better make sure that these parameters are set properly!"
   dt2:          do ipa = 1,M_recin_par
                   if(len_trim(th_file_param(ipa,i)) > 0)  write(6,'(i3,": ",a)') ipa, trim(th_file_param(ipa,i))
                 enddo dt2
