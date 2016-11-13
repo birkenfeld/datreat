@@ -38,7 +38,7 @@
         idesc = next_th_desc()
         th_identifier(idesc)   = thnam
         th_explanation(idesc)  = "Rouse single chain S(Q,t) deGennes integral expression   "//cr//&
-                                 "  with extra cemnter-of-mass diffusion exp(-D_cm*d**2*t) as factor"//cr//&
+                                 "  with extra center-of-mass diffusion exp(-D_cm*d**2*t) as factor"//cr//&
                                  "  with optional averaging over q-width"
  !
         th_citation(idesc) = "Doi and Edwards Book and refernces therein"
@@ -60,8 +60,8 @@
                                   "if epsilon < 0, numerical integration with eps=1e-8 is enforced"
          th_param_desc(5,idesc) = "temperature overrides parameter in data records"//cr//parspace//&
                                   "set to 0 if  extraction from parameters in records is desired"  
-         th_param_desc(5,idesc) = "center-of-mass diffusion in units cm**2/sec (assuming A, ns units for q,t)"  
-         th_param_desc(5,idesc) = "if non-zero a 15 points averaging over the q-range is perfromed."  
+         th_param_desc(6,idesc) = "center-of-mass diffusion in units cm**2/sec (assuming A, ns units for q,t)"  
+         th_param_desc(7,idesc) = "if non-zero a 15 points averaging over the q-range is perfromed."  
 
          th_file_param(:,idesc) = " "
          th_file_param(1,idesc) = " q     =  q value of the S(q,t), units A**-1"
