@@ -39,7 +39,12 @@ d2: do
 d2a: do 
      read(in,'(a)') inline
      write(out,'(a)') trim(inline)
-     if(index(inline,"npar")>0 .and. index(inline,"nparx")>0 .and. index(inline,"=")>00 ) exit d2a
+!     if(index(inline,"npar")>0 .and. index(inline,"nparx")>0 .and. index(inline,"=")>0 ) exit d2a
+!     if(index(inline,"npar = nparx")>0  ) exit d2a
+      if(index(inline,"npar")>0 .and. index(inline,"nparx")>0 .and. index(inline,"=")>0 &
+          .and. index(inline,")")==0 &
+          .and. (index(inline,"npar") < index(inline,"=")) &
+          .and. (index(inline,"=") < index(inline,"nparx"))) exit d2a
    enddo d2a
 
 write(out,'(a,i4,a)')"! >>>>> describe theory with ",npar," parameters >>>>>>>"
