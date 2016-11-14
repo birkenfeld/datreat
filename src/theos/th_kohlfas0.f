@@ -136,7 +136,7 @@ c        --------------> set the number of parameters
         th_param_desc(11,idesc) = "omega0 zero adjustment xaxis" 
         th_param_desc(12,idesc) = "accuracy FT-integ. (DO NOT FIT)" 
         th_param_desc(13,idesc) = "channel width, set 0 if _xwidth "//
-     *   "parameter is present in the data records"//cr// 
+     *   "parameter is present in the data records"//cr//parspace// 
      *   "   takes care of proper integration of sharp features over"//
      *   " the experimental box width"
         th_param_desc(14,idesc) = "eisf2= exp(-(1/3)( Rgeisf2 *q)**2) "       
@@ -154,7 +154,7 @@ c        --------------> set the number of parameters
        th_file_param(3,idesc) = 
      *  " _xwidth  =  channel width (x-channel)"
        th_file_param(4,idesc) = 
-     *  " ga#inten, ga#witdh, ga#cente   #=1..8"//cr//
+     *  " ga#inten, ga#witdh, ga#cente   #=1..8"//cr//parspace//
      *  " Gaussian resolution parameter NEEDED at least #=1"
 
          th_out_param(:,idesc)  = " "    
