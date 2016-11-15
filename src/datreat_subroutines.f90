@@ -1498,7 +1498,15 @@
       END subroutine parscale
 
 
+       integer function actual_record_address()
+!      ========================================  
+          implicit none
+          integer :: iadda
+          common /thiadd/iadda
 
+          actual_record_address = iadda
+
+       end function actual_record_address
 
 
        subroutine parget (pname,pvalue,iadd,ier)
