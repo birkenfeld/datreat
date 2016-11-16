@@ -175,7 +175,7 @@ d8: do
       write(out,'(a)') trim(inline)
     enddo d8
 
- write(out,'(a,a)')" end program th_",trim(adjustl(theoryname))
+ write(out,'(a,a)')" end function th_",trim(adjustl(theoryname))
 
  
  close(out)
@@ -195,12 +195,13 @@ CONTAINS
    implicit none
    integer :: i
 
-   write(out,'(a,a,a)')" REAL FUNCTION th_",trim(adjustl(theoryname)),"(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)"
-   write(out,'(a)')    "!===================================================================================="
+   write(out,'(a,a,a)')" FUNCTION th_",trim(adjustl(theoryname)),"(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)"
+   write(out,'(a)')    "!================================================================================"
    write(out,'(8("! ",128a))') trim(theory_description)
    write(out,'(2("! ",128a))') trim(theory_citation)
    write(out,'(4x,a)') "  use theory_description "
    write(out,'(4x,a)') "  implicit none "
+   write(out,'(4x,2a)')"  real    :: th_",trim(adjustl(theoryname))
    write(out,'(4x,a)') "  character(len=8) :: thnam, parnam (*) "
    write(out,'(4x,a)') "  real    :: pa (*) "
    write(out,'(4x,a)') "  real    :: x , xh"
@@ -241,9 +242,8 @@ CONTAINS
       write(out,'(a,a,a)') "       thnam = '",trim(adjustl(theoryname)),"'"
       write(out,'(a,i8)')  "       nparx = ",npar
       write(out,'(a)')     "       IF (npar.lt.nparx) then"
-      write(out,'(a)')     &
-      "          WRITE (6,(' theory: ',a8,' no of parametrs=',i8,' exceeds current max. = ',i8))thnam,nparx,npar"
-      write(out,'(a,a,a)') "            th_",trim(adjustl(theoryname))," = 0" 
+      write(out,*)         "          WRITE (6,*)' theory: ',thnam,' no of parametrs=',nparx,' exceeds current max. = ',npar"
+      write(out,'(a,a,a)') "          th_",trim(adjustl(theoryname))," = 0" 
       write(out,'(a)')     "          RETURN"
       write(out,'(a)')     "       ENDIF"
       write(out,'(a)')     "       npar = nparx"
