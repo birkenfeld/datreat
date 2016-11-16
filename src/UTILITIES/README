@@ -1,0 +1,35 @@
+utilities 
+
+add_help_to_th.f90 
+th_template_generator.f90
+
+To use them compile with any modern fortran compiler
+e.g 
+gfortran -o th_template_generator th_template_generator.f90
+gfortran -o add_help_to_th        add_help_to_th.f90
+
+Then:
+1. to include more help info into an already available theory
+
+add_help_to_th < th_theory.f90 > out.f90
+
+check out.f90 insert the additional comments and help texts at the
+marked positions and then replace th_theory.f90 in /theos by out.f90 
+
+
+2. to create a new theory in a standardized way with all features
+
+ a.) Make a th_template according to the example: template1
+ b.) th_template_generator < th_template
+ c.) find out.f90 generated 
+ d.) complete out.f90 by editing (you need at least to
+     fix the line containing
+     th_theoryname = !INSERT RESULT ......
+
+ e.) copy with the approriate name to /theos
+
+
+
+------------------
+in both cases one needs a make to activate theories
+   With Datreat Version >= 2.4g
