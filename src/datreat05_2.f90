@@ -50,6 +50,7 @@
       use constants
       use PhysicalConstantsPlus
       use unift
+      use theory_description
       implicit none
 
       integer iadda
@@ -185,11 +186,11 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                         write(6,*)
                         write(6,*)'======================================================='
-                        write(6,*)'=   datreat12_2     Version: mm-develop 2.4d          ='
+                        write(6,*)'=   datreat12_2     Version: mm-develop 2.4g          ='
                         write(6,*)'=   -----------     --------                          ='
                         write(6,*)'=   Author: M.Monkenbusch  R. Biehl, O.Holderer, JCNS ='
                         write(6,*)'======================================================='
-                        prompt = "#mm-develop 2.4d -> " 
+                        prompt = "#mm-develop 2.4g -> " 
                         write(6,*)
                         write(6,*)
                         write(6,*)
@@ -369,14 +370,14 @@
            goto 2000
         endif
                    
-         if(inames < 1) then
-           call errsig(999,"ERROR: title modification requires  1 (long)name$")
-         else
+ !        if(inames < 1) then
+ !          call errsig(999,"ERROR: title modification requires  1 (long)name$")
+ !        else
           title = " "
-          do i=1,inames
+          do i=1,iargvs
            title = trim(title)//" "// argvals(i)(1:len(title))
           enddo
-         endif
+ !        endif
          write(6,'(a,a)')"current plot title: ",trim(title)
          goto 2000
        endif
@@ -3550,7 +3551,7 @@ exclude:   if(found('exclude  ')) then
 
             do i=1,ipars
              iss      = Nint(rpar(i))
-             if(iss > 0 .and. iss <= nbuf ) then
+             if(abs(iss) <= nbuf ) then
                write(6,*)'select adress   ',iss
              else
                write(6,*)"selected=",iss,"  nbuf=", nbuf
@@ -3649,6 +3650,15 @@ exclude:   if(found('exclude  ')) then
 
        if(comand.eq.'parlev  ') then
 !                    ------   set display level
+          if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= parlev <parname> <level>                                                    '
+           write(6,*)'=        change display level of parameter                                    '
+           write(6,*)'=        only parammeters with level < 1 are displayed on plots with default  '
+           write(6,*)'=        -> plot parlev <level>    may shift the plot display level           '
+           write(6,*)'=============================================================================='
+           goto 2000
+        endif
 
            do i=1,nsel
               iaddp = isels(i)
@@ -3669,6 +3679,7 @@ exclude:   if(found('exclude  ')) then
            write(6,*)'= max. length of names: ', len(xname(1)), len(yname(1)), len(name(1))
            write(6,*)'= for compatibility reasons try to stay with length of 8                      '
            write(6,*)'=============================================================================='
+           goto 2000
         endif
 
              do j=1,inames
@@ -3988,11 +3999,11 @@ exclude:   if(found('exclude  ')) then
          goto 2000
        endif
 !
-       if(comand.eq.'theos   ') then
+       if(comand.eq.'theos   ' .or. comand.eq.'th      ') then
 !                    -----> list available theories
         if(found('help    ')) then 
          write(6,*)'=============================================================================='
-         write(6,*)'= theos [thnam]                                                              ='
+         write(6,*)'= theos [thnam]            (short th)                                        ='
          write(6,*)'=     optional parameter theory name (only ckeck for this theory and list it ='
          write(6,*)'=     otherwise give a list of all available (linked) theories               ='
          write(6,*)'=                                                                            ='
@@ -4003,7 +4014,7 @@ exclude:   if(found('exclude  ')) then
          write(6,*)'=       make clean  and make (from subdir src) will install the new config.  ='
          write(6,*)'=       available theories in theos may serve as templates for own creations ='
          write(6,*)'=                                                                            ='
-         write(6,*)'=  theos <name> will check for a theory and set the uservar theoryok = 1     ='
+         write(6,*)'=  th[eos] <name> will check for a theory and set the uservar theoryok = 1   ='
          write(6,*)'=               if the theory is available                                   ='
          write(6,*)'=                                                                            ='
          write(6,*)'=============================================================================='
@@ -4015,26 +4026,39 @@ exclude:   if(found('exclude  ')) then
          if (ileng.gt.0) then
             call setudf('theoryok ',0d0,ier)
             if(ier.ne.0) call errsig(999,"ERROR: cannot create/set uservar theoryok!$")
+
+            
+            if( output_th_explanation(vname(1)) ) then
+               call setudf('theoryok ',1d0,ier)
+              goto 2000
+            else
             do i=1,mth
-               if (thenam(i)(:ileng).eq.vname(1)(:ileng)) then
+               if (thenam(i).eq.vname(1)) then
                        write(6,*)'______________________________________'
                        write(6,'(i3,": ",a8,i3)') i,thenam(i),nthpar(i)
-                       write(6,*)(trim(thparn(j,i))//' ',j=1,mtpar)
+                       write(6,'(i3,": ",a)')(j,trim(thparn(j,i))//' ',j=1,nthpar(i))
                        write(6,*)'______________________________________'
                        call setudf('theoryok ',1d0,ier)
                endif
-            enddo
+            enddo            
+           endif
+
          else
-           write(6,*)' ***** theories available *****'
-           write(6,*)'-------------------------------------'
-           do i=1,mth
-               if (thenam(i).ne.' ') then  !   kein name!!!
-                       write(6,'(i3,": ",a8,i3," :")',advance='no') i,thenam(i),nthpar(i)
-                       write(6,'(30a)')(trim(thparn(j,i))//' ',j=1,mtpar)
-               endif
-           enddo
-           write(6,*)'-------------------------------------'
+           write(6,'(a)')" ***** available theories available *****"
+           write(6,*)'---------------------------------------------------------------------------------'
+ !          do i=1,mth
+ !              if (thenam(i).ne.' ') then  !   kein name!!!
+ !                      write(6,'(i3,": ",a8,i3," :")',advance='no') i,thenam(i),nthpar(i)
+ !                      write(6,'(30a)')(trim(thparn(j,i))//' ',j=1,mtpar)
+ !              endif
+ !          enddo
+             write(6,'(8(2x,a8))') thenam(1:mth)
+          write(6,*)'----------------------------------------------------------------------------------'
+          write(6,*)
+          write(6,*)' .... for more details on one of these: --> th <theoryname> ! '
+          write(6,*)
          endif
+
    
          goto 2000
       endif

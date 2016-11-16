@@ -1,0 +1,27 @@
+#THEORY thtester
+        a test comment to check the th_template generator
+        and another line for it.
+        With complicated formulae.
+#CITE
+        ref. Plisch und Plum in Grimms Maerchen
+#PARAMETERS
+        ampli            ! prefactor 
+        scope            ! scope scope scope
+        knurrrer         ! a knurrer
+#RECIN-PARAMETERS    (allow 8 chars for name, start only beyond 8 with default)
+        q           0.1   ! Q-VALUE
+        temp        300.0 ! Temperatur der Probe
+#RECOUT-PARAMETERS
+        qq               ! square of q
+#VARIABLES
+     double precision :: tau
+     integer          :: myint
+#IMPLEMENTATION
+     tau = x
+     qq  = q
+#SUBROUTINES
+  function s2(q)
+    double precision :: s2, q
+    s2 = 1
+  end function s2
+#END

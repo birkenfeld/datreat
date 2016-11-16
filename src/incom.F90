@@ -36,11 +36,13 @@
 !
        character*8   glabel,xlab,itypc,vnamef
        character*1024 buf,bla132
+!       character(len=1024) :: buf2
        character*1   blank,csep,numtst(14),numeqv*14,inread*1024
-       character(len=1) :: quote 
+       character(len=1) :: quote , delim
        character*8   cmd
        equivalence  (numeqv,numtst(1))
        logical :: name, lmakro = .false., found, fileda
+       logical :: quoted
 
        character*1024 ma_fil
        integer       ilma, i, j, k, l, ii, irc, ipmlen, isum, ioold
@@ -81,8 +83,11 @@
        blank= ' '  !              = --> parameter separator
        numeqv = '(.+-0123456789' !=> to reckognize the beginning of a number
        bla132 = ' '
-       quote  = '"' ! to allow quoted names that are protected form evaluation               
+       quote  = '"' ! to allow quoted names that are protected form evaluation 
+       delim  = '§'              
 !
+
+       argquoted = .false.
 
  8888  continue ! startingpoint of incom loop
 !      --------> reentry-point
@@ -140,7 +145,7 @@
  1002    continue
         if(ktop.eq.0) then
 !            write(6,*)' #-->'
-            write(6,'(a,1x)',advance='no') trim(prompt)
+            write(6,'(a,1x)',advance='no') trim(prompt)//" "
             ipmls = 0
                 endif
         read(kanal(ktop),"(a)",end=1001) inread
@@ -309,29 +314,29 @@
                         endif     
                         j=j+1
                         buf = inline(i+1:j)
-!                       write(6,*)"is a quoted item:",trim(buf),  "<",trim(inline),i,j
-         else 
+ !                       write(6,*)"is a quoted item:",trim(buf),  "<",trim(inline),i,j
+          else 
                         j=i+SCAN(inline(i+1:len(inline)),blank)      ! j = next blank
                         if (j.eq.i) j=len(inline)+1       ! no further blanks till end j=ende+1 virtuell blank
                         buf = inline(i+1:j-1)
-         endif 
+          endif 
 
-
+ 
 
         ! --- prepare the textlist of formal makro arguments --
                         iargs = iargs + 1
                         arglst(iargs) = buf(1:20)
         ! --- decode for makro argument values replace strings ! ----
                         if(ktop.ne.0) then
-                                if(ipmlst(ktop).ne.0) then
-                                        if(iot.gt.3)write(6,*)'replacing.. ipmlst(',ktop,')=',ipmlst(ktop)
-                                        do k=1,ipmlst(ktop)
-                                                if(iot.gt.3)write(6,*)buf
-                                                call creplace(buf,pmlst(ktop,k,1)//' ',pmlst(ktop,k,2)//' ',' ')
-                                                if(iot.gt.3)write(6,*)buf
-                                        enddo
-                                        if(len_trim(buf).eq.0) cycle
-                                endif
+                          if(ipmlst(ktop).ne.0) then
+                            if(iot.gt.3)write(6,*)'replacing.. ipmlst(',ktop,')=',ipmlst(ktop)
+                              do k=1,ipmlst(ktop)
+                                 if(iot.gt.3)write(6,*)buf
+                                 call creplace(buf,pmlst(ktop,k,1)//' ',pmlst(ktop,k,2)//' ',' ')
+                                 if(iot.gt.3)write(6,*)buf
+                              enddo
+                              if(len_trim(buf).eq.0) cycle
+                           endif
                         endif
 ! ----   discriminate between name & parameter ----
                         name = .true.
@@ -350,6 +355,9 @@
                         if(buf(1:1) == quote) then
                            buf = buf(2:len_trim(buf)-1)
                            name = .true.
+                           quoted =.true.
+                        else
+                           quoted = .false.
                         endif 
 !!+
 !!+
@@ -367,6 +375,7 @@
                         endif
 !
                         iargvs = iargvs+1
+                        argquoted(iargvs) = quoted
                         if(name) then
                                 inames = inames + 1
                                 if(inames.gt.minc) goto 999
@@ -377,11 +386,11 @@
                                 ipars = ipars + 1
                                 if(ipars.gt.minc) goto 999
                                 rpar(ipars) = val
-                                iival = val+1d-11
+                                iival = Nint(val)
                                 if(dabs(val-iival).lt.3d-11) then
-                                        write(argvals(iargvs),'(i132)') iival
+                                        write(argvals(iargvs),'(i12)') iival
                                 else
-                                        write(argvals(iargvs),'(e132.12)') rpar(ipars)
+                                        write(argvals(iargvs),'(e20.12)') rpar(ipars)
                                 endif
                                 iparn(ipars) = inames
                                 if(inames.ne.ioldna) then
@@ -818,10 +827,14 @@
            pmlst(ktop,i,2)=' '
          enddo
          do i=1,iargvs
-                                pmlst(ktop,i,2) = ADJUSTL(argvals(i))
-                                if(iot.gt.4) write(6,*)'argvals : '//'##'//trim(ADJUSTL(argvals(i)))//'##'//pmlst(ktop,i,2)//'##'
+            if(argquoted(i)) then
+               pmlst(ktop,i,2) = quote//ADJUSTL(trim(argvals(i)))//quote
+           else
+               pmlst(ktop,i,2) = ADJUSTL(argvals(i))
+            endif
+            if(iot.gt.4) write(6,*)'argvals : '//'##'//trim(ADJUSTL(argvals(i)))//'##'//pmlst(ktop,i,2)//'##'
          enddo
-                        ipmlst(ktop) = iargvs
+         ipmlst(ktop) = iargvs
          do i=iargvs+1,minc
            pmlst(ktop,i,2) = ' '
                         enddo

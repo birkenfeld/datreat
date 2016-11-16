@@ -34,7 +34,7 @@
          parnam (1) = 'intensit' 
          parnam (2) = 'eta_solv' 
          parnam (3) = 'epsilon ' 
-      parnam (4)  = 'temp    ' 
+         parnam (4) = 'temp    ' 
          parnam (5) = 'com_diff' 
                                                                         
 !                                                                       
