@@ -147,6 +147,9 @@
         parameter(SIGINT=2)
         common/sig/isignal
         external IntHandler
+        
+       integer, parameter :: SIGABRT=6
+       external IntAbrtHandler
  
         isignal = 0
  
@@ -155,6 +158,8 @@
            write(6,*)'Signal with iflag0=',iflag0
            call signal( SIGINT, IntHandler)
            write(6,*)'Signal:',SIGINT,'  redefined'
+           call signal( SIGABRT, IntAbrtHandler)
+           write(6,*)'Signal:',SIGABRT,'  redefined'
         else
            iflag0 = 0
            write(6,*)'Signal:',SIGINT,'  reset not supported '
@@ -181,6 +186,14 @@
          stop
        endif
        IntHandler = isignal
+       return
+      END
+
+       integer function IntAbrtHandler(isig)
+!      ---------------------------------
+
+       write(6,*)'Sigabr encountered '
+ 
        return
       END
 
