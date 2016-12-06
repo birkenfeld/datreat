@@ -1,0 +1,27 @@
+#THEORY benoitmf
+        general expression allowing the description of the small angle scattering
+        of a mass fractal according to benoit (1957)
+#CITE
+        G. Beaucage, J. Appl. Cryst. (1996) 29, 134-146;
+        H. Benoit, Compt. Rend. (1957) 245, 2244-2247
+#PARAMETERS
+        ampli            ! prefactor 
+        rg               ! radius of gyration
+        df               ! fractal dimension, see eq (6) in Beaucages Paper
+#RECIN-PARAMETERS    (allow 8 chars for name, start only beyond 8 with default)
+        thick    0.1     ! Dicke der Probe
+#RECOUT-PARAMETERS
+#VARIABLES
+     double precision   :: q
+#IMPLEMENTATION
+     q   = x
+#SUBROUTINES
+  function benmf_kernel(y) result(val)
+    implicit none
+    double precision, intent(in) :: y    
+    double precision             :: val
+ 
+    val = (1d0-y**(df/2) / (q*rg)**df) * exp(-y) * y**(df/2-1d0)
+
+  end function bc_sum
+#END

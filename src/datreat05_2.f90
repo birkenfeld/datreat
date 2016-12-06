@@ -3804,7 +3804,12 @@ exclude:   if(found('exclude  ')) then
          call savdat('datbuf  ',ispc)
 ! ----------> enter the system editor with that file <-----------------
 !         call system('emacs datbuf')
-         call system('open -eW datbuf')
+         call get_environment_variable("OSTYPE",cbuffer)
+           if(index(cbuffer,"linux") > 0) then
+           call execute_command_line("emacs datbuf")
+         else
+           call execute_command_line('open -eW datbuf')
+         endif
 ! --- reread it to the same place ---
          nbuff = nbuf
          nbuf = ispc - 1
