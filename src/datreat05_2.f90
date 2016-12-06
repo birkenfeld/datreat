@@ -174,6 +174,8 @@
        real    ::   upper_range
        logical ::   range_is_y  
  
+       character(len=len(thenam(1))) :: hwork(mth)
+       integer                       :: iperm(mth)
 
 ! ---- initialisations ----
 ! ---- error-set ----------
@@ -4049,6 +4051,8 @@ exclude:   if(found('exclude  ')) then
            endif
 
          else
+           iperm = [(i,i=1,mth)]
+           call HPSORT (thenam, mth,1,8, IPERM, 1, HWORK, IER) 
            write(6,'(a)')" ***** available theories available *****"
            write(6,*)'---------------------------------------------------------------------------------'
  !          do i=1,mth
@@ -4057,7 +4061,18 @@ exclude:   if(found('exclude  ')) then
  !                      write(6,'(30a)')(trim(thparn(j,i))//' ',j=1,mtpar)
  !              endif
  !          enddo
-             write(6,'(8(2x,a8))') thenam(1:mth)
+!!             write(6,'(8(2x,a8))') thenam(1:mth)
+!!          write(6,'(8(2x,a8))') thenam(iperm(1:ntheos))
+          j = 0
+          do i=1,mth
+             if(thenam(iperm(i)) == "        ") cycle
+             j = j+1
+             if( mod(j,8) .ne. 0 .and. i < mth) then
+               write(6,'(2x,a8)',advance='no') thenam(iperm(i))
+             else
+               write(6,'(2x,a8)',advance='yes')thenam(iperm(i))
+             endif
+          enddo
           write(6,*)'----------------------------------------------------------------------------------'
           write(6,*)
           write(6,*)' .... for more details on one of these: --> th <theoryname> ! '
