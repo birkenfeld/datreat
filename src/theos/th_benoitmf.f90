@@ -1,6 +1,7 @@
  FUNCTION th_benoitmf(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
 !================================================================================
 !  general expression allowing the description of the small angle scattering of a mass fractal according to benoit (1957)
+!  ..a generalisation of the Debye chain formula for chasin statistyics deviationg from nu=0.5 (df=2)
 !  G. Beaucage, J. Appl. Cryst. (1996) 29, 134-146; H. Benoit, Compt. Rend. (1957) 245, 2244-2247
       use theory_description 
       implicit none 
@@ -42,7 +43,9 @@
 ! >>>>> describe theory with >>>>>>> 
        idesc = next_th_desc()
        th_identifier(idesc)   = thnam
-       th_explanation(idesc)  = " general expression allowing the description of the small angle scattering of a mass fractal according to benoit (1957)"
+       th_explanation(idesc)  = " general expression allowing the description of the small angle scattering of a"//cr//&
+                                " chain with satistics deviating from nu=0.5 (df=2) (Debye formula, mass fractal)"//cr//&
+                                " according to benoit (1957)"
        th_citation(idesc)     = " G. Beaucage, J. Appl. Cryst. (1996) 29, 134-146; H. Benoit, Compt. Rend. (1957) 245, 2244-2247"
 !       --------------> set the parameter names --->
         parnam ( 1) = 'ampli   '  ! prefactor                                                                       
