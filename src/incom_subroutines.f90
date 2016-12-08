@@ -80,7 +80,7 @@
        return
       END
 
-      subroutine scan(ctext,r,ierr)
+      subroutine scan(ctext ,r,ierr)
 ! ----------------------------------------------------------------------
 !  scan - scannen einer real-zahl (version fuer ibm pc prof. fortran)
 !  autor: g. egerer, datum: 26. 9.85, letzte aenderung: 31. 7.87
@@ -93,7 +93,7 @@
       implicit none 
       real*8 r
       integer ierr
-      integer, parameter :: ctxtle = 64
+      integer, parameter :: ctxtle = 1024 ! 64
       character*(ctxtle) ctext
       character*10       form
 
@@ -140,6 +140,7 @@
      &     cnil,    7, cnil, cnil,    9,    4,    4,    8,              &
      &     cnil,    7, cnil, cnil, cnil,    4,    4,    9 /
 !                           * ------------------------------------------
+
 
       icur = 1
       istate = 1
@@ -1481,6 +1482,7 @@
        logical compare
        logical anklam
 
+!??write(6,*)"TP200"
        if(actchar.gt.len) then
           typ = 'end '
           call putopstack('end ',0)
@@ -1548,6 +1550,7 @@
             actchar     = actchar + 1
           goto 100
        endif
+!??write(6,*)"TP201"
 ! ---  suche bis zum naechsten delimiter ---
        citemx = ' '
 	call getword
@@ -1620,8 +1623,11 @@
          usrfstack(tusrfstack) = citemx(1:19)//' '
          goto 100
        endif
+!??write(6,*)"TP202"
 ! --- ist item eine zahl ? ----
-       call scan(item ,valnum,ierr)
+!??       call scan(item ,valnum,ierr)
+          read(citemx,*,iostat=ierr) valnum
+!??write(6,*)"TP202.1"
 ! --- try exp-num-representation --
        if(ierr.ne.0) then
 !ccw   write(6,*)'check exp-num item(litem)=',item(litem),'  ',litem
@@ -1640,7 +1646,8 @@
                enddo
                l = len+1
   400          continue
-               call scan(item ,valnum,ierr)
+!??               call scan(item ,valnum,ierr)          
+               read(citemx,*,iostat=ierr) valnum
                if(ierr.eq.0) then
                  actchar = l
                else
@@ -1657,6 +1664,7 @@
          call enternumstack(valnum)
          goto 100
        endif
+!??write(6,*)"TP204"
 ! --- ist item eine referenz ? ----
        call extract(item,valnum,ierr)
        if (ierr.eq.0) then
@@ -1669,7 +1677,7 @@
        if(say) write(6,*)'item:',item,' not decodable'
 
   100  continue
-
+!??write(6,*)"TP205"
        return
 
 ! ----------------------------------------------------------------------
@@ -1823,6 +1831,7 @@
        integer i, ierr
        character*(maxformlength+1) f
 !
+!??write(6,*)"TP5 ",f
        do i=0,maxformlength
          formula(i) = ' '
        enddo
@@ -1832,17 +1841,26 @@
        enddo
     1  continue
 
+!??write(6,*)"TP6 ",f
        call foinit
+!??write(6,*)"TP7 ",f
        do i=1,maxformlength
+!??write(6,*)"TP7.0 ",i
          call getitem
+!??write(6,*)"TP7.1 ",i
          call show
+!??write(6,*)"TP7a ",f
          if(typ.ne.'num ') then
+!??write(6,*)"TP7b ",f
             call stackevaluate
+!??write(6,*)"TP7c ",f
             call show
+!??write(6,*)"TP8 ",f
          endif
          if((typ.eq.'end ').or.error) goto 10
        enddo
    10  continue
+!??write(6,*)"TP9 ",f
        if(error) then
          ierr = 1000
        else
@@ -1863,12 +1881,15 @@
 
        val = numstack(1)
 
-       call scan(formula,valnum,ierrx)
+!??write(6,*)"TP10 ",f
+!??       call scan(formula,valnum,ierrx)          
+       read(cformulax,*,iostat=ierrx) valnum
+!??write(6,*)"TP11 ",f
        if(ierrx.ne.0 .and. iout.ge.1) write(6,*)'evaluate: ',(formula(i),i=0,len),' to ',val
 
 !>new
        if(ierr.ne.0) call errsig(999,"ERROR: term evaluation>"//trim(f)//"< failed!$")
-
+!??write(6,*)"TP12 ",f
        return
       END
 

@@ -1738,8 +1738,7 @@
        character*8   pname, chrval
        real*8        getval
        logical       found
-
-
+ 
        if(iopt.lt.0.or.iopt.gt.3) then
          write(6,*)' activate invalid option : iopt = ',iopt
          ierrs = 800
@@ -1973,7 +1972,9 @@
 !         write(6,*)reslin
           ioldc = 1
 !          call lowcase(reslin,80)
+!??write(6,*)"TP100",reslin
           call incom(comand)
+!??write(6,*)"TP101",reslin
 !      write(6,*)'inames=',inames,' ipars=',ipars,' inpar(1)=',inpar(1),
 !    *           ' inapa(1)=',inapa(1),' vname(1..3)=',vname(1),vname(2)
 !    *           ,vname(3)

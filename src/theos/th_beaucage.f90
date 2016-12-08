@@ -185,7 +185,7 @@
    
     val = 0
     do i=1,maxcomp
-      qstar = q / (erf( q * k * rg(i)/sqrt(6d0)))**3
+      qstar = abs(q / (erf( q * k * rg(i)/sqrt(6d0)))**3)
       if(rg(i) > 0) then
          bstar = g(i)*pow(i) / rg(i)**pow(i) * Gamma(pow(i)/2)    ! equation (7) of benoits paper
       else

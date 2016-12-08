@@ -12,7 +12,7 @@
    integer, parameter :: c_MTCAL       = 40
    integer, parameter :: c_MCOUP       = 10
    integer, parameter :: c_MAXFORMLENGTH = 1024
-   integer, parameter :: c_MAXITEMLENGTH = 80
+   integer, parameter :: c_MAXITEMLENGTH = 1024 !80
    integer, parameter :: c_MAXNUMSTACK   = 50
    integer, parameter :: c_MAXOPSTACK    = 50
    integer, parameter :: c_MUSRFSTACK    = 500
@@ -422,7 +422,9 @@
 		character*20 usrfstack(c_MUSRFSTACK)
                 !needed in subroutine getitem - dirty!
                 character*(c_MAXITEMLENGTH+1) citemx
+                character*(c_MAXFORMLENGTH+1) cformulax
                 equivalence(citemx,item(0))
+                equivalence(cformulax,formula(0))
 	end module formch
 
 

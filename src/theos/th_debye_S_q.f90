@@ -56,8 +56,8 @@
                                  "for non-Gaussian chain statistics the parameter gamma may deviate from 1  "//cr//&
                                  "for gamma=0:  sq = (2 / (qrg**2) ) * (qrg - 1 + exp ( - qrg) )            "//cr//&
                                  "              with qrg = q**2 * Rg**2                                     "//cr//&
-                                 "              with fac = conc * mw / rhopoly / Navog                      "//cr//&
-                                 "a2 corr is: sqi = intensit * drho**2 / (fac * sq) + v * conc * conc          "//cr//&
+                                 "              with fac = conc*(1-conc) * mw / rhopoly / Navog             "//cr//&
+                                 "a2 corr is: sqi = intensit * drho**2 / (fac * sq) + v * conc * conc       "//cr//&
                                  "if gamma not =0 instead of the Debye form ad direct integration is used   "//cr//&
                                  "   sq = int(0..1){2 * (1 - u) * exp ( - (u**gamma) * qrg)}                "//cr//&
                                  "        (compare also benoitmf theory) " 
@@ -108,7 +108,7 @@
       CALL getpar ('bsolv   ', bsolv, nopar ,params,napar,mbuf, ier)
       drho = bpoly - bsolv
 
-      fac = conc * mw / rhopoly / Navog
+      fac = conc*(1d0-conc) * mw / rhopoly / Navog
 
       q = x
       qrg = q * q * rg * rg

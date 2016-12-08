@@ -57,6 +57,7 @@
 !
 ! ---- initialisations & conventions ----
 !
+!??write(6,*)"TP1"
        if(init_run.eq.1) then
                         data_path =  './'
                         save_path =  './'
@@ -118,11 +119,15 @@
        ierrr = 0
 !
 !
+!??write(6,*)"TP2"
+
 !?       mask_err =.false.
 ! ---- input a line or take nodecode rest of previous line ----
        if(ioldc.eq.0) then
          goto 1002
  1001  continue
+
+!??write(6,*)"TP3"
 
          if(iot.gt.-3) write(6,*)'end of data '
          close(kanal(ktop))
@@ -188,6 +193,8 @@
 
        endif
 !
+!??write(6,*)"TP4"
+
 ! ---- remove any leading blanks ----
        inline = ADJUSTL(inline)
                  !
@@ -361,8 +368,11 @@
                         endif 
 !!+
 !!+
+!??write(6,*)"TP999 ",buf
                         if(.not.name) then ! .not.name = zahl oder formel
+!??write(6,*)"TP1000c ",buf
                                 call evaluate( buf//' ', val, ierr)
+!??write(6,*)"TP1001 ",buf
                                 if(ierr.eq.0) then
                                         name = .false.
                                 else
