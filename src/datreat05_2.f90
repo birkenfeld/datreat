@@ -4764,8 +4764,8 @@ exclude:   if(found('exclude  ')) then
 
       write(6,*)'xcatch=', xcatch
 
-      if(nsel <= 1) then
-        write(6,*)"Select more than one curve to average!"
+      if(nsel <= 0) then
+        write(6,*)"No curves selected!"
         ierrs = 1000
         return
       endif
