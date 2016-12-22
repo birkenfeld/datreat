@@ -4748,9 +4748,9 @@ exclude:   if(found('exclude  ')) then
 
       if(found('help    ')) then 
        write(6,*)'=============================================================================='
-       write(6,*)'= average_data                                                               ='
+       write(6,*)'= average                                                                    ='
        write(6,*)'= combine error weighted close data points from records in the selection list='
-       write(6,*)'= parameter is       xcatch  the relative width of the x-window              ='
+       write(6,*)'= parameter is       xcatch  the RELATIVE width of the x-window              ='
        write(6,*)'= current default is xcatch  ',xcatch
        write(6,*)'=============================================================================='
        return
@@ -4810,6 +4810,11 @@ exclude:   if(found('exclude  ')) then
          xva(n)    =  xwerte(j,isels(i))
          yva(n)    =  ywerte(j,isels(i))
          yvaer(n)  =  yerror(j,isels(i))
+         if(yvaer(n) <= 0.0d0) then
+           write(6,*)"Error occured with record:",isels(i)," point:",j
+           call errsig(999,"ERROR: Average: Missing y-errors $")
+           return
+         endif
          va_used(n)= .false.
         enddo 
       enddo
