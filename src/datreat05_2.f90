@@ -4744,14 +4744,19 @@ exclude:   if(found('exclude  ')) then
       double precision, allocatable :: xva(:), yva(:), yvaer(:)
       integer         , allocatable :: iperm(:)
       logical         , allocatable :: va_used(:)
+      real                          :: xwidth
+      logical                       :: relative_catch 
+      logical                       :: put_width      
 
 
       if(found('help    ')) then 
        write(6,*)'=============================================================================='
        write(6,*)'= average                                                                    ='
        write(6,*)'= combine error weighted close data points from records in the selection list='
-       write(6,*)'= parameter is       xcatch  the RELATIVE width of the x-window              ='
-       write(6,*)'= current default is xcatch  ',xcatch
+       write(6,*)'= parameter is       xcatch  the RELATIVE or ABSOLUTE width of the x-window  ='
+       write(6,*)'= current default is xcatch  ',xcatch,'  relative '
+       write(6,*)'= option (volatile): absolute  catches within absolute distance               ='
+       write(6,*)'= option (volatile): putwidth  set _xwidth parameter to min channel distance'
        write(6,*)'=============================================================================='
        return
       endif
@@ -4761,8 +4766,19 @@ exclude:   if(found('exclude  ')) then
 
 
       xcatch = getval("xcatch  ",xcatch,inew)
+      if(found("absolute ")) then
+         relative_catch = .false.
+      else
+         relative_catch = .true.
+      endif
+      if(found("putwidth ")) then 
+         put_width      = .true.
+      else
+         put_width      = .false.
+      endif
 
-      write(6,*)'xcatch=', xcatch
+         
+
 
       if(nsel <= 0) then
         write(6,*)"No curves selected!"
@@ -4780,7 +4796,11 @@ exclude:   if(found('exclude  ')) then
       nbuf = nbuf + 1
       call txfera(isels(1),nbuf)
       numor(nbuf)    = numor(isels(1))+200000
-      call parset("xcatch   ",sngl(xcatch),nbuf)
+      if(relative_catch) then
+        call parset("xcatch_r ",sngl(xcatch),nbuf)
+      else
+        call parset("xcatch_a ",sngl(xcatch),nbuf)
+      endif
       do i=1, nsel
         write(cbuf,'("c",i0)')i
         call parset(cbuf,real(numor(isels(i))),nbuf)
@@ -4832,8 +4852,10 @@ exclude:   if(found('exclude  ')) then
 !C            = -2  means return the permutation vector resulting from
 !C                  sorting DX in decreasing order and sort DX also.
 
-       write(6,*)            " All related points after error sorting: "
-       write(6,'(2i5,3e14.7)') (i,iperm(i),xva(iperm(i)),yva(iperm(i)),yvaer(iperm(i)),i=1,number_of_data_points)
+       if(iout > 1 ) then
+         write(6,*)            " All related points after error sorting: "
+         write(6,'(2i5,3e14.7)') (i,iperm(i),xva(iperm(i)),yva(iperm(i)),yvaer(iperm(i)),i=1,number_of_data_points)
+       endif
 
 ! now proceed with the lowest error point and get all neibours in xcatch distance
        n_result_point = 0
@@ -4845,7 +4867,11 @@ d1:    do i=1,number_of_data_points
           yerra = 1d0/yvaer(iperm(i))**2
 d2:       do j=1,number_of_data_points
             if(va_used(iperm(j))) cycle d2
-            if(abs(2*(xva(iperm(j))-xva(iperm(i)))/(xva(iperm(j))+xva(iperm(j)))) > xcatch ) cycle d2 ! relative match
+            if(relative_catch) then
+              if(abs(2*(xva(iperm(j))-xva(iperm(i)))/(xva(iperm(j))+xva(iperm(j)))) > xcatch ) cycle d2 ! relative match
+            else
+              if(abs(2*(xva(iperm(j))-xva(iperm(i))))                               > xcatch ) cycle d2 ! absolute match
+           endif
               xaver = xaver + xva(iperm(j)) * 1d0/yvaer(iperm(j))**2
               yaver = yaver + yva(iperm(j)) * 1d0/yvaer(iperm(j))**2
               yerra = yerra + 1d0/yvaer(iperm(j))**2   
@@ -4871,7 +4897,7 @@ d2:       do j=1,number_of_data_points
 !       write(6,*)            " intermediate result: "
 !       write(6,'(2i5,3e14.7)') (i,iperm(i),xva(iperm(i)),yva(iperm(i)),yvaer(iperm(i)),i=1,n_result_point)
 
-       call  SPSORT (xwerte(:,nbuf),n_result_point, IPERM, -1 , ier)
+       call  SPSORT (xwerte(:,nbuf),n_result_point, IPERM, 1 , ier)
        xva  (1:n_result_point) = xwerte(iperm(1:n_result_point),nbuf)
        yva  (1:n_result_point) = ywerte(iperm(1:n_result_point),nbuf)
        yvaer(1:n_result_point) = yerror(iperm(1:n_result_point),nbuf)
@@ -4879,11 +4905,30 @@ d2:       do j=1,number_of_data_points
        ywerte(1:n_result_point,nbuf) =  yva  (1:n_result_point) 
        yerror(1:n_result_point,nbuf) = yvaer (1:n_result_point)
 
+       if(put_width) then
+         write(6,'(a)')" ------ OPTION: putwidth ------ "
+         xwidth = minval(abs(xva(2:n_result_point)-xva(1:n_result_point-1)))
+         call parset ("_xwidth ",xwidth,nbuf)
+         write(6,'(a,es14.5)')"the channel width _xwidth used by convoluted theories (kohl..) is ",xwidth
+         write(6,'(a)')" the minimum distance between channels! "
+         write(6,'(a)')" CARE: consider whether this is adwqaute here (for quaiselastic spectra like kohl...)"
+         write(6,'(a)')"       with xcatch relative it is probably ok and good "
+         write(6,'(a)')"       with xcatch absolute the new points it must be carefully considered what is good "
+         write(6,'(a)')"       average is a kind of interpolation and not an integration, so the original width "
+         write(6,'(a)')"       may be closer to what is needed...... "
+         write(6,'(a)')" ------ "
+      endif
+
        write(6,'(a)'    , advance='no') "final result from: "
        write(6,'(20i4)' , advance='no') (isels(i),i=1,nsel)
-       write(6,'(a,i4,a,f12.6)')" --> ",nbuf,"    xcatch=",xcatch  
-       write(6,'(2i5,3e14.7)') (i,iperm(i),xva(iperm(i)),yva(iperm(i)),yvaer(iperm(i)),i=1,n_result_point)
+       if(relative_catch) then
+         write(6,'(a,i4,a,f12.6,a)' )" --> ",nbuf,"    xcatch=",xcatch," relative"  
+       else
+         write(6,'(a,i4,a,es14.6,a)')" --> ",nbuf,"    xcatch=",xcatch," absolute" 
+       endif
+       if(iout > 0) write(6,'(2i5,3e14.7)') (i,iperm(i),xva(iperm(i)),yva(iperm(i)),yvaer(iperm(i)),i=1,n_result_point)
 
+  
        nsel     = 1
        isels(1) = nbuf
 
