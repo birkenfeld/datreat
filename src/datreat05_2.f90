@@ -188,11 +188,11 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                         write(6,*)
                         write(6,*)'======================================================='
-                        write(6,*)'=   datreat12_2     Version: mm-develop 2.4g          ='
+                        write(6,*)'=   datreat12_2     Version: mm-develop 2.4h          ='
                         write(6,*)'=   -----------     --------                          ='
                         write(6,*)'=   Author: M.Monkenbusch  R. Biehl, O.Holderer, JCNS ='
                         write(6,*)'======================================================='
-                        prompt = "#mm-develop 2.4g -> " 
+                        prompt = "#mm-develop 2.4h -> " 
                         write(6,*)
                         write(6,*)
                         write(6,*)
@@ -222,6 +222,10 @@
                         write(6,*)'=  with fit: parameter parwght  , go, help, couple               =' 
                         write(6,*)'=  new parameter display level ; parlev <dl> ; plot parlev <dl>  =' 
                         write(6,*)'=  range reset if not specified                                  =' 
+                        write(6,*)'=  range reset if not specified                                  =' 
+                        write(6,*)'=  parameters with potected names (i.e. containing !)            =' 
+                        write(6,*)'=   will not be copied to processed data records                 =' 
+                        write(6,*)'=   thereby allowing selection of originals                      =' 
                         write(6,*)'=================================================================='
                         write(6,*)' Pi = ',pi
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

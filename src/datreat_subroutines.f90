@@ -3417,15 +3417,18 @@
        implicit none
 
        integer ia, ib
-       integer i, np
+       integer i, j, np
 !
        np=nopar(ia)
-       nopar(ib)=np
         do 10 i=1,np
-          params(i,ib)=params(i,ia)
-          params_display_level(i,ib) = params_display_level(i,ia)
-          napar(i,ib)=napar(i,ia)
+          if(index(napar(i,ia),"!") == 0) then  ! do not copy "protected" parameters
+            j = j+1         
+            params(j,ib)=params(i,ia)
+            params_display_level(j,ib) = params_display_level(i,ia)
+            napar(j,ib)=napar(i,ia)
+          endif
    10   continue
+       nopar(ib)=j
        name(ib)  = name(ia)
        coment(ib)= coment(ia)
        xname(ib) = xname(ia)
@@ -3445,20 +3448,26 @@
        implicit none
 
        integer ia, ib
-       integer i, np
+       integer i, j, np
 
        np=nopar(ia)
-       nopar(ib)=np
        do 5 i=1,nwert(ia)
           xwerte(i,ib) = xwerte(i,ia)
           ywerte(i,ib) = ywerte(i,ia)
           yerror(i,ib) = yerror(i,ia) 
     5  continue
+
+       j = 0
        do 10 i=1,np
-         params(i,ib)=params(i,ia)
-         params_display_level(i,ib) = params_display_level(i,ia)
-         napar(i,ib)=napar(i,ia)
+         if(index(napar(i,ia),"!") == 0) then  ! do not copy "protected" parameters
+           j = j+1
+           params(j,ib)=params(i,ia)
+           params_display_level(j,ib) = params_display_level(i,ia)
+           napar(j,ib)=napar(i,ia)
+         endif
    10  continue
+
+       nopar(ib) = j
        name(ib)  = name(ia)
        coment(ib)= coment(ia)
        xname(ib) = xname(ia)

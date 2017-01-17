@@ -1,0 +1,13 @@
+makro
+! ======= preliminary aux function to change derspine SI q's
+! ======= to datreat theos A**-1 q's
+set i 1
+set n (nbuf)
+:j1
+  sel (i)
+  set qaa (q)
+  set qav (q_var)
+  if (qaa) > 100 then putpar q (qaa*1e-10)
+  if (qaa) > 100 then putpar q_var (qav*1e-10)
+  set i (i+1)
+if (i) <= (n) then goto :j1

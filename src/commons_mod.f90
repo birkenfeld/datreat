@@ -187,11 +187,11 @@
 
         CONTAINS
 
-        subroutine DataCopy( isource, idestination)
-!       -------------------------------------------
+        subroutine DataCopy( isource, idestination)   
+!       -------------------------------------------   
         implicit none
         integer, intent(inout) :: isource, idestination
-!?        integer                :: i
+        integer                :: i, j, np
         
         if(isource.le.0 .or. isource.gt.c_MBUF) then
           write(6,*)'cdata:DataCopy: isource out of range: ',isource,' NO ACTION '
@@ -212,10 +212,18 @@
         nwert(idestination)            =  nwert(isource)
         numor(idestination)            =  numor(isource)
         coment(idestination)           =  coment(isource)
-        params(:,idestination)         =  params(:,isource)
-        params_display_level(:,idestination)         =  params_display_level(:,isource)
-        napar(:,idestination)          =  napar(:,isource)
-        nopar(idestination)            =  nopar(isource)
+
+        np = nopar(isource)
+        j  = 0
+        do i=1,np
+         if(index(napar(i,isource),"!") == 0 ) then
+          j = j+1
+          params(j,idestination)                =  params(i,isource)
+          params_display_level(j,idestination)  =  params_display_level(i,isource)
+          napar(j,idestination)                 =  napar(i,isource)
+         endif
+        enddo
+        nopar(idestination) = j
 
         if(idestination.gt.nbuf) nbuf=idestination
 
