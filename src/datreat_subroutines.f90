@@ -3420,6 +3420,7 @@
        integer i, j, np
 !
        np=nopar(ia)
+       j = 0
         do 10 i=1,np
           if(index(napar(i,ia),"!") == 0) then  ! do not copy "protected" parameters
             j = j+1         

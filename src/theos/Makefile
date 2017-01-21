@@ -3,25 +3,21 @@ SHELL = /bin/sh
 SRCF=$(wildcard *.f) 
 SRCF90=$(wildcard *.f90) 
 
+
 OBJF=$(SRCF:.f=.o)
 OBJF90=$(SRCF90:.f90=.o)
 
 OBJ=$(OBJF) $(OBJF90)
 .SUFFIXES:
 .SUFFIXES: .f90 .f .o
-#FFLAGS=-march=core2 -O2  -save -fPIC -mfpmath=sse -I../
-
+FFLAGS=-march=core2 -O2  -save -fPIC -mfpmath=sse -I../
 THEOS := $(shell grep -h "^ *[Ff][Uu][Nn][Cc][Tt][Ii][Oo][nN] .*( *x *, *pa *, *.*, *.*, *.*, *.*)" *.f *.f90 | sed 's>[Ff]......[Nn] *\(.*\)( *x.*)>\1>'|sort )
 DOUBLE := $(shell grep -h "^ *[Ff][Uu][Nn][Cc][Tt][Ii][Oo][nN] .*( *x *, *pa *, *.*, *.*, *.*, *.*)" *.f *.f90  | sed 's>[Ff]......[Nn] *\(.*\)( *x.*)>\1>'|sort |uniq -d)
 
-#FC=gfortran
-#FFLAGS=-march=core2 -O2 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -msse4a -mfpmath=sse -Wunused-function -Wunused-variable
-
+FC=gfortran
+FFLAGS=-march=core2 -O2 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -msse4a -mfpmath=sse -Wunused-function -Wunused-variable -I../
 
 #FC=ifort
-#=======
-FC=gfortran49
-FFLAGS=-march=core2 -O2 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -msse4a -mfpmath=sse -I$(LOCAL) -Wunused-function -Wunused-variable -I../
 
 libtheos.a: init_theories.o sum_theories_up.i90 $(OBJ)
 	ar cr $@ $(OBJ) 
