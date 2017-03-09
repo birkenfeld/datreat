@@ -188,11 +188,11 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                         write(6,*)
                         write(6,*)'======================================================='
-                        write(6,*)'=   datreat12_2     Version: mm-develop 2.4h          ='
+                        write(6,*)'=   datreat12_2     Version: mm-develop 2.5a          ='
                         write(6,*)'=   -----------     --------                          ='
                         write(6,*)'=   Author: M.Monkenbusch  R. Biehl, O.Holderer, JCNS ='
                         write(6,*)'======================================================='
-                        prompt = "#mm-develop 2.4h -> " 
+                        prompt = "#mm-owncloud 2.5a -> " 
                         write(6,*)
                         write(6,*)
                         write(6,*)

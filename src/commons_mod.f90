@@ -5,7 +5,7 @@
    integer, parameter :: c_MDEPTH      = 20
    integer, parameter :: c_MUSEVAR     = 300
    integer, parameter :: c_MBUF        = 1200
-   integer, parameter :: c_MWERT       = 10000
+   integer, parameter :: c_MWERT       = 20000  ! was 10000
    integer, parameter :: c_MPAR        = 400
    integer, parameter :: c_MTH         = 80
    integer, parameter :: c_MTPAR       = 40
@@ -17,7 +17,7 @@
    integer, parameter :: c_MAXOPSTACK    = 50
    integer, parameter :: c_MUSRFSTACK    = 500
    integer, parameter :: c_NODELIMS      = 7
-   integer, parameter :: c_MSMPL         = 10000
+   integer, parameter :: c_MSMPL         = 20000 ! was 10000
    integer, parameter :: c_MDIM          = 2048
    integer, parameter :: c_MFIT          = 100
 ! ---- communication common block containig the analysed inputline       

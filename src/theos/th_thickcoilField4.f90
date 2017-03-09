@@ -13,10 +13,15 @@
       REAL(8) :: ani, ri, ra, centerx, centery, centerz, xlen, b(3),  r(3), xa(3), xe(3) 
       REAL(8) :: pathdir(3), pathstart(3)                                            
       REAL(8) epsilon 
+      real    :: qget
       double precision :: asymmrl,asymmcm, f1, f2, f3, bpart(3), x1(3), x2(3)
       COMMON / tceps / epsilon, maxita 
                                                                         
       DATA zpi / 6.283185 / 
+
+       integer iadda
+       common/thiadd/iadda
+
 !                                                                       
 ! ----- initialisation -----                                            
       IF (ini.eq.0) then 
@@ -75,6 +80,25 @@
       pathstart(3)  = pa (17)
       asymmrl       = pa (18)
       asymmcm       = pa (19)
+
+
+        qget = pathstart(1)
+        call        parget('startx    ',qget,iadda,ier)
+        pathstart(1) = qget
+
+        qget = pathstart(2)
+        call        parget('starty    ',qget,iadda,ier)
+        pathstart(2) = qget
+
+        qget = pathstart(3)
+        call        parget('startz    ',qget,iadda,ier)
+        pathstart(3) = qget
+
+
+
+
+
+
 
       pathdir    = pathdir / sqrt(dot_product(pathdir,pathdir))
 
