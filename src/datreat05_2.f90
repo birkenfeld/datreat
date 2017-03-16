@@ -192,7 +192,7 @@
                         write(6,*)'=   -----------     --------                          ='
                         write(6,*)'=   Author: M.Monkenbusch  R. Biehl, O.Holderer, JCNS ='
                         write(6,*)'======================================================='
-                        prompt = "#mm-owncloud 2.5a -> " 
+                        prompt = "#mm-datreat 2.5a -> " 
                         write(6,*)
                         write(6,*)
                         write(6,*)

@@ -667,8 +667,8 @@
            goto 8888
          endif
          open(99,file=vname(1),status='unknown',position='append')
-         write(6,'(10(1x,e13.6))') (rpar(i),i=1,ipars)
-         write(99,'(10(1x,e13.6))') (rpar(i),i=1,ipars)
+         write(6,'(20(1x,e13.6))') (rpar(i),i=1,ipars)
+         write(99,'(20(1x,e13.6))') (rpar(i),i=1,ipars)
          close(99)
          goto 8888
        endif
