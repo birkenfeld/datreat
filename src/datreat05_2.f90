@@ -3898,6 +3898,11 @@ exclude:   if(found('exclude  ')) then
          goto 2000
        endif
 
+       if(comand.eq.'fit_plus ') then
+         call fit_plus
+         goto 2000
+       endif
+
        if(comand.eq.'ga_fit  ') then
           call ga_fit
           goto 2000

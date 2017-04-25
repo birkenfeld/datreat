@@ -696,6 +696,471 @@
       return
       END
 
+       subroutine fit_plus
+!      ===================
+!
+! fitting with randome search for more minima
+!
+! ---- fit of activated theories to data on /fil2/ ----
+!
+       use cincom
+       use cincoc
+       use cdata
+       use outlev
+       use theory
+       use selist
+       use therrc
+       use cfunc
+       use cfunce
+       use constants
+
+       implicit none
+       integer i, it, icode, ier, igo, inew, iparam, ip, iru,l, map
+       integer iercd, ll, j, j1, j2, j3, ith, ixjac
+       integer npar, numv, nfit, nff, n, m, nspf
+       real thperr, sum, rparam
+       real x, xscale, xjac, xcenter, xguess, xerr, xstepsc
+       real divis, ermat, f, gmat, fscale, ginv
+       real*8 ssq, ssq_min, ssq_last
+
+ 
+       character*8 ci
+       real*8 getval
+      dimension iparam(6),rparam(7),x(mfit),f(msmpl),xjac(msmpl,mfit),  &
+     &          xguess(mfit),xscale(mfit),fscale(msmpl)
+      dimension numv(minc)
+      dimension ermat(mfit,msmpl), gmat(mfit,mfit), ginv(mfit,mfit)
+
+      dimension   xcenter(mfit), xstepsc(mfit)
+      character*8 xpname(mfit)
+
+      external func
+
+      logical found
+      logical :: final_thc=.false., sqwbuf=.false.
+
+! ---- defaults for parameters -----
+       integer :: maxfn = 100, ngood = 0, maxit = 0, iprint = 1, irecse = 0
+       real    :: stpsz = 0.0, trure = 0.0
+
+       integer, save           :: ntry = 10, maxstep = 10
+       double precision, save  :: step = 0.15d0
+       
+       double precision, allocatable :: rand_dirs(:,:)      ! random search directions
+       double precision, allocatable :: x_local_min(:,:)    ! local minima
+       double precision, allocatable :: ssq_local_min(:)    ! ssq_values
+       double precision, allocatable :: single_rand_step(:) ! length var for direction
+       double precision              :: gauss_rand
+       integer                       :: nminima
+       integer                       :: n_best
+       logical                       :: local_max_found
+       integer                       :: isigint
+
+
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= fit_plus                                                                    '
+           write(6,*)'=    fitting of selected data to the active theory model (see ac, acl, dac)   '
+           write(6,*)'=    with random search from more minimal (tiem consuming!)                   '
+           write(6,*)'=    available theories (models) may be listed by the  > theos < command      '
+           write(6,*)'=              theories may be combined (default is addition)                 '
+           write(6,*)'=              theories may be combined with attribute multiply (see chgthpar)'
+           write(6,*)'=              parameters may be coupled                                      '
+           write(6,*)'=         theories may use appropriate file parameter values for e.g. q, temp '
+           write(6,*)'=         when multiple records for e.g. different q or temp are fitted simult'
+           write(6,*)'=         theorie definitions may be restricted to some parameter value range '
+           write(6,*)'=         e.g.: theory xyz range <parnam> min <p1> max <p2>                   '
+           write(6,*)'=    these theory definitions must be set prior to invoking > fit <           '
+           write(6,*)'=    parameters to fit:                                                       '
+           write(6,*)'=      ntry             : the number of random search steps                   '
+           write(6,*)'=      step             : frac (scaled var) step width for directional search '
+           write(6,*)'=      maxstep          : maximum nuber of search steps in one direction      '
+           write(6,*)'=                       : if == 0 then one new random start dir * step*grand  '
+           write(6,*)'=      maxfn <mf>       : maximum number of function evaluations (approx.)    '
+           write(6,*)'=      ngood <ng>       : desired number of good digits in resulting pars     '
+           write(6,*)'=      x1    <x1>       : lower limit of fit range                            '
+           write(6,*)'=      x2    <x2>       : upper value of fit range                            '
+           write(6,*)'=      relerr           : use relative errors                                 '
+           write(6,*)'=      abserr           : use absolute errors (sqrt weighted)   (default)     '
+           write(6,*)'=      wlin             : use absolute errors (linaer weighted)               '
+           write(6,*)'=      parwght <w>      : adds parameter deviation (scaled)*w as error signal '
+           write(6,*)'=      wrtfit           : write intermediate fit data (default) -> fitdat.tmp '    
+           write(6,*)'=      nowrtfit         : dont write intermediate fit data                    '
+           write(6,*)'=      map <np>         : create a map of ssq                                 '
+           write(6,*)'=      div <div>        : map division                                        '
+           write(6,*)'=                                                                             '
+           write(6,*)'=   INTERRUPT:                                                                '
+           write(6,*)'=      to interrupt fitting type Crtl-C twice                                 '
+           write(6,*)'=      in that case the actual evaluation of fit curves is finished           '
+           write(6,*)'=      and then the fitting is interrupted                                    '
+           write(6,*)'=      NOTE: a last fitting step is made with the so far best result as start '
+           write(6,*)'=      to interrupt this type Crtl-C twice again                              '
+           write(6,*)'=                                                                             '
+           write(6,*)'=   HINT: immediately after fit has been finished you may save the relevant   '
+           write(6,*)'=         by msave <any_name>                                                 '
+           write(6,*)'=         get it back by > in <any_name>                                      '
+           write(6,*)'=         theorie setting by > get_th <any_name>                              '
+           write(6,*)'=         Results of all minima found are appended to file: fit_plus_history.txt '
+           write(6,*)'=   TRY ALSO: > ga_fit >                                                      '
+           write(6,*)'=============================================================================='
+           return
+        endif
+
+      if(nsel <= 0 ) then
+        call errsig(999,"ERROR: fit no datarecord selected ! $")
+        return
+      endif 
+
+
+! ---- take parameters from stack ----
+       sqwght= sqwbuf
+      igo = 0
+      if(inames.eq.0) goto 1000
+      do 1011 i=1,inames
+       j = inapa(i)
+       ci= vname(i)
+       if(ci.eq.'go      ') then
+         igo = 1
+         goto 1011
+       endif
+       if(ci.eq.'wlin    '.or.ci.eq.'linweigh') then
+         sqwght= .false.
+         goto 1011
+       endif
+       if(ci.eq.'thc     ') then
+         final_thc= .true.
+         goto 1011
+       endif
+       if(ci.eq.'nothc   ') then
+         final_thc= .false.
+         goto 1011
+       endif
+       if(vname(i).eq.'scans   '.or.vname(i).eq.'sc      ') then
+         nspf = inpar(i)
+         do 7001 l=1,nspf
+          numv(l) = Nint(rpar(j+l-1))
+ 7001    continue
+       endif
+       if(ci.eq.'ntry    '                    ) ntry    = Nint(rpar(j))
+       if(ci.eq.'step    '                    ) step    = rpar(j)
+       if(ci.eq.'maxstep '                    ) maxstep = Nint(rpar(j))
+       if(ci.eq.'maxfn   '                    ) maxfn = Nint(rpar(j))
+       if(ci.eq.'maxit   '                    ) maxit = Nint(rpar(j))
+       if(ci.eq.'ngood   '                    ) ngood = Nint(rpar(j))
+       if(ci.eq.'maxstep '                    ) stpsz = rpar(j)
+       if(ci.eq.'trustreg'                    ) trure = rpar(j)
+       if(ci.eq.'parwght '                    ) pardev_scale = rpar(j)
+       if(ci.eq.'relerr  '                    ) lerrel= .true.
+       if(ci.eq.'abserr  '                    ) lerrel= .false.
+       if(ci.eq.'wrtfit  '                    ) lwrtfitdat = .true.
+       if(ci.eq.'nowrtfit'                    ) lwrtfitdat = .false.
+! ----> the parameters  x1 x2 resp. the option autox1 autox2
+!       are to be decoded during the first call of thc by thc !!
+ 1011 continue
+       sqwbuf= sqwght
+! --- search scans & prepare selection table
+       if(nsel.eq.0) call search(numv,nspf)
+!      -----------------------------------------
+!
+! ---- write all parameters ----
+      if(iout.ge.0) then
+        write(6,1)iprint,maxfn,maxit,ngood,                             &
+     &           (numor(isels(i)),i=1,nsel)
+    1   format(' ***** fit-profile in effect ***** '/                   &
+     &  ' printing    ',i8/                                             &
+     &  ' max funcalls',i8,/                                            &
+     &  ' max iterat .',i8,/                                            &
+     &  ' n-good-dig .',i8,/                                            &
+     &  ' scans :'/(1x,10i7))
+        if(sqwght)write(6,*)' ***** weight differences by 1/sqrt *****'
+        if(lerrel)write(6,*)' ***** errors weigthed relative:relerr **'
+        if(lwrtfitdat)write(6,*)' ***** writing fitdat.tmp  **'
+        if(final_thc) then
+          write(6,*)' ***** opt: thc   ->    final fine mesh call**'
+        else
+          write(6,*)' ***** opt: nothc -> no final fine mesh call**'
+        endif
+       endif
+!
+!      if(igo.eq.0) return
+ 1000 continue
+!
+          icall = 0
+          iprt  = iprint
+!
+          write(6,*)' startparameters : '
+          call activa(2)
+!
+! ---- prepare startvalues -----
+          if(ntheos.eq.0) then
+            write(6,*)' fit ==> no theories activated ...'
+            call errsig(999,"ERROR: fit no theories active!$")
+            return
+          endif
+!
+          nfit = 0
+          do 10 it =1,ntheos
+            ith = nthtab(it)
+            npar= nthpar(ith)
+            do 20 ip=1,npar
+             if(thpsca(ip,it).ne.0) then
+               nfit = nfit + 1
+               if(nfit.gt.mfit) then
+                 write(6,*)' too many fitparameters for current mfit=', &
+     &                     mfit
+                 return
+               endif
+               x(nfit) = thparx(ip,it) / thpsca(ip,it)
+               xstepsc(nfit) =  thpsca(ip,it)
+               xpname(nfit)  =  thparn(ip,ith)
+             endif
+   20     continue
+   10   continue
+!
+!+
+!+ store initial parameter if parameter deviation shall be included into the fit signal
+!+
+        if(pardev_scale > 0d0) then
+          write(6,'(a)')"+++++++++++++++++++++++++++++++++++++++++++++++++++"
+          write(6,'(a)')"++ pardev_scaling in effect                      ++"
+           write(6,'(a,es14.7)')"++ parameter weigth parwght =",pardev_scale
+         write(6,'(a)')"+++++++++++++++++++++++++++++++++++++++++++++++++++"
+         xinitial(1:nfit) = x(1:nfit)
+         m = m + nfit
+         if(m > msmpl) then
+           call errsig(999,"number of smaple points too large$")
+           return
+         endif
+        endif
+
+
+!       double precision, allocatable :: rand_dirs(:,:)    ! random search directions
+!       double precision, allocatable :: x_local_min(:,:)  ! local minima
+!       double precision, allocatable :: ssq_local_min(:)  ! ssq_values
+!       integer                       :: nminima
+!       integer                       :: n_best
+
+        if(allocated(rand_dirs))        deallocate(rand_dirs)
+        if(allocated(x_local_min))      deallocate(x_local_min)
+        if(allocated(ssq_local_min))    deallocate(ssq_local_min)
+        if(allocated(single_rand_step)) deallocate(single_rand_step)
+
+        allocate(rand_dirs       (nfit,0:ntry))
+        allocate(x_local_min     (nfit,0:ntry))
+        allocate(ssq_local_min   (     0:ntry))
+        allocate(single_rand_step(     0:ntry))
+
+        rand_dirs        = 0
+        x_local_min      = 0
+        ssq_local_min    = 0
+        single_rand_step = 0
+
+        nminima = 0
+        n_best  = 0
+        
+        call init_random_seed()
+        do  i=1,ntry
+          call random_ndimensional_direction(nfit, rand_dirs(1:nfit, i) )
+          single_rand_step(i) = step / gauss_rand()
+        enddo
+
+
+
+        n     = nfit
+        ixjac = msmpl
+        call func(m,n,x,f)
+!       -------------------> determine m & di a first test calculation
+        write(6,*)' no. of sample points m = ',m
+        if(.not.autox1) write(6,*)'set lower limit of x: x1=',x1
+        if(.not.autox2) write(6,*)'set upper limit of x: x2=',x2
+!
+!>
+        if(n<=0) then
+          call errsig(999,"ERROR: fit number of fitparameters is 0!$")
+          return
+        endif
+        if(m<=0) then
+          call errsig(999,"ERROR: fit number of active data points is 0!$")
+          return
+        endif
+!<
+!
+! ------ imsl version 10 :  setup of some new vectors ------------------
+!        to meet the function of the old zxssq approximately
+        do 10010 i=1,n
+           xguess(i) = x(i)
+           xscale(i) = 1.0
+10010   continue
+!
+        do 10020 i=1,m
+           fscale(i) = 1.0
+10020   continue
+
+! --- set the desired execution-parameters ---
+        call u4lsf(iparam,rparam)
+        if(iout.gt.0) write(6,*)'initial iparam=',iparam
+        if(iout.gt.0) write(6,*)'initial rparam=',rparam
+        if(ngood.ne.0) iparam(2) = ngood
+        if(maxit.ne.0) iparam(3) = maxit
+        if(maxfn.ne.0) iparam(4) = maxfn
+        if(stpsz.ne.0) rparam(6) = stpsz
+        if(trure.ne.0) rparam(7) = trure
+        if(iout.gt.0) write(6,*)'used    iparam=',iparam
+        if(iout.gt.0) write(6,*)'used    rparam=',rparam
+! ---------------------------------------------------------------------
+! ---- do the fitting with imsl routine unlsf (old:zxssq) ----
+        call unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,x,f,xjac,ixjac)
+        if(iout.gt.0) write(6,*)'final   iparam=',iparam
+        if(iout.gt.0) write(6,*)'final   rparam=',rparam
+!
+!! ok here we have our initial minimum --> store
+        x_local_min  (1:nfit,nminima)  = x(1:nfit)
+        call extract ('ssq0    ' ,ssq,ier)       
+        ssq_local_min(nminima)         = ssq
+        ssq_last                       = ssq
+        ssq_min                        = ssq
+        Write(6,'(a,i6,a,f12.6)')"Minimum #",nminima,"   ssq= ",ssq
+
+
+!! and look for more....
+        local_max_found = .false.
+
+ml:     do i=1,ntry
+          ssq_last =  ssq_local_min(0)
+          local_max_found = .false.
+sl:       do j=1,maxstep
+            x(1:nfit) =   x_local_min  (1:nfit, 0 ) + rand_dirs(1:nfit, i) * (j*step)
+            call func(m,n,x,f)
+            call extract ('ssq0    ' ,ssq,ier)
+            if( ssq < ssq_last ) then
+               write(6,*)"local maximum in search direction crossed!"
+               local_max_found = .true.
+               exit sl
+            endif
+            ssq_last = ssq
+          enddo sl
+          if(maxstep <= 0) then
+             local_max_found = .true.
+             x(1:nfit) =  x_local_min  (1:nfit, 0 ) + rand_dirs(1:nfit, i) * single_rand_step(i)
+             write(6,'(a,80f12.6)') "new random start: ",x(1:nfit)
+          endif
+
+          if(local_max_found) then
+             call unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,x,f,xjac,ixjac)
+             nminima = nminima+1
+             x_local_min  (1:nfit,nminima)  = x(1:nfit)
+             call extract ('ssq0    ' ,ssq,ier)    
+             ssq_local_min(nminima)         = ssq
+             ssq_last                       = ssq
+             if( ssq < ssq_min) then
+               n_best   = nminima
+               ssq_min  = ssq
+               write(6,*)"new optimum!", n_best, ssq
+             endif
+             open(55,file="fit_plus_history.txt",position="append")
+             Write(6,'(a,i6,a,i6,af12.6,a,f12.6)')"Minimum #",nminima," try=",i,"   ssq= ",ssq,"  distance from start ",&
+                   sqrt(dot_product((x_local_min(1:nfit,nminima)-x_local_min(1:nfit,0)), &
+                                    (x_local_min(1:nfit,nminima)-x_local_min(1:nfit,0)) ))
+             write(55,'(a)')"============================================================================="
+             Write(55,'(a,i6,a,f12.6,a,f12.6)')"Minimum #",nminima,"   ssq= ",ssq,"  distance from start ",&
+                   sqrt(dot_product((x_local_min(1:nfit,nminima)-x_local_min(1:nfit,0)), &
+                                    (x_local_min(1:nfit,nminima)-x_local_min(1:nfit,0)) ))
+             call theo_out(55)
+             close(55)
+          endif
+          if(isigint() > 0) exit ml
+        enddo ml
+
+        call sig_reset()
+
+! final refinement
+        x(1:nfit) = x_local_min(1:nfit,n_best) 
+        call unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,x,f,xjac,ixjac)
+
+
+! ----- error-determination ?? test ?? -----------------------------
+!
+      if(.not.found('noerrors ')) then
+         write(6,*)'error determination...'
+         do i=1,n
+          do j=1,n
+           sum = 0
+           do l=1,m
+            sum = sum + xjac(l,i)*xjac(l,j)
+           enddo
+           gmat(i,j) = sum
+          enddo
+         enddo
+! --- invertiere gmat ---
+         call linrg(n,gmat,mfit,ginv,mfit)
+! --- bilde g**-1 f  (f=xjac) ---
+         do i=1,m
+          do l=1,n
+           sum = 0
+           do j=1,n
+            sum = sum + ginv(l,j)*xjac(i,j)
+           enddo
+           ermat(l,i) = sum
+          enddo
+         enddo
+! --- bilde fehlerquadratmatrix ---
+         do l=1,n
+          do ll=1,n
+           sum = 0
+           do i=1,m
+!!linwght!! sum = sum + ermat(l,i)*ermat(ll,i)*(ferror(i)**2)
+            sum = sum + ermat(l,i)*ermat(ll,i)
+           enddo
+           gmat(l,ll) = sum
+          enddo
+         enddo
+! --- extrahiere fehler und ausgabe ---
+          nff = 0
+          do    it =1,ntheos
+            ith = nthtab(it)
+            npar= nthpar(ith)
+            do    ip=1,npar
+             therro(ip,it) = 0.0
+             if(thpsca(ip,it).ne.0) then
+               nff  = nff  + 1
+               xerr = sqrt(gmat(nff,nff))
+               thperr        = xerr    * thpsca(ip,it)
+               write(6,*)'error for ', thenam(ith),'(',thparn(ip,ith),  &
+     &                   ') = +- ',thperr
+               therro(ip,it) = thperr
+             endif
+          enddo
+        enddo
+      else
+          do    it =1,ntheos
+            ith = nthtab(it)
+            npar= nthpar(ith)
+            do    ip=1,npar
+             therro(ip,it) = 0.0
+            enddo
+          enddo
+      endif
+! ------error-determination ?? end  ?? -----------------------------
+
+        call func(m,n,x,f)
+!       ------------------> final call including elastic lines
+        write(6,*)' ******* final parameters ********'
+        if(irecse.ne.0) write(6,*)'       record ',iru
+        call activa(2)
+
+        call extract('ssq0    ' ,ssq,ier)
+        if(ier.ne.0) ssq = 0
+        do i=1,nsel
+          call parset ('ssq     ',sngl(ssq),ifits(i))
+          call parset ('parwght ',sngl(pardev_scale),ifits(i))
+        enddo
+!
+        call couple(1)
+        if(final_thc) call thc(mwert)
+!       ----------------> fitted curve with finest mesh
+      return
+      END subroutine fit_plus
+
        subroutine ga_fit
 !      ==================
 !
@@ -1212,7 +1677,7 @@
 !
 
        if(isigint().gt.0) then
-         write(6,*)'Thc Return withut calc due to Sigint:',isigint()
+         write(6,*)'Thc Return without calc due to Sigint:',isigint()
          return
        endif
 
@@ -5905,3 +6370,109 @@ return
   call errsig(999,"ERROR #### extract_th: theory section not found! $")
   close(inunit)
 end subroutine extract_th
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+subroutine random_ndimensional_direction ( n, x )
+  implicit none
+  integer         , intent(in)  :: n
+  double precision, intent(out) :: x(n)
+
+  integer          :: i
+  double precision :: xn
+  double precision :: gauss_rand
+
+  xn = 0
+  do i=1,n
+    x(i) = gauss_rand()
+    xn   = xn + x(i)**2
+  enddo
+  x = x / sqrt(xn)
+end subroutine random_ndimensional_direction 
+
+
+
+!--------------------------------------
+ double precision function gauss_rand() 
+!--------------------------------------
+
+  implicit none
+
+  double precision ::  r1, r2, r, f, grand1, grand2, now, rnd(2)
+
+  
+    do
+      CALL RANDOM_NUMBER(rnd)
+      r1 = rnd(1)*2.d0-1.d0
+      r2 = rnd(2)*2.d0-1.d0
+      r  = r1*r1 +r2*r2
+      if(( (r<1.d0) .and. (r .ne. 0.d0) )) exit
+    enddo
+ 
+    f = sqrt(-2.d0*log(r)/r)
+    gauss_rand = r1*f
+    
+ 
+  end function gauss_rand 
+
+
+! !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+! !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+! 
+! ! gnu example:
+! 
+!           subroutine init_random_seed()
+!             implicit none
+!             integer, allocatable :: seed(:)
+!             integer :: i, n, un=99, istat, dt(8), pid, t(2), s
+!             integer(8) :: count, tms
+!           
+!             call random_seed(size = n)
+!             allocate(seed(n))
+!             ! First try if the OS provides a random number generator
+!             open(un, file="/dev/urandom", access="stream", &
+!                  form="unformatted", action="read", status="old", iostat=istat)
+!             if (istat == 0) then
+!                read(un) seed
+!                close(un)
+!             else
+!                ! Fallback to XOR:ing the current time and pid. The PID is
+!                ! useful in case one launches multiple instances of the same
+!                ! program in parallel.
+!                call system_clock(count)
+!                if (count /= 0) then
+!                   t = transfer(count, t)
+!                else
+!                   call date_and_time(values=dt)
+!                   tms = (dt(1) - 1970) * 365_8 * 24 * 60 * 60 * 1000 &
+!                        + dt(2) * 31_8 * 24 * 60 * 60 * 1000 &
+!                        + dt(3) * 24 * 60 * 60 * 60 * 1000 &
+!                        + dt(5) * 60 * 60 * 1000 &
+!                        + dt(6) * 60 * 1000 + dt(7) * 1000 &
+!                        + dt(8)
+!                   t = transfer(tms, t)
+!                end if
+!                s = ieor(t(1), t(2))
+!                pid = getpid() + 1099279 ! Add a prime
+!                s = ieor(s, pid)
+!                if (n >= 3) then
+!                   seed(1) = t(1) + 36269
+!                   seed(2) = t(2) + 72551
+!                   seed(3) = pid
+!                   if (n > 3) then
+!                      seed(4:) = s + 37 * (/ (i, i = 0, n - 4) /)
+!                   end if
+!                else
+!                   seed = s + 37 * (/ (i, i = 0, n - 1 ) /)
+!                end if
+!             end if
+!             call random_seed(put=seed)
+! 
+!             write(6,*)'Random seed: ',seed
+! 
+!           end subroutine init_random_seed
+! 
+! 
+! 
+! 
