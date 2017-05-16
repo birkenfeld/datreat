@@ -31,6 +31,8 @@
      double precision :: db2        ! parameter for the limit at low mode numbers                                     
      double precision :: ar         ! amplitude prefactor for mode amplitude expression (propto C-infinity)           
      double precision :: c          ! coefficient c in mode amplitude expression <x**2>=ar*(1-c/sqrt(N/p))/(4*sin(p*pi
+     double precision :: nescalw    ! scaling factor for Ne in Wscale expression
+     double precision :: nescalb    ! scaling factor for Ne in beta   expression
 ! the recin parameter representation 
      double precision :: q          ! q-value                                                                         
 ! the reout parameter representation 
@@ -47,8 +49,8 @@
 !
 ! ----- initialisation ----- 
     IF (ini.eq.0) then     
-       thnam = 'repmode'
-       nparx =       14
+       thnam = 'repmode2'
+       nparx =       16
        IF (npar.lt.nparx) then
            WRITE (6,*)' theory: ',thnam,' no of parametrs=',nparx,' exceeds current max. = ',npar
           th_repmode = 0
@@ -75,6 +77,8 @@
         parnam (12) = 'db2     '  ! parameter for the limit at low mode numbers                                     
         parnam (13) = 'ar      '  ! amplitude prefactor for mode amplitude expression (propto C-infinity)           
         parnam (14) = 'cc      '  ! coefficient c in mode amplitude expression <x**2>=ar*(1-c/sqrt(N/p))/(4*sin(p*pi
+        parnam (15) = 'nescalw '  ! Ne scaling in Wscal
+        parnam (16) = 'nescalb '  ! Ne scaling in beta 
 ! >>>>> describe parameters >>>>>>> 
         th_param_desc( 1,idesc) = "prefactor" !//cr//parspace//&
         th_param_desc( 2,idesc) = "reference scale for the Rouse rate" !//cr//parspace//&
@@ -90,6 +94,8 @@
         th_param_desc(12,idesc) = "parameter for the limit at low mode numbers" !//cr//parspace//&
         th_param_desc(13,idesc) = "amplitude prefactor for mode amplitude expression (propto C-infinity)" !//cr//parspace//&
         th_param_desc(14,idesc) = "coefficient c in mode amplitude expression <x**2>=ar*(1-c/sqrt(N/p))/(4*sin(p*pi/2/N)**2)" !//cr//parspace//&
+        th_param_desc(15,idesc) = "scaling factor for Ne in Wscal expression" !//cr//parspace//&
+        th_param_desc(16,idesc) = "scaling factor for Ne in beta expression " !//cr//parspace//&
 ! >>>>> describe record parameters used >>>>>>>
         th_file_param(:,idesc) = " " 
         th_file_param(  1,idesc) = "q        > q-value (default 0.1)"
@@ -122,6 +128,8 @@
       db2      =      abs( pa(12) )
       ar       =      abs( pa(13) )
       c        =      abs( pa(14) )
+      nescalw  =      abs( pa(15) )
+      nescalb  =      abs( pa(16) )
 ! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
       iadda = actual_record_address()
 ! >>> extract: q-value
@@ -186,6 +194,31 @@
  
        integer :: iout
 
+       integer, parameter :: maxp = 1000
+       double precision, save   :: beta_vec(maxp)
+       double precision, save   :: wscal_vec(maxp)
+       double precision, save   :: amod_vec(maxp)
+
+ 
+! save previsou variable for recomputation of beta, wscal vectors
+       integer         , save   :: n0          = 0
+       double precision, save   :: ne0         = 0
+       double precision, save   :: wscalinf0   = 0
+       double precision, save   :: wscal10     = 0 
+       double precision, save   :: wnu0        = 0 
+
+       double precision, save   :: betainf0    = 0
+       double precision, save   :: betamin0    = 0
+       double precision, save   :: db20        = 0
+       double precision, save   :: sigmabet0   = 0
+
+       double precision, save   :: ar0         = 0
+       double precision, save   :: c0          = 0
+
+       double precision, save   :: nescalw0    = 0
+       double precision, save   :: nescalb0    = 0
+
+
        if(N.le.0) then
          W  = 999
          Sq = 999
@@ -204,6 +237,62 @@
        xi  = 3*kbt*l**2 / wl4
        W   = 3*kbt/(xi*(l**2))  ! in 1/ns
 
+! prepare the mode dependent scaling factor as vectors (to speed up and create info files) !
+iv:    if(   ( n        .ne.  n0        ) .or.  &       
+             ( ne       .ne.  ne0       ) .or.  &       
+             ( wscalinf .ne.  wscalinf0 ) .or.  &       
+             ( wscal1   .ne.  wscal10   ) .or.  &       
+             ( wnu      .ne.  wnu0      ) .or.  &       
+             ( betainf  .ne.  betainf0  ) .or.  &       
+             ( betamin  .ne.  betamin0  ) .or.  &       
+             ( db2      .ne.  db20      ) .or.  &       
+             ( sigmabet .ne.  sigmabet0 ) .or.  &            
+             ( ar       .ne.  ar0       ) .or.  &            
+             ( c        .ne.  c0        ) .or.  &    
+             ( nescalw  .ne.  nescalw0  ) .or.  &    
+             ( nescalb  .ne.  nescalb0  )       &    
+             ) then    
+
+               n0        =  n        
+               ne0       =  ne       
+               wscalinf0 =  wscalinf 
+               wscal10   =  wscal1   
+               wnu0      =  wnu      
+               betainf0  =  betainf  
+               betamin0  =  betamin  
+               db20      =  db2       
+               sigmabet0 =  sigmabet
+               ar0       =  ar 
+               c0        =  c
+  
+             do p=1,min(N,maxp)
+               wscal_vec(p)  = Wscalfun( dfloat(n)/dfloat(p), ne * nescalw )
+               beta_vec(p)   = betafun(  dfloat(n)/dfloat(p), ne * nescalb )
+               amod_vec(p)   = amplimod(  dfloat(n)/dfloat(p) )
+             enddo
+
+             open(51,file="repmode_scales.dat")
+               write(51,'(a,i7)   ') "n        := ",n       
+               write(51,'(a,e14.7)') "ne       := ",ne      
+               write(51,'(a,e14.7)') "wscalinf := ",wscalinf
+               write(51,'(a,e14.7)') "wscal1   := ",wscal1  
+               write(51,'(a,e14.7)') "wnu      := ",wnu     
+               write(51,'(a,e14.7)') "betainf  := ",betainf 
+               write(51,'(a,e14.7)') "betamin  := ",betamin 
+               write(51,'(a,e14.7)') "db2      := ",db2      
+               write(51,'(a,e14.7)') "sigmabet := ",sigmabet
+               write(51,'(a,e14.7)') "ar       := ",ar
+               write(51,'(a,e14.7)') "c        := ",c
+               write(51,'(a)'      ) "  p    N      N/p     W_scale(p)      beta(p)  "
+               write(51,'(i7,i7,4e15.7)')(p,n,dfloat(n)/dfloat(p),  wscal_vec(p),  beta_vec(p), amod_vec(p), p=1,min(N,maxp))
+             close(51)
+   
+        endif iv  
+ 
+
+
+
+
 ! ---- init sums ----
        Sq0 = 0
        Sq  = 0
@@ -217,10 +306,13 @@
           ff2  = -2*N*(l*q)**2/(3*pi**2)
 
           arg2 = 0
-          do p=1,N
+          do p=1,min(N,maxp)
 
-            Wscale = Wscalfun( dfloat(n)/dfloat(p), ne )
-            beta   = betafun(  dfloat(n)/dfloat(p), ne )
+ !           Wscale = Wscalfun( dfloat(n)/dfloat(p), ne )
+ !           beta   = betafun(  dfloat(n)/dfloat(p), ne )
+ 
+            Wscale = Wscal_vec(p)
+            beta   = beta_vec(p)
 
 
             tau_p = 2*W*Wscale*(1-cos((pi*p)/dfloat(N)))
@@ -230,7 +322,8 @@
             ffc   = cos((pi*p*nn)/dfloat(N)) * cos((pi*p*mm)/dfloat(N))
             ffc   = ffc / ((2*n/pi)*sin(p*pi/(2*dfloat(n))))**2         ! (ca. ffc/p**2)
 !     and the amplitude modifier
-            ffc   = ffc * ( ar * (1d0-c/sqrt(dfloat(n)/dfloat(p)))  )
+!            ffc   = ffc * ( ar * (1d0-c/sqrt(dfloat(n)/dfloat(p)))  )
+            ffc   = ffc * amod_vec(p)
             
 
             arg2  = arg2  + ffc*e0
@@ -296,5 +389,16 @@
       betafun=erf(betainf-db*exp(-log(Np/Nent)**2/sigmabet**2)+db2*log(Np/Nent)**2*Fermi(-log(Np/Nent)*mu))
 
     end function betafun
+
+    double precision function amplimod( np )
+      implicit none
+      double precision, intent(in)    :: np      ! N/p
+ 
+      
+      amplimod = ( ar * (1d0-c/sqrt(np)) )
+
+    end function amplimod
+
+
 
  end function th_repmode
