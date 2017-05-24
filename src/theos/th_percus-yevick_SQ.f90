@@ -8,13 +8,16 @@
       CHARACTER(8) thnam, parnam (20) 
       DIMENSION pa (20), qq (3) 
                                                         !! aix.sp extchk
-      REAL(8) pschulz, pschj1, betaj1, adapint, peryev 
+      REAL(8) pschulz, pschj1, betaj1, adapint
 			integer :: mbuf
 			integer, intent(inout) :: nopar                 ! Anzahl der Parameter data
       character*80, intent(inout) :: napar(mbuf)      ! name des parameters n
 			real, intent(inout) :: params(mbuf)             ! value des parameters n
 		    DATA zpi / 6.283185 /
-!                                                                       
+
+      double precision :: q, rr, den, eps, peryev
+
+                          
 ! ----- initialisation -----                                            
       IF (ini.eq.0) then 
          thnam = 'peryev' 
@@ -36,11 +39,20 @@
          th7 = 0 
          RETURN 
       ENDIF 
+
+      q   = x
+      rr  = abs(pa(2))
+      den = abs(pa(3))
+      eps = abs(pa(4))
+    
+      if( eps == 0 ) eps = 1d-11
 !                                                                       
 ! ---- calculate theory here -----                                      
 !                                                                       
-      th7 = pa (1) * peryev (dble (x), dble (pa (2) ), dble (pa (3) ),  &
-      dble (pa (4) ) )                                                  
+      th7 = pa (1) * peryev (q, rr, den, eps)
+                                                     
                                                                         
       RETURN 
+
+
       END FUNCTION th7      
