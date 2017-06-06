@@ -164,6 +164,7 @@
           if(vname(i).eq.'om      ') opart(6) = vname(i+1)
           if(vname(i).eq.'ou      ') opart(7) = vname(i+1)
           if(vname(i).eq.'fits    ') fitplo = .true.
+          if(vname(i).eq.'nofits  ') fitplo = .false.
           if(vname(i).eq.'log_x   ') log_x  = .true.
           if(vname(i).eq.'log_y   ') log_y  = .true.
           if(vname(i).eq.'lin_x   ') log_x  = .false.

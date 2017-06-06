@@ -59,7 +59,7 @@
 !
 ! ---- transfer parameters -----
       ampli    =      pa( 1)
-      diff     =      pa( 2)
+      diff     =  abs(pa( 2))
 ! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
       iadda = actual_record_address()
 ! >>> extract: delta time of signal detection
