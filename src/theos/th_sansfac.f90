@@ -28,7 +28,6 @@
      double precision :: intens0    ! intensity factor (cm**-1)                                                       
  
      double precision   :: Navogadro = 6.022045d23
-     double precision   :: intens0
      double precision   :: q
 !
 ! ----- initialisation ----- 
@@ -73,23 +72,23 @@
 ! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
       iadda = actual_record_address()
 ! >>> extract: molecular weight of objects  (g/mol)
-      xh = 
+      xh = 1
       call parget('Mw      ',xh,iadda,ier)
       Mw       = xh
 ! >>> extract: scattering length density polymer (cm**-1)
-      xh = 
+      xh = 1
       call parget('rho     ',xh,iadda,ier)
       rho      = xh
 ! >>> extract: scattering length density background(solvent) (cm**-1)
-      xh = 
+      xh = 1
       call parget('rhosolv ',xh,iadda,ier)
       rhosolv  = xh
 ! >>> extract: volume fraction of polymer
-      xh = 
+      xh = 0.5
       call parget('volfrac ',xh,iadda,ier)
       volfrac  = xh
 ! >>> extract: density of polymer (g/cm*+3)
-      xh = 
+      xh = 1
       call parget('density ',xh,iadda,ier)
       density  = xh
 ! 
@@ -100,7 +99,7 @@
      q   = x
 
      intens0  =   (rho-rhosolv)**2           &
-                * volfrac*(1do-volfrac)      &
+                * volfrac*(1d0-volfrac)      &
                 * Mw / ( density * Navogadro )
 
 

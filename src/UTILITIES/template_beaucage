@@ -1,49 +1,36 @@
-#THEORY beaucage
-        general expression allowing the description of the small angle scattering
-        of a hierarchically structured fractal system
+#THEORY sinhafra
+        fractal scattering assuming a massfractal with dimension df and correlation length xi
+        direct integration for r0 .ne.0 
 #CITE
-        G. Beaucage, J. Appl. Cryst. (1996) 29, 134-146
+        J.K. Kjems, T. Freloft, D. Richter and S.K. Sinha, Physica 136B (1986) 285-290
 #PARAMETERS
         ampli            ! prefactor 
-        g1               ! gaussian(1) amplitude
-        rg1              ! radius of gyration of first contribution (Gaussian)
-        b1               ! power law component amplitiude of first contribution
-        pow1             ! exponent of first power law contribution
-        g2               ! gaussian(2) amplitude
-        rg2              ! radius of gyration of 2nd  contribution (Gaussian)
-        b2               ! power law component amplitiude of 2nd  contribution
-        pow2             ! exponent of 2nd  power law contribution
-        g3               ! gaussian(3) amplitude
-        rg3              ! radius of gyration of 3rd contribution (Gaussian)
-        b3               ! power law component amplitiude of 3rd contribution
-        pow3             ! exponent of 3rd power law contribution
-        g4               ! gaussian(4) amplitude
-        rg4              ! radius of gyration of 4th contribution (Gaussian)
-        b4               ! power law component amplitiude of 4th contribution
-        pow4             ! exponent of 4th power law contribution
-        g5               ! gaussian(5) amplitude
-        rg5              ! radius of gyration of 5th contribution (Gaussian)
-        b5               ! power law component amplitiude of 5th contribution
-        pow5             ! exponent of 5th power law contribution
+        df               ! fractal dimension
+        xi               ! correlation length
+        r0               ! correlation hole
 #RECIN-PARAMETERS    (allow 8 chars for name, start only beyond 8 with default)
-        thick    0.1     ! Dicke der Probe
+  
 #RECOUT-PARAMETERS
+        rg               ! radius of gyration
 #VARIABLES
-     integer, parameter :: maxcomp=5
-     double precision   :: q
-     double precision   :: g(maxcomp), rg(maxcomp), b(maxcomp), pow(maxcomp)
+     integer            :: maxfn = 1000
+     integer            :: nsteps 
+     double precision   :: q, r
+     double precision   :: acc = 1d-9
+     double precision   :: g1, g2
 #IMPLEMENTATION
      q   = x
+
+     
+
+
 #SUBROUTINES
-  function bc_sum(q,g,rg,b,pow,maxcomp)
+  function gr_kernel(r) result(y)
     implicit none
     double precision, intent(in) :: q    
-    double precision, intent(in) :: g  (maxcomp)    
-    double precision, intent(in) :: rg (maxcomp)    
-    double precision, intent(in) :: b  (maxcomp)    
-    double precision, intent(in) :: pow(maxcomp)    
-    integer         , intent(in) :: maxcomp
-!! HIER IMPLEMENTATION
+    double precision             :: y
 
-  end function bc_sum
+    y = sin(q*r)*r**(-2+df)*exp(-r/xi)/q
+
+  end function gr_kernel
 #END

@@ -20,7 +20,8 @@
 ! the internal parameter representation 
      double precision :: ampli      ! prefactor                                                                       
      double precision :: rg         ! radius of gyration                                                              
-     double precision :: df         ! fractal dimension, see eq (6) in Beaucages Paper                                
+     double precision :: df         ! fractal dimension, see eq (6) in Beaucages Paper  
+     double precision :: va2        ! A2 like excluded vol parmeter                              
 ! the recin parameter representation 
      double precision :: thick      ! Dicke der Probe                                                                 
 ! the reout parameter representation 
@@ -33,7 +34,7 @@
 ! ----- initialisation ----- 
     IF (ini.eq.0) then     
        thnam = 'benoitmf'
-       nparx =        3
+       nparx =        4
        IF (npar.lt.nparx) then
            WRITE (6,*)' theory: ',thnam,' no of parametrs=',nparx,' exceeds current max. = ',npar
           th_benoitmf = 0
@@ -51,10 +52,12 @@
         parnam ( 1) = 'ampli   '  ! prefactor                                                                       
         parnam ( 2) = 'rg      '  ! radius of gyration                                                              
         parnam ( 3) = 'df      '  ! fractal dimension, see eq (6) in Beaucages Paper                                
+        parnam ( 4) = 'va2     '  ! a2 type excluded volume parameter                                
 ! >>>>> describe parameters >>>>>>> 
         th_param_desc( 1,idesc) = "prefactor" !//cr//parspace//&
         th_param_desc( 2,idesc) = "radius of gyration" !//cr//parspace//&
         th_param_desc( 3,idesc) = "fractal dimension, see eq (6) in Beaucages Paper" !//cr//parspace//&
+        th_param_desc( 4,idesc) = "a2 type exclude vol param:   sq <- 1(1/sq + va2)" !//cr//parspace//&
 ! >>>>> describe record parameters used >>>>>>>
         th_file_param(:,idesc) = " " 
         th_file_param(  1,idesc) = "thick    > Dicke der Probe"
@@ -70,6 +73,7 @@
       ampli    =      pa( 1)
       rg       =      pa( 2)
       df       =      pa( 3)
+      va2      =      pa( 4)
 ! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
       iadda = actual_record_address()
 ! >>> extract: Dicke der Probe
@@ -82,9 +86,14 @@
 ! ------------------------------------------------------------------
 ! 
      q   = x
-     th_benoitmf = ampli * df/(q*rg)**df * &
+     th_benoitmf = df/(q*rg)**df * &
                    adapint(benmf_kernel,0d0, (q*rg)**2, eps, maxit, erracc)
  
+
+     th_benoitmf = 1d0 / (1d0/th_benoitmf + va2)
+
+     th_benoitmf = ampli * th_benoitmf
+
 ! ---- writing computed parameters to the record >>>  
  
  CONTAINS 
