@@ -14,7 +14,7 @@ FFLAGS=-march=core2 -O2  -save -fPIC -mfpmath=sse -I../
 THEOS := $(shell grep -h "^ *[Ff][Uu][Nn][Cc][Tt][Ii][Oo][nN] .*( *x *, *pa *, *.*, *.*, *.*, *.*)" *.f *.f90 | sed 's>[Ff]......[Nn] *\(.*\)( *x.*)>\1>'|sort )
 DOUBLE := $(shell grep -h "^ *[Ff][Uu][Nn][Cc][Tt][Ii][Oo][nN] .*( *x *, *pa *, *.*, *.*, *.*, *.*)" *.f *.f90  | sed 's>[Ff]......[Nn] *\(.*\)( *x.*)>\1>'|sort |uniq -d)
 
-FC=gfortran49
+FC=gfortran
 FFLAGS=-march=core2 -O2 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -msse4a -mfpmath=sse -Wunused-function -Wunused-variable -I../
 
 #FC=ifort
