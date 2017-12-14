@@ -4,6 +4,7 @@
 ! 
       use theory_description 
       use lmfit
+      use rpa_laplace
       implicit none 
       SAVE
 
@@ -16,7 +17,7 @@
       character(len=80), intent(inout) :: napar(mbuf) 
       real, intent(inout) :: params(mbuf) 
  
-      double precision, parameter :: Pi = 4*atan(1d0)
+!      double precision, parameter :: Pi = 4*atan(1d0)
       integer                     :: actual_record_address
  
 ! the internal parameter representation 
@@ -44,8 +45,19 @@
      double precision :: betadif
      double precision :: plimit     ! limit of star modes (internal EV value) which are frozen
 
+     double precision :: alin       ! scattering contrast of linear polymer omponent 
+     double precision :: astar      ! scattering contrast of start polymer
+
+     integer          :: nxpoints   ! number of points in sum(exp) modelling of S00 functions 
+
      integer          :: mode       ! mode select 
      integer          :: modeex     ! mode select exp representation
+
+
+     double precision, parameter :: tmin = 0.01d0
+     double precision            :: t0  ! virtual 0 > 0 to allow the same numerics as for finite t to compute s(q,0)
+
+
 
      double precision :: tau        ! for modes > 0
  
@@ -80,17 +92,18 @@
      double precision        :: t_samples(mxpoints)
      double precision        :: s_samples(mxpoints)
      double precision        :: tmax = 1000d0
-
      logical                 :: newcomp_required
      integer                 :: i
      double precision        :: ts, ssq
+
+     double precision        :: ss11, ss110, ss12, ss120, ss22, ss220
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !
 ! ----- initialisation ----- 
     IF (ini.eq.0) then 
        thnam = 'rpatest'
-       nparx =       16
+       nparx =       18
        IF (npar.lt.nparx) then
            WRITE (6,*)' theory: ',thnam,' no of parametrs=',nparx,' exceeds current max. = ',npar
           th_rpatest = 0
@@ -119,6 +132,9 @@
         parnam (14) = 'plimit  '  ! mode ev limit for star contribution
         parnam (15) = 'mode    '  ! what to compute
         parnam (16) = 'modeex  '  ! selects way of representation in terms of nexp
+        parnam (17) = 'nxpoints'  ! number of points to determine representation in terms of nexp
+        parnam (18) = 'tzero   '  ! preliminary: effective zero time for S(Q,t=0=tzero)
+
 ! >>>>> describe parameters >>>>>>> 
         th_param_desc( 1,idesc) = "prefactor" !//cr//parspace//&
         th_param_desc( 2,idesc) = "rouse rate star" !//cr//parspace//&
@@ -135,7 +151,9 @@
         th_param_desc(13,idesc) = "betadiff" !//cr//parspace//&
         th_param_desc(14,idesc) = "plimit EV limit below modes are frozen           " !//cr//parspace//&
         th_param_desc(15,idesc) = "mode: 0 normal, >0 S(x=Q,tau) 1 lin, 2 star 3 rpa" !//cr//parspace//&
-        th_param_desc(16,idesc) = "mode: 0  > o numeber of exps to represent" !//cr//parspace//&
+        th_param_desc(16,idesc) = "mode: number of exps to represent" !//cr//parspace//&
+        th_param_desc(17,idesc) = "number of points to determine representation in terms of nexp" !//cr//parspace//&
+        th_param_desc(18,idesc) = "preliminary: effective zero time for S(Q,t=0=tzero)" !//cr//parspace//&
 ! >>>>> describe record parameters used >>>>>>>
         th_file_param(:,idesc) = " " 
         th_file_param(  1,idesc) = "q        > scattering wavevector"
@@ -147,6 +165,8 @@
         th_file_param(  7,idesc) = "nlin     > number of segments of linear polymer"
         th_file_param(  8,idesc) = "philin   > volume fraction of linera polymer"
         th_file_param(  9,idesc) = "tau      > tau val for mode > 0 calc"
+        th_file_param( 10,idesc) = "alin     > scattering contrast linear"
+        th_file_param( 11,idesc) = "astar    > scattering contrast star"
 ! >>>>> describe record parameters creaqted by this theory >>>>>>> 
         th_out_param(:,idesc)  = " "
 ! 
@@ -172,10 +192,22 @@
       plimit   = abs( pa(14))
       mode     = nint(pa(15))
       modeex   = nint(pa(16))
+      nxpoints = nint(pa(17))
+      t0       = abs( pa(18))
+
+
+      t0       = max(t0      ,tmin)
+      nxpoints = max(nxpoints  , 7)
+      modeex   = max(modeex    , 2)
 
       if( modeex > mexp ) then
          write(6,*)"INFORMATION: Modeex limited to: ",mexp
          modeex = mexp
+      endif
+
+      if( nxpoints > mxpoints ) then
+         write(6,*)"INFORMATION: nxpoints limited to: ",mxpoints
+         nxpoints = mxpoints
       endif
 
 ! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
@@ -216,7 +248,15 @@
       xh = 0.0d0
       call parget('tau     ',xh,iadda,ier)
       tau   = xh
-! 
+!! >>> extract: tau for mode > 0
+      xh = 0.0d0
+      call parget('alin     ',xh,iadda,ier)
+      alin   = xh
+!!! >>> extract: tau for mode > 0
+      xh = 1.0d0
+      call parget('astar    ',xh,iadda,ier)
+      astar  = xh
+!! 
 ! ------------------------------------------------------------------
 ! ----------------------- implementation ---------------------------
 ! ------------------------------------------------------------------
@@ -243,8 +283,8 @@ i1:  if( mode == 0 ) then     ! normal spin-echo
 
 ! linear chain function according to the reptation interpolation model locrep2
 ilr: if( newcomp_required ) then
-      do i=1,mxpoints
-             ts      =  exp(i*log(tmax*300d0)/mxpoints)/100d0
+      do i=1,nxpoints
+             ts      =  exp(i*log(tmax*300d0)/nxpoints)/100d0
              sqt0    =  local_reptation2( q*locr2_a, locr2_te   , locr2_b, locr2_lz)
              sqt     =  local_reptation2( q*locr2_a, ts/locr2_ta, locr2_b, locr2_lz)
              locrep2 =  sqt/sqt0
@@ -256,7 +296,7 @@ ilr: if( newcomp_required ) then
              t_samples(i) = ts
              s_samples(i) = locrep2 * sqt / sqt0
           enddo
-          call nexp_match(t_samples,s_samples,mxpoints,modeex,aexp11,rexp11,ssq)
+          call nexp_match(t_samples,s_samples,nxpoints,modeex,aexp11,rexp11,ssq)
           aexpcc = aexp11
           rexpcc = rexp11
           if(ssq > 1d-4) then
@@ -276,8 +316,8 @@ ilr: if( newcomp_required ) then
 
  ! star
 ist: if( newcomp_required ) then
-      do i=1,mxpoints
-             ts     =  exp(i*log(tmax*300d0)/mxpoints)/100d0
+      do i=1,nxpoints
+             ts     =  exp(i*log(tmax*300d0)/nxpoints)/100d0
              Re_arm = sqrt(narm * l**2)
              sqt0   =  pericostar_sqt3(q,0d0,f,narmeff,Re_arm,Wl4star,plimit)    ! automatic diffusion if diffstar==0 
              sqt    =  pericostar_sqt3(q,ts ,f,narmeff,Re_arm,Wl4star,plimit)
@@ -288,7 +328,7 @@ ist: if( newcomp_required ) then
              t_samples(i) = ts
              s_samples(i) = sqt/sqt0 *  exp( -diffstar * q*q * (ts)**betadif )    
            enddo
-          call nexp_match(t_samples,s_samples,mxpoints,modeex,aexp22,rexp22,ssq)
+          call nexp_match(t_samples,s_samples,nxpoints,modeex,aexp22,rexp22,ssq)
           if(ssq > 1d-4) then
             write(6,*)"rpa_test exp model bad match 22", ssq
           endif
@@ -305,23 +345,70 @@ ist: if( newcomp_required ) then
      endif ist
 
    
-     if( modeex > 0 ) then
-       plin   = 0
-       pstar  = 0
-       do i=1,modeex
-         plin  = plin  + aexp11(i) * exp( -t * rexp11(i) ) 
-         pstar = pstar + aexp22(i) * exp( -t * rexp22(i) ) 
-       enddo
-       plin  = plin  * plin0
-       pstar = pstar * pstar0
-     endif
+!!     if( modeex > 0 ) then
+!!       plin   = 0
+!!       pstar  = 0
+!!       do i=1,modeex
+!!         plin  = plin  + aexp11(i) * exp( -t * rexp11(i) ) 
+!!         pstar = pstar + aexp22(i) * exp( -t * rexp22(i) ) 
+!!       enddo
+!!       plin  = plin  * plin0
+!!       pstar = pstar * pstar0
+!!     endif
 
+! RPA VARIABLE TRANSFER
+!
+! componente c    = lineraes polymer (matrix) gleiche Parameter wie comp 1
+! componente 1    = lineares polymer (markierter Teil)
+! componente 2    = start-polymer
+     phi1              =   philin   ! volume fraction of polymer component 1
+     phi2              =   phistar  ! volume fraction of polymer component 2
+     Scc00             =   plin0    ! unperturbed structure factor S(Q) of "matrix" polymers
+     S0011             =   plin0    ! unperturbed structure factor S(Q) of polymer 1
+     S0022             =   pstar0   ! unperturbed structure factor S(Q) of polymer 2
+     nexpcc            =   modeex   ! number of exp-functions to describe background
+     nexp1             =   modeex   ! number of exp-functions to describe component1
+     nexp2             =   modeex   ! number of exp-functions to describe component2
+     aexp_cc(1:nexpcc) =   aexpcc(1:nexpcc)    ! amplitude coeffs for laplace-exp representation of "matrix"
+     rexp_cc(1:nexpcc) =   rexpcc(1:nexpcc)   ! rate      coeffs for laplace-exp representation of "matrix"
+     aexp_s1(1:nexp1)  =   aexp11(1:nexp1)    ! amplitude coeffs for laplace-exp representation of polymer 1
+     rexp_s1(1:nexp1)  =   rexp11(1:nexp1)    ! rate      coeffs for laplace-exp representation of polymer 1
+     aexp_s2(1:nexp2)  =   aexp22(1:nexp2)    ! amplitude coeffs for laplace-exp representation of polymer 2
+     rexp_s2(1:nexp2)  =   rexp22(1:nexp2)    ! rate      coeffs for laplace-exp representation of polymer 2
+ 
+
+     ss11   = 0
+     ss110  = 0
+     ss12   = 0
+     ss120  = 0
+     ss22   = 0
+     ss220  = 0
+     if(alin .ne. 0d0) then
+        ss11  = St_rpa(t ,1,1)
+        ss110 = St_rpa(t0,1,1)
+     endif
+     if(astar .ne. 0d0) then
+        ss22  = St_rpa(t ,2,2)
+        ss220 = St_rpa(t0,2,2)
+     endif
+     if( alin*astar .ne. 0d0 ) then
+        ss12  = St_rpa(t ,1,2) 
+        ss120 = St_rpa(t0,1,2) 
+     endif 
+
+!!     sqt  = St_rpa(t ,1,1)*alin*alin + 2*alin*astar*St_rpa(t ,1,2) + St_rpa(t ,2,2)*astar*astar 
+!!     sqt0 = St_rpa(t0,1,1)*alin*alin + 2*alin*astar*St_rpa(t0,1,2) + St_rpa(t0,2,2)*astar*astar 
+
+
+
+     sqt  = ss11  * alin*alin + 2*alin*astar * ss12  +  ss22  * astar*astar 
+     sqt0 = ss110 * alin*alin + 2*alin*astar * ss120 +  ss220 * astar*astar 
 
 
 ! Rpa (assuming contrast only between h-lin polymer and the rest DAS MUSS NOCH GEAENDER WERDEN !
 
-      Sqt0   = philin*((phistar+philin-1)*Plin0-Pstar0*phistar)*Plin0/(Plin0*(phistar-1)-Pstar0*phistar)
-      Sqt    = philin*((phistar+philin-1)*Plin -Pstar *phistar)*Plin /(Plin *(phistar-1)-Pstar *phistar)
+!      Sqt0   = philin*((phistar+philin-1)*Plin0-Pstar0*phistar)*Plin0/(Plin0*(phistar-1)-Pstar0*phistar)
+!      Sqt    = philin*((phistar+philin-1)*Plin -Pstar *phistar)*Plin /(Plin *(phistar-1)-Pstar *phistar)
 
 
 
