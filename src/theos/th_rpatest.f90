@@ -5,8 +5,11 @@
       use theory_description 
       use lmfit
       use rpa_laplace
-      implicit none 
+      implicit none
+!! 
       SAVE
+!!    ====
+
 
       real    :: th_rpatest
       character(len=8) :: thnam, parnam (*) 
@@ -78,15 +81,15 @@
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      integer, parameter      :: mparams=30
-     double precision, save  :: last_params(mparams) = 0d0
+     double precision        :: last_params(mparams) = 0d0
      double precision        :: allparams(mparams)   = 0d0
      integer, parameter      :: mexp=10
-     double precision, save  :: aexp11(mexp), rexp11(mexp)
-     integer         , save  :: nex11
-     double precision, save  :: aexp22(mexp), rexp22(mexp)
-     integer         , save  :: nex12
-     double precision, save  :: aexpcc(mexp), rexpcc(mexp)
-     integer         , save  :: nexcc
+     double precision        :: aexp11(mexp), rexp11(mexp)
+     integer                 :: nex11
+     double precision        :: aexp22(mexp), rexp22(mexp)
+     integer                 :: nex12
+     double precision        :: aexpcc(mexp), rexpcc(mexp)
+     integer                 :: nexcc
 
      integer, parameter      :: mxpoints = 30
      double precision        :: t_samples(mxpoints)
@@ -97,6 +100,9 @@
      double precision        :: ts, ssq
 
      double precision        :: ss11, ss110, ss12, ss120, ss22, ss220
+
+     double precision        :: a1, a2, r1, r2, r3, b1, b2, g1, g2, g3
+     integer                 :: analytic = 0
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !
@@ -256,7 +262,11 @@
       xh = 1.0d0
       call parget('astar    ',xh,iadda,ier)
       astar  = xh
-!! 
+!!! >>> tentative onl testing
+      xh = 0d0
+      call parget('analytic ',xh,iadda,ier)
+      analytic  = nint(xh) 
+!!! 
 ! ------------------------------------------------------------------
 ! ----------------------- implementation ---------------------------
 ! ------------------------------------------------------------------
@@ -269,14 +279,30 @@ i1:  if( mode == 0 ) then     ! normal spin-echo
      endif i1
 
 
-      allparams(1:20) = [ wl4star, dble(narmeff), diffstar, locr2_b, locr2_a, locr2_ta, locr2_lz, locr2_te, &
+      allparams(1:22) = [ wl4star, dble(narmeff), diffstar, locr2_b, locr2_a, locr2_ta, locr2_lz, locr2_te, &
                          dble(nro_me) , re_me,   wl4     , betadif, plimit , q , dble(narm), l, dble(f),   &
-                         phistar, dble(nlin), philin ]
+                         phistar, dble(nlin), philin, alin, astar ]
 
       newcomp_required = ( sum(abs(allparams-last_params)) .ne. 0 ) .and. (modeex > 0)
     
+! newcomp_required = .true.
+!!!!!!
+!!!!! Aus bisher unbekannter Ursache reagiert die Rechnung (analytic vs numeric) auf diesen Flag
+!!!!! eigentlich sollte alles einmal berechnet so bleiben
+!!!!! was ist da los, der Effekt is zwar klein aber sichtbar !!! ????
+!!!!! parameter vergessen ??
+!!!!!!
+
       if(newcomp_required) then
         last_params = allparams
+
+        ss11   = 0
+        ss110  = 0
+        ss12   = 0
+        ss120  = 0
+        ss22   = 0
+        ss220  = 0
+
       endif 
 
 
@@ -302,7 +328,7 @@ ilr: if( newcomp_required ) then
           if(ssq > 1d-4) then
             write(6,*)"rpa_test exp model bad match 11", ssq
           endif
-     else ! diese Berechnung und die analogen jeweils in einen separate Prozedur packen ! --> F(q,t), S(q)
+     elseif(modeex==0) then ! diese Berechnung und die analogen jeweils in einen separate Prozedur packen ! --> F(q,t), S(q)
        sqt0    =  local_reptation2( q*locr2_a, locr2_te  , locr2_b, locr2_lz)
        sqt     =  local_reptation2( q*locr2_a, t/locr2_ta, locr2_b, locr2_lz)
        locrep2 =  sqt/sqt0
@@ -332,7 +358,7 @@ ist: if( newcomp_required ) then
           if(ssq > 1d-4) then
             write(6,*)"rpa_test exp model bad match 22", ssq
           endif
-     else     
+     elseif(modeex==0) then     
 
         Re_arm = sqrt(narm * l**2)
         sqt0   =  pericostar_sqt3(q,0d0,f,narmeff,Re_arm,Wl4star,plimit)    ! automatic diffusion if diffstar==0 
@@ -357,6 +383,13 @@ ist: if( newcomp_required ) then
 !!     endif
 
 ! RPA VARIABLE TRANSFER
+
+
+ xil         =  0.0001d0    ! distance of path for inv-laplace integration
+ epap        =  1d-9
+ epsrpa      =  1d-5
+
+ 
 !
 ! componente c    = lineraes polymer (matrix) gleiche Parameter wie comp 1
 ! componente 1    = lineares polymer (markierter Teil)
@@ -377,25 +410,54 @@ ist: if( newcomp_required ) then
      rexp_s2(1:nexp2)  =   rexp22(1:nexp2)    ! rate      coeffs for laplace-exp representation of polymer 2
  
 
-     ss11   = 0
-     ss110  = 0
-     ss12   = 0
-     ss120  = 0
-     ss22   = 0
-     ss220  = 0
-     if(alin .ne. 0d0) then
-        ss11  = St_rpa(t ,1,1)
-        ss110 = St_rpa(t0,1,1)
-     endif
-     if(astar .ne. 0d0) then
-        ss22  = St_rpa(t ,2,2)
-        ss220 = St_rpa(t0,2,2)
-     endif
-     if( alin*astar .ne. 0d0 ) then
-        ss12  = St_rpa(t ,1,2) 
-        ss120 = St_rpa(t0,1,2) 
-     endif 
+    if( analytic == 1 .and. modeex == 3 ) then  
+       a1 = aexp_s2(1)
+       a2 = aexp_s2(2)
+       r1 = rexp_s2(1)
+       r2 = rexp_s2(2)
+       r3 = rexp_s2(3)
 
+       b1 = aexp_cc(1)
+       b2 = aexp_cc(2)
+       g1 = rexp_cc(1)
+       g2 = rexp_cc(2)
+       g3 = rexp_cc(3)
+
+!! we have to exchange the roles of 11 and 22 since the analytic function imply S22=Scc
+       if(alin .ne. 0d0) then
+         ss11   = InvLaplace2d22(t,   S0022, a1, a2, r1, r2, r3, S0011, Scc00, b1, b2, g1, g2, g3, phi2, phi1 )
+         if(newcomp_required) ss110  = InvLaplace2d22(0d0, S0022, a1, a2, r1, r2, r3, S0011, Scc00, b1, b2, g1, g2, g3, phi2, phi1 )
+write(6,*)"i11:",t,t0,ss11,ss110
+       endif
+       if(astar .ne. 0d0) then
+         ss22   = InvLaplace2d11(t,   S0022, a1, a2, r1, r2, r3, S0011, Scc00, b1, b2, g1, g2, g3, phi2, phi1 )
+         if(newcomp_required) ss220  = InvLaplace2d11(0d0, S0022, a1, a2, r1, r2, r3, S0011, Scc00, b1, b2, g1, g2, g3, phi2, phi1 )
+write(6,*)"i22:",t,t0,ss22,ss220
+
+       endif
+        if( alin*astar .ne. 0d0 ) then
+         ss12   = InvLaplace2d12(t,   S0022, a1, a2, r1, r2, r3, S0011, Scc00, b1, b2, g1, g2, g3, phi2, phi1 )
+         if(newcomp_required) ss120  = InvLaplace2d12(0d0, S0022, a1, a2, r1, r2, r3, S0011, Scc00, b1, b2, g1, g2, g3, phi2, phi1 )
+write(6,*)"i12:",t,t0,ss12,ss120
+        endif 
+
+     else
+
+       if(alin .ne. 0d0) then
+                                ss11  = St_rpa(t ,1,1)
+           if(newcomp_required) ss110 = St_rpa(t0,1,1)
+        endif
+        if(astar .ne. 0d0) then
+           ss22                       = St_rpa(t ,2,2)
+           if(newcomp_required) ss220 = St_rpa(t0,2,2)
+        endif
+        if( alin*astar .ne. 0d0 ) then
+           ss12                       = St_rpa(t ,1,2) 
+           if(newcomp_required) ss120 = St_rpa(t0,1,2) 
+        endif 
+
+!
+     endif
 !!     sqt  = St_rpa(t ,1,1)*alin*alin + 2*alin*astar*St_rpa(t ,1,2) + St_rpa(t ,2,2)*astar*astar 
 !!     sqt0 = St_rpa(t0,1,1)*alin*alin + 2*alin*astar*St_rpa(t0,1,2) + St_rpa(t0,2,2)*astar*astar 
 

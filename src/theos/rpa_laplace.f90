@@ -438,13 +438,14 @@ real(kind=XPREC)            :: xg2
 real(kind=XPREC)            :: xg3
 real(kind=XPREC)            :: xphi
 
-real(kind=XPREC)            :: xil   = 0.01d0    ! distance of path for inv-laplace integration
-real(kind=XPREC)            :: epap  = 1d-8      ! Apodisationfactor for numerical integrand
+real(kind=XPREC)            :: xil     = 0.01d0    ! distance of path for inv-laplace integration
+real(kind=XPREC)            :: epap    = 1d-8      ! Apodisationfactor for numerical integrand
+real(kind=XPREC)            :: epsrpa  = 1d-5      ! accuracy parameter
 
 
 
-real   (kind=XPREC) :: limit_scale_factor=50d0   ! determines limit of integration
-real   (kind=XPREC) :: rlow = 1d0/1000d0         ! lowest expected detectable rate
+real   (kind=XPREC) :: limit_scale_factor=150d0   ! determines limit of integration
+real   (kind=XPREC) :: rlow = 1d0/10000d0         ! lowest expected detectable rate
 
 
 
@@ -629,11 +630,9 @@ end function Ss_kernel_2D
   b  =  max(limit_scale/t, limit_scale)
   a  = -b
 ! yr =   integral( Ss_kernel_2d ,a  ,b,10000,1d-8)
-  yr = 2*integral( Ss_kernel_2d ,0d0,b,500000,1d-5)
+  yr = 2*integral( Ss_kernel_2d ,0d0,b,500000,epsrpa)
 
 end function St_rpa
-
-
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -737,9 +736,11 @@ coeffs=[C0,C1,C2,C3,C4,C5,C6]
 end subroutine PolyRootCoeffs2d
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-function InvLaplace2d(t, S0011, a1, a2, r1, r2, r3, S0022, Scc00, b1, b2, g1, g2, g3, phi1, phi2 ) result (St)
-!---------------------------------------------------------------------------------------------
+
+function InvLaplace2d11(t, S0011, a1, a2, r1, r2, r3, S0022, Scc00, b1, b2, g1, g2, g3, phi1, phi2 ) result (St)
+!---------------------------------------------------------------------------------------------------------------
 
   implicit none
    complex(kind=XPREC)  :: St                  ! S(Q,t)  (Q only implicit)
@@ -864,7 +865,294 @@ r2*r3)*g3+r3*r2*r1*(b3-1))*g2+g3*r1*r2*r3*(b2-1))*g1+g3*r1*r2*r3*g2*(b1-1))*(-1+
 
    St = St * Prefak 
 
-end function InvLaplace2d
+end function InvLaplace2d11
+
+
+function InvLaplace2d12(t, S0011, a1, a2, r1, r2, r3, S0022, Scc00, b1, b2, g1, g2, g3, phi1, phi2 ) result (St)
+!---------------------------------------------------------------------------------------------------------------
+
+  implicit none
+   complex(kind=XPREC)  :: St                  ! S(Q,t)  (Q only implicit)
+                                               ! for a 2-component system for any give q and with
+                                               ! time functions of the undisturbed S modelled by 3 exp's
+                                               ! see: Akcasu + Tombakoglu, Macromolecules 23, (1990) 607
+                                               ! Maple WS_ RpaLaplace_corr5.mw
+
+   real   (kind=XPREC), intent(in) :: t 
+   real   (kind=XPREC), intent(in) :: S0011    ! S(q) value of the "sample" component                  
+   real   (kind=XPREC), intent(in) :: a1,a2    ! Amplitudes of the exp time fkt components (a3=1-a1-a2) inferred
+   real   (kind=XPREC), intent(in) :: r1,r2,r3 ! correstonding rates for the time-fkts  (for sample)
+   real   (kind=XPREC), intent(in) :: Scc00    ! S(q) value of the "matrix" component                  
+   real   (kind=XPREC), intent(in) :: S0022    ! S(q) value of the "matrix" component                  
+   real   (kind=XPREC), intent(in) :: b1,b2    ! Amplitudes of the exp time fkt components (b3=1-b1-b2) inferred
+   real   (kind=XPREC), intent(in) :: g1,g2,g3 ! correstonding rates for the time-fkts  (for matrix)
+   real   (kind=XPREC), intent(in) :: phi1     ! volume fraction of sample polymer
+   real   (kind=XPREC), intent(in) :: phi2     ! volume fraction of sample polymer
+ 
+  integer, parameter   :: maxdeg = 6
+  integer              :: degree = maxdeg
+  complex(kind=XPREC)  :: coeffs(0:maxdeg), pzero(1:maxdeg), Z 
+  real   (kind=XPREC)  :: Prefak
+  integer              :: i
+
+  real   (kind=XPREC), parameter :: epsilon = 1d-8
+  real   (kind=XPREC) :: a3, b3
+   
+   
+   a3 = 1 -(a1+a2)
+   b3 = 1 -(b1+b2)
+
+! write(6,*)'enter invaplace..'
+
+  call PolyRootCoeffs2d(coeffs, S0011, a1,a2,r1,r2,r3, S0022, Scc00, b1,b2,g1,g2,g3, phi1,phi2)
+
+!! if the above conditions for a3 and b3 are enforceed (i.e. a1+a2+a3=1, ...)
+!! the the highest coefficients are identical to zero, which is not well received
+!! by the roots search, therefore we check here for this and in case reduce the
+!! degree of the polynomial
+dl:  do i=degree,1,-1
+       if(abs(coeffs(i)) > epsilon * sum(abs(coeffs(0:degree)))) then
+         degree = i
+         exit dl
+       endif
+     enddo dl
+
+  call cmplx_roots_gen(pzero, coeffs, degree, .true. , .false. )
+
+! write(6,*)'roots: ',pzero
+
+  call check_degeneracy(degree, pzero)
+
+
+
+Prefak=-phi1*S0011*phi2*S0022/((1-phi1-phi2)*Scc00+phi1*S0011+phi2*S0022)
+
+
+  St = 0
+
+  do i = 1, degree
+   Z = pzero(i)
+   St= St + &
+      (((b1+b2+b3-1)*(a1+a2+a3)*(-1+phi1+phi2)*Scc00-phi1*S0011*(b1+b2+b3)*(a1+a2+a3-1)&
+        -S0022*(b1+b2+b3-1)*(a1+a2+a3)*phi2)*Z**5+(((b2+b3-1)*(a1+a2+a3)*g1+(b1+b3-1)*&
+        (a1+a2+a3)*g2+(b1+b2-1)*(a1+a2+a3)*g3+((a2+a3)*r1+(a1+a3)*r2+r3*(a1+a2))*(b1+b2+b3-1))&
+       *(-1+phi1+phi2)*Scc00-phi1*S0011*((b2+b3)*(a1+a2+a3-1)*g1+(b1+b3)*(a1+a2+a3-1)*g2+(b1+b2)&
+       *(a1+a2+a3-1)*g3+((a2+a3-1)*r1+(a1+a3-1)*r2+r3*(a1+a2-1))*(b1+b2+b3))-S0022*((b2+b3-1)*&
+       (a1+a2+a3)*g1+(b1+b3-1)*(a1+a2+a3)*g2+(b1+b2-1)*(a1+a2+a3)*g3+((a2+a3)*r1+(a1+a3)*r2+r3*&
+       (a1+a2))*(b1+b2+b3-1))*phi2)*Z**4+((((b3-1)*(a1+a2+a3)*g2+(b2-1)*(a1+a2+a3)*g3+&
+       ((a2+a3)*r1+(a1+a3)*r2+r3*(a1+a2))*(b2+b3-1))*g1+((b1-1)*(a1+a2+a3)*g3+((a2+a3)*r1+&
+       (a1+a3)*r2+r3*(a1+a2))*(b1+b3-1))*g2+(b1+b2-1)*((a2+a3)*r1+(a1+a3)*r2+r3*(a1+a2))*g3+&
+       ((a2*r3+a3*r2)*r1+a1*r3*r2)*(b1+b2+b3-1))*(-1+phi1+phi2)*Scc00-((b3*(a1+a2+a3-1)*g2+&
+       b2*(a1+a2+a3-1)*g3+((a2+a3-1)*r1+(a1+a3-1)*r2+r3*(a1+a2-1))*(b2+b3))*g1+(b1*(a1+a2+a3-1)&
+       *g3+((a2+a3-1)*r1+(a1+a3-1)*r2+r3*(a1+a2-1))*(b1+b3))*g2+((a2+a3-1)*r1+(a1+a3-1)*r2+r3*&
+       (a1+a2-1))*(b1+b2)*g3+(b1+b2+b3)*(((a3-1)*r2+r3*(a2-1))*r1+r2*r3*(a1-1)))*phi1*S0011-&
+       S0022*(((b3-1)*(a1+a2+a3)*g2+(b2-1)*(a1+a2+a3)*g3+((a2+a3)*r1+(a1+a3)*r2+r3*(a1+a2))*&
+       (b2+b3-1))*g1+((b1-1)*(a1+a2+a3)*g3+((a2+a3)*r1+(a1+a3)*r2+r3*(a1+a2))*(b1+b3-1))*g2+&
+       (b1+b2-1)*((a2+a3)*r1+(a1+a3)*r2+r3*(a1+a2))*g3+((a2*r3+a3*r2)*r1+a1*r3*r2)*&
+       (b1+b2+b3-1))*phi2)*Z**3+(((((-a1-a2-a3)*g3+(b3-1)*((a2+a3)*r1+(a1+a3)*r2+r3*(a1+a2)))&
+       *g2+((a2+a3)*r1+(a1+a3)*r2+r3*(a1+a2))*(b2-1)*g3+((a2*r3+a3*r2)*r1+a1*r3*r2)*(b2+b3-1))*g1+&
+       (((a2+a3)*r1+(a1+a3)*r2+r3*(a1+a2))*(b1-1)*g3+((a2*r3+a3*r2)*r1+a1*r3*r2)*(b1+b3-1))*g2+&
+       (b1+b2-1)*((a2*r3+a3*r2)*r1+a1*r3*r2)*g3)*(-1+phi1+phi2)*Scc00-phi1*((((a2+a3-1)*r1+&
+       (a1+a3-1)*r2+r3*(a1+a2-1))*b3*g2+((a2+a3-1)*r1+(a1+a3-1)*r2+r3*(a1+a2-1))*b2*g3+(b2+b3)*&
+       (((a3-1)*r2+r3*(a2-1))*r1+r2*r3*(a1-1)))*g1+(((a2+a3-1)*r1+(a1+a3-1)*r2+r3*(a1+a2-1))*b1*&
+       g3+(b1+b3)*(((a3-1)*r2+r3*(a2-1))*r1+r2*r3*(a1-1)))*g2+(b1+b2)*(((a3-1)*r2+r3*(a2-1))*r1+&
+       r2*r3*(a1-1))*g3-r3*r2*r1*(b1+b2+b3))*S0011-S0022*((((-a1-a2-a3)*g3+(b3-1)*((a2+a3)*r1+&
+       (a1+a3)*r2+r3*(a1+a2)))*g2+((a2+a3)*r1+(a1+a3)*r2+r3*(a1+a2))*(b2-1)*g3+((a2*r3+a3*r2)*&
+       r1+a1*r3*r2)*(b2+b3-1))*g1+(((a2+a3)*r1+(a1+a3)*r2+r3*(a1+a2))*(b1-1)*g3+((a2*r3+a3*r2)*&
+       r1+a1*r3*r2)*(b1+b3-1))*g2+(b1+b2-1)*((a2*r3+a3*r2)*r1+a1*r3*r2)*g3)*phi2)*Z**2+&
+       ((((((-a2-a3)*r1+(-a1-a3)*r2-r3*(a1+a2))*g3+(b3-1)*((a2*r3+a3*r2)*r1+a1*r3*r2))*g2+&
+       ((a2*r3+a3*r2)*r1+a1*r3*r2)*g3*(b2-1))*g1+((a2*r3+a3*r2)*r1+a1*r3*r2)*g3*g2*(b1-1))*&
+       (-1+phi1+phi2)*Scc00+((-b3*(((a3-1)*r2+r3*(a2-1))*r1+r2*r3*(a1-1))*g2-b2*&
+       (((a3-1)*r2+r3*(a2-1))*r1+r2*r3*(a1-1))*g3+r3*r2*r1*(b2+b3))*g1+(-b1*(((a3-1)*&
+       r2+r3*(a2-1))*r1+r2*r3*(a1-1))*g3+r3*r2*r1*(b1+b3))*g2+g3*r1*r2*r3*(b1+b2))*phi1*&
+       S0011-S0022*(((((-a2-a3)*r1+(-a1-a3)*r2-r3*(a1+a2))*g3+(b3-1)*((a2*r3+a3*r2)*r1+a1*r3*r2))&
+       *g2+((a2*r3+a3*r2)*r1+a1*r3*r2)*g3*(b2-1))*g1+((a2*r3+a3*r2)*r1+a1*r3*r2)*g3*g2*(b1-1))*phi2)&
+       *Z-((a2*r3+a3*r2)*r1+a1*r3*r2)*g1* &
+       g3*g2*(-1+phi1+phi2)*Scc00+r3*phi1*((b2*g3+b3*g2)*g1+g3*b1*g2)*r2*r1*S0011+S0022*&
+       ((a2*r3+a3*r2)*r1+a1*r3*r2)*g1*g3*g2*phi2)*exp(Z*t)/((6*(b1+b2+b3-1)*&
+       (-1+phi1+phi2)*Scc00-6*phi1*S0011*(a1+a2+a3-1)-6*S0022*(b1+b2+b3-1)*phi2)*Z**5+&
+       (5*((b2+b3-1)*g1+(b1+b3-1)*g2+(b1+b2-1)*g3+(b1+b2+b3-1)*(r1+r2+r3))*(-1+phi1+phi2)*Scc00-&
+       5*((a1+a2+a3-1)*g1+(a1+a2+a3-1)*g2+(a1+a2+a3-1)*g3+(a2+a3-1)*r1+(a1+a3-1)*r2+r3*(a1+a2-1))*&
+       phi1*S0011-5*((b2+b3-1)*g1+(b1+b3-1)*g2+(b1+b2-1)*g3+(b1+b2+b3-1)*(r1+r2+r3))*S0022*phi2)&
+       *Z**4+(4*(((b3-1)*g2+(b2-1)*g3+(b2+b3-1)*(r1+r2+r3))*g1+((b1-1)*g3+(b1+b3-1)*(r1+r2+r3))&
+       *g2+(b1+b2-1)*(r1+r2+r3)*g3+(b1+b2+b3-1)*((r2+r3)*r1+r2*r3))*(-1+phi1+phi2)*Scc00-&
+       4*(((a1+a2+a3-1)*g2+(a1+a2+a3-1)*g3+(a2+a3-1)*r1+(a1+a3-1)*r2+r3*(a1+a2-1))*g1+((a1+a2+a3-1)&
+       *g3+(a2+a3-1)*r1+(a1+a3-1)*r2+r3*(a1+a2-1))*g2+((a2+a3-1)*r1+(a1+a3-1)*r2+r3*(a1+a2-1))*g3+&
+       ((a3-1)*r2+r3*(a2-1))*r1+r2*r3*(a1-1))*phi1*S0011-4*S0022*(((b3-1)*g2+(b2-1)*g3+(b2+b3-1)*&
+       (r1+r2+r3))*g1+((b1-1)*g3+(b1+b3-1)*(r1+r2+r3))*g2+(b1+b2-1)*(r1+r2+r3)*g3+(b1+b2+b3-1)*&
+       ((r2+r3)*r1+r2*r3))*phi2)*Z**3+(3*(((-g3+(b3-1)*r1+(b3-1)*r2+r3*(b3-1))*g2+(b2-1)*&
+       (r1+r2+r3)*g3+(b2+b3-1)*((r2+r3)*r1+r2*r3))*g1+((b1-1)*(r1+r2+r3)*g3+(b1+b3-1)*((r2+r3)*&
+       r1+r2*r3))*g2+(b1+b2-1)*((r2+r3)*r1+r2*r3)*g3+r3*r2*r1*(b1+b2+b3-1))*(-1+phi1+phi2)*Scc00&
+       -3*((((a1+a2+a3-1)*g3+(a2+a3-1)*r1+(a1+a3-1)*r2+r3*(a1+a2-1))*g2+((a2+a3-1)*r1+(a1+a3-1)*&
+       r2+r3*(a1+a2-1))*g3+((a3-1)*r2+r3*(a2-1))*r1+r2*r3*(a1-1))*g1+(((a2+a3-1)*r1+(a1+a3-1)*r2+&
+       r3*(a1+a2-1))*g3+((a3-1)*r2+r3*(a2-1))*r1+r2*r3*(a1-1))*g2+(((a3-1)*r2+r3*(a2-1))*r1+r2*r3*&
+       (a1-1))*g3-r3*r2*r1)*phi1*S0011-3*S0022*(((-g3+(b3-1)*r1+(b3-1)*r2+r3*(b3-1))*g2+(b2-1)*&
+       (r1+r2+r3)*g3+(b2+b3-1)*((r2+r3)*r1+r2*r3))*g1+((b1-1)*&
+       (r1+r2+r3)*g3+(b1+b3-1)*((r2+r3)*r1+r2*r3))*g2+(b1+b2-1)*((r2+r3)*r1+r2*r3)*g3+r3*r2*r1*&
+       (b1+b2+b3-1))*phi2)*Z**2+(2*(-1+phi1+phi2)*((((-r1-r2-r3)*g3+(b3-1)*((r2+r3)*r1+r2*r3))&
+       *g2+(b2-1)*((r2+r3)*r1+r2*r3)*g3+r3*r2*r1*(b2+b3-1))*g1+((b1-1)*((r2+r3)*r1+r2*r3)*&
+       g3+r3*r2*r1*(b1+b3-1))*g2+g3*r1*r2*r3*(b1+b2-1))*Scc00+2*phi1*(((((-a2-a3+1)*r1+&
+       (-a1-a3+1)*r2-r3*(a1+a2-1))*g3+((-a3+1)*r2-r3*(a2-1))*r1-r2*r3*(a1-1))*g2+(((-a3+1)*&
+       r2-r3*(a2-1))*r1-r2*r3*(a1-1))*g3+r3*r2*r1)*g1+((((-a3+1)*r2-r3*(a2-1))*r1-r2*r3*&
+       (a1-1))*g3+r3*r2*r1)*g2+g3*r1*r2*r3)*S0011-2*S0022*((((-r1-r2-r3)*g3+(b3-1)*&
+       ((r2+r3)*r1+r2*r3))*g2+(b2-1)*((r2+r3)*r1+r2*r3)*g3+r3*r2*r1*(b2+b3-1))*g1+((b1-1)*&
+       ((r2+r3)*r1+r2*r3)*g3+r3*r2*r1*(b1+b3-1))*g2+g3*r1*r2*r3*(b1+b2-1))*phi2)*Z+&
+       (((((-r2-r3)*r1-r2*r3)*g3+r3*r2*r1*(b3-1))*g2+g3*r1*r2*r3*(b2-1))*g1+g3*r1*r2*r3*g2*&
+       (b1-1))*(-1+phi1+phi2)*Scc00+phi1*((((((-a3+1)*r2-r3*(a2-1))*r1-r2*r3*(a1-1))*&
+       g3+r3*r2*r1)*g2+g3*r1*r2*r3)*g1+g3*r1*r2*r3*g2)*S0011-S0022*(((((-r2-r3)*r1-r2*r3)&
+       *g3+r3*r2*r1*(b3-1))*g2+g3*r1*r2*r3*(b2-1))*g1+g3*r1*r2*r3*g2*(b1-1))*phi2)
+       
+  enddo
+
+   St = St * Prefak 
+
+end function InvLaplace2d12
+
+
+function InvLaplace2d22(t, S0011, a1, a2, r1, r2, r3, S0022, Scc00, b1, b2, g1, g2, g3, phi1, phi2 ) result (St)
+!---------------------------------------------------------------------------------------------------------------
+
+  implicit none
+   complex(kind=XPREC)  :: St                  ! S(Q,t)  (Q only implicit)
+                                               ! for a 2-component system for any give q and with
+                                               ! time functions of the undisturbed S modelled by 3 exp's
+                                               ! see: Akcasu + Tombakoglu, Macromolecules 23, (1990) 607
+                                               ! Maple WS_ RpaLaplace_corr5.mw
+
+   real   (kind=XPREC), intent(in) :: t 
+   real   (kind=XPREC), intent(in) :: S0011    ! S(q) value of the "sample" component                  
+   real   (kind=XPREC), intent(in) :: a1,a2    ! Amplitudes of the exp time fkt components (a3=1-a1-a2) inferred
+   real   (kind=XPREC), intent(in) :: r1,r2,r3 ! correstonding rates for the time-fkts  (for sample)
+   real   (kind=XPREC), intent(in) :: Scc00    ! S(q) value of the "matrix" component                  
+   real   (kind=XPREC), intent(in) :: S0022    ! S(q) value of the "matrix" component                  
+   real   (kind=XPREC), intent(in) :: b1,b2    ! Amplitudes of the exp time fkt components (b3=1-b1-b2) inferred
+   real   (kind=XPREC), intent(in) :: g1,g2,g3 ! correstonding rates for the time-fkts  (for matrix)
+   real   (kind=XPREC), intent(in) :: phi1     ! volume fraction of sample polymer
+   real   (kind=XPREC), intent(in) :: phi2     ! volume fraction of sample polymer
+ 
+  integer, parameter   :: maxdeg = 6
+  integer              :: degree = maxdeg
+  complex(kind=XPREC)  :: coeffs(0:maxdeg), pzero(1:maxdeg), Z 
+  real   (kind=XPREC)  :: Prefak
+  integer              :: i
+
+  real   (kind=XPREC), parameter :: epsilon = 1d-8
+  real   (kind=XPREC) :: a3, b3, aplus
+   
+   
+   a3 = 1 -(a1+a2)
+   b3 = 1 -(b1+b2)
+
+! write(6,*)'enter invaplace..'
+
+  call PolyRootCoeffs2d(coeffs, S0011, a1,a2,r1,r2,r3, S0022, Scc00, b1,b2,g1,g2,g3, phi1,phi2)
+
+!! if the above conditions for a3 and b3 are enforceed (i.e. a1+a2+a3=1, ...)
+!! the the highest coefficients are identical to zero, which is not well received
+!! by the roots search, therefore we check here for this and in case reduce the
+!! degree of the polynomial
+dl:  do i=degree,1,-1
+       if(abs(coeffs(i)) > epsilon * sum(abs(coeffs(0:degree)))) then
+         degree = i
+         exit dl
+       endif
+     enddo dl
+
+  call cmplx_roots_gen(pzero, coeffs, degree, .true. , .false. )
+
+! write(6,*)'roots: ',pzero
+
+  call check_degeneracy(degree, pzero)
+
+
+
+  prefak = -phi1*S0022**2*phi2**2*S0011/(((-1+phi1+phi2)*Scc00-phi2*S0022)* &
+           ((1-phi1-phi2)*Scc00+phi1*S0011+phi2*S0022))
+
+  St = 0
+
+  do i = 1, degree
+   Z = pzero(i)
+   St= St + &
+       (((b1+b2+b3-1)*(a1+a2+a3)*(-1+phi1+phi2)*Scc00-phi1*S0011*(b1+b2+b3)*(a1+a2+a3-1)-S0022 &
+     *(b1+b2+b3-1)*(a1+a2+a3)*phi2)*Z**5+(((b2+b3-1)*(a1+a2+a3)*g1+(b1+b3-1)*(a1+a2+a3)*g2+&
+     (b1+b2-1)*(a1+a2+a3)*g3+((a2+a3)*r1+(a1+a3)*r2+r3*(a1+a2))*(b1+b2+b3-1))*(-1+phi1+phi2)*Scc00&
+     -phi1*S0011*((b2+b3)*(a1+a2+a3-1)*g1+(b1+b3)*(a1+a2+a3-1)*g2+(b1+b2)*(a1+a2+a3-1)*g3+((a2+a3-1)&
+     *r1+(a1+a3-1)*r2+r3*(a1+a2-1))*(b1+b2+b3))-S0022 &
+     *((b2+b3-1)*(a1+a2+a3)*g1+(b1+b3-1)*(a1+a2+a3)*g2+(b1+b2-1)*(a1+a2+a3)*g3+((a2+a3)*r1+(a1+a3)*&
+     r2+r3*(a1+a2))*(b1+b2+b3-1))*phi2)*Z**4+((((b3-1)*(a1+a2+a3)*g2+(b2-1)*(a1+a2+a3)*g3+&
+     ((a2+a3)*r1+(a1+a3)*r2+r3*(a1+a2))*(b2+b3-1))*g1+((b1-1)*(a1+a2+a3)*g3+((a2+a3)*r1+(a1+a3)*r2&
+     +r3*(a1+a2))*(b1+b3-1))*g2+(b1+b2-1)*((a2+a3)*r1+(a1+a3)*r2+r3*(a1+a2))*g3+((a2*r3+a3*r2)*r1+&
+     a1*r3*r2)*(b1+b2+b3-1))*(-1+phi1+phi2)*Scc00-((b3*(a1+a2+a3-1)*g2+b2*(a1+a2+a3-1)*g3+((a2+a3-1)&
+     *r1+(a1+a3-1)*r2+r3*(a1+a2-1))*(b2+b3))*g1+(b1*(a1+a2+a3-1)*g3+((a2+a3-1)*r1+(a1+a3-1)*r2+r3*&
+     (a1+a2-1))*(b1+b3))*g2+((a2+a3-1)*r1+(a1+a3-1)*r2+r3*(a1+a2-1))*(b1+b2)*g3+(b1+b2+b3)*(((a3-1)&
+     *r2+r3*(a2-1))*r1+r2*r3*(a1-1)))*phi1*S0011-S0022 &
+     *(((b3-1)*(a1+a2+a3)*g2+(b2-1)*(a1+a2+a3)*g3+((a2+a3)*r1+(a1+a3)*r2+r3*(a1+a2))*(b2+b3-1))*g1+&
+     ((b1-1)*(a1+a2+a3)*g3+((a2+a3)*r1+(a1+a3)*r2+r3*(a1+a2))*(b1+b3-1))*g2+(b1+b2-1)*((a2+a3)*r1+&
+     (a1+a3)*r2+r3*(a1+a2))*g3+((a2*r3+a3*r2)*r1+a1*r3*r2)*(b1+b2+b3-1))*phi2)*Z**3+(((((-a1-&
+     a2-a3)*g3+(b3-1)*((a2+a3)*r1+(a1+a3)*r2+r3*(a1+a2)))*g2+((a2+a3)*r1+(a1+a3)*r2+r3*(a1+a2))*&
+     (b2-1)*g3+((a2*r3+a3*r2)*r1+a1*r3*r2)*(b2+b3-1))*g1+(((a2+a3)*r1+(a1+a3)*r2+r3*(a1+a2))*&
+     (b1-1)*g3+((a2*r3+a3*r2)*r1+a1*r3*r2)*(b1+b3-1))*g2+(b1+b2-1)*((a2*r3+a3*r2)*r1+a1*r3*r2)&
+     *g3)*(-1+phi1+phi2)*Scc00-phi1*((((a2+a3-1)*r1+(a1+a3-1)*r2+r3*(a1+a2-1))*b3*g2+((a2+a3-1)&
+     *r1+(a1+a3-1)*r2+r3*(a1+a2-1))*b2*g3+(b2+b3)*(((a3-1)*r2+r3*(a2-1))*r1+r2*r3*(a1-1)))*g1+&
+     (((a2+a3-1)*r1+(a1+a3-1)*r2+r3*(a1+a2-1))*b1*g3+(b1+b3)*(((a3-1)*r2+r3*(a2-1))*r1+r2*r3*&
+     (a1-1)))*g2+(b1+b2)*(((a3-1)*r2+r3*(a2-1))*r1+r2*r3*(a1-1))*g3-r3*r2*r1*(b1+b2+b3))*S0011-S0022 &
+     *((((-a1-a2-a3)*g3+(b3-1)*((a2+a3)*r1+(a1+a3)*r2+r3*(a1+a2)))*g2+((a2+a3)*r1+(a1+a3)*r2+&
+     r3*(a1+a2))*(b2-1)*g3+((a2*r3+a3*r2)*r1+a1*r3*r2)*(b2+b3-1))*g1+(((a2+a3)*r1+(a1+a3)*r2+r3*&
+     (a1+a2))*(b1-1)*g3+((a2*r3+a3*r2)*r1+a1*r3*r2)*(b1+b3-1))*g2+(b1+b2-1)*((a2*r3+a3*r2)*&
+     r1+a1*r3*r2)*g3)*phi2)*Z**2+((((((-a2-a3)*r1+(-a1-a3)*r2-r3*(a1+a2))*g3+(b3-1)*&
+     ((a2*r3+a3*r2)*r1+a1*r3*r2))*g2+((a2*r3+a3*r2)*r1+a1*r3*r2)*g3*(b2-1))*g1+((a2*r3+a3*r2)&
+     *r1+a1*r3*r2)*g3*g2*(b1-1))*(-1+phi1+phi2)*Scc00+((-b3*(((a3-1)*r2+r3*(a2-1))*r1+r2*r3*&
+     (a1-1))*g2-b2*(((a3-1)*r2+r3*(a2-1))*r1+r2*r3*(a1-1))*g3+r3*r2*r1*(b2+b3))*g1+(-b1*(((a3-1)&
+     *r2+r3*(a2-1))*r1+r2*r3*(a1-1))*g3+r3*r2*r1*(b1+b3))*g2+g3*r1*r2*r3*(b1+b2))*phi1*S0011-S0022 &
+     *(((((-a2-a3)*r1+(-a1-a3)*r2-r3*(a1+a2))*g3+(b3-1)*((a2*r3+a3*r2)*r1+a1*r3*r2))*g2+&
+     ((a2*r3+a3*r2)*r1+a1*r3*r2)*g3*(b2-1))*g1+((a2*r3+a3*r2)*r1+a1*r3*r2)*g3*g2*(b1-1))*phi2)*&
+     Z-((a2*r3+a3*r2)*r1+a1*r3*r2)*g1*g3*g2*(-1+phi1+phi2)*Scc00+r3*phi1*((b2*g3+b3*g2)*&
+     g1+g3*b1*g2)*r2*r1*S0011+S0022 &
+     *((a2*r3+a3*r2)*r1+a1*r3*r2)*g1*g3*g2*phi2)*exp(Z*t)/((6*(b1+b2+b3-1)*&
+     (-1+phi1+phi2)*Scc00-6*phi1*S0011*(a1+a2+a3-1)-6*S0022 &
+     *(b1+b2+b3-1)*phi2)*Z**5+(5*((b2+b3-1)*g1+(b1+b3-1)*g2+(b1+b2-1)*g3+(b1+b2+b3-1)*&
+     (r1+r2+r3))*(-1+phi1+phi2)*Scc00-5*((a1+a2+a3-1)*g1+(a1+a2+a3-1)*g2+(a1+a2+a3-1)*g3+(a2+a3-1)&
+     *r1+(a1+a3-1)*r2+r3*(a1+a2-1))*phi1*S0011-5*((b2+b3-1)*g1+(b1+b3-1)*g2+(b1+b2-1)*g3+(b1+b2+b3-1)&
+     *(r1+r2+r3))*S0022 &
+     *phi2)*Z**4+(4*(((b3-1)*g2+(b2-1)*g3+(b2+b3-1)*(r1+r2+r3))*g1+((b1-1)*g3+(b1+b3-1)*&
+     (r1+r2+r3))*g2+(b1+b2-1)*(r1+r2+r3)*g3+(b1+b2+b3-1)*((r2+r3)*r1+r2*r3))*(-1+phi1+phi2)*&
+     Scc00-4*(((a1+a2+a3-1)*g2+(a1+a2+a3-1)*g3+(a2+a3-1)*r1+(a1+a3-1)*r2+r3*(a1+a2-1))*g1+&
+     ((a1+a2+a3-1)*g3+(a2+a3-1)*r1+(a1+a3-1)*r2+r3*(a1+a2-1))*g2+((a2+a3-1)*r1+(a1+a3-1)*r2+&
+     r3*(a1+a2-1))*g3+((a3-1)*r2+r3*(a2-1))*r1+r2*r3*(a1-1))*phi1*S0011-4*S0022 &
+     *(((b3-1)*g2+(b2-1)*g3+(b2+b3-1)*(r1+r2+r3))*g1+((b1-1)*g3+(b1+b3-1)*(r1+r2+r3))*g2+(b1+b2-1)&
+     *(r1+r2+r3)*g3+(b1+b2+b3-1)*((r2+r3)*r1+r2*r3))*phi2)*Z**3+(3*(((-g3+(b3-1)*r1+(b3-1)*&
+     r2+r3*(b3-1))*g2+(b2-1)*(r1+r2+r3)*g3+(b2+b3-1)*((r2+r3)*r1+r2*r3))*g1+((b1-1)*(r1+r2+r3)*g3+&
+     (b1+b3-1)*((r2+r3)*r1+r2*r3))*g2+(b1+b2-1)*((r2+r3)*r1+r2*r3)*g3+r3*r2*r1*(b1+b2+b3-1))*&
+     (-1+phi1+phi2)*Scc00-3*((((a1+a2+a3-1)*g3+(a2+a3-1)*r1+(a1+a3-1)*r2+r3*(a1+a2-1))*g2+&
+     ((a2+a3-1)*r1+(a1+a3-1)*r2+r3*(a1+a2-1))*g3+((a3-1)*r2+r3*(a2-1))*r1+r2*r3*(a1-1))*g1+&
+     (((a2+a3-1)*r1+(a1+a3-1)*r2+r3*(a1+a2-1))*g3+((a3-1)*r2+r3*(a2-1))*r1+r2*r3*(a1-1))*g2+&
+     (((a3-1)*r2+r3*(a2-1))*r1+r2*r3*(a1-1))*g3-r3*r2*r1)*phi1*S0011-3*S0022 &
+     *(((-g3+(b3-1)*r1+(b3-1)*r2+r3*(b3-1))*g2+(b2-1)*(r1+r2+r3)*g3+(b2+b3-1)*((r2+r3)*r1+r2*r3))&
+     *g1+((b1-1)*(r1+r2+r3)*g3+(b1+b3-1)*((r2+r3)*r1+r2*r3))*g2+(b1+b2-1)*((r2+r3)*r1+r2*r3)*&
+     g3+r3*r2*r1*(b1+b2+b3-1))*phi2)*Z**2+(2*(-1+phi1+phi2)*((((-r1-r2-r3)*g3+(b3-1)*&
+     ((r2+r3)*r1+r2*r3))*g2+(b2-1)*((r2+r3)*r1+r2*r3)*g3+r3*r2*r1*(b2+b3-1))*g1+((b1-1)*&
+     ((r2+r3)*r1+r2*r3)*g3+r3*r2*r1*(b1+b3-1))*g2+g3*r1*r2*r3*(b1+b2-1))*Scc00+2*phi1*&
+     (((((-a2-a3+1)*r1+(-a1-a3+1)*r2-r3*(a1+a2-1))*g3+((-a3+1)*r2-r3*(a2-1))*r1-r2*r3*&
+     (a1-1))*g2+(((-a3+1)*r2-r3*(a2-1))*r1-r2*r3*(a1-1))*g3+r3*r2*r1)*g1+((((-a3+1)*&
+     r2-r3*(a2-1))*r1-r2*r3*(a1-1))*g3+r3*r2*r1)*g2+g3*r1*r2*r3)*S0011-2*S0022 &
+     *((((-r1-r2-r3)*g3+(b3-1)*((r2+r3)*r1+r2*r3))*g2+(b2-1)*((r2+r3)*r1+r2*r3)*g3+r3*r2*&
+     r1*(b2+b3-1))*g1+((b1-1)*((r2+r3)*r1+r2*r3)*g3+r3*r2*r1*(b1+b3-1))*g2+g3*r1*r2*r3*&
+     (b1+b2-1))*phi2)*Z+(((((-r2-r3)*r1-r2*r3)*g3+r3*r2*r1*(b3-1))*g2+g3*r1*r2*r3*&
+     (b2-1))*g1+g3*r1*r2*r3*g2*(b1-1))*(-1+phi1+phi2)*Scc00+phi1*((((((-a3+1)*r2-r3*(a2-1))&
+     *r1-r2*r3*(a1-1))*g3+r3*r2*r1)*g2+g3*r1*r2*r3)*g1+g3*r1*r2*r3*g2)*S0011-S0022 &
+     *(((((-r2-r3)*r1-r2*r3)*g3+r3*r2*r1*(b3-1))*g2+g3*r1*r2*r3*(b2-1))*g1+g3*r1*r2*r3*g2*(b1-1))*phi2)
+     
+  enddo
+   
+   aplus =-((1-phi1-phi2)*Scc00+phi1*S0011+phi2*S0022)*&
+           (b3*exp(-g3*t)+b1*exp(-g1*t)+b2*exp(-g2*t))*Scc00*(-1+phi1+phi2)
+   St = St + aplus/(S0011*phi1*S0022*phi2)
+   St = St * Prefak 
+
+end function InvLaplace2d22
+
+
 
 
 
