@@ -9,7 +9,7 @@ OBJF90=$(SRCF90:.f90=.o)
 
 OBJ=$(OBJF) $(OBJF90)
 .SUFFIXES:
-.SUFFIXES: .f90 .f .o
+.SUFFIXES: .f90 .f .o 
 FFLAGS=-march=core2 -O2  -save -fPIC -mfpmath=sse -I../
 THEOS := $(shell grep -h "^ *[Ff][Uu][Nn][Cc][Tt][Ii][Oo][nN] .*( *x *, *pa *, *.*, *.*, *.*, *.*)" *.f *.f90 | sed 's>[Ff]......[Nn] *\(.*\)( *x.*)>\1>'|sort )
 DOUBLE := $(shell grep -h "^ *[Ff][Uu][Nn][Cc][Tt][Ii][Oo][nN] .*( *x *, *pa *, *.*, *.*, *.*, *.*)" *.f *.f90  | sed 's>[Ff]......[Nn] *\(.*\)( *x.*)>\1>'|sort |uniq -d)
@@ -47,5 +47,5 @@ $(error  "!!!Fehler- in $(DOUBLE) : function name used twice change one of it  !
 endif
 
 clean:
-	rm -f *.o *.i90 libtheos*
+	rm -f *.o *.i90 libtheos* *.mod
 
