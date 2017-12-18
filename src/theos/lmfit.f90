@@ -110,7 +110,7 @@ CONTAINS
            "# ",nexps," exp model(",ssq,"):|",("a=",px(2*i-1),1d0/px(2*i),i=1,nexps)
       write(6,*)
      
-     ! sorting fsates rate first
+    ! sorting fastes rate first
       iperm = [(i,i=1,nexps)]
       call  DPSORT (r0, nexps, IPERM,  -1 , ier)
      
@@ -156,7 +156,7 @@ CONTAINS
      double precision                 :: ftol = 1d-6
      double precision                 :: xtol = 1d-6
      double precision                 :: gtol = 0
-     integer                          :: maxfev = 1000
+     integer                          :: maxfev = 3000
      double precision                 :: epsfcn = 1d-6
      integer                          :: mode   = 2
      double precision                 :: factor = 1d0
@@ -172,6 +172,14 @@ CONTAINS
      double precision                 :: wa1(npar), wa2(npar), wa3(npar)
      double precision                 :: wa4(np)
  
+
+     
+     wa1 = 0
+     wa2 = 0
+     wa3 = 0
+     wa4 = 0
+
+
 
      !
      ! prepare startvector

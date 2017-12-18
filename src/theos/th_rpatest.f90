@@ -285,7 +285,7 @@ i1:  if( mode == 0 ) then     ! normal spin-echo
 
       newcomp_required = ( sum(abs(allparams-last_params)) .ne. 0 ) .and. (modeex > 0)
     
-! newcomp_required = .true.
+ if(analytic < 0) newcomp_required = .true.
 !!!!!!
 !!!!! Aus bisher unbekannter Ursache reagiert die Rechnung (analytic vs numeric) auf diesen Flag
 !!!!! eigentlich sollte alles einmal berechnet so bleiben
@@ -316,12 +316,13 @@ ilr: if( newcomp_required ) then
              locrep2 =  sqt/sqt0
              dr      = 1d-20
              ifix    = 0
-             call  NrouseY(q,t,temp,Dr,wl4,nro_me,re_me, Wx, lx,ifix, sqt0,sqt)
+             call  NrouseY(q,ts,temp,Dr,wl4,nro_me,re_me, Wx, lx,ifix, sqt0,sqt)
              plin0   = nlin  * Debye_qnl(q, nlin, l) 
              plin    = plin0 * locrep2 * sqt / sqt0
              t_samples(i) = ts
              s_samples(i) = locrep2 * sqt / sqt0
           enddo
+           
           call nexp_match(t_samples,s_samples,nxpoints,modeex,aexp11,rexp11,ssq)
           aexpcc = aexp11
           rexpcc = rexp11
@@ -355,7 +356,8 @@ ist: if( newcomp_required ) then
              s_samples(i) = sqt/sqt0 *  exp( -diffstar * q*q * (ts)**betadif )    
            enddo
           call nexp_match(t_samples,s_samples,nxpoints,modeex,aexp22,rexp22,ssq)
-          if(ssq > 1d-4) then
+
+           if(ssq > 1d-4) then
             write(6,*)"rpa_test exp model bad match 22", ssq
           endif
      elseif(modeex==0) then     
@@ -410,7 +412,7 @@ ist: if( newcomp_required ) then
      rexp_s2(1:nexp2)  =   rexp22(1:nexp2)    ! rate      coeffs for laplace-exp representation of polymer 2
  
 
-    if( analytic == 1 .and. modeex == 3 ) then  
+    if( analytic >= 1 .and. modeex == 3 ) then  
        a1 = aexp_s2(1)
        a2 = aexp_s2(2)
        r1 = rexp_s2(1)
@@ -427,18 +429,15 @@ ist: if( newcomp_required ) then
        if(alin .ne. 0d0) then
          ss11   = InvLaplace2d22(t,   S0022, a1, a2, r1, r2, r3, S0011, Scc00, b1, b2, g1, g2, g3, phi2, phi1 )
          if(newcomp_required) ss110  = InvLaplace2d22(0d0, S0022, a1, a2, r1, r2, r3, S0011, Scc00, b1, b2, g1, g2, g3, phi2, phi1 )
-write(6,*)"i11:",t,t0,ss11,ss110
        endif
        if(astar .ne. 0d0) then
          ss22   = InvLaplace2d11(t,   S0022, a1, a2, r1, r2, r3, S0011, Scc00, b1, b2, g1, g2, g3, phi2, phi1 )
          if(newcomp_required) ss220  = InvLaplace2d11(0d0, S0022, a1, a2, r1, r2, r3, S0011, Scc00, b1, b2, g1, g2, g3, phi2, phi1 )
-write(6,*)"i22:",t,t0,ss22,ss220
 
        endif
         if( alin*astar .ne. 0d0 ) then
          ss12   = InvLaplace2d12(t,   S0022, a1, a2, r1, r2, r3, S0011, Scc00, b1, b2, g1, g2, g3, phi2, phi1 )
          if(newcomp_required) ss120  = InvLaplace2d12(0d0, S0022, a1, a2, r1, r2, r3, S0011, Scc00, b1, b2, g1, g2, g3, phi2, phi1 )
-write(6,*)"i12:",t,t0,ss12,ss120
         endif 
 
      else
@@ -458,20 +457,10 @@ write(6,*)"i12:",t,t0,ss12,ss120
 
 !
      endif
-!!     sqt  = St_rpa(t ,1,1)*alin*alin + 2*alin*astar*St_rpa(t ,1,2) + St_rpa(t ,2,2)*astar*astar 
-!!     sqt0 = St_rpa(t0,1,1)*alin*alin + 2*alin*astar*St_rpa(t0,1,2) + St_rpa(t0,2,2)*astar*astar 
-
 
 
      sqt  = ss11  * alin*alin + 2*alin*astar * ss12  +  ss22  * astar*astar 
      sqt0 = ss110 * alin*alin + 2*alin*astar * ss120 +  ss220 * astar*astar 
-
-
-! Rpa (assuming contrast only between h-lin polymer and the rest DAS MUSS NOCH GEAENDER WERDEN !
-
-!      Sqt0   = philin*((phistar+philin-1)*Plin0-Pstar0*phistar)*Plin0/(Plin0*(phistar-1)-Pstar0*phistar)
-!      Sqt    = philin*((phistar+philin-1)*Plin -Pstar *phistar)*Plin /(Plin *(phistar-1)-Pstar *phistar)
-
 
 
 
