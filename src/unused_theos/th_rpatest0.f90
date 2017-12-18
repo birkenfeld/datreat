@@ -109,7 +109,7 @@
 ! ----- initialisation ----- 
     IF (ini.eq.0) then 
        thnam = 'rpatest'
-       nparx =       20
+       nparx =       18
        IF (npar.lt.nparx) then
            WRITE (6,*)' theory: ',thnam,' no of parametrs=',nparx,' exceeds current max. = ',npar
           th_rpatest = 0
@@ -140,8 +140,6 @@
         parnam (16) = 'modeex  '  ! selects way of representation in terms of nexp
         parnam (17) = 'nxpoints'  ! number of points to determine representation in terms of nexp
         parnam (18) = 'tzero   '  ! preliminary: effective zero time for S(Q,t=0=tzero)
-        parnam (19) = 'tmaxrng '  ! maximum range that shall be spanned by creating the n-exp model
-        parnam (20) = 'minrate '  ! minimum rate allowed in the exp models
 
 ! >>>>> describe parameters >>>>>>> 
         th_param_desc( 1,idesc) = "prefactor" !//cr//parspace//&
@@ -162,8 +160,6 @@
         th_param_desc(16,idesc) = "mode: number of exps to represent" !//cr//parspace//&
         th_param_desc(17,idesc) = "number of points to determine representation in terms of nexp" !//cr//parspace//&
         th_param_desc(18,idesc) = "preliminary: effective zero time for S(Q,t=0=tzero)" !//cr//parspace//&
-        th_param_desc(19,idesc) = " maximum range that shall be spanned by creating the n-exp model" !//cr//parspace//&
-        th_param_desc(20,idesc) = " minimum rate allowed in the exp models" !//cr//parspace//&
 ! >>>>> describe record parameters used >>>>>>>
         th_file_param(:,idesc) = " " 
         th_file_param(  1,idesc) = "q        > scattering wavevector"
@@ -204,8 +200,6 @@
       modeex   = nint(pa(16))
       nxpoints = nint(pa(17))
       t0       = abs( pa(18))
-      tmax     = abs( pa(19))
-      rlow     = abs( pa(20))  ! parameter in rpa_laplace
 
 
       t0       = max(t0      ,tmin)
@@ -291,7 +285,13 @@ i1:  if( mode == 0 ) then     ! normal spin-echo
 
       newcomp_required = ( sum(abs(allparams-last_params)) .ne. 0 ) .and. (modeex > 0)
     
-!!?? testing if(analytic < 0) newcomp_required = .true.
+! newcomp_required = .true.
+!!!!!!
+!!!!! Aus bisher unbekannter Ursache reagiert die Rechnung (analytic vs numeric) auf diesen Flag
+!!!!! eigentlich sollte alles einmal berechnet so bleiben
+!!!!! was ist da los, der Effekt is zwar klein aber sichtbar !!! ????
+!!!!! parameter vergessen ??
+!!!!!!
 
       if(newcomp_required) then
         last_params = allparams
@@ -322,7 +322,6 @@ ilr: if( newcomp_required ) then
              t_samples(i) = ts
              s_samples(i) = locrep2 * sqt / sqt0
           enddo
-           
           call nexp_match(t_samples,s_samples,nxpoints,modeex,aexp11,rexp11,ssq)
           aexpcc = aexp11
           rexpcc = rexp11
@@ -356,8 +355,7 @@ ist: if( newcomp_required ) then
              s_samples(i) = sqt/sqt0 *  exp( -diffstar * q*q * (ts)**betadif )    
            enddo
           call nexp_match(t_samples,s_samples,nxpoints,modeex,aexp22,rexp22,ssq)
-
-           if(ssq > 1d-4) then
+          if(ssq > 1d-4) then
             write(6,*)"rpa_test exp model bad match 22", ssq
           endif
      elseif(modeex==0) then     
@@ -412,7 +410,7 @@ ist: if( newcomp_required ) then
      rexp_s2(1:nexp2)  =   rexp22(1:nexp2)    ! rate      coeffs for laplace-exp representation of polymer 2
  
 
-    if( analytic >= 1 .and. modeex == 3 ) then  
+    if( analytic == 1 .and. modeex == 3 ) then  
        a1 = aexp_s2(1)
        a2 = aexp_s2(2)
        r1 = rexp_s2(1)
@@ -429,15 +427,18 @@ ist: if( newcomp_required ) then
        if(alin .ne. 0d0) then
          ss11   = InvLaplace2d22(t,   S0022, a1, a2, r1, r2, r3, S0011, Scc00, b1, b2, g1, g2, g3, phi2, phi1 )
          if(newcomp_required) ss110  = InvLaplace2d22(0d0, S0022, a1, a2, r1, r2, r3, S0011, Scc00, b1, b2, g1, g2, g3, phi2, phi1 )
+write(6,*)"i11:",t,t0,ss11,ss110
        endif
        if(astar .ne. 0d0) then
          ss22   = InvLaplace2d11(t,   S0022, a1, a2, r1, r2, r3, S0011, Scc00, b1, b2, g1, g2, g3, phi2, phi1 )
          if(newcomp_required) ss220  = InvLaplace2d11(0d0, S0022, a1, a2, r1, r2, r3, S0011, Scc00, b1, b2, g1, g2, g3, phi2, phi1 )
+write(6,*)"i22:",t,t0,ss22,ss220
 
        endif
         if( alin*astar .ne. 0d0 ) then
          ss12   = InvLaplace2d12(t,   S0022, a1, a2, r1, r2, r3, S0011, Scc00, b1, b2, g1, g2, g3, phi2, phi1 )
          if(newcomp_required) ss120  = InvLaplace2d12(0d0, S0022, a1, a2, r1, r2, r3, S0011, Scc00, b1, b2, g1, g2, g3, phi2, phi1 )
+write(6,*)"i12:",t,t0,ss12,ss120
         endif 
 
      else
@@ -457,10 +458,20 @@ ist: if( newcomp_required ) then
 
 !
      endif
+!!     sqt  = St_rpa(t ,1,1)*alin*alin + 2*alin*astar*St_rpa(t ,1,2) + St_rpa(t ,2,2)*astar*astar 
+!!     sqt0 = St_rpa(t0,1,1)*alin*alin + 2*alin*astar*St_rpa(t0,1,2) + St_rpa(t0,2,2)*astar*astar 
+
 
 
      sqt  = ss11  * alin*alin + 2*alin*astar * ss12  +  ss22  * astar*astar 
      sqt0 = ss110 * alin*alin + 2*alin*astar * ss120 +  ss220 * astar*astar 
+
+
+! Rpa (assuming contrast only between h-lin polymer and the rest DAS MUSS NOCH GEAENDER WERDEN !
+
+!      Sqt0   = philin*((phistar+philin-1)*Plin0-Pstar0*phistar)*Plin0/(Plin0*(phistar-1)-Pstar0*phistar)
+!      Sqt    = philin*((phistar+philin-1)*Plin -Pstar *phistar)*Plin /(Plin *(phistar-1)-Pstar *phistar)
+
 
 
 
