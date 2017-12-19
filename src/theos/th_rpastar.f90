@@ -274,11 +274,23 @@
       xh = 1.0d0
       call parget('astar    ',xh,iadda,ier)
       astar  = xh
-!!! >>> tentative onl testing
+!!! >>> tentative only testing
       xh = 0d0
       call parget('analytic ',xh,iadda,ier)
       analytic  = nint(xh) 
-!!! 
+!!! >>> tentative only testing
+      xh =  0.0001d0
+      call parget('xil      ',xh,iadda,ier)
+      xil = xh
+!!! >>> tentative only testing
+      xh =  1d-9
+      call parget('epap      ',xh,iadda,ier)
+      epap = xh
+!!! >>> tentative only testing
+      xh =  1d-5
+      call parget('epsrpa    ',xh,iadda,ier)
+      epsrpa = xh
+!!!!!! 
 ! ------------------------------------------------------------------
 ! ----------------------- implementation ---------------------------
 ! ------------------------------------------------------------------
@@ -370,9 +382,9 @@ ilr: if( newcomp_required ) then
 ! RPA VARIABLE TRANSFER
 
 
- xil         =  0.0001d0    ! distance of path for inv-laplace integration
- epap        =  1d-9
- epsrpa      =  1d-5
+!!  xil         =  0.0001d0    ! distance of path for inv-laplace integration
+!!  epap        =  1d-9
+!!  epsrpa      =  1d-5
 
  
 !

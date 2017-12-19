@@ -202,7 +202,7 @@ end function Ss_kernel_2D
  
   rmin = max(  rlow,                            &
                min( minval(rexp_s1(1:nexp1)),   &
-                    minval(rexp_s1(1:nexp2)),   &
+                    minval(rexp_s2(1:nexp2)),   &
                     minval(rexp_cc(1:nexpcc)) ))
 
   limit_scale = limit_scale_factor / rmin
