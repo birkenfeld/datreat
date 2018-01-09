@@ -103,12 +103,12 @@ CONTAINS
 !!         write(6,'(i8,2f18.7,6x,2f18.7)')i, a0(i), pxerr(2*i-1), r0(i), pxerr(2*i)
       enddo
 
-      write(6,'(a)')"#    exp fit result: "
+!!      write(6,'(a)')"#    exp fit result: "
       write(6,'(a,i4,a,2f12.6,a,2f12.6,a)')  &
-           "#    use values:",np,"(", xv(1), yv(1),")-->(", xv(np), yv(np),")" 
+           "# exp-fit n, range:",np,"(", xv(1), yv(1),")-->(", xv(np), yv(np),")" 
       write(6,'(a,i2,a,e9.2,a,20(a,f6.3," t=",f10.2,"|"))')&
            "# ",nexps," exp model(",ssq,"):|",("a=",px(2*i-1),1d0/px(2*i),i=1,nexps)
-      write(6,*)
+!!      write(6,*)
      
     ! sorting fastes rate first
       iperm = [(i,i=1,nexps)]
