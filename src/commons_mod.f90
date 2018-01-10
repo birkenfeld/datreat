@@ -578,16 +578,16 @@
    use dimensions
    use theory
    save
-        integer, parameter         :: M_recin_par  = 30  
-        integer, parameter         :: M_recout_par = 30  
+        integer, parameter         :: M_recin_par  = 100 
+        integer, parameter         :: M_recout_par = 100 
         character(len=1),parameter :: cr = char(10)
         character(len=16),parameter:: parspace = "                "
 	character(len=8)           :: th_identifier(c_MTH) = " "
 	character(len=1024)        :: th_explanation(c_MTH)
 	character(len=1024)        :: th_citation(c_MTH) = " "
-	character(len=256)         :: th_param_desc(c_MTPAR,c_MTH)
-	character(len=256)         :: th_file_param(M_recin_par,c_MTH)
-	character(len=256)         :: th_out_param(M_recout_par,c_MTH)
+	character(len=1024)         :: th_param_desc(c_MTPAR,c_MTH)
+	character(len=1024)         :: th_file_param(M_recin_par,c_MTH)
+	character(len=1024)         :: th_out_param(M_recout_par,c_MTH)
 	integer, private           :: nthdesc = 0
         integer                    :: idesc
    

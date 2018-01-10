@@ -362,9 +362,9 @@
            goto 250
 52        continue
            if(imu) then
-              sum=sum*th_rpastar(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_rpalin(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_rpastar(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_rpalin(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
            endif
            goto 250
 53        continue
@@ -376,9 +376,9 @@
            goto 250
 54        continue
            if(imu) then
-              sum=sum*th_rpatest(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_rpastar3(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_rpatest(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_rpastar3(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
            endif
            goto 250
 55        continue

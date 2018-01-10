@@ -104,11 +104,11 @@
        nthpar(51) = mtpar 
        dummy = rousei(x,par,thenam(51),thparn(:,51),nthpar(51),ini,idum ,idum,idum,idum)
        nthpar(52) = mtpar 
-       dummy = th_rpastar(x,par,thenam(52),thparn(:,52),nthpar(52),ini,idum ,idum,idum,idum)
+       dummy = th_rpalin(x,par,thenam(52),thparn(:,52),nthpar(52),ini,idum ,idum,idum,idum)
        nthpar(53) = mtpar 
        dummy = th_rpastar2(x,par,thenam(53),thparn(:,53),nthpar(53),ini,idum ,idum,idum,idum)
        nthpar(54) = mtpar 
-       dummy = th_rpatest(x,par,thenam(54),thparn(:,54),nthpar(54),ini,idum ,idum,idum,idum)
+       dummy = th_rpastar3(x,par,thenam(54),thparn(:,54),nthpar(54),ini,idum ,idum,idum,idum)
        nthpar(55) = mtpar 
        dummy = th_sansfac(x,par,thenam(55),thparn(:,55),nthpar(55),ini,idum ,idum,idum,idum)
        nthpar(56) = mtpar 

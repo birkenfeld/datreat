@@ -101,12 +101,17 @@ CONTAINS
          a0(i) =  px(2*i-1)
          r0(i) =  px(2*i)
 !!         write(6,'(i8,2f18.7,6x,2f18.7)')i, a0(i), pxerr(2*i-1), r0(i), pxerr(2*i)
+         if( r0(i) < 1d-5 ) then
+            write(6,*)"WARNING(nexp_match): rate = ",r0(i)," is set to 1e-5"
+            r0(i)   = 1d-5
+            px(2*i) = r0(i)
+         endif 
       enddo
 
 !!      write(6,'(a)')"#    exp fit result: "
       write(6,'(a,i4,a,2f12.6,a,2f12.6,a)')  &
            "# exp-fit n, range:",np,"(", xv(1), yv(1),")-->(", xv(np), yv(np),")" 
-      write(6,'(a,i2,a,e9.2,a,20(a,f6.3," t=",f10.2,"|"))')&
+      write(6,'(a,i2,a,e9.2,a,20(a,f6.3," t=",f13.2,"|"))')&
            "# ",nexps," exp model(",ssq,"):|",("a=",px(2*i-1),1d0/px(2*i),i=1,nexps)
 !!      write(6,*)
      

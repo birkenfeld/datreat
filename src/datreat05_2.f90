@@ -3711,7 +3711,7 @@ exclude:   if(found('exclude  ')) then
 !          write(6,390)nsel,(isels(i),numor(isels(i)),ifits(i),i=1,nsel)
    390     format(' selected items: ',i5/                                &
       &           ' scan-address:  numor:      fit-address:'/            &
-      &           (1x,i8,5x,i8,5x,i8))
+      &           (1x,i8,5x,i12,5x,i12))
 
 
 !
