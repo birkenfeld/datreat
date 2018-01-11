@@ -596,28 +596,18 @@ ilr: if( newcomp_required ) then
 
      else
 
-  write(6,*) "St_rpa: "
 
        if(alin .ne. 0d0) then
-  write(6,*)"s11"
                                 ss11  = St_rpa(t ,1,1)
-  write(6,*)"1:", ss11, t, t0
-
            if(newcomp_required) ss110 = St_rpa(t0,1,1)
-  write(6,*) ss11, ss110
         endif
         if(arous .ne. 0d0) then
-  write(6,*)"s22"
            ss22                       = St_rpa(t ,2,2)
            if(newcomp_required) ss220 = St_rpa(t0,2,2)
-  write(6,*) ss22, ss220
         endif
         if( alin*arous .ne. 0d0 ) then
-  write(6,*)"s12"
            ss12                       = St_rpa(t ,1,2) 
            if(newcomp_required) ss120 = St_rpa(t0,1,2) 
-  write(6,*) ss12, ss120
-
         endif 
 
 !

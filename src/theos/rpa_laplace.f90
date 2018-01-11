@@ -2,6 +2,8 @@
 !----------------------------------------------------------------------------------------------------------------
 module rpa_laplace
 !----------------------------------------------------------------------------------------------------------------
+use integration
+implicit none
 
 integer,          parameter :: XPREC = 8   !! TBD hier kind DBL einsetzen
 real(kind=XPREC), parameter :: Pi = 4d0*atan(1d0)
@@ -29,7 +31,7 @@ real(kind=XPREC)            :: epsrpa  = 1d-5      ! accuracy parameter
 real   (kind=XPREC) :: limit_scale_factor=150d0   ! determines limit of integration
 real   (kind=XPREC) :: rlow = 1d0/10000d0         ! lowest expected detectable rate
 
-
+real   (kind=XPREC) :: t_strpa_min = 0.1d0        ! minimum time parameter in st_rpa
 
 
 real(kind=XPREC)            :: t_param
@@ -195,9 +197,11 @@ end function Ss_kernel_2D
 
   is_sel  = idx(i1,i2)
 
+
   call integral_setmethod(4)
   call integral_setaccuracy(1d-10)
   call intprint(0)
+
 !
  
   rmin = max(  rlow,                            &
@@ -208,10 +212,19 @@ end function Ss_kernel_2D
   limit_scale = limit_scale_factor / rmin
 
   t_param = t
+  
 
-  b  =  max(limit_scale/t, limit_scale)
+  if(t_param < t_strpa_min) then
+    write(6,*)"WARNING: st_rpa: time parameter t=", t_param
+    write(6,*)"         is set to (t_strpa_min) =", t_strpa_min
+!! to avoid exceesive b values      
+    t_param = t_strpa_min
+  endif
+
+  b  =  max(limit_scale/t_param, limit_scale)
   a  = -b
 ! yr =   integral( Ss_kernel_2d ,a  ,b,10000,1d-8)
+
   yr = 2*integral( Ss_kernel_2d ,0d0,b,500000,epsrpa)
 
 end function St_rpa
