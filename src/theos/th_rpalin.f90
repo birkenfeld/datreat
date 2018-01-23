@@ -244,8 +244,8 @@
         th_file_param( 10,idesc) = "tau      > tau val for mode > 0 calc"
         th_file_param( 11,idesc) = "alin     > scattering contrast linear"
         th_file_param( 12,idesc) = "arous    > scattering contrast star"
-        th_file_param( 13,idesc) = "analytic > if=1 use polynomial method"
-        th_file_param( 14,idesc) = "dss      > polynom sampling distance used for polynomial method only" //cr//parspace//&
+        th_file_param( 13,idesc) = "analytic > if=1 use polynomial method if=2 use efficient num integ."
+        th_file_param( 14,idesc) = "dss      > modification factor for polynom sampling distance used for polynomial method only" //cr//parspace//&
                                    "           this is critical for numerical accuracy/stability try other" //cr//parspace//&
                                    "           values if the computation fails "
         th_file_param( 15,idesc) = "sfak0    > polynom scaling factor used for polynomial method only" //cr//parspace//&
@@ -263,7 +263,7 @@
         th_file_param( 19,idesc) = "epsrpa   > for analytic=0 (or not present): integration for invlaplace" //cr//parspace//&
                                    "           epsrpa is an accuracy target for the numerical integratio" //cr//parspace//&
                                    "           a 1e-5 value should usually be good  "
-    
+        th_file_param( 19,idesc) = "ss_offs  > offset for center of polynom evaluation range " 
 ! >>>>> describe record parameters creaqted by this theory >>>>>>> 
         th_out_param(:,idesc)  = " "
 ! 
@@ -374,8 +374,8 @@
       xh = 1.0d0
       call parget('arous    ',xh,iadda,ier)
       arous  = xh
-!!! >>> tentative only testing
-      xh = 0d0
+!!! >>> tentative only testing USE OPTIMIZED log space integration as default (2)
+      xh = 2
       call parget('analytic ',xh,iadda,ier)
       analytic  = nint(xh) 
 !!! >>> tentative only testing
@@ -394,9 +394,16 @@
 !!      this parameter is critical for the numerical accuracy 
 !!      TBD determine it automatically
 !!      just now: try it out....
-      xh =  0.001
+      xh =  0.01
       call parget('dss       ',xh,iadda,ier)
       dss = xh
+!!! >>> in the polynomial analytic this determines the scaling of the polynomial testpoints
+!!      this parameter is critical for the numerical accuracy 
+!!      TBD determine it automatically
+!!      just now: try it out....
+      xh =  0.0
+      call parget('ss_offs   ',xh,iadda,ier)
+      ss_offset = xh
 !!! >>> in the polynomial analytic this determines the scaling of the polynomial testpoints
 !!      this parameter is critical for the numerical accuracy 
 !!      TBD determine it automatically
@@ -548,12 +555,23 @@ ilr: if( newcomp_required ) then
         aexp_s2(1:nexp2)  =   aexp22(1:nexp2)    ! amplitude coeffs for laplace-exp representation of polymer 2
         rexp_s2(1:nexp2)  =   rexp22(1:nexp2)    ! rate      coeffs for laplace-exp representation of polymer 2
     
-        if(analytic >= 1) then
+        if(analytic == 1) then
  !! AUS NUMERISCHEN GRUENDEN DARF Phi1 bzw Phi2 nicht NULL sein
  !! erstmal default Aktion    
           if(phi1 < 1d-5) phi1 = 1d-5
           if(phi2 < 1d-5) phi2 = 1d-5
           call get_invlaplace_coeffs( il_coeffs11, il_coeffs12, il_coeffs22 , il_alphas, nnsum)  
+        endif
+
+        if(analytic == 2) then
+            write(6,*)"analytic = 2: log spaced oscillating integral.."
+            call prepare_intervals(900,1d-6,1d6)
+            call sel_scomp(1) 
+            call create_coefficients(1, Ssfu)
+            call sel_scomp(2)
+            call create_coefficients(2, Ssfu)
+            call sel_scomp(4)  
+            call create_coefficients(3, Ssfu)
         endif
 
  !!! testouptput
@@ -589,13 +607,24 @@ ilr: if( newcomp_required ) then
 
  
 
-    if( analytic >= 1 ) then  
+    if( analytic == 1 ) then  
 !     try the polynomial approach
       call compute_invlaplace(  t, il_coeffs11, il_coeffs12, il_coeffs22 , il_alphas, nnsum, ss11, ss12, ss22) 
       call compute_invlaplace(0d0, il_coeffs11, il_coeffs12, il_coeffs22 , il_alphas, nnsum, ss110, ss120, ss220) 
 
-     else
+     else if(  analytic == 2 ) then
+       ss11 =  get_integral_value(1, max(t0,t))
+       ss12 =  get_integral_value(2, max(t0,t))
+       ss22 =  get_integral_value(3, max(t0,t))
+ 
+       if(newcomp_required) then
+         ss110 =  get_integral_value(1, t0)
+         ss120 =  get_integral_value(2, t0)
+         ss220 =  get_integral_value(3, t0)
+       endif
 
+      ! write(6,*)"a:", t, ss11, ss110
+     else
 
        if(alin .ne. 0d0) then
                                 ss11  = St_rpa(t ,1,1)

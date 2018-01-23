@@ -124,6 +124,8 @@
      integer                 :: i
      double precision        :: ts, ssq
 
+     double precision        :: astarb
+
      double precision        :: ss11, ss110, ss12, ss120, ss22, ss220
 
      double precision        :: a1, a2, r1, r2, r3, b1, b2, g1, g2, g3
@@ -264,6 +266,9 @@
                                    "           epsrpa is an accuracy target for the numerical integratio" //cr//parspace//&
                                    "           a 1e-5 value should usually be good  "
     
+        th_file_param( 19,idesc) = "astarb   > if not 0 the astarb is the background cc an not the linear pol" //cr//parspace
+    
+!
 ! >>>>> describe record parameters creaqted by this theory >>>>>>> 
         th_out_param(:,idesc)  = " "
 ! 
@@ -370,6 +375,10 @@
       xh = 0.0d0
       call parget('alin     ',xh,iadda,ier)
       alin   = xh
+!! >>> extract: tau for mode > 0
+      xh = 0.0d0
+      call parget('astarb   ',xh,iadda,ier)
+      astarb  = xh
 !!! >>> extract: tau for mode > 0
       xh = 1.0d0
       call parget('astar    ',xh,iadda,ier)
@@ -394,7 +403,7 @@
 !!      this parameter is critical for the numerical accuracy 
 !!      TBD determine it automatically
 !!      just now: try it out....
-      xh =  0.001
+      xh =  0.01
       call parget('dss       ',xh,iadda,ier)
       dss = xh
 !!! >>> in the polynomial analytic this determines the scaling of the polynomial testpoints
@@ -480,6 +489,8 @@ ilr: if( newcomp_required ) then
       ! linear polymer componenet, here: matrix
       ! modelling of the long chain linear componente by the empirical locrep scheme  
 
+is:   if(astar == 0d0) then
+
       do i=1,nxpoints
              ts      =  exp(i*log(tmax*t_table_spacing1)/nxpoints)/t_table_spacing2
 
@@ -499,6 +510,8 @@ ilr: if( newcomp_required ) then
           if(ssq > 1d-4) then
             write(6,*)"rpa_test exp model bad match cc", ssq
           endif
+
+      endif is
 
 
      ! star ( primary sample component) here the component with index 2
@@ -544,6 +557,14 @@ ilr: if( newcomp_required ) then
         rexp_s1(1:nexp1)  =   rexp11(1:nexp1)    ! rate      coeffs for laplace-exp representation of polymer 1
         aexp_s2(1:nexp2)  =   aexp22(1:nexp2)    ! amplitude coeffs for laplace-exp representation of polymer 2
         rexp_s2(1:nexp2)  =   rexp22(1:nexp2)    ! rate      coeffs for laplace-exp representation of polymer 2
+
+        if(astarb .ne. 0d0) then
+          nexpcc  = nexp2
+          aexp_cc = aexp_s2
+          rexp_cc = rexp_s2
+          Scc00   = pstar0
+          write(6,*)"Background is the star function"
+        endif
     
         if(analytic >= 1) then
  !! AUS NUMERISCHEN GRUENDEN DARF Phi1 bzw Phi2 nicht NULL sein
@@ -644,6 +665,7 @@ ilr: if( newcomp_required ) then
   call parset('phistar ',sngl(phistar),iadda) 
   call parset('alin    ',sngl(alin),iadda) 
   call parset('astar   ',sngl(astar),iadda) 
+  call parset('astarb  ',sngl(astarb),iadda) 
 
 
   call parset('dss     ',sngl(dss),iadda) 

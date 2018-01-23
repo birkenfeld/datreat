@@ -56,11 +56,28 @@ real(kind=XPREC)            :: t_param
   real   (kind=XPREC)  :: rexp_s2(mex)! rate      coeffs for laplace-exp representation of polymer 2
  
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+ integer, parameter  :: mintervals = 3000
+ integer, parameter  :: mtypes = 4
+ integer, parameter  :: jmin = -3
+ integer, parameter  :: jmax =  2
+
+ real(kind=XPREC)    :: interval_start(mintervals)
+ real(kind=XPREC)    :: interval_end(mintervals)
+ real(kind=XPREC)    :: funcoefs(jmin:jmax, mintervals, mtypes)
+ integer             :: n_intervals                ! actual number of intervals
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 CONTAINS
+
+ subroutine sel_scomp(is)
+  integer, intent(in) :: is
+  is_sel = is
+ end subroutine sel_scomp
 
  function Fn(s,n,a,r)
 !--------------------
@@ -2842,6 +2859,521 @@ subroutine create_poly_from_roots(poly, degree, a, roots)
     call multiply_poly_1(poly, roots(i), poly, i-1)
   enddo
 end
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+  function SsFu(u) result(v)
+ !--------------------------
+  implicit none 
+ 
+  real   (kind=XPREC)              :: v           ! real part of integrand
+  real   (kind=XPREC), intent(in)  :: u           ! integration path variable
+ 
+  complex(kind=XPREC)  :: s           ! Laplace variable
+  complex(kind=XPREC)  :: Fc          ! relaxation function "matrix" polymer (cc-component) 
+  complex(kind=XPREC)  :: Fs1         ! relaxation function of polymer component 1
+  complex(kind=XPREC)  :: Fs2         ! relaxation function of polymer component 2
+  complex(kind=XPREC)  :: Ss11        ! S_11(q,s)
+  complex(kind=XPREC)  :: Ss22        ! S_22(q,s)
+  complex(kind=XPREC)  :: Ss12        ! S_12(q,s)
+  
+  complex(kind=XPREC)  :: Ssxx
+
+! Reference Maple: RpaLaplace_corr_2D_3.mw  (23)-(27)
+
+!! the following variables shoul be global for the module --> move to module section
+!!  integer              :: is_sel      ! selector 1: S11, 2: S12, 3: S12, 4: S22 
+!!  complex(kind=XPREC)  :: Ssxx        ! return variable
+!!  real   (kind=XPREC)  :: phi1        ! volume fraction of polymer component 1
+!!  real   (kind=XPREC)  :: phi2        ! volume fraction of polymer component 2
+!!  real   (kind=XPREC)  :: Scc00       ! unperturbed structure factor S(Q) of "matrix" polymers
+!!  real   (kind=XPREC)  :: S0011       ! unperturbed structure factor S(Q) of polymer 1
+!!  real   (kind=XPREC)  :: S0022       ! unperturbed structure factor S(Q) of polymer 2
+!!  integer              :: nexpcc      ! number of exp-functions to describe background
+!!  integer              :: nexp1       ! number of exp-functions to describe component1
+!!  integer              :: nexp2       ! number of exp-functions to describe component2
+!!  integer, parameter   :: mex = 32    ! maximum number of exponentials (typ 3-6 !)
+!!  real   (kind=XPREC)  :: aexp_cc(mex)! amplitude coeffs for laplace-exp representation of "matrix"
+!!  real   (kind=XPREC)  :: rexp_cc(mex)! rate      coeffs for laplace-exp representation of "matrix"
+!!  real   (kind=XPREC)  :: aexp_s1(mex)! amplitude coeffs for laplace-exp representation of polymer 1
+!!  real   (kind=XPREC)  :: rexp_s1(mex)! rate      coeffs for laplace-exp representation of polymer 1
+!!  real   (kind=XPREC)  :: aexp_s2(mex)! amplitude coeffs for laplace-exp representation of polymer 2
+!!  real   (kind=XPREC)  :: rexp_s2(mex)! rate      coeffs for laplace-exp representation of polymer 2
+
+!! note expternal parameter: t_param for the time in the resulting S(Q,t)
+!! and the apodisation epsilon parameter epap
+!! xil the parallel shift of the path
+     
+ 
+
+  s     = cmplx(1d-12,u)
+
+ 
+  Fc   =  Fn (s, nexpcc , aexp_cc, rexp_cc )
+  Fs1  =  Fn (s, nexp1  , aexp_s1, rexp_s1 )
+  Fs2  =  Fn (s, nexp2  , aexp_s2, rexp_s2 )
+
+
+  select case(is_sel) 
+
+  case(1)
+   Ss11 = &
+     phi1*S0011*(-Fs1*(-1+phi1+phi2)**2*(Fc*s-1)*Scc00**2+(-1+phi1+phi2)*(((-2+(Fc+Fs2)*s)* &
+     S0022*phi2+Fc*s*phi1*S0011)*Fs1-Fc*phi1*S0011)*Scc00-phi2*((phi2*S0022*(Fs2*s-1)+Fs2* &
+     S0011*phi1*s)*Fs1-Fs2*phi1*S0011)*S0022)/((-1+phi1+phi2)*Scc00*(Fc*s-1)-Fs1*S0011*phi1*s+ &
+     (-Fs2*S0022*s+S0022)*phi2+phi1*S0011)/((1-phi1-phi2)*Scc00+phi1*S0011+phi2*S0022)
+   Ssxx = Ss11
+   
+
+   case(2:3) 
+    Ss12 = &
+     phi1*S0011*phi2*S0022*(-(-1+phi1+phi2)*(Fs1*Fs2*s+Fc-Fs1-Fs2)*Scc00+Fs2*S0011*(Fs1*s-1)* &
+     phi1+Fs1*phi2*S0022*(Fs2*s-1))/((-1+phi1+phi2)*Scc00*(Fc*s-1)+(-Fs1*S0011*s+S0011)*phi1- &
+     phi2*S0022*(Fs2*s-1))/((1-phi1-phi2)*Scc00+phi1*S0011+phi2*S0022)
+    Ssxx = Ss12
+    
+
+   case(4)
+    Ss22 = &
+     (-Fs2*(-1+phi1+phi2)**2*(Fc*s-1)*Scc00**2+(((-2+(Fc+Fs1)*s)*S0011*phi1+phi2*S0022*Fc*s)* &
+     Fs2-Fc*phi2*S0022)*(-1+phi1+phi2)*Scc00-phi1*S0011*((S0011*(Fs1*s-1)*phi1+Fs1*S0022*phi2*s)* &
+     Fs2-Fs1*phi2*S0022))*phi2*S0022/((-1+phi1+phi2)*Scc00*(Fc*s-1)-Fs2*S0022*phi2*s+ &
+     (-Fs1*S0011*s+S0011)*phi1+phi2*S0022)/((1-phi1-phi2)*Scc00+phi1*S0011+phi2*S0022)
+    Ssxx = Ss22
+   
+   
+   case default
+    write(6,*)"Error in Ss_kernel, invalid selection (outside 1:4), is_sel=", is_sel
+    stop   ! this indicates a programming error, thus we stop here -> fix the bug !
+
+  end select
+
+ !   Ssxx = Ssxx * exp(t_param * s) * exp(-epap*u*u)
+ !   Ssxx = Ssxx / (2 * Pi ) 
+
+    v = Realpart(Ssxx) * 2 / Pi
+ 
+
+end function SsFu
+
+
+
+ subroutine prepare_intervals(n,omega_min,omega_max)
+!---------------------------------------------------
+  implicit none
+  integer,          intent(in) :: n
+  real(kind=XPREC), intent(in) :: omega_min
+  real(kind=XPREC), intent(in) :: omega_max
+
+  real(kind=XPREC), parameter  :: virtual_zero = 1d-10
+  real(kind=XPREC)             :: x, base
+  integer                      :: i
+
+  if( n < 2 .or. n > mintervals) stop "prepare_intervals: nuber of intervals is out of range" 
+
+  n_intervals = n
+  interval_start(1) = virtual_zero
+  base = (omega_max/omega_min)**(1d0/(n-1))
+  do i = 2, n_intervals
+   x = omega_min * base**(i-1)
+   interval_start(i) = x
+  enddo
+
+  interval_end(1:n_intervals-1)  =      interval_start(2:n_intervals)
+  interval_end(n_intervals)      = 2 *  interval_end(n_intervals-1)
+
+ end subroutine  prepare_intervals
+
+
+
+ function get_integral_value(ityp, t) result(y)
+! ---------------------------------------
+  implicit none
+  integer,          intent(in)  :: ityp
+  real(kind=XPREC), intent(in)  :: t
+  real(kind=XPREC)              :: y
+  real(kind=XPREC)              :: ci(jmin:jmax)
+
+
+
+  integer  :: i,j
+  
+  y = 0
+  do i=1, n_intervals
+    call cos_integrals(t, i, ci )
+    do j = jmin,jmax
+      y = y +  funcoefs(j, i, ityp) * ci(j)
+    enddo
+
+  enddo
+ end function get_integral_value
+
+
+ subroutine cos_integrals(t, i, cig )
+!------------------------------------
+! cosine integrals over the testfunctions int(omega1..omega2)( phi_j * cos( omega * t) * domega
+ implicit none
+ real(kind=XPREC), intent(in)  :: t
+ integer,          intent(in)  :: i                 ! interval pertained
+ real(kind=XPREC), intent(out) :: cig(jmin:jmax)
+
+ real(kind=XPREC) :: omega1, omega2, ot1, ot2
+ real(kind=XPREC) :: S1, S2, Si1, Si2
+ real(kind=XPREC) :: C1, C2, Ci1, Ci2
+ real(kind=XPREC) :: cg1, cg2
+ 
+ omega1  =  interval_start(i)
+ omega2  =  interval_end(i)
+ ot1     =  t * omega1
+ ot2     =  t * omega2
+ 
+ C1      =  cos(ot1)
+ C2      =  cos(ot2)
+ S1      =  sin(ot1)
+ S2      =  sin(ot2)
+ 
+ call CISIA(ot1,Ci1,Si1)
+ call CISIA(ot2,Ci2,Si2)
+
+
+
+!!j=-4
+!! cg1=t**3*(-C1/omega1**3/t**3/3+S1/omega1**2/t**2/6+C1/omega1/t/6+Si1/6)
+!! cg2=t**3*(-C2/omega2**3/t**3/3+S2/omega2**2/t**2/6+C2/omega2/t/6+Si2/6)
+!! cig(-4) = cg2-cg1
+
+cig = 0
+
+if(t*omega1 > 1d-9) then
+!!j=-3
+   cg1=t**2*(-C1/omega1**2/t**2/2+S1/omega1/t/2-Ci1/2)
+   cg2=t**2*(-C2/omega2**2/t**2/2+S2/omega2/t/2-Ci2/2)
+   cig(-3) = cg2-cg1
+
+!!j=-2
+   cg1=t*(-C1/omega1/t-Si1)
+   cg2=t*(-C2/omega2/t-Si2)
+   cig(-2) = cg2-cg1
+!!j=-1
+   cg1=Ci1
+   cg2=Ci2
+   cig(-1) = cg2-cg1
+endif
+
+
+!!j=0
+if( t*omega1 > 1d-4) then
+  cg1=1/t*S1
+  cg2=1/t*S2
+  cig(0) = cg2-cg1
+else
+  cg1 = omega1 -(1d0/6d0)*omega1**3 * t**2 + (1d0/120d0)*omega1**5 *t**4
+  cg2 = omega2 -(1d0/6d0)*omega2**3 * t**2 + (1d0/120d0)*omega2**5 *t**4
+  cig(0) = cg2-cg1
+endif
+!!j=1
+if( t*omega1 > 1d-4) then
+  cg1=1/t**2*(C1+t*S1*omega1)
+  cg2=1/t**2*(C2+t*S2*omega2)
+  cig(1) = cg2-cg1
+else
+  cg1 = (1d0/2d0)*omega1**2 - (1d0/8d0)*omega1**4 * t**2 + (1d0/144d0)*omega1**6 * t**4
+  cg2 = (1d0/2d0)*omega2**2 - (1d0/8d0)*omega2**4 * t**2 + (1d0/144d0)*omega2**6 * t**4
+  cig(1) = cg2-cg1
+endif
+!!j=2
+if( t*omega1 > 3d-4) then
+  cg1=1/t**3*(omega1**2*t**2*S1-2*S1+2*C1*omega1*t)
+  cg2=1/t**3*(omega2**2*t**2*S2-2*S2+2*C2*omega2*t)
+  cig(2) = cg2-cg1
+else
+  cg1 = (1d0/3d0)*omega1**3-(1d0/10d0)*omega1**5*t**2 +(1d0/128d0)*omega1**7*t**4
+  cg2 = (1d0/3d0)*omega2**3-(1d0/10d0)*omega2**5*t**2 +(1d0/128d0)*omega2**7*t**4
+  cig(2) = cg2-cg1
+endif
+!! !!j=3 ..mach Probleme .. ??
+!! if( t*omega1 > 1d-2) then
+!!   cg1=(omega1**3*t**3*S1+3*C1*omega1**2*t**2-6*C1-6*t*S1*omega1)
+!!   cg2=(omega2**3*t**3*S2+3*C2*omega2**2*t**2-6*C2-6*t*S2*omega2)
+!!   cig(3) = (cg2-cg1)/t**4
+!! else
+!!   cg1=(1d0/4d0)*omega1**4 - (1d0/12d0)*omega1**6 * t**2
+!!   cg2=(1d0/4d0)*omega2**4 - (1d0/12d0)*omega2**6 * t**2
+!!   cig(3) = (cg2-cg1)
+!! endif
+!j=4
+!! cg1=1/t**5*(omega1**4*t**4*S1+4*C1*omega1**3*t**3-12*omega1**2*t**2*S1+24*S1-24*C1*omega1*t)
+!! cg2=1/t**5*(omega2**4*t**4*S2+4*C2*omega2**3*t**3-12*omega2**2*t**2*S2+24*S2-24*C2*omega1*t)
+!! cig(4) = cg2-cg1
+
+
+
+ end subroutine cos_integrals 
+
+
+
+
+
+
+ subroutine get_cj_matrix( xval, m, cij )
+!---------------------------------------- 
+! create matrix for the function coefficient determination in the interval represented by xval
+!  in this version we assume testfunctions of type Phi_j(x) = x**j (j=jmin...jmax)
+!  in another version we may create a more general scheme by allowing different functions for
+!  Phi_j
+! 
+ implicit none
+ real(kind=XPREC), intent(in)  :: xval(jmax-jmin+1)
+ integer, intent(in)           :: m         ! leading dimension of cij
+ real(kind=XPREC), intent(out) :: cij(m,m)  ! coefficients
+
+ integer :: i, j
+
+ if(m < jmax-jmin+1) stop "get_cj_matrix: m is too small"
+
+ do i = 1, jmax-jmin+1
+   do j=jmin,jmax
+     cij(i,j-jmin+1) = xval(i)**j 
+   enddo
+ enddo
+ 
+ end subroutine get_cj_matrix
+
+
+ function val_interpolate( ityp, x ) result(y)
+!---------------------------------------
+ implicit none
+ integer,          intent(in) :: ityp
+ real(kind=XPREC), intent(in) :: x
+ real(kind=XPREC)             :: y
+
+ integer :: i, j
+
+
+    if(ityp < 1 .or. ityp > mtypes) STOP "val_interpolate: type is out of range"
+
+d1: do i=1, n_intervals 
+!       write(6,*)"ni: ",i, interval_start(i) , interval_end(i) , x
+       if( (interval_start(i) < x) .and. (interval_end(i) >= x )) exit  
+     enddo d1
+
+ !    if(i>n_intervals) stop "val_interpolate intreval table not sufficient"
+
+     if(i>n_intervals) i=n_intervals
+
+     y = 0
+     do j=jmin,jmax
+       y = y +  funcoefs(j, i, ityp) * x**j
+     enddo
+
+ end function val_interpolate
+
+
+ subroutine create_coefficients(ityp, fu)
+!----------------------------------------
+  implicit none
+
+  integer, parameter :: m=20
+  integer, intent(in):: ityp
+  real(kind=XPREC)   :: fu
+  real(kind=XPREC)   :: cij(m,m), a(m), b(m), xv(m), yv(m), xc(m), yc(m)
+  real(kind=XPREC)   :: x1, x2, dx
+  integer :: nj, i, j
+
+  if(ityp < 1 .or. ityp > mtypes) STOP "create_coefficients: type is out of range"
+
+  nj = jmax-jmin+1
+
+  do i=1, n_intervals 
+    x1 =  interval_start(i)
+    x2 =  interval_end(i)
+
+    dx =  (x2 - x1)/(nj)
+    do j=1,nj
+      xv(j) = x1-dx/2 + j*dx
+      yv(j) = fu(xv(j)) 
+    enddo
+
+    call get_cj_matrix( xv, m, cij )
+
+    call lesolve(cij, m, yv, m, nj, yc)
+
+    funcoefs(jmin:jmax, i, ityp) = yc(1:nj)
+
+  enddo
+
+ end subroutine create_coefficients
+
+
+
+!******************************************************************
+!*      Purpose: This program computes the cosine and sine        *
+!*               integrals using subroutine CISIA                 *
+!*      Input :  x  --- Argument of Ci(x) and Si(x)               *
+!*      Output:  CI --- Ci(x)                                     *
+!*               SI --- Si(x)                                     *
+!*      Example:                                                  * 
+!*                   x         Ci(x)          Si(x)               *
+!*                ------------------------------------            *
+!*                  0.0     - ì             .00000000             *
+!*                  5.0     -.19002975     1.54993124             *
+!*                 10.0     -.04545643     1.65834759             *
+!*                 20.0      .04441982     1.54824170             * 
+!*                 30.0     -.03303242     1.56675654             *
+!*                 40.0      .01902001     1.58698512             *
+!* -------------------------------------------------------------- *
+!* REFERENCE: "Fortran Routines for Computation of Special        *
+!*             Functions jin.ece.uiuc.edu/routines/routines.html" *
+!*                                                                *
+!*                              F90 Release By J-P Moreau, Paris. *
+!*                                      (www.jpmoreau.fr)         *
+!******************************************************************
+!        PROGRAM MCISIA
+!        DOUBLE PRECISION CI,SI,X
+!        WRITE(*,*)'Please enter x '
+!        READ(*,*) X
+!        WRITE(*,*)'   x         Ci(x)          Si(x)'
+!        WRITE(*,*)'------------------------------------'
+!        CALL CISIA(X,CI,SI)
+!        IF (X.NE.0.0D0) WRITE(*,10)X,CI,SI
+!        IF (X.EQ.0.0D0) WRITE(*,20)
+!10      FORMAT(1X,F5.1,2F15.8)
+!20      FORMAT(3X,' .0',4X,' - ì',13X,'.00000000')
+!        END
+!
+
+
+        SUBROUTINE CISIA(X,CI,SI)
+
+!       =============================================
+!       Purpose: Compute cosine and sine integrals
+!                Si(x) and Ci(x)  ( x > 0 )
+!       Input :  x  --- Argument of Ci(x) and Si(x)
+!       Output:  CI --- Ci(x)
+!                SI --- Si(x)
+!       =============================================
+
+!        IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+        implicit none
+        double precision, intent(in)  :: x
+        double precision, intent(out) :: ci, si
+
+        double precision :: BJ(101) 
+        double precision :: x2, xr, xf, xa0, xa1, xa, xs, xg, xg1, xg2, xss, xcs
+        integer          :: k, m 
+  
+        double precision, parameter :: P2=1.570796326794897D0
+        double precision, parameter :: EL=.5772156649015329D0
+        double precision, parameter :: EPS=1.0D-15
+
+        X2=X*X
+        IF (X.EQ.0.0D0) THEN
+           CI=-1.0D+300
+           SI=0.0D0
+        ELSE IF (X.LE.16.0D0) THEN
+           XR=-.25D0*X2
+           CI=EL+DLOG(X)+XR
+           DO 10 K=2,40
+              XR=-.5D0*XR*(K-1)/(K*K*(2*K-1))*X2
+              CI=CI+XR
+              IF (DABS(XR).LT.DABS(CI)*EPS) GO TO 15
+10         CONTINUE
+15         XR=X
+           SI=X
+           DO 20 K=1,40
+              XR=-.5D0*XR*(2*K-1)/K/(4*K*K+4*K+1)*X2
+              SI=SI+XR
+              IF (DABS(XR).LT.DABS(SI)*EPS) RETURN
+20         CONTINUE
+        ELSE IF (X.LE.32.0D0) THEN
+           M=INT(47.2+.82*X)
+           XA1=0.0D0
+           XA0=1.0D-100
+           DO 25 K=M,1,-1
+              XA=4.0D0*K*XA0/X-XA1
+              BJ(K)=XA
+              XA1=XA0
+25            XA0=XA
+           XS=BJ(1)
+           DO 30 K=3,M,2
+30            XS=XS+2.0D0*BJ(K)
+           BJ(1)=BJ(1)/XS
+           DO 35 K=2,M
+35            BJ(K)=BJ(K)/XS
+           XR=1.0D0
+           XG1=BJ(1)
+           DO 40 K=2,M
+              XR=.25D0*XR*(2.0*K-3.0)**2/((K-1.0)*(2.0*K-1.0)**2)*X
+40            XG1=XG1+BJ(K)*XR
+           XR=1.0D0
+           XG2=BJ(1)
+           DO 45 K=2,M
+              XR=.25D0*XR*(2.0*K-5.0)**2/((K-1.0)*(2.0*K-3.0)**2)*X
+45            XG2=XG2+BJ(K)*XR
+           XCS=DCOS(X/2.0D0)
+           XSS=DSIN(X/2.0D0)
+           CI=EL+DLOG(X)-X*XSS*XG1+2*XCS*XG2-2*XCS*XCS
+           SI=X*XCS*XG1+2*XSS*XG2-DSIN(X)
+        ELSE
+           XR=1.0D0
+           XF=1.0D0
+           DO 50 K=1,9
+              XR=-2.0D0*XR*K*(2*K-1)/X2
+50            XF=XF+XR
+           XR=1.0D0/X
+           XG=XR
+           DO 55 K=1,8
+              XR=-2.0D0*XR*(2*K+1)*K/X2
+55            XG=XG+XR
+           CI=XF*DSIN(X)/X-XG*DCOS(X)/X
+           SI=P2-XF*DCOS(X)/X-XG*DSIN(X)/X
+        ENDIF
+        RETURN
+        END
+
+
+
+
+
+
+
+!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!  slatec wrapper
+!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+
+       subroutine lesolve(A, IA, B, IB, N, C)
+       
+       integer :: IA, IB, N
+       integer :: ind, itask
+       integer :: iwksp(IA)
+       integer :: i
+       double precision :: A(IA,IA),C(IA,1), B(IB,1)
+       double precision :: WKSPCE(IA)
+!      write(*,*)'nag routine f04aef replaced by slatec...'
+       itask = 1
+       ind = 1
+       call dgefs(A,IA,N,B,itask,ind,WKSPCE,iwksp)
+       do i=1,N
+          C(i,1)=B(i,1)
+       enddo
+
+       return
+       END subroutine lesolve
+
+!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+
+
+
+
+
+
+
+
 
 
 

@@ -191,7 +191,25 @@
         th_file_param(  9,idesc) = "tau      > tau val for mode > 0 calc"
         th_file_param( 10,idesc) = "alin     > scattering contrast linear"
         th_file_param( 11,idesc) = "astar    > scattering contrast star"
-! >>>>> describe record parameters creaqted by this theory >>>>>>> 
+        th_file_param( 12,idesc) = "dss      > modification factor for polynom sampling distance used for polynomial method only" //cr//parspace//&
+                                   "           this is critical for numerical accuracy/stability try other" //cr//parspace//&
+                                   "           values if the computation fails "
+        th_file_param( 12,idesc) = "sfak0    > polynom scaling factor used for polynomial method only" //cr//parspace//&
+                                   "           this is critical for numerical accuracy/stability try other" //cr//parspace//&
+                                   "           values if the computation fails "
+        th_file_param( 14,idesc) = "npp_plus > polynom sampling extra points used for polynomial method only" //cr//parspace//&
+                                   "           increasing the number npp in excess of the minimum needed" //cr//parspace//&
+                                   "           may improve accuracy, eventually decrease dss when increasing npp  "
+        th_file_param( 15,idesc) = "xil      > for analytic=0 (or not present): integration for invlaplace" //cr//parspace//&
+                                   "           xil is the displacement of the -I*inf...I*Inf integration path" //cr//parspace//&
+                                   "           along the real axis, a very small 1e-3 value shoul usually be good  "
+        th_file_param( 16,idesc) = "epap     > for analytic=0 (or not present): integration for invlaplace" //cr//parspace//&
+                                   "           epap is an optional apodisation factor" //cr//parspace//&
+                                   "           a very small 1e-9 value shoul usually be good  "
+        th_file_param( 17,idesc) = "epsrpa   > for analytic=0 (or not present): integration for invlaplace" //cr//parspace//&
+                                   "           epsrpa is an accuracy target for the numerical integratio" //cr//parspace//&
+                                   "           a 1e-5 value should usually be good  "
+!  >>>>> describe record parameters creaqted by this theory >>>>>>> 
         th_out_param(:,idesc)  = " "
 ! 
         th_rpastar2 = 0.0
@@ -302,7 +320,7 @@
 !!      this parameter is critical for the numerical accuracy 
 !!      TBD determine it automatically
 !!      just now: try it out....
-      xh =  0.001
+      xh =  1.0
       call parget('dss       ',xh,iadda,ier)
       dss = xh
 !!! >>> in the polynomial analytic this determines the scaling of the polynomial testpoints

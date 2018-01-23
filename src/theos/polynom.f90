@@ -25,7 +25,9 @@ module polynom
 use rpa_laplace
  
  double precision    :: sfak0       = 1d-3        ! base scaling factor for polynom data
- double precision    :: dss         = 0.01d0      ! step width for polynomial evaluation to fit coeffs
+ double precision    :: dss         = 0.01d0      ! modification factor for 
+ double precision    :: ss_offset   = 0d0         ! offset for polynom evaluation range
+                                                  ! step width for polynomial evaluation to fit coeffs
  double precision    :: rwarn_limit = 1d-12       ! limit for accuracy warning of polynomial model
  integer             :: npp_plus    = 1           ! additional points in table for polynomila fits
 
@@ -649,7 +651,7 @@ end function Ss_kernel_real
   complex(kind=XPREC) :: csum_11, csum_12, csum_22
 
 !!  double precision    :: dss = 1/7d0
-  double precision    :: r, sfak
+  double precision    :: r, sfak, dssx, smax
  
 
 
@@ -676,9 +678,18 @@ end function Ss_kernel_real
 
  ! call get_spoints_vector( x, npt )  ????? 
 
+
+ smax =  max( maxval(rexp_s1(1:nexp1)),  maxval(rexp_s2(1:nexp2)), maxval(rexp_cc(1:nexpcc)))
+ smax =  max( maxval(rexp_s1(1:nexp1-1)),  maxval(rexp_s2(1:nexp2-1)), maxval(rexp_cc(1:nexpcc-1)))
+ 
+ dssx = dss * smax / npt
+
+
+
  ! Write(6,*)"Denominator Polynomial "
  do j=1,npt
-   x(j) =  (j-npt/2) * dss 
+   x(j) =  (j-npt/2) * dssx - ss_offset
+
    y(j) =  denominator_polynomial(x(j)) * sfak
  enddo
 
@@ -700,7 +711,7 @@ end function Ss_kernel_real
 !  Write(6,*)"S11 Polynomial "
 
  do j=1,npt
-   x(j) =  (j-npt/2) * dss 
+   x(j) =  (j-npt/2) * dssx - ss_offset
 
    y(j) =  S11_polynomial(x(j))  * sfak
  enddo
@@ -726,7 +737,8 @@ end function Ss_kernel_real
 ! Write(6,*)"S22 Polynomial "
 
  do j=1,npt
-   x(j) =  (j-npt/2) * dss 
+   x(j) =  (j-npt/2) * dssx - ss_offset
+
 
    y(j) =  S22_polynomial(x(j)) * sfak
  enddo
@@ -752,7 +764,8 @@ end function Ss_kernel_real
 ! Write(6,*)"S12 Polynomial "
 
  do j=1,npt
-   x(j) =  (j-npt/2) * dss 
+   x(j) =  (j-npt/2) * dssx - ss_offset
+
 
    y(j) =  S12_polynomial(x(j)) * sfak
  enddo
