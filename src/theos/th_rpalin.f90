@@ -565,7 +565,12 @@ ilr: if( newcomp_required ) then
 
         if(analytic == 2) then
             write(6,*)"analytic = 2: log spaced oscillating integral.."
-            call prepare_intervals(900,1d-6,1d6)
+            if(phi1 < 1d-5) phi1 = 1d-5
+            if(phi2 < 1d-5) phi2 = 1d-5
+
+!!            call prepare_intervals(900,1d-6,1d6)
+            call prepare_intervals(900,1d-8,1d7)  !! <<<<<< Parameter ggf. noch optimiern bzw. nach aussen reichen
+
             call sel_scomp(1) 
             call create_coefficients(1, Ssfu)
             call sel_scomp(2)

@@ -566,13 +566,29 @@ is:   if(astar == 0d0) then
           write(6,*)"Background is the star function"
         endif
     
-        if(analytic >= 1) then
+        if(analytic == 1) then
  !! AUS NUMERISCHEN GRUENDEN DARF Phi1 bzw Phi2 nicht NULL sein
  !! erstmal default Aktion    
           if(phi1 < 1d-5) phi1 = 1d-5
           if(phi2 < 1d-5) phi2 = 1d-5
           call get_invlaplace_coeffs( il_coeffs11, il_coeffs12, il_coeffs22 , il_alphas, nnsum)  
         endif
+
+
+        if(analytic == 2) then
+            write(6,*)"analytic = 2: log spaced oscillating integral.."
+            if(phi1 < 1d-5) phi1 = 1d-5
+            if(phi2 < 1d-5) phi2 = 1d-5
+ 
+            call prepare_intervals(900,1d-8,1d7)  !! <<<<<< Parameter ggf. noch optimiern bzw. nach aussen reichen
+            call sel_scomp(1) 
+            call create_coefficients(1, Ssfu)
+            call sel_scomp(2)
+            call create_coefficients(2, Ssfu)
+            call sel_scomp(4)  
+            call create_coefficients(3, Ssfu)
+        endif
+
 
  !!! testouptput
  !!  write(6,'(a,d14.7)') "Scc00          = ", Scc00  
@@ -607,11 +623,23 @@ is:   if(astar == 0d0) then
 
  
 
-    if( analytic >= 1 ) then  
+    if( analytic == 1 ) then  
 !     try the polynomial approach
       call compute_invlaplace(  t, il_coeffs11, il_coeffs12, il_coeffs22 , il_alphas, nnsum, ss11, ss12, ss22) 
       call compute_invlaplace(0d0, il_coeffs11, il_coeffs12, il_coeffs22 , il_alphas, nnsum, ss110, ss120, ss220) 
 
+     else if(  analytic == 2 ) then
+       ss11 =  get_integral_value(1, max(t0,t))
+       ss12 =  get_integral_value(2, max(t0,t))
+       ss22 =  get_integral_value(3, max(t0,t))
+ 
+       if(newcomp_required) then
+         ss110 =  get_integral_value(1, t0)
+         ss120 =  get_integral_value(2, t0)
+         ss220 =  get_integral_value(3, t0)
+       endif
+
+      ! write(6,*)"a:", t, ss11, ss110
      else
 
        if(alin .ne. 0d0) then
