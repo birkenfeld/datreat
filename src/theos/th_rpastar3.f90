@@ -246,7 +246,7 @@
         th_file_param( 10,idesc) = "tau      > tau val for mode > 0 calc"
         th_file_param( 11,idesc) = "alin     > scattering contrast linear"
         th_file_param( 12,idesc) = "astar    > scattering contrast star"
-        th_file_param( 13,idesc) = "analytic > if=1 use polynomial method"
+        th_file_param( 13,idesc) = "analytic > if=1 use polynomial method, if=0 use direct integration, if=2 use opt integ."
         th_file_param( 14,idesc) = "dss      > polynom sampling distance used for polynomial method only" //cr//parspace//&
                                    "           this is critical for numerical accuracy/stability try other" //cr//parspace//&
                                    "           values if the computation fails "
@@ -384,7 +384,7 @@
       call parget('astar    ',xh,iadda,ier)
       astar  = xh
 !!! >>> tentative only testing
-      xh = 0d0
+      xh = 2d0
       call parget('analytic ',xh,iadda,ier)
       analytic  = nint(xh) 
 !!! >>> tentative only testing
