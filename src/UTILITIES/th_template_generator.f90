@@ -1,4 +1,5 @@
 program th_template_generator
+! author: michael monkenbusch, JCNS, FZ-Juelich
 ! create a template for a datreat theory
 implicit none
 
@@ -152,7 +153,7 @@ d7: do
       write(out,'(a)') trim(inline)
     enddo d7
 
-   write(out,'(3a)')"     th_",trim(adjustl(theoryname))," = ! INSERT RESULTING VALUE OF TH EVALUATION HERE"
+   write(out,'(3a)')"     th_",trim(adjustl(theoryname))," = th"
    write(out,'(a)')" "
    write(out,'(a)')"! ---- writing computed parameters to the record >>>  "
 o1: do i=1,noutpar
@@ -226,7 +227,9 @@ CONTAINS
       write(out,'(5x,a,a,a,a)') "double precision :: ",recparout(i),"   ! ",recparout_description(i)(1:80)
    enddo
    write(out,'(a)') " "
- 
+   write(out,'(5x,a)') "double precision :: th"
+   write(out,'(a)') " "
+
 
   end subroutine make_the_header
 

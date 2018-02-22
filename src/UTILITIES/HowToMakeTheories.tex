@@ -1,0 +1,300 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage[section]{placeins}
+
+
+
+%% !!!!!!!!!! Please do not change the general layout !!!!!!!!!!!
+
+%%%%%%%%%%%%% Statement of author
+%%%%%%%%%%%%% Add appropriate text
+%%%%%%%%%%%%% Template written by R. G. Winkler, Theorie II
+%%%%%%%%%%%%% Modified by K. Tillmann, IFF-IMF
+
+\def\TheAuthor{Michael Monkenbusch}                           % Author name
+\def\TheTitle{Labbook Notes}                                  % Title of contribution
+\def\TheHeading{Labbook Notes}                                % Short running title
+\def\TheInstitute{JCNS}                                       % Institute
+\def\TheAddress{FZJ}                                          % Place e.g. University ...
+\def\ThePart{}                                                % Part of book
+\def\TheChapter{I}                                            % Chapter of contribution
+
+%% NOTE !!!!!!!!
+%% If a statement exceeds one line and a line break at a
+%% particular position is desired use \newline instead of \\
+%%
+
+\usepackage{mylabbook}                                        % Style file for layout, derived from Ferienschule_07.sty
+\usepackage{float}                                            % Figure placement float
+%\usepackage{fancybox}
+
+
+\usepackage{etex}
+%\usepackage[pdftex]{color}
+
+%% \usepackage[pdftex,dvips]{graphicx}
+
+\usepackage{epsfig,color}
+\usepackage{makeidx}
+
+\usepackage{cases}
+
+
+\begin{document}
+\section{Define the problem}
+\label{sec:problem}
+
+The model to be used for data-fitting has to be selected and expressed in terms
+of some formula or procedures.
+
+\begin{itemize}
+\item Identify parameters that are to be fitted, they are common to all data records that enter
+      the analysis. Select names.
+\item Identify parameters that are associated to the data records and possibly discriminate them,
+      e.g. q-value, temperature, $\cdots$.
+\item What is the ordinate (x-value)?
+\end{itemize}
+
+
+\section{Programming Language}
+\label{sec:proglang}
+
+The programming language for \emph{datreat} theories is \emph{fortran}.
+It is recommended (but not mandatory) to use modern (2003) language features.
+
+Most of the work to setup the theorie function in \emph{fortran} is done by using the
+tmeplate generator (see below). 
+However, the contents in terms of a proper fromula expression or more sophisticated 
+procedure muts be supplied as input to the template generator or edited at a later stage
+into the theorie function source code. 
+
+\section{Use the template generator}
+\label{sec:template}
+
+The template generator converts a template input containing the information on 
+parameters and names etc. into a theory function source code.
+Note that names are restricted to a length of 8 characters.
+The template input is explained using the following example:
+
+\small
+\begin{verbatim}
+001  #THEORY locrep
+002          generalized local reptation expression
+003          along the lines of deGennes, but with finite summation of integrals
+004          and lenthscale, timescale and fluctuation ratio as parameters
+005  #CITE   P.G. De Gennes. Coherent scattering by one reptating chain. 
+006          Journal de Physique, 1981, 42 (5), pp.735-740. <10.1051/jphys:01981004205073500>     
+007  #PARAMETERS
+008          ampli            ! prefactor 
+009          b                ! fluctuation intensity (relative)
+010          a                ! length scale
+011          tau              ! timescale
+012          lz               ! total length
+013  #RECIN-PARAMETERS    (allow 8 chars for name, start only beyond 8 with default)
+014          q            0   ! q-value    default value
+015  #RECOUT-PARAMETERS
+016  #VARIABLES
+017       double precision   :: t
+018  #IMPLEMENTATION
+019       t  = x              ! since we prefer to call the independent variable t, x must be copied to t
+020       th = ampli * local_reptation(q*a, t/tau, lz)
+021  
+022  #SUBROUTINES
+023    function local_reptation(q, t, L) result(val)
+024      implicit none
+025      double precision, intent(in)   :: q, t, L
+026      double precision               :: val
+027      double precision, parameter    :: sqp = sqrt(4*atan(1d0))
+028  
+029      val = 0.72D2 * (sqrt(t) * q ** 4 * exp((-0.2D1 * L * q ** 2 * t - 
+030       #0.3D1 * L ** 2) / t / 0.12D2) / 0.36D2 + sqrt(0.3141592653589793D1
+031       #) * (q ** 2 * t / 0.3D1 + L) * q ** 4 * exp(t * q ** 4 / 0.36D2) *
+032       # (-erfc((q ** 2 * t + 0.3D1 * L) * t ** (-0.1D1 / 0.2D1) / 0.6D1) 
+033       #+ erfc(sqrt(t) * q ** 2 / 0.6D1)) / 0.72D2 - sqrt(t) * q ** 4 / 0.
+034       #36D2) * B / q ** 4 * 0.3141592653589793D1 ** (-0.1D1 / 0.2D1) / L 
+035       #+ 0.72D2 * (A * exp(-q ** 2 * L / 0.6D1) * sqrt(0.3141592653589793
+036       #D1) + (A * L * q ** 2 / 0.6D1 - A) * sqrt(0.3141592653589793D1)) *
+037       # 0.3141592653589793D1 ** (-0.1D1 / 0.2D1) / q ** 4 / L
+038  
+039  
+040    end function local_reptation
+041  #END
+
+\end{verbatim}
+\normalsize
+
+The \#KEYWORD lines start the different input groups.
+
+\begin{itemize}
+\item line 001:  \#THEORY locrep. Give a name (here: \emph{locrep}) to the theory.
+\item lines 002-004: description of the theory
+\item lines 005-006: citation 
+\item lines 007-012: the fit parameters, list of names  and ! explanations
+\item lines 013-014: parameters associated with the data records, here q. Name default value ! expalantion.
+\item line 015: output parameters that are added to the record parameter section (here empty)
+\item lines 016-017: fortran variable definition for any additional variables to be used in the theory
+       (not needed for parameters, they are automatically created).
+\item lines 018-020: implementation: fortran code to compute the theory
+\item lines 022-040: any function and subroutines that are needed to do the computation
+
+\end{itemize}
+
+The theorie is then created by 
+
+\emph{template\_generator ${<}$ template}
+
+which creates a file \emph{out.f90} with the source code of the function.
+Depending on the completenes of the template used this file may or may not need some further
+finale editing to fill the gaps.
+After that has been completed, copy it to a unique name in ./src/theos/ , i.e. \emph{th\_locrep.f90}
+in this example.
+
+
+\section{Finish}
+\label{sec:finish}
+
+Goto the \emph{./datreat/src} and type \emph{make}. This should incorporate the new
+theory. If the make is not sucessful you may need some debugging or syntax fixes.
+In that case edit the \emph{th\_locrep.f90} and retry make. 
+
+
+\section{Test and Use}
+\label{sec:testuse}
+
+After sucessful \emph{make} the new theory should be listed if datreat is started
+and the commend \emph{th} is entered. \emph{th thname} then will yield the information
+on parameters etc. (here thname=\emph{locrep}).
+
+To use it give the command \emph{ac thname} and then use \emph{cth} to enter parameter values.
+
+\section{Code Generated}
+\label{sec:codegen}
+
+
+\tiny
+\begin{verbatim}
+
+ FUNCTION th_locrep(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
+!================================================================================
+!  generalized local reptation expression along the lines of deGennes, but with finite summation of integrals and lenthscale, timescale and fluctuation ratio as parameters
+!  Journal de Physique, 1981, 42 (5), pp.735-740. <10.1051/jphys:01981004205073500>
+      use theory_description 
+      implicit none 
+      real    :: th_locrep
+      character(len=8) :: thnam, parnam (*) 
+      real    :: pa (*) 
+      real    :: x , xh
+      integer :: mbuf, nparx, ier, ini, npar, iadda
+      integer, intent(inout) :: nopar       
+      character(len=80), intent(inout) :: napar(mbuf) 
+      real, intent(inout) :: params(mbuf) 
+     
+      double precision, parameter :: Pi = 4*atan(1d0)
+      integer                     :: actual_record_address
+     
+! the internal parameter representation 
+     double precision :: ampli      ! prefactor                                                                       
+     double precision :: b          ! fluctuation intensity (relative)                                                
+     double precision :: a          ! length scale                                                                    
+     double precision :: tau        ! timescale                                                                       
+     double precision :: lz         ! total length                                                                    
+! the recin parameter representation 
+     double precision :: q          ! q-value    default value                                                        
+! the reout parameter representation 
+ 
+     double precision :: th
+ 
+     double precision   :: t
+!
+! ----- initialisation ----- 
+    IF (ini.eq.0) then     
+       thnam = 'locrep'
+       nparx =        5
+       IF (npar.lt.nparx) then
+           WRITE (6,*)' theory: ',thnam,' no of parametrs=',nparx,' exceeds current max. = ',npar
+          th_locrep = 0
+          RETURN
+       ENDIF
+       npar = nparx
+! >>>>> describe theory with >>>>>>> 
+       idesc = next_th_desc()
+       th_identifier(idesc)   = thnam
+       th_explanation(idesc)  = " generalized local reptation expression along the lines of deGennes, but with finite summation of integrals and lenthscale, timescale and fluctuation ratio as parameters"
+       th_citation(idesc)     = " Journal de Physique, 1981, 42 (5), pp.735-740. <10.1051/jphys:01981004205073500>"
+!       --------------> set the parameter names --->
+        parnam ( 1) = 'ampli   '  ! prefactor                                                                       
+        parnam ( 2) = 'b       '  ! fluctuation intensity (relative)                                                
+        parnam ( 3) = 'a       '  ! length scale                                                                    
+        parnam ( 4) = 'tau     '  ! timescale                                                                       
+        parnam ( 5) = 'lz      '  ! total length                                                                    
+! >>>>> describe parameters >>>>>>> 
+        th_param_desc( 1,idesc) = "prefactor" !//cr//parspace//&
+        th_param_desc( 2,idesc) = "fluctuation intensity (relative)" !//cr//parspace//&
+        th_param_desc( 3,idesc) = "length scale" !//cr//parspace//&
+        th_param_desc( 4,idesc) = "timescale" !//cr//parspace//&
+        th_param_desc( 5,idesc) = "total length" !//cr//parspace//&
+! >>>>> describe record parameters used >>>>>>>
+        th_file_param(:,idesc) = " " 
+        th_file_param(  1,idesc) = "q        > q-value    default value"
+! >>>>> describe record parameters creaqted by this theory >>>>>>> 
+        th_out_param(:,idesc)  = " "
+! 
+        th_locrep = 0.0
+ 
+        RETURN
+     ENDIF
+!
+! ---- transfer parameters -----
+      ampli    =      pa( 1)
+      b        =      pa( 2)
+      a        =      pa( 3)
+      tau      =      pa( 4)
+      lz       =      pa( 5)
+! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
+      iadda = actual_record_address()
+! >>> extract: q-value    default value
+      xh =      0
+      call parget('q       ',xh,iadda,ier)
+      q        = xh
+! 
+! ------------------------------------------------------------------
+! ----------------------- implementation ---------------------------
+! ------------------------------------------------------------------
+! 
+     t  = x              ! since we prefer to call the independent variable t, x must be copied to t
+     th = ampli * local_reptation(q*a, t/tau, lz)
+
+     th_locrep = th
+ 
+! ---- writing computed parameters to the record >>>  
+ 
+ CONTAINS 
+ 
+! subroutines and functions entered here are private to this theory and share its variables 
+ 
+  function local_reptation(q, t, L) result(val)
+    implicit none
+    double precision, intent(in)   :: q, t, L
+    double precision               :: val
+    double precision, parameter    :: sqp = sqrt(4*atan(1d0))
+
+    val = 0.72D2 * (sqrt(t) * q ** 4 * exp((-0.2D1 * L * q ** 2 * t -
+     #0.3D1 * L ** 2) / t / 0.12D2) / 0.36D2 + sqrt(0.3141592653589793D1
+     #) * (q ** 2 * t / 0.3D1 + L) * q ** 4 * exp(t * q ** 4 / 0.36D2) *
+     # (-erfc((q ** 2 * t + 0.3D1 * L) * t ** (-0.1D1 / 0.2D1) / 0.6D1)
+     #+ erfc(sqrt(t) * q ** 2 / 0.6D1)) / 0.72D2 - sqrt(t) * q ** 4 / 0.
+     #36D2) * B / q ** 4 * 0.3141592653589793D1 ** (-0.1D1 / 0.2D1) / L
+     #+ 0.72D2 * (A * exp(-q ** 2 * L / 0.6D1) * sqrt(0.3141592653589793
+     #D1) + (A * L * q ** 2 / 0.6D1 - A) * sqrt(0.3141592653589793D1)) *
+     # 0.3141592653589793D1 ** (-0.1D1 / 0.2D1) / q ** 4 / L
+
+
+  end function local_reptation
+ end function th_locrep
+\end{verbatim}
+\normalsize
+
+\end{document}
+

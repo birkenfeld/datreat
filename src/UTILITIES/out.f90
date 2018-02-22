@@ -1,10 +1,10 @@
- FUNCTION th_rpastar(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
+ FUNCTION th_locrep(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
 !================================================================================
-!  applies rpa mixture tor the scattering function for a star-linear polymer micture and extends this into the dynamic regime (i.e. S(Q) --> S(Q,t))
-! 
+!  generalized local reptation expression along the lines of deGennes, but with finite summation of integrals and lenthscale, timescale and fluctuation ratio as parameters
+!  Journal de Physique, 1981, 42 (5), pp.735-740. <10.1051/jphys:01981004205073500>
       use theory_description 
       implicit none 
-      real    :: th_rpastar
+      real    :: th_locrep
       character(len=8) :: thnam, parnam (*) 
       real    :: pa (*) 
       real    :: x , xh
@@ -18,155 +18,100 @@
      
 ! the internal parameter representation 
      double precision :: ampli      ! prefactor                                                                       
-     double precision :: wl4        ! rouse rate                                                                      
-     double precision :: narmeff    ! effective segment star arm                                                      
-     double precision :: diffstar   ! centre-of-mass diffusino star                                                   
-     double precision :: locr2_b    ! locrep2 parameter b                                                             
-     double precision :: locr2_a    ! locrep2 parameter a                                                             
-     double precision :: locr2_ta   ! locrep2 parameter tau                                                           
-     double precision :: locr2_lz   ! locrep2 parameter lz                                                            
-     double precision :: locr2_te   ! locrep2 parameter teps                                                          
-     double precision :: nro_me     ! effective segments for Me-Modelling                                             
-     double precision :: re_me      ! Re of Me (entangle strand Re)                                                   
+     double precision :: b          ! fluctuation intensity (relative)                                                
+     double precision :: a          ! length scale                                                                    
+     double precision :: tau        ! timescale                                                                       
+     double precision :: lz         ! total length                                                                    
 ! the recin parameter representation 
-     double precision :: q          ! scattering wavevector                                                           
-     double precision :: temp       ! temperature                                                                     
-     double precision :: narm       ! number of segments per star arm                                                 
-     double precision :: l          ! segment length                                                                  
-     double precision :: f          ! number of arms per star                                                         
-     double precision :: phistar    ! volume fraction of star                                                         
-     double precision :: nlin       ! number of segments of linear polymer                                            
-     double precision :: philin     ! volume fraction of linera polymer                                               
+     double precision :: q          ! q-value    default value                                                        
 ! the reout parameter representation 
-     double precision :: intens0    ! intensity factor (cm**-1)                                                       
  
-     double precision   :: Navogadro = 6.022045d23
-     double precision   :: q
+     double precision :: th
+ 
      double precision   :: t
 !
 ! ----- initialisation ----- 
     IF (ini.eq.0) then     
-       thnam = 'rpastar'
-       nparx =       11
+       thnam = 'locrep'
+       nparx =        5
        IF (npar.lt.nparx) then
            WRITE (6,*)' theory: ',thnam,' no of parametrs=',nparx,' exceeds current max. = ',npar
-          th_rpastar = 0
+          th_locrep = 0
           RETURN
        ENDIF
        npar = nparx
 ! >>>>> describe theory with >>>>>>> 
        idesc = next_th_desc()
        th_identifier(idesc)   = thnam
-       th_explanation(idesc)  = " applies rpa mixture tor the scattering function for a star-linear polymer micture and extends this into the dynamic regime (i.e. S(Q) --> S(Q,t))"
-       th_citation(idesc)     = ""
+       th_explanation(idesc)  = " generalized local reptation expression along the lines of deGennes, but with finite summation of integrals and lenthscale, timescale and fluctuation ratio as parameters"
+       th_citation(idesc)     = " Journal de Physique, 1981, 42 (5), pp.735-740. <10.1051/jphys:01981004205073500>"
 !       --------------> set the parameter names --->
         parnam ( 1) = 'ampli   '  ! prefactor                                                                       
-        parnam ( 2) = 'wl4     '  ! rouse rate                                                                      
-        parnam ( 3) = 'narmeff '  ! effective segment star arm                                                      
-        parnam ( 4) = 'diffstar'  ! centre-of-mass diffusino star                                                   
-        parnam ( 5) = 'locr2_b '  ! locrep2 parameter b                                                             
-        parnam ( 6) = 'locr2_a '  ! locrep2 parameter a                                                             
-        parnam ( 7) = 'locr2_ta'  ! locrep2 parameter tau                                                           
-        parnam ( 8) = 'locr2_lz'  ! locrep2 parameter lz                                                            
-        parnam ( 9) = 'locr2_te'  ! locrep2 parameter teps                                                          
-        parnam (10) = 'nro_me  '  ! effective segments for Me-Modelling                                             
-        parnam (11) = 're_me   '  ! Re of Me (entangle strand Re)                                                   
+        parnam ( 2) = 'b       '  ! fluctuation intensity (relative)                                                
+        parnam ( 3) = 'a       '  ! length scale                                                                    
+        parnam ( 4) = 'tau     '  ! timescale                                                                       
+        parnam ( 5) = 'lz      '  ! total length                                                                    
 ! >>>>> describe parameters >>>>>>> 
         th_param_desc( 1,idesc) = "prefactor" !//cr//parspace//&
-        th_param_desc( 2,idesc) = "rouse rate" !//cr//parspace//&
-        th_param_desc( 3,idesc) = "effective segment star arm" !//cr//parspace//&
-        th_param_desc( 4,idesc) = "centre-of-mass diffusino star" !//cr//parspace//&
-        th_param_desc( 5,idesc) = "locrep2 parameter b" !//cr//parspace//&
-        th_param_desc( 6,idesc) = "locrep2 parameter a" !//cr//parspace//&
-        th_param_desc( 7,idesc) = "locrep2 parameter tau" !//cr//parspace//&
-        th_param_desc( 8,idesc) = "locrep2 parameter lz" !//cr//parspace//&
-        th_param_desc( 9,idesc) = "locrep2 parameter teps" !//cr//parspace//&
-        th_param_desc(10,idesc) = "effective segments for Me-Modelling" !//cr//parspace//&
-        th_param_desc(11,idesc) = "Re of Me (entangle strand Re)" !//cr//parspace//&
+        th_param_desc( 2,idesc) = "fluctuation intensity (relative)" !//cr//parspace//&
+        th_param_desc( 3,idesc) = "length scale" !//cr//parspace//&
+        th_param_desc( 4,idesc) = "timescale" !//cr//parspace//&
+        th_param_desc( 5,idesc) = "total length" !//cr//parspace//&
 ! >>>>> describe record parameters used >>>>>>>
         th_file_param(:,idesc) = " " 
-        th_file_param(  1,idesc) = "q        > scattering wavevector"
-        th_file_param(  2,idesc) = "temp     > temperature"
-        th_file_param(  3,idesc) = "narm     > number of segments per star arm"
-        th_file_param(  4,idesc) = "l        > segment length"
-        th_file_param(  5,idesc) = "f        > number of arms per star"
-        th_file_param(  6,idesc) = "phistar  > volume fraction of star"
-        th_file_param(  7,idesc) = "nlin     > number of segments of linear polymer"
-        th_file_param(  8,idesc) = "philin   > volume fraction of linera polymer"
+        th_file_param(  1,idesc) = "q        > q-value    default value"
 ! >>>>> describe record parameters creaqted by this theory >>>>>>> 
         th_out_param(:,idesc)  = " "
-        th_out_param(  1,idesc) = "intens0  > intensity factor (cm**-1)"
 ! 
-        th_rpastar = 0.0
+        th_locrep = 0.0
  
         RETURN
      ENDIF
 !
 ! ---- transfer parameters -----
       ampli    =      pa( 1)
-      wl4      =      pa( 2)
-      narmeff  =      pa( 3)
-      diffstar =      pa( 4)
-      locr2_b  =      pa( 5)
-      locr2_a  =      pa( 6)
-      locr2_ta =      pa( 7)
-      locr2_lz =      pa( 8)
-      locr2_te =      pa( 9)
-      nro_me   =      pa(10)
-      re_me    =      pa(11)
+      b        =      pa( 2)
+      a        =      pa( 3)
+      tau      =      pa( 4)
+      lz       =      pa( 5)
 ! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
       iadda = actual_record_address()
-! >>> extract: scattering wavevector
-      xh = 
+! >>> extract: q-value    default value
+      xh =      0
       call parget('q       ',xh,iadda,ier)
       q        = xh
-! >>> extract: temperature
-      xh = 
-      call parget('temp    ',xh,iadda,ier)
-      temp     = xh
-! >>> extract: number of segments per star arm
-      xh = 
-      call parget('narm    ',xh,iadda,ier)
-      narm     = xh
-! >>> extract: segment length
-      xh = 
-      call parget('l       ',xh,iadda,ier)
-      l        = xh
-! >>> extract: number of arms per star
-      xh = 
-      call parget('f       ',xh,iadda,ier)
-      f        = xh
-! >>> extract: volume fraction of star
-      xh = 
-      call parget('phistar ',xh,iadda,ier)
-      phistar  = xh
-! >>> extract: number of segments of linear polymer
-      xh = 
-      call parget('nlin    ',xh,iadda,ier)
-      nlin     = xh
-! >>> extract: volume fraction of linera polymer
-      xh = 
-      call parget('philin  ',xh,iadda,ier)
-      philin   = xh
 ! 
 ! ------------------------------------------------------------------
 ! ----------------------- implementation ---------------------------
 ! ------------------------------------------------------------------
 ! 
-     t   = x
+     t  = x              ! since we prefer to call the independent variable t, x must be copied to t
+     th = ampli * local_reptation(q*a, t/tau, lz)
 
-     rpastar  =
-
-
-
-     th_rpastar = ! INSERT RESULTING VALUE OF TH EVALUATION HERE
+     th_locrep = th
  
 ! ---- writing computed parameters to the record >>>  
-      call parset('intens0 ',sngl(intens0),iadda,ier)
  
  CONTAINS 
  
 ! subroutines and functions entered here are private to this theory and share its variables 
  
+  function local_reptation(q, t, L) result(val)
+    implicit none
+    double precision, intent(in)   :: q, t, L
+    double precision               :: val
+    double precision, parameter    :: sqp = sqrt(4*atan(1d0))
 
- end function th_rpastar
+    val = 0.72D2 * (sqrt(t) * q ** 4 * exp((-0.2D1 * L * q ** 2 * t -
+     #0.3D1 * L ** 2) / t / 0.12D2) / 0.36D2 + sqrt(0.3141592653589793D1
+     #) * (q ** 2 * t / 0.3D1 + L) * q ** 4 * exp(t * q ** 4 / 0.36D2) *
+     # (-erfc((q ** 2 * t + 0.3D1 * L) * t ** (-0.1D1 / 0.2D1) / 0.6D1)
+     #+ erfc(sqrt(t) * q ** 2 / 0.6D1)) / 0.72D2 - sqrt(t) * q ** 4 / 0.
+     #36D2) * B / q ** 4 * 0.3141592653589793D1 ** (-0.1D1 / 0.2D1) / L
+     #+ 0.72D2 * (A * exp(-q ** 2 * L / 0.6D1) * sqrt(0.3141592653589793
+     #D1) + (A * L * q ** 2 / 0.6D1 - A) * sqrt(0.3141592653589793D1)) *
+     # 0.3141592653589793D1 ** (-0.1D1 / 0.2D1) / q ** 4 / L
+
+
+  end function local_reptation
+ end function th_locrep
