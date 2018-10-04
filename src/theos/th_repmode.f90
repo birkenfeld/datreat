@@ -192,7 +192,7 @@
        double precision ::  aa1 , aa2
        double precision ::  xi, beta, wscale
  
-       integer :: iout
+ !      integer :: iout
 
        integer, parameter :: maxp = 1000
        double precision, save   :: beta_vec(maxp)
@@ -349,7 +349,7 @@ iv:    if(   ( n        .ne.  n0        ) .or.  &
        Sq  = Sq /N
        Sqt = Sqt/N
 
-       if(iout().gt.1)write(6,'(1x,a,6E14.6)')'q,t,Sq,Sqt, Sqt/Sq, w=', q,t,Sq,Sqt, Sqt/Sq, w
+!       if(iout().gt.1)write(6,'(1x,a,6E14.6)')'q,t,Sq,Sqt, Sqt/Sq, w=', q,t,Sq,Sqt, Sqt/Sq, w
 
        return
        end

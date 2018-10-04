@@ -9,7 +9,7 @@
 !      CHARACTER(132) xformel, yformel, yfitform 
 !      COMMON / formul / xformel, yformel, yfitform 
 
-      use outlev  
+      use new_com 
       use formul 
 
 !                                                                       
@@ -51,12 +51,12 @@
       	ptxf(i) = pa(i) 
       enddo 
       xxxx = x 
-      iout = iout - 5
+!?      iout = iout - 5
 
 !      write(6,*)'ev1: ',yfitform
  
       CALL evaluate (yfitform, val8y, iery) 
-      iout = iout + 5 
+!?      iout = iout + 5 
       th_eval = val8y 
 
 !      write(6,*)val8y,ierry

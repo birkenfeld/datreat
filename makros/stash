@@ -1,0 +1,4 @@
+makro  _f_
+! input file (as created by msave) and activate the theory definition contained
+in     _f_
+get_th _f_

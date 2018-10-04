@@ -1,0 +1,81 @@
+makro _num_ _seq_ _his_
+c ===================================================================================
+c cumufit
+c =======
+c fitting of drspine output data with cumulant expansions
+c
+c enter run number associated with the report
+c sequence number of the report
+c and histogramming variant number
+c 
+c see makro: cufi1
+c for example
+c 
+c cufi1 or similar is run by the gli-makro: plotcuf.gli
+c
+c
+c as parameters (edit below) the amplitude may be fitted (asca)
+c                            the cumulants mu1, mu2, mu3
+c the fitting range is the fraction   tfs   of the typical time (tau=1/mu1) 
+c the results are appended to cuf_num_ 
+c
+c see also cumufit
+c
+c ====================================================================================   
+
+purge all
+c in _f_
+in report_num___seq_._his_.dtr
+set n (nbuf)
+
+c convert q values in m**-1 to A**-1
+qsia
+
+set i 0
+
+set tfs   0.7
+set asca  0.1
+set sca2  0.01
+set sca3  0.01
+
+set tfs   0.6
+set asca  0.01
+set sca2  0.0
+set sca3  0.0
+
+dac
+ac cumulant
+
+:j1
+   set i (i+1)
+   sel (i)
+   chgthpar cumulant 1 amplitu    par 1        scale (asca)
+   chgthpar cumulant 1 mu1        par 0.1      scale 0.01
+   chgthpar cumulant 1 mu2        par 0.0      scale 0.
+   chgthpar cumulant 1 mu3        par 0.0      scale 0.
+   chgthpar cumulant 1 mu4        par 0.0      scale 0.
+   chgthpar cumulant 1 mu5        par 0.0      scale 0.
+   chgthpar cumulant 1 mu6        par 0.0      scale 0.
+   
+   fit x1 0 x2 100
+   
+   
+   chgthpar cumulant 1 mu2        par 0.0      scale (sca2)
+   chgthpar cumulant 1 mu3        par 0.0      scale (sca3)
+   
+   fit x2 (tfs/mu1)
+   fit x2 (tfs/mu1)
+   set mu11 (mu1)
+   fit x2 (tfs/mu1)
+   set mu12 (mu1)
+   fit x2 (tfs/mu1)
+   set mu13 (mu1)
+
+c   plot xmin 0.001 xmax 100 log_x errplo
+   
+  if (ssq) > 10              then goto :skip
+  if (abs(e.mu1/mu1)) > 0.3 then goto :skip
+  if (abs(mu2/mu1)) > 3     then goto :skip
+   print cuf_num_ (q) (amplitu) (mu1) (e.mu1) (mu12) (mu11) (mu2) (mu3) (ssq) (_num_) (_seq_) (_his_) 
+:skip
+if (i) < (n) then goto :j1

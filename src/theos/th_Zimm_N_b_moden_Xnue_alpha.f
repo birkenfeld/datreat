@@ -161,7 +161,7 @@ c
        double precision fdf
   
 
-       integer iout
+ !      integer iout
        
        if(N.le.0) then
          Sq = 999
@@ -246,7 +246,7 @@ c
        Sq  = Sq /N
        Sqt = Sqt/N
 
-       if(iout().gt.0)write(6,'(1x,5E14.6)')q,t,Sq,Sqt, Sqt/Sq
+!       if(iout().gt.0)write(6,'(1x,5E14.6)')q,t,Sq,Sqt, Sqt/Sq
 
        return
        end

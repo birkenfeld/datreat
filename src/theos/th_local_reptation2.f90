@@ -68,7 +68,8 @@
         th_file_param(  1,idesc) = "q        > q-value"
 ! >>>>> describe record parameters creaqted by this theory >>>>>>> 
         th_out_param(:,idesc)   = " "
-        th_out_param(1,idesc)   = "a2sqt = a**2/sqrt(tau) "
+        th_out_param(1,idesc)   = "a2sqt   = a**2/sqrt(tau) "
+        th_out_param(1,idesc)   = "tau0_lr = tau/a**4 "
 ! 
         th_locrep2 = 0.0
  
@@ -102,6 +103,7 @@
 
 !     write(6,*) t, q, sqt, sqt0
       call parset("a2sqt   ", sngl(a*a/sqrt(tau)),iadda,ier)
+      call parset("tau0_lr ", sngl(tau/a**4),iadda,ier)
                    
  end function th_locrep2
 
@@ -111,32 +113,31 @@
     implicit none
     double precision, intent(in)   :: q, t, B, L
     double precision, parameter    :: A = 1d0
+    double precision, parameter    :: Pi = 3.141592653589793d0 
     double precision               :: val
     double precision, parameter    :: sqp = sqrt(4*atan(1d0))
 
-    double precision               :: ec1, ec2, dec
+    double precision               :: ec1, ec2, dec, edec, z
 
-    ec1 = erfc((q ** 2 * t + 0.3D1 * L) * t ** (-0.1D1 / 0.2D1) / 0.6D1)
-    ec2 = erfc(sqrt(t) * q ** 2 / 0.6D1)
 
-    if( isnan(ec1) ) ec1 = 1d0 - erf((q ** 2 * t + 0.3D1 * L) * t ** (-0.1D1 / 0.2D1) / 0.6D1)
-    if( isnan(ec2) ) ec2 = 1d0 - erf(sqrt(t) * q ** 2 / 0.6D1)
+    z   = sqrt(t) * q**2
 
-    dec =   (-ec1 + ec2 )
+    ec1 = erfc((q ** 2 * t + 3 * L) * t ** (-0.5d0) / 6d0)
+    ec2 = erfc(sqrt(t) * q ** 2 / 6d0)
 
-    if( isnan(dec) ) dec = 0
+    if( isnan(ec1) ) ec1 = 1d0 - erf((q ** 2 * t + 3 * L) * t ** (-0.5d0) / 6d0)
+    if( isnan(ec2) ) ec2 = 1d0 - erf(sqrt(t) * q ** 2 / 6d0)
 
-      val= 0.72D2 * (sqrt(t) * q ** 4 * &
-           exp((-0.2D1 * L * q ** 2 * t - 0.3D1 * L ** 2) &
-           / t / 0.12D2) / 0.36D2 + sqrt(0.3141592653589793D1) &
-           * (q ** 2 * t / 0.3D1 + L) * q ** 4 * &
-           exp(t * q ** 4 / 0.36D2) * &
-          ( dec ) / 0.72D2 - sqrt(t) * q ** 4 / 0.36D2) &
-           * B / q ** 4 * 0.3141592653589793D1 ** (-0.1D1 / 0.2D1) / L + &
-           0.72D2 * (A * &
-           exp(-q ** 2 * L / 0.6D1)  &
-         * sqrt(0.3141592653589793D1) &
-         + (A * L * q ** 2 / 0.6D1 - A) * sqrt(0.3141592653589793D1)) * &
-         0.3141592653589793D1 ** (-0.1D1 / 0.2D1) / q ** 4 / L
+    dec  =   (-ec1 + ec2 )
+    edec = exp(t * q ** 4 / 36d0) *  ( dec ) 
+
+    if( isnan(edec) .or. z > 50d0 ) then
+          edec = - ( -6/(sqrt(Pi)*z)+108/(sqrt(Pi)*z**3)-5832/(sqrt(Pi)*z**5) )
+    endif
+
+      val= 72d0 * (sqrt(t) * q ** 4 * exp((-2d0 * L * q ** 2 * t - 3 * L ** 2) / t / 12d0) / 36d0 + &
+           sqrt(Pi) * (q ** 2 * t / 3 + L) * q ** 4 * edec / 72d0 - sqrt(t) * q ** 4 / 36d0) &
+           * B / q ** 4 * Pi ** (-0.5d0) / L +  72d0 * (A * exp(-q ** 2 * L / 6d0) * sqrt(Pi) &
+           + (A * L * q ** 2 / 6d0 - A) * sqrt(Pi)) * Pi ** (-0.5d0) / q ** 4 / L
 
   end function local_reptation2

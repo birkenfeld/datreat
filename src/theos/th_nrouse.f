@@ -172,7 +172,7 @@ c
        double precision a0,e0, ff2, ffc,    arg10,arg20
        double precision aa1 , aa2
 
-       integer iout
+!       integer iout
        
        if(N.le.0) then
          W  = 999
@@ -243,7 +243,7 @@ c
        Sq  = Sq /N
        Sqt = Sqt/N
 
-       if(iout().gt.0)write(6,'(1x,6E14.6)')q,t,Sq,Sqt, Sqt/Sq, w 
+ !      if(iout().gt.0)write(6,'(1x,6E14.6)')q,t,Sq,Sqt, Sqt/Sq, w 
 
        return
        end

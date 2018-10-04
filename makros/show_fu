@@ -1,0 +1,21 @@
+makro
+?? +p(1)
+?? +yv(1,2)
+?? +xv(1,2)
+?? +ye(1,2)
+c ?? +om(1,2)
+c ?? +en(1,2)
+c      if(compare(nam,'en ')) then   ! TOF channel energy in meV
+?? +sc(111)
+?? +nv(1)
+?? +num(1)
+?? +isel(1)
+?? +sumy(1,2,4)
+?? +sumyerr(1,2,4)
+?? +sumx(1,2,4)
+?? +indxval(1,10.3)
+?? +intxval(1,10.3)
+?? +th_par(1,2)
+?? +th_err(1,2)
+c      call parget (pname,pvalue,iiadr,ier)
+
