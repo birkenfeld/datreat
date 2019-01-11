@@ -48,7 +48,9 @@
 ! >>>>> describe theory with >>>>>>> 
        idesc = next_th_desc()
        th_identifier(idesc)   = thnam
-       th_explanation(idesc)  = " Rouse by discrete summation with mode restriction"
+       th_explanation(idesc)  = " Rouse by discrete summation with mode restriction"//cr//parspace//&
+                                " ACCELERATED (OMP+IMPOVED ALG.) VERSION!"
+
        th_citation(idesc)     = " Rouse, Doi_Edwards"
 !       --------------> set the parameter names --->
         parnam ( 1) = 'amplitu '  ! prefactor                                                                       
@@ -102,7 +104,7 @@
 ! >>> extract: temperature
       xh =    300d0 
       call parget('temp    ',xh,iadda,ier)
-      temp     = xh
+      if( xh > 0d0) temp     = xh
 ! 
 ! ------------------------------------------------------------------
 ! ----------------------- implementation ---------------------------
@@ -111,7 +113,6 @@
      t   = x
 
      Dr  = com_diff * 1d-9 / 1d-16  ! in A**2/ns
-
 
      call NrouseP(q,t,temp,Dr,wl4,n_segmen,Re, W, l,pmin,pmax, Sq,Sqt)
 
@@ -165,7 +166,9 @@
        double precision aa1 , aa2
        double precision p, p0fix, pfac
 
-       integer :: ipmin, ipmax
+       double precision :: cosarray(N,N), ewfac(N)
+
+       integer :: ipmin, ipmax, i
 
 !       integer iout
        
@@ -186,14 +189,25 @@
        xi  = 3*kbt*l**2 / wl4
        W   = 3*kbt/(xi*(l**2))  ! in 1/ns
 
+
 ! ---- set the diffusion constant if input is zero --- !
        if(Dr.eq.0.0d0) then
          Dr = kbt/(N*xi)
        endif
 
-    
-       p0fix = 0
-       pfac  = 1
+!$OMP PARALLEL DO     
+       do nn=1,N
+        do ip=1,N
+         cosarray(nn,ip) = cos((pi*ip*nn)/dfloat(N)) / ip 
+        enddo
+       enddo
+!$OMP END PARALLEL DO   
+
+!$OMP PARALLEL DO    
+       do i=1,N
+         ewfac(i) = (1d0-exp(-2*W*(1-cos((pi*i)/dfloat(N)))*t)) 
+       enddo
+!$OMP END PARALLEL DO    
 
        ipmin = max(1,nint(pmin))
        ipmax = min(N,nint(pmax))
@@ -202,54 +216,26 @@
        Sq0 = 0
        Sq  = 0
        Sqt = 0
+       ff2  = -2*N*(l*q)**2/(3*pi**2)
 
 ! ---- Do the sums -----
+
+!$OMP PARALLEL DO REDUCTION(+:Sq,Sqt)
        do nn = 1,N
         do mm = 1,N
-          arg1 = -(q**2)*(Dr*t + abs(nn-mm)*(l**2)/6.0d0)
-          arg10= -(q**2)*(       abs(nn-mm)*(l**2)/6.0d0)
-          ff2  = -2*N*(l*q)**2/(3*pi**2)
-    
-          arg2 = 0
-          arg20= 0
-          do ip=ipmin, ipmax
-            p = ip+p0fix
-            tau_p = 2*W*(1-cos((pi*p)/dfloat(N)))
-            a0    = -t*tau_p
-            if(a0.lt.-200.0d0) a0 = -200.0d0
-            e0    = 1.0d0-exp(a0)
-            
-            ffc   = cos((pi*p*nn)/dfloat(N)) * cos((pi*p*mm)/dfloat(N))
-            ffc   = ffc / (p**2)
-            ffc   = ffc*pfac
 
-            arg2  = arg2  + ffc*e0
-            arg20 = arg20 + ffc
-
-          enddo   
-          arg2  = arg2  * ff2
-          arg20 = arg20 * ff2
-
-          aa1 = arg10
-          if(aa1.lt.-300.0d0) aa1 = -300.0d0
-          if(aa1.gt. 300.0d0) aa1 =  300.0d0
-
-          aa2 = arg1+arg2
-          if(aa2.lt.-300.0d0) aa2 = -300.0d0
-          if(aa2.gt. 300.0d0) aa2 =  300.0d0
-
-
-          Sq  = Sq  + exp(aa1)
-          Sqt = Sqt + exp(aa2)
+          Sq  = Sq  + exp(-(q**2)*(       abs(nn-mm)*(l**2)/6.0d0))
+          Sqt = Sqt + exp(-(q**2)*(Dr*t + abs(nn-mm)*(l**2)/6.0d0) + &
+                ff2* sum(cosarray(nn,ipmin:ipmax) * cosarray(mm,ipmin:ipmax) *  ewfac(ipmin:ipmax) ))
 
         enddo
        enddo
+!$OMP END PARALLEL DO
 
        Sq  = Sq /N
        Sqt = Sqt/N
 
- !      if(iout().gt.1)write(6,'(1x,a,6E14.6)')
- !    *        'q,t,Sq,Sqt, Sqt/Sq, w=', q,t,Sq,Sqt, Sqt/Sq, w 
+!!       write(6,'(1x,a,6E14.6)')'q,t,Sq,Sqt, Sqt/Sq, w=', q,t,Sq,Sqt, Sqt/Sq, w 
 
        return
        end

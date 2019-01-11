@@ -13,9 +13,9 @@
       INTEGER ini, npar, nparx 
       DIMENSION pa (20), qq (3) 
       integer :: mbuf
-      integer, intent(inout) :: nopar                 ! Anzahl der Parameter data
-      character*80, intent(inout) :: napar(mbuf)      ! name des parameters n
-      real, intent(inout) :: params(mbuf)             ! value des parameters n
+      integer, intent(inout) :: nopar                      ! Anzahl der Parameter data
+      character(len=80), intent(inout) :: napar(mbuf)      ! name des parameters n
+      real, intent(inout) :: params(mbuf)                  ! value des parameters n
       DATA zpi / 6.283185 / 
                                                                         
       DOUBLE PRECISION :: w, d, q, n, ne, degennes, t, a, l 

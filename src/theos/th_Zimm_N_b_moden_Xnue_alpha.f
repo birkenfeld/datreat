@@ -13,6 +13,7 @@ c
        real*4    qget, tget
        real*4    th_nzimm_pna
        integer   n,idum
+       integer :: mp=0
        real*8    pmax, pwidth, nue, alpha 
  
        common/thiadd/iadda
@@ -22,7 +23,7 @@ c
 c ----- initialisation -----
        if(ini.eq.0) then
          thnam = 'nzimm_pn'
-         nparx = 11
+         nparx = 12
          if(npar.lt.nparx) then
            write(6,1)thnam,nparx,npar
 1          format(' theory: ',a8,' no of parametrs=',i8,
@@ -43,6 +44,7 @@ c        --------------> set the number of parameters
          parnam(9) = 'p_width '    ! : width of transition regime f=1/(1+exp((p-pmax)/p_width))
          parnam(10)= 'nue     '    ! : chain expansion parameter (Gaussian=1/2)
          parnam(11)= 'alpha   '    ! : chain stiffness descriptor alpha*p**4
+         parnam(12)= 'mp      '    ! : use mp version
 
 c
          th_nzimm_pna = 0
@@ -62,6 +64,7 @@ c ---- calculate theory here -----
        pwidth   = abs(pa(9))
        nue      = abs(pa(10))
        alpha    = abs(pa(11))
+       mp       = nint(pa(12))
 
        if(nue.eq.0.0d0) nue = 0.5D0    ! Default Gaussian
 
@@ -97,9 +100,17 @@ c ---- calculate theory here -----
 
 ! --- get center of mass diffusion only effectve if diff .ne. 0  ---
          dr = diff
-       
+  
+
+         if(mp==0) then     
          call NzimPna(qzz,tau,temp,dr,etasolv,N,R,
      *                pmax,pwidth,nue,alpha,Sq,Sqt)
+         else
+         call NzimPnaX(qzz,tau,temp,dr,etasolv,N,R,
+     *                pmax,pwidth,nue,alpha,Sq,Sqt)
+         endif
+
+
          sum = sum + fn*Sqt       
          sumnorm = sumnorm + Sq*fn
 
