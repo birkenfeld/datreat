@@ -88,6 +88,7 @@
 
        character :: fpnam*8,xpnam*8,ypnam*8
        character fsname*1024
+       character(len=1024) :: charbuf
        character*1 csel
        real*8 val8x,val8y
 
@@ -4021,6 +4022,7 @@ exclude:   if(found('exclude  ')) then
 !                    -----
          fsname = 'lastsave'
          if(inames.gt.0)   fsname = argvals(1)
+         title = trim(fsname)  !! experimental... 
          call msavdat(fsname)
          goto 2000
        endif
@@ -4117,8 +4119,8 @@ exclude:   if(found('exclude  ')) then
        endif
 !
 !
-       if(comand.eq.'open    ') then
-!                    ----
+       if(comand.eq.'fopen   ') then
+!                    -----
          npax = 1
          npay = 1
          fpnam = vname(1)
@@ -4372,7 +4374,33 @@ exclude:   if(found('exclude  ')) then
          goto 2000
        endif
 !
-       if(comand.eq.'plot    '.or.comand.eq.'p       '.or.comand.eq.'gp      ') then
+ 
+       if(comand.eq.'oplot    ') then
+!                    -----> plot selected curves with okular
+         write(*,*)"Choose output device 61, 62 or 101 !"
+         write(*,*)
+         call splot(.true.)
+         call execute_command_line("ls -t gli* | head -1 > LGLI")
+         open(33,file="LGLI")
+         read(33,'(a)') fsname
+         close(33)
+         charbuf = ' '
+         do i=1,len_trim(title)
+          if(title(i:i) == ' ') then
+             charbuf(i:i) = '_'
+          else 
+             charbuf(i:i) = title(i:i)
+          endif
+         enddo                 
+!         write(*,*)"fsname ",trim(fsname)," extension:",fsname(len_trim(fsname)-3:len_trim(fsname))
+         charbuf = trim(charbuf)//fsname(len_trim(fsname)-3:len_trim(fsname))
+         call execute_command_line("cp "//trim(fsname)//" "//trim(charbuf))
+         write(*,*)"open ",trim(charbuf)
+         call execute_command_line("okular "//trim(charbuf))
+         goto 2000
+       endif
+
+      if(comand.eq.'plot    '.or.comand.eq.'p       '.or.comand.eq.'gp      ') then
 !                    -----> plot selected curves
          call splot(.true.)
 !         ibild1 = ibild
@@ -5189,6 +5217,7 @@ d2:       do j=1,number_of_data_points
   write(6,*) "out_gli   (synonym) gli     " , " "
   write(6,*) "paraout                     " , " "
   write(6,*) "parextra                    " , " "
+  write(6,*) "oplot    plot to ocular     " , " "
   write(6,*) "plot      (synonym) p       " , " "
   write(6,*) "plot0     (synonym) p0      " , " "
   write(6,*) "purge                       " , " "
