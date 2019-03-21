@@ -2291,7 +2291,7 @@ sl:       do j=1,maxstep
 ! ----------- look for the parameter -----------------------------------
        if (iadd .lt. 1) then
           write(*,*)'parget: invalid argument'
-	  ier = 1
+          ier = 1
           return
        end if
        np = nopar(iadd)
@@ -3041,8 +3041,8 @@ sl:       do j=1,maxstep
        save uspfad
 
         uspfad = X_datpath()     ! this is simply the datapath   Why so complicate?
-		  ignoreline='#'
-		  nextset='#nxt'
+                  ignoreline='#'
+                  nextset='#nxt'
 !
 ! -- some arguments
        if(inames.eq.0) then
@@ -3063,8 +3063,8 @@ sl:       do j=1,maxstep
        endif
 
 ! pfad!!
-	infile =argvals(1)
-		!if local path by '.' or global path by / is indicated omit the datapath in front of content
+        infile =argvals(1)
+                !if local path by '.' or global path by / is indicated omit the datapath in front of content
       if (argvals(1)(1:1).ne.'.' .and. argvals(1)(1:1).ne.'/') infile = trim(uspfad)//infile
 !
          ioldc = 0
@@ -3117,7 +3117,7 @@ sl:       do j=1,maxstep
       ly = 0
       le = 0
 
-	if(nbuf.gt.size(nwert)) then
+        if(nbuf.gt.size(nwert)) then
         write(6,*)'cdata buffer is full!'
         close(20)        
         call setudf('readlast ',dble(size(nwert)),ier)
@@ -3129,147 +3129,147 @@ sl:       do j=1,maxstep
       numor(nbuf) = 100*nbuf
       coment(nbuf)= ''
  2000 continue  !new line
-		read(20,'(a)',end=40) rline            ! einziges lesecommando im loop    end=999  ist ausgang
-		rline=ADJUSTL(rline)
-		!write(6,*)trim(rline)
-		call decode(rline)
-		 !write(6,*)trim(rline)
-		if(iout().gt.2) then                 ! only to show output
-			write(6,*)'Decoded line: ',trim(rline),'#end rline'
-			write(6,*)'ipars',ipars,'inames',inames,'iparn(1)',iparn(1),'vname(1)',vname(1),'nwert'
-			write(6,*)'lx',lx
-			do i=1,inames
-        		write(6,"(a,1x,a8,2x,10f12.6)")"=",vname(i),(rpar(j),j=inapa(i),inapa(i)+inpar(i)-1)
-        	enddo
-			write(6,*)'############Decoding ende'
-		endif
-		!write(6,*)trim(rline)
- 		! start a new set if an empty line follows the data so already datavalues exist
-		if(     (ipars.eq.0.and.inames.eq.0)                         & !  an empty line
-			.or.	trim(rline).eq.trim(nextset))       then
-			if (lx .gt.0 ) then    !if we have already some data
-				if(lx.ne.ly) then
-!                		write(6,*)'number of x-values=',lx,' does not match ly=',ly
-				endif
-		  		nwert(nbuf)=lx       ! we tell the nwert buf how much
-				write(6,"(I4,':lx',I4,' para',I4,' Comment: ',a)") nbuf,lx,nopar(nbuf),trim(coment(nbuf))
-				goto 20000             !and start a nes set
-			else
-				goto 2000      !it was only an empty line btween params and data next line
-			endif
-		endif
-		if(rline(1:len_trim(ignoreline)).eq.trim(ignoreline))    goto 2000  ! ignore lines starting with #  (will be a command argument later)
-		if(trim(rline).eq.'values')    goto 2000
-		if(trim(rline).eq.'parameter')    goto 2000
- 		! start a new set if non data start the line after ly .gt.0
-		if( (lx.gt.0 .and. .not.(ipars.gt.0.and.iparn(1).eq.0)) )   then   !non data line after data
-				if(lx.ne.ly) then
+                read(20,'(a)',end=40) rline            ! einziges lesecommando im loop    end=999  ist ausgang
+                rline=ADJUSTL(rline)
+                !write(6,*)trim(rline)
+                call decode(rline)
+                 !write(6,*)trim(rline)
+                if(iout().gt.2) then                 ! only to show output
+                        write(6,*)'Decoded line: ',trim(rline),'#end rline'
+                        write(6,*)'ipars',ipars,'inames',inames,'iparn(1)',iparn(1),'vname(1)',vname(1),'nwert'
+                        write(6,*)'lx',lx
+                        do i=1,inames
+                        write(6,"(a,1x,a8,2x,10f12.6)")"=",vname(i),(rpar(j),j=inapa(i),inapa(i)+inpar(i)-1)
+                enddo
+                        write(6,*)'############Decoding ende'
+                endif
+                !write(6,*)trim(rline)
+                ! start a new set if an empty line follows the data so already datavalues exist
+                if(     (ipars.eq.0.and.inames.eq.0)                         & !  an empty line
+                        .or.    trim(rline).eq.trim(nextset))       then
+                        if (lx .gt.0 ) then    !if we have already some data
+                                if(lx.ne.ly) then
+!                               write(6,*)'number of x-values=',lx,' does not match ly=',ly
+                                endif
+                                nwert(nbuf)=lx       ! we tell the nwert buf how much
+                                write(6,"(I4,':lx',I4,' para',I4,' Comment: ',a)") nbuf,lx,nopar(nbuf),trim(coment(nbuf))
+                                goto 20000             !and start a nes set
+                        else
+                                goto 2000      !it was only an empty line btween params and data next line
+                        endif
+                endif
+                if(rline(1:len_trim(ignoreline)).eq.trim(ignoreline))    goto 2000  ! ignore lines starting with #  (will be a command argument later)
+                if(trim(rline).eq.'values')    goto 2000
+                if(trim(rline).eq.'parameter')    goto 2000
+                ! start a new set if non data start the line after ly .gt.0
+                if( (lx.gt.0 .and. .not.(ipars.gt.0.and.iparn(1).eq.0)) )   then   !non data line after data
+                                if(lx.ne.ly) then
                write(6,*)'number of x-values=',lx,' does not match ly=',ly
-				endif
-		  		nwert(nbuf)=lx       ! we tell the nwert buf how much data
-				!######################
-				write(6,"(I4,':lx',I4,' para',I4,' Comment: ',a)") nbuf,lx,nopar(nbuf),trim(coment(nbuf))
-				nbuf = nbuf + 1
-				nopar(nbuf) = 0                          ! Anzahl der parameter in dataset nbuf
-				lx = 0   ! anzahl x y ey werte
-				ly = 0
-				le = 0
-				if(nbuf.gt.size(nwert)) then
-				write(6,*)'cdata buffer is full!'
-				close(20)        
+                                endif
+                                nwert(nbuf)=lx       ! we tell the nwert buf how much data
+                                !######################
+                                write(6,"(I4,':lx',I4,' para',I4,' Comment: ',a)") nbuf,lx,nopar(nbuf),trim(coment(nbuf))
+                                nbuf = nbuf + 1
+                                nopar(nbuf) = 0                          ! Anzahl der parameter in dataset nbuf
+                                lx = 0   ! anzahl x y ey werte
+                                ly = 0
+                                le = 0
+                                if(nbuf.gt.size(nwert)) then
+                                write(6,*)'cdata buffer is full!'
+                                close(20)        
                                 call setudf('readlast ',dble(nbuf),ier)
-				return
-				endif
-				name(nbuf) = infile
-				yname(nbuf) = 'y-data'
-				xname(nbuf) = 'x-data'
-				numor(nbuf) = 100*nbuf
-				coment(nbuf)= ''
-				!#######################
-				!   !and go on with actual rline
-		endif
+                                return
+                                endif
+                                name(nbuf) = infile
+                                yname(nbuf) = 'y-data'
+                                xname(nbuf) = 'x-data'
+                                numor(nbuf) = 100*nbuf
+                                coment(nbuf)= ''
+                                !#######################
+                                !   !and go on with actual rline
+                endif
 
 
 !        data have no names only values (ipars .ne. 0)   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
-  		if (ipars.gt.0 .and. iparn(1).eq.0) then        !  data  line started with values
-			lx = lx + 1
-			ly = ly + 1
-			le = le + 1
-			if(lx.gt.size(xwerte(:,1)).or.ly.gt.size(xwerte(:,1))) then
-        		write(6,*)'too many x-y values'
-        		close(20)        
-		        return
-         	endif
-         	xwerte(lx,nbuf) = rpar(1) + xshift
-         	ywerte(ly,nbuf) = rpar(2) + yshift
-			if (ipars.gt.2) then
-				yerror(le,nbuf) = rpar(3)
-			!else
-			!	yerror(le,nbuf) = 0
-			endif
-			goto 2000
+                if (ipars.gt.0 .and. iparn(1).eq.0) then        !  data  line started with values
+                        lx = lx + 1
+                        ly = ly + 1
+                        le = le + 1
+                        if(lx.gt.size(xwerte(:,1)).or.ly.gt.size(xwerte(:,1))) then
+                        write(6,*)'too many x-y values'
+                        close(20)        
+                        return
+                endif
+                xwerte(lx,nbuf) = rpar(1) + xshift
+                ywerte(ly,nbuf) = rpar(2) + yshift
+                        if (ipars.gt.2) then
+                                yerror(le,nbuf) = rpar(3)
+                        !else
+                        !       yerror(le,nbuf) = 0
+                        endif
+                        goto 2000
       !endif  ! only data lines
-		elseif(ipars.gt.0 .and. iparn(1).eq.1 .and. &
+                elseif(ipars.gt.0 .and. iparn(1).eq.1 .and. &
                (trim(vname(1)).eq.trim('x').or.trim(vname(1)).eq.trim('y') &
                 .or.trim(vname(1)).eq.trim('e')) ) then    ! we found parameters  starting with a name (starting with number is iparn(1)=0
-			! !       data like x 1 2 3 4 5 6 y 9 8 7 6 5 e 1 1 1 1 1 1 ! ----- the more explicit lists -----with numbers
-        	do j=1,inames
-				la = inapa(j)
-				ln = inpar(j)
-				if(trim(vname(j)).eq.trim('x')) then ! found parameterlike x line
-					do i=1,ln
-					lx = lx + 1
-					if(lx.gt.size(xwerte(:,1))) then
-						write(6,*)'too many x-y values'
-						close(20)
-						return
-					endif
-					xwerte(lx,nbuf) = rpar(la+i-1)
-					enddo
-				elseif(trim(vname(j)).eq.trim('y')) then ! found parameterlike y line
-					do i=1,ln
-						ly = ly + 1
-						ywerte(ly,nbuf) = rpar(la+i-1)
-					enddo
-				elseif(trim(vname(j)).eq.trim('e')) then ! found parameterlike er line
-					do i=1,ln
-						le = le + 1
-						yerror(le,nbuf) = rpar(la+i-1)
-					enddo
-				endif
-         	enddo
-			goto 2000
+                        ! !       data like x 1 2 3 4 5 6 y 9 8 7 6 5 e 1 1 1 1 1 1 ! ----- the more explicit lists -----with numbers
+                do j=1,inames
+                                la = inapa(j)
+                                ln = inpar(j)
+                                if(trim(vname(j)).eq.trim('x')) then ! found parameterlike x line
+                                        do i=1,ln
+                                        lx = lx + 1
+                                        if(lx.gt.size(xwerte(:,1))) then
+                                                write(6,*)'too many x-y values'
+                                                close(20)
+                                                return
+                                        endif
+                                        xwerte(lx,nbuf) = rpar(la+i-1)
+                                        enddo
+                                elseif(trim(vname(j)).eq.trim('y')) then ! found parameterlike y line
+                                        do i=1,ln
+                                                ly = ly + 1
+                                                ywerte(ly,nbuf) = rpar(la+i-1)
+                                        enddo
+                                elseif(trim(vname(j)).eq.trim('e')) then ! found parameterlike er line
+                                        do i=1,ln
+                                                le = le + 1
+                                                yerror(le,nbuf) = rpar(la+i-1)
+                                        enddo
+                                endif
+                enddo
+                        goto 2000
       !endif ! parameter like data
-		elseif(ipars.gt.0 .and. iparn(1).eq.1 .and. inames.eq.1 ) then    ! we found parameters  starting with a name (starting with number is iparn(1)=0
-			nopar(nbuf) =   nopar(nbuf) + 1
-			if(nopar(nbuf).gt.size(params(:,1))) then
-				write(6,*)'too many parameters'
-				close(20)
-				ierrs = 100
-				return
-			endif
-			params(nopar(nbuf),nbuf) = rpar(inapa(1))
-			napar (nopar(nbuf),nbuf) = vname(1)
- 			params_display_level(nopar(nbuf),nbuf) = Nint(rpar(inapa(1)+1))                       
-			goto 2000
+                elseif(ipars.gt.0 .and. iparn(1).eq.1 .and. inames.eq.1 ) then    ! we found parameters  starting with a name (starting with number is iparn(1)=0
+                        nopar(nbuf) =   nopar(nbuf) + 1
+                        if(nopar(nbuf).gt.size(params(:,1))) then
+                                write(6,*)'too many parameters'
+                                close(20)
+                                ierrs = 100
+                                return
+                        endif
+                        params(nopar(nbuf),nbuf) = rpar(inapa(1))
+                        napar (nopar(nbuf),nbuf) = vname(1)
+                        params_display_level(nopar(nbuf),nbuf) = Nint(rpar(inapa(1)+1))                       
+                        goto 2000
        !endif ! parameters
-		elseif(vname(3).eq.'vs      '.or.vname(3).eq.'versus  ') then !!1   a line to set x ,y axis names
+                elseif(vname(3).eq.'vs      '.or.vname(3).eq.'versus  ') then !!1   a line to set x ,y axis names
           name(nbuf) = vname(1)
           yname(nbuf) = vname(2)
           xname(nbuf) = vname(4)
           numor(nbuf) = Nint(rpar(1)) 
           goto 2000
-		else ! --  identification & comment-line        evrything else
-			if ( coment(nbuf).eq. ''  ) then
-				coment(nbuf)= rline
+                else ! --  identification & comment-line        evrything else
+                        if ( coment(nbuf).eq. ''  ) then
+                                coment(nbuf)= rline
                                 if(rline(1:1) == '"') then
                                   coment(nbuf) = rline(2:len_trim(rline)-1)
                                 endif
-			else
-				write(6,*) 'Comment ignor: ',trim(rline)
-			endif
-       		goto 2000  ! end of main loop !    now next line
-		endif
+                        else
+                                write(6,*) 'Comment ignor: ',trim(rline)
+                        endif
+                goto 2000  ! end of main loop !    now next line
+                endif
 !
 ! -- error returns --
    40  continue
@@ -3279,8 +3279,8 @@ sl:       do j=1,maxstep
         nwert(nbuf) = lx
 
        if (nwert(nbuf).eq.0) then ! keine Daten in letztem datensatz
-	  nbuf=nbuf -1             ! nbuf  =>reset
-   	 write (6,*) 'appended comments found and ignored '
+          nbuf=nbuf -1             ! nbuf  =>reset
+         write (6,*) 'appended comments found and ignored '
        endif
 
         if(xshift.ne.0.0) then
@@ -4266,7 +4266,7 @@ sl:       do j=1,maxstep
        character*1024 finame, pathbuf, outfile
        integer i, ispc
 
-		 pathbuf = savepath()
+                 pathbuf = savepath()
 !
 ! ----------> transfer new name if not scratchfile for edit <-----------
          if(trim(fname).eq.trim('datbuf   ')) then
@@ -4275,11 +4275,11 @@ sl:       do j=1,maxstep
             finame = fname
          endif
 ! ----------> write data onto buffer <---------------------------------
-			if (fname(1:1).ne.'.' .and. fname(1:1).ne.'/') then
-				outfile = trim(pathbuf)//trim(fname)
-			else
-				outfile = trim(fname)
-			endif
+                        if (fname(1:1).ne.'.' .and. fname(1:1).ne.'/') then
+                                outfile = trim(pathbuf)//trim(fname)
+                        else
+                                outfile = trim(fname)
+                        endif
          write(6,*)'opening:',trim(outfile),'....'
          open(18,file=trim(outfile),status='UNKNOWN',err=999)
          write(18,'(a)')'"'//trim(coment(ispc))//'"'
@@ -4325,34 +4325,34 @@ sl:       do j=1,maxstep
          pathbuf = savepath()
 !                                                                                                                                                outfile = trim(pathbuf)//fname
          if (fname(1:1).ne.'.' .and. fname(1:1).ne.'/') then
-				outfile = trim(pathbuf)//trim(fname)
-			else
-				outfile = trim(fname)
-			endif
+                                outfile = trim(pathbuf)//trim(fname)
+                        else
+                                outfile = trim(fname)
+                        endif
          write(6,*)'opening:',trim(outfile),'....'
          open(18,file=trim(outfile),status='UNKNOWN',err=999)
          do l=1,nsel
-				ispc = isels(l)
-				write(18,'(a)')trim(coment(ispc) )
-				write(18,'(a,a,a,a,a,i14)')trim(name(ispc)(index(name(ispc),'/',back=.true.)+1:)),&
+                                ispc = isels(l)
+                                write(18,'(a)')trim(coment(ispc) )
+                                write(18,'(a,a,a,a,a,i14)')trim(name(ispc)(index(name(ispc),'/',back=.true.)+1:)),&
                       ' ',yname(ispc)(1:20), ' vs ',xname(ispc)(1:20),numor(ispc)
-!				write(18,'(2x,a8,10x,e14.7)')(napar(i,ispc),params(i,ispc),i= 1,nopar(ispc))
-				write(18,'(2x,a8,10x,e14.7,i8)')(napar(i,ispc),params(i,ispc),params_display_level(i,ispc),&
+!                               write(18,'(2x,a8,10x,e14.7)')(napar(i,ispc),params(i,ispc),i= 1,nopar(ispc))
+                                write(18,'(2x,a8,10x,e14.7,i8)')(napar(i,ispc),params(i,ispc),params_display_level(i,ispc),&
                            i= 1,nopar(ispc))
-				write(18,*)' '
-				write(18,501)(xwerte(i,ispc),ywerte(i,ispc),yerror(i,ispc),i=1,nwert(ispc))
-501	      format(2x,'   ',e14.7,5x,'   ',e14.7,5x,'   ',e14.7)
-				write(18,*)' '
-				if(ifits(l).gt.0) then
-					ispc = ifits(l)
-					write(18,'(a)')coment(ispc)
-					write(18,'(a,a,a,a,a,i14)')name(ispc)(1:8) ,' ',yname(ispc)(1:20),' vs ', &
+                                write(18,*)' '
+                                write(18,501)(xwerte(i,ispc),ywerte(i,ispc),yerror(i,ispc),i=1,nwert(ispc))
+501           format(2x,'   ',e14.7,5x,'   ',e14.7,5x,'   ',e14.7)
+                                write(18,*)' '
+                                if(ifits(l).gt.0) then
+                                        ispc = ifits(l)
+                                        write(18,'(a)')coment(ispc)
+                                        write(18,'(a,a,a,a,a,i14)')name(ispc)(1:8) ,' ',yname(ispc)(1:20),' vs ', &
                           xname(ispc)(1:20) ,numor(ispc)
-					write(18,'(2x,a8,10x,e14.7)')(napar(i,ispc),params(i,ispc),i= 1,nopar(ispc))
-					write(18,*)' '
-					write(18,501)(xwerte(i,ispc),ywerte(i,ispc),yerror(i,ispc),i=1,nwert(ispc))
-					write(18,*)' '
-				endif
+                                        write(18,'(2x,a8,10x,e14.7)')(napar(i,ispc),params(i,ispc),i= 1,nopar(ispc))
+                                        write(18,*)' '
+                                        write(18,501)(xwerte(i,ispc),ywerte(i,ispc),yerror(i,ispc),i=1,nwert(ispc))
+                                        write(18,*)' '
+                                endif
          enddo
          call theo_out(18)
          close(18)
@@ -6055,9 +6055,9 @@ sl:       do j=1,maxstep
        function wlambda( alam )
 !      ------------------------
 ! --- repraesentiert die wellenlaengenverteilung
-	use wlntran
+        use wlntran
         implicit none
-	real*4 arg, alam, wlambda
+        real*4 arg, alam, wlambda
           arg     = ( (alam-alam0)/dalam )**2
           if(arg.lt.50.e0) then
             wlambda =  exp( -arg )
@@ -6198,7 +6198,7 @@ sl:       do j=1,maxstep
 !                                                                       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !                                                                       
-	IMPLICIT NONE
+        IMPLICIT NONE
 !                                                                       
         DOUBLE PRECISION :: bsjn, x, eps, f, fmn, fmnm1, fmnp1, fn, fnm1, fnp1, z, zzt
 !                                                                       
@@ -6338,7 +6338,7 @@ sl:       do j=1,maxstep
 !                                                                       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !                                                                       
-	IMPLICIT NONE
+        IMPLICIT NONE
 !                                                                       
 !        INCLUDE  'th1_vdzero_comdef.f'
 
@@ -6437,7 +6437,7 @@ sl:       do j=1,maxstep
 !                                                                       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !                                                                       
-	IMPLICIT NONE
+        IMPLICIT NONE
 !                                                                       
         DOUBLE PRECISION z 
         DOUBLE PRECISION bsjn
@@ -6474,7 +6474,7 @@ sl:       do j=1,maxstep
 !                                                                       
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !                                                                       
-	IMPLICIT NONE
+        IMPLICIT NONE
 !                                                                       
 !       INCLUDE  'outlev_comdef.f'
 !       INCLUDE  'th1_vdzero_comdef.f'

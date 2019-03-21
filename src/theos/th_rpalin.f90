@@ -470,7 +470,7 @@ ilr: if( newcomp_required ) then
              locrep2 =  sqt/sqt0
              dr      = 1d-20
              ifix    = 0
-             call  NrouseY(q,ts,temp,Dr,wl4,nro_me,re_me, Wx, lx,ifix, sqt0,sqt)
+             call  NrousePX(q,ts,temp,Dr,wl4,nro_me,re_me, Wx, lx,ifix, sqt0,sqt)
              plin0   = nlin  * Debye_qnl(q, nlin, l) 
              plin    = plin0 * locrep2 * sqt / sqt0
              t_samples(i) = ts
@@ -495,7 +495,7 @@ ilr: if( newcomp_required ) then
              locrep2 =  sqt/sqt0
              dr      = 1d-20
              ifix    = 0
-             call  NrouseY(q,ts,temp,Dr,wl4_c,nro_me_c,re_me_c, Wx, lx,ifix, sqt0,sqt)
+             call  NrousePX(q,ts,temp,Dr,wl4_c,nro_me_c,re_me_c, Wx, lx,ifix, sqt0,sqt)
              plin0cc   = nlin_cc  * Debye_qnl(q, nlin_cc, l) 
              plincc    = plin0cc * locrep2 * sqt / sqt0
              t_samples(i) = ts
@@ -518,7 +518,7 @@ ilr: if( newcomp_required ) then
 
              dr      = 1d-20
              ifix    = 0
-             call  NrouseY(q,ts,temp,Dr,wl4rous,nrouseff,Re_rous, Wx, lx,ifix, sqt0,sqt)
+             call  NrousePX(q,ts,temp,Dr,wl4rous,nrouseff,Re_rous, Wx, lx,ifix, sqt0,sqt)
              prous0 =  nrous  * Debye_qnl(q, nrous, l) 
 
              prous  =  sqt/sqt0 * prous0                                         !! osolete ?
@@ -710,6 +710,155 @@ ilr: if( newcomp_required ) then
       end function  Debye_qnl
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+ 
+
+       subroutine NrousePX(q,t,temp,Dr,wl4,N,R, W, l,ifx , Sq,Sqt)
+!      ========================================================
+!
+! Rouse expression for a chain of finite length:
+! Input parameters:
+!    q     ----> momentum transfer in A**-1
+!    t     ----> time in nano-sec
+!    temp  ----> temperature in K
+!    Dr    ----> center of mass diffusion constant in A**2/ns, if 0 <-- Rouse-expectation
+!    wl4   ----> friction coefficient in A**4/ns
+!    N     ----> number of chain segments
+!    R     ----> end-to-end distance of the polymer molecule
+!    ifx   ----> fixend or not
+! Output parameters:
+!    W     <--- "Rouse factor" 3kT/(xi*l**2); R**2=N*l**2
+!    l     <--- "Segment length l"
+!    Sq    <--- S(Q)
+!    Sqt   <--- S(Q,t)
+! ------------------------------------------------------------
+!
+       implicit none
+
+       double precision kb, pi
+       parameter(kb=1.380662d-23)
+       parameter(pi=3.141592654d0)
+
+       double precision q,t,temp,Dr,xi,R, W,Sq,Sqt, wl4
+       integer N, nn,mm,ifx,ip
+
+       double precision l, tau_p, kbt, Sq0, arg1, arg2
+       double precision a0,e0, ff2, ffc,    arg10,arg20
+       double precision aa1 , aa2
+       double precision p, p0fix
+
+       double precision :: cosarray(N,N), ewfac(N)
+
+       integer :: ipmin, ipmax, i
+
+!       integer iout
+       
+       if(N.le.0) then
+         W  = 999
+         Sq = 999
+         Sqt= 999
+         write(6,*)'Error Number of chain segments is <= 0!',N
+         return
+       endif
+
+! ---- determine the segment length l ----
+       l = sqrt(R**2/N)       
+       
+! ---- and the Rousefactor ----
+       kbt = temp*kb            ! in Joule = kg*m**2/s**2
+       kbt = kbt * 100          ! in         kg*A**2/ns**2
+       xi  = 3*kbt*l**2 / wl4
+       W   = 3*kbt/(xi*(l**2))  ! in 1/ns
+
+
+! ---- set the diffusion constant if input is zero --- !
+       if(Dr.eq.0.0d0) then
+         Dr = kbt/(N*xi)
+       endif
+
+       if(ifx.eq.0) then
+         p0fix = 0
+       else
+         p0fix = -0.5d0
+       endif
+
+!$OMP PARALLEL DO     
+       do nn=1,N
+        do ip=1,N
+         cosarray(nn,ip) = cos((pi*(ip+p0fix)*nn)/dfloat(N)) / (ip+p0fix)
+        enddo
+       enddo
+!$OMP END PARALLEL DO   
+
+!$OMP PARALLEL DO PRIVATE(p)    
+       do i=1,N 
+         ewfac(i) = (1d0-exp(-2*W*(1-cos((pi*(i+p0fix))/dfloat(N)))*t)) 
+       enddo
+!$OMP END PARALLEL DO    
+
+       ipmin = 1
+       ipmax = N
+
+! ---- init sums ----
+       Sq0 = 0
+       Sq  = 0
+       Sqt = 0
+
+
+! ---- Do the sums -----
+
+!$OMP PARALLEL DO REDUCTION(+:Sq,Sqt,arg2)
+
+       do nn = 1,N
+        do mm = 1,N
+          arg1 = -(q**2)*(Dr*t + abs(nn-mm)*(l**2)/6.0d0)
+          arg10= -(q**2)*(       abs(nn-mm)*(l**2)/6.0d0)
+          ff2  = -2*N*(l*q)**2/(3*pi**2)
+    
+          arg2 = 0
+          arg20= 0
+
+          do ip=ipmin, ipmax
+            
+!            ffc   = cosarray(nn,ip) * cosarray(mm,ip) 
+
+!            arg2  = arg2 +  (1d0-exp(-2*W*(1-cos((pi*ip)/dfloat(N)))*t)) * ffc
+            arg2  = arg2 +  ewfac(ip) * cosarray(nn,ip) * cosarray(mm,ip) 
+
+                                
+!            arg20 =  arg20 + ffc
+
+          enddo 
+          
+
+!          arg2  = arg2  * ff2
+!          arg20 = arg20 * ff2
+
+!          aa1 = arg10
+
+!          aa2 = arg1+ff2*arg2
+
+
+          Sq  = Sq  + exp(arg10)
+          Sqt = Sqt + exp(arg1+ff2*arg2)
+
+        enddo
+
+       enddo
+
+!$OMP END PARALLEL DO
+
+
+
+       Sq  = Sq /N
+       Sqt = Sqt/N
+
+!!       write(6,'(1x,a,6E14.6)')'q,t,Sq,Sqt, Sqt/Sq, w=', q,t,Sq,Sqt, Sqt/Sq, w 
+
+       return
+       end subroutine NrousePX
+ 
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 

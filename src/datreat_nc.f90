@@ -4950,9 +4950,13 @@ exclude:   if(found('exclude  ')) then
       double precision, allocatable :: xva(:), yva(:), yvaer(:)
       integer         , allocatable :: iperm(:)
       logical         , allocatable :: va_used(:)
+      double precision, allocatable :: weights(:)
       real                          :: xwidth
       logical                       :: relative_catch 
-      logical                       :: put_width      
+      logical                       :: put_width   
+
+      real                          :: xpa, xpaav
+      integer                       :: ipa   
 
 
       if(found('help    ')) then 
@@ -5022,11 +5026,13 @@ exclude:   if(found('exclude  ')) then
       if(allocated(yvaer))   deallocate(yvaer)
       if(allocated(va_used)) deallocate(va_used)
       if(allocated(iperm))   deallocate(iperm)
+      if(allocated(weights)) deallocate(weights)
       allocate(xva    (number_of_data_points))
       allocate(yva    (number_of_data_points))
       allocate(yvaer  (number_of_data_points))
       allocate(va_used(number_of_data_points))
       allocate(  iperm(number_of_data_points))
+      allocate(weights(nsel))
 
 ! distribute data
       n = 0      
@@ -5131,6 +5137,40 @@ d2:       do j=1,number_of_data_points
          write(6,'(a)')" ------ "
       endif
 
+!! determine contributed weights and average parameters accordingly
+!! get weights:
+! write(*,*)"TEST0: determine weights nsel=", nsel
+      weights = 0
+      do i=1,nsel
+        do j=1,nwert(isels(i))
+          if( yerror(j,isels(i)) > 0d0) weights(i) = weights(i) + 1d0/yerror(j,isels(i))**2
+        enddo 
+      enddo
+      weights = weights / sum(weights(1:nsel))
+
+! write(*,*)"TEST0a: weights", weights
+
+! write(*,*)"TEST0b: nopar", nopar(nbuf), nbuf
+
+      do ipa=1,nopar(nbuf)
+        xpaav = 0
+        do i=1,nsel
+! write(*,*)"TEST1:a ",i, ipa, isels(i), trim(napar(ipa,isels(i)))      
+          cbuf = trim(napar(ipa,isels(i)))   
+! write(*,*)"TEST: cbuf ",cbuf
+          call parget(cbuf, xpa, isels(i), ier )
+
+          xpaav = xpaav + weights(i) * xpa
+! write(*,*)"TEST1: ",i, isels(i), ipa, cbuf, xpa, xpaav,  weights(i)  
+        enddo
+        call parset(cbuf,xpaav,nbuf)
+! write(*,*)"TEST SETTING: ",cbuf, xpaav, nbuf
+      enddo
+
+
+
+
+
        write(6,'(a)'    , advance='no') "final result from: "
        write(6,'(20i4)' , advance='no') (isels(i),i=1,nsel)
        if(relative_catch) then
@@ -5140,9 +5180,20 @@ d2:       do j=1,number_of_data_points
        endif
        if(iout() > 0) write(6,'(2i5,3e14.7)') (i,iperm(i),xva(iperm(i)),yva(iperm(i)),yvaer(iperm(i)),i=1,n_result_point)
 
+       write(*,'(a)') "parameters have been combined with global error weightnfrom the selected records"
+
   
        nsel     = 1
        isels(1) = nbuf
+
+
+      deallocate(xva)
+      deallocate(yva)
+      deallocate(yvaer)
+      deallocate(va_used)
+      deallocate(iperm)
+      deallocate(weights)
+
 
 
 

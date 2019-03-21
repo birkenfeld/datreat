@@ -148,6 +148,16 @@ d6: do
 ! 
 d7: do
       read(in,'(a)',end=999,err=999) inline
+      i = index(inline,"#END") 
+      if(i>0) then
+        write(out,'(3a)')"     th_",trim(adjustl(theoryname))," = th"
+        write(out,'(a)')" "
+        write(out,'(a)')"! ---- writing computed parameters to the record >>>  "
+        do i=1,noutpar
+            write(out,'(5a)')"      call parset('",recparout(i),"',sngl(",trim(recparout(i)),"),iadda,ier)"
+        enddo 
+        goto 1000
+      endif
       i = index(inline,"#SUBROUTINES")
       if(i>0) exit d7
       write(out,'(a)') trim(inline)
@@ -175,6 +185,8 @@ d8: do
       if(i>0) exit d8
       write(out,'(a)') trim(inline)
     enddo d8
+
+1000 continue
 
  write(out,'(a,a)')" end function th_",trim(adjustl(theoryname))
 

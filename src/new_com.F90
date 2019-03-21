@@ -165,6 +165,10 @@ MODULE new_com
   !character(cmd_len)    , public ::  pmlist(minc,2) ! (PAZ) not-used
   character(cmd_long)   , public ::  rlbuf
 
+   character(cmd_len)   , public  :: top_macro_file = " "
+   character(cmd_long)  , public  :: top_macro_call = " "
+   character(cmd_long)  , public  :: raw_input      = " "
+ 
   ! path variables
 
   character(len=cmd_long) :: data_path  = './'
@@ -614,6 +618,7 @@ CONTAINS
        if(ktop.eq.0) then
 #ifdef USE_LINENOISE
           istatus = fclinenoise_read(len(inread),inread, trim(prompt)//' '//c_null_char)
+          raw_input = inread
           if (istatus<0) return
 #else
           write(6,'(a)',advance='no')trim(prompt)//' ' 
@@ -649,6 +654,12 @@ CONTAINS
        ioldc=0
     endif
 1011 continue
+
+!!mm>>
+!write(*,*)"i1: ",trim(inline)
+    inline = markstring(inline)
+!write(*,*)"i2: ",trim(inline)
+!!mm<<
 
 
     ioldc = 0
@@ -839,6 +850,11 @@ CONTAINS
           inames = inames + 1
           if(inames.gt.minc) goto 999
           vname(inames) = trim(buf(1:len(vname(1))))
+!!mm>>
+!write(*,*)"v1: ",inames,trim(vname(inames))
+          vname(inames) = stripstring(vname(inames))
+!write(*,*)"v1: ",inames,trim(vname(inames))
+!!mm<<
           argvals(iargvs) = buf(1:1024)
           inapa(inames) = 0
        else
@@ -1271,7 +1287,19 @@ CONTAINS
 
     open(newunit=kanal(ktop),file=comand,status='old',form='formatted',err=99991)
     read(kanal(ktop),9998,end=99991) inline
-    if(inline(1:6).eq.'makro '.or. inline(1:6).eq.'macro ') goto 19999
+!!  if(inline(1:6).eq.'makro '.or. inline(1:6).eq.'macro ') goto 19999
+!! mm>> 10.12.18:
+    if(inline(1:6).eq.'makro '.or. inline(1:6).eq.'macro ') then
+      if( ktop == 1 ) then
+         top_macro_file = comand
+         top_macro_call = raw_input
+      endif
+      goto 19999
+    endif
+!! mm<<
+    !! ok this was no makro !!!
+    close(kanal(ktop))
+
     !! ok this was no makro !!!
     close(kanal(ktop))
 99991 continue
@@ -1383,6 +1411,8 @@ CONTAINS
     ierrr = 4
 
     return
+
+
 
        entry close_all_macros()
 !!     ========================
@@ -1749,7 +1779,7 @@ CONTAINS
 !!$  END subroutine pushn
 
 
-  double precision   function getval(pname,defval,inew)
+  double precision   function getval(pname,defval,inew0)
     !-----------------------------------------------------------------------
     !  wert extraktion aus dem incom parameterstack
     !-----------------------------------------------------------------------
@@ -1757,11 +1787,12 @@ CONTAINS
 
     character(len=*), intent(in) :: pname
     double precision             :: defval
-    integer, intent(out)         :: inew
+    integer, intent(out),optional:: inew0
     !
-    integer :: i
+    integer :: i, inew
     !-----------------------------------------------------------------------
     inew      = 0
+    if(present(inew0)) inew0 = inew
     getval    = defval
     if(inames.le.0) return
 
@@ -1780,6 +1811,8 @@ CONTAINS
           exit search
        endif
     end do search
+
+    if(present(inew0)) inew0 = inew
 
     return
 
@@ -2074,17 +2107,19 @@ CONTAINS
   END subroutine get1
 
 
-  integer function intval(pname,idef,inew)
+  integer function intval(pname,idef,inew0)
     !-----------------------------------------------------------------------
     !  wert extraktion aus dem incom parameterstack  integer
     !-----------------------------------------------------------------------
     implicit none
     character(len=*) :: pname
-    integer          :: idef,inew
+    integer          :: idef
+    integer,optional :: inew0
     !
-    integer :: i
+    integer :: i, inew
     !-----------------------------------------------------------------------
     inew      = 0
+    if(present(inew0)) inew0 = inew
     intval    = idef
     if(inames.le.0) return
     !
@@ -2103,7 +2138,7 @@ CONTAINS
           exit search
        endif
     end do search
-
+    if(present(inew0)) inew0 = inew
     return
 
   END function intval
@@ -2349,6 +2384,25 @@ CONTAINS
     !
     return
   END subroutine getnva
+
+
+!!mm>>
+   subroutine push_cmd_line(cmdl, ierr)
+     implicit none
+     character(len=*), intent(in)   :: cmdl
+     integer, intent(out), optional :: ierr
+
+     if(present(ierr)) ierr = 0
+     if(ioldc > 0) then
+       write(*,*)"ERROR: previous residual command line part is lost! ", trim(reslin) 
+       if(present(ierr)) ierr = 1
+     endif
+     
+     reslin  = trim(cmdl)
+     ioldc   = 1
+     
+   end subroutine push_cmd_line
+!!mm<<
 
 
   subroutine rotavc( x, xyorig, rotvec )
@@ -3544,15 +3598,15 @@ CONTAINS
   END FUNCTION intnxt
 
 
-  character(cmd_len) FUNCTION chrval(pname,cdef,inew)
+  character(cmd_len) FUNCTION chrval(pname,cdef,inew0)
     !     --------------------------------------------
     !     extract a long name following (associated to) pname
     !     cdef=default, inew analogous to getval and intval
     !-----------------------------------------------------------------------
     !
     implicit none
-    character(*), intent(in) :: pname, cdef
-    integer, intent(out)     :: inew
+    character(*), intent(in)          :: pname, cdef
+    integer, intent(out) ,optional    :: inew0
     !
     !       logical cused, vused, rused, seten, compar
     !
@@ -3561,10 +3615,11 @@ CONTAINS
     !        ,lstpar, lstnam, cused, vused(minc), rused(minc), seten, info
 
     !       integer :: lclen
-    integer :: i
+    integer :: i, inew
     !-----------------------------------------------------------------------
     !
     inew      = 0
+    if(present(inew0)) inew0 = inew
     chrval    = cdef
     if(inames.le.0) return
     !
@@ -3583,6 +3638,7 @@ CONTAINS
        endif
     end do search
     !
+    if(present(inew0)) inew0 = inew
     return
     !
     !      end
@@ -3991,6 +4047,58 @@ END SUBROUTINE intnva
     logical :: res
     res = vused(iname)
   end function lvused
+
+
+
+
+
+
+
+ ! =========================================================================
+ !> convert blanks between quoites to ~ (aux function to enable newcom to deal 
+ !> with quote strings as nametype items
+
+    function markstring(str) result(marked)
+      implicit none
+      character(len=*), intent(in) :: str
+      character(len=len(str))      :: marked
+         
+      integer :: i
+      logical :: instring 
+      
+      instring = .false.
+      marked = str
+      do i=1,len_trim(str)
+         if(str(i:i) == '"') instring = .not. instring
+         if(str(i:i) == ' '  .and.       instring) marked(i:i) = '~'
+      enddo
+    end function markstring      
+
+
+ ! =========================================================================
+ !> remove quotes and change  ~'s  to blanks
+ !> (aux function to enable newcom to deal 
+ !> with quote strings as nametype items
+
+    function stripstring(str) result(stripped)
+      implicit none
+      character(len=*), intent(in) :: str
+      character(len=len(str))      :: stripped
+         
+      integer :: i, j
+
+      stripped = " "
+      j        = 0
+      do i=1,len_trim(str)
+         if( .not. str(i:i) == '"') then
+           j = j+1
+           stripped(j:j) = str(i:i)
+           if(stripped(j:j) == '~') stripped(j:j) = ' '
+         endif 
+      enddo
+    end function stripstring      
+
+  
 
 
 

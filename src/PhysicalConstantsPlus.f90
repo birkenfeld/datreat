@@ -12,7 +12,7 @@ Module PhysicalConstantsPlus
     double precision, parameter :: Pi                  =     3.141592653589793238462643d0
     
     
-    double precision, parameter :: Larmorkonstante     =     2916.46943d+4 
+    double precision, parameter :: Larmorkonstante     =     2916.469323d+4! (older: 2916.46943d+4) -> nist new   
     double precision, parameter :: Mue0                =     1.25663706d-6
     double precision, parameter :: Neutronenmasse      =     1.674927351d-27 
     double precision, parameter :: Planckkonstante     =     6.62606957d-34
