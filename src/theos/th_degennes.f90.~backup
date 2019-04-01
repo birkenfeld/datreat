@@ -42,9 +42,8 @@
         th_explanation(idesc)  =  &
          "deGennes expression for reptation S(q,t):                   "//cr//&
          " with tau0  = 36 / (W1 * ( (q * l) **4) )                    "//cr//&
-         "      taud  = 3 * (n**3) * (l**2) / ( (pi**2) * W2 * (d**2)) "//cr//&
+         "      taud  = 3 * (n**3) * (l**2) / ( (pi**2) * W * (d**2)) "//cr//&
          "      td    = t / taud ;  t0 = t / tau0                     "//cr//&
-         "      d(t)  = d1 + (d0-d1)*exp(-t/dt)                       "//cr//&
          "      eqd   = exp ( - ( (q * d / 6) **2) )                  "//cr//&
          "      sum   = sum(i) of { exp ( - i * i * td) / (i * i) }   "//cr//&
          "      creep = sum * (8 / (pi**2) ) * eqd                    "//cr//&
@@ -66,13 +65,10 @@
          parnam (8)  = 'l        ' 
 ! 
          th_param_desc(1,idesc) = "prefactor "  
-         th_param_desc(2,idesc) = "Rouse rate local reptation (the W part of wl4) typically in units of 1/ns"  
-         th_param_desc(3,idesc) = "Rouse rate creep (the W part of wl4) typically in units of 1/ns"  
-         th_param_desc(4,idesc) = "initial repation tube diameter (in THE LENGTH UNITS for q, l..., typ. Angstroem) "  
-         th_param_desc(5,idesc) = "final repation tube diameter (in THE LENGTH UNITS for q, l..., typ. Angstroem) "  
-         th_param_desc(6,idesc) = "relaxation time for the tube diameter transition d0 --> d1 "  
-         th_param_desc(7,idesc) = "number of segments in the cains (only infulences the creep term, taud) "  
-         th_param_desc(8,idesc) = "segment length in the length units of q, d"  
+         th_param_desc(2,idesc) = "Rouse rate (the W part of wl4) typically in units of 1/ns"  
+         th_param_desc(3,idesc) = "repation tube diameter (in THE LENGTH UNITS for q, l..., typ. Angstroem) "  
+         th_param_desc(4,idesc) = "number of segments in the cains (only infulences the creep term, taud) "  
+         th_param_desc(5,idesc) = "segment length in the length units of q, d"  
 
          th_file_param(:,idesc) = " "
          th_file_param(1,idesc) = " q  =  q value of the S(q,t), units THE LENGTH UNITS"
