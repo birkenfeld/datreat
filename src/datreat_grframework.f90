@@ -30,6 +30,11 @@ implicit none
 
   double precision, parameter   :: DEFAULT_WC_MARGIN             = 0.1d0
 
+  double precision              :: AXIS_LINEWIDTH                = 1d0
+  double precision              :: XLEG_DISTANCE                 = 0.075d0
+  double precision              :: YLEG_DISTANCE                 = 0.14d0
+  double precision              :: TLEG_DISTANCE                 = 0.08d0
+
                          
   integer, parameter :: MARKERTYPE_DOT             =  1    !    Smallest displayable dot
   integer, parameter :: MARKERTYPE_PLUS            =  2    !    Plus sign
@@ -591,22 +596,26 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
 
 
 !== graxes (automatic) ===================================================================================== 
-  subroutine graxes(xlabel, ylabel, title, color, option)
+  subroutine graxes(xlabel, ylabel, title, color, option, tick_scale, text_scale)
     implicit none
     character(len=*), intent(in), optional :: xlabel
     character(len=*), intent(in), optional :: ylabel
     character(len=*), intent(in), optional :: title
     integer         , intent(in), optional :: color
     integer         , intent(in), optional :: option ! OPTION_X_LOG, OPTION_Y_LOG, OPTION_Z_LOG, OPTION_FLIP_X, OPTION_FLIP_Z
+    double precision, intent(in), optional :: tick_scale
+    double precision, intent(in), optional :: text_scale
 !
    double precision  :: x_tick, y_tick
    double precision  :: x_org , y_org
 
    integer         , save  :: major_x = 1
    integer         , save  :: major_y = 1
-   double precision, save  :: tick_size = -0.008d0
+   double precision, parameter  :: tick_size0 = 0.004d0
+   double precision, save  :: tick_size= tick_size0 
    double precision, save  :: xmin, xmax, ymin, ymax
-   double precision, save  :: textsize = 0.018d0 ! 0.024d0
+   double precision, parameter  :: textsize0 = 0.018d0 ! 0.024d0
+   double precision, save  :: text_size = textsize0
 
    double precision        :: xlabel_x, xlabel_y
    double precision        :: ylabel_x, ylabel_y
@@ -619,7 +628,9 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
      call gr_settextcolorind(color)
    endif
     
-   if(present(option)) call gr_setscale(option)  
+   if(present(option))      call gr_setscale(option)  
+   if(present(tick_scale))  tick_size = tick_size0 * tick_scale
+   if(present(text_scale))  text_size = textsize0 * text_scale
 
    call gr_inqwindow(xmin, xmax, ymin, ymax)
 
@@ -632,9 +643,9 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
    y_tick = get_tick(ymin,ymax) 
  
      
-   call gr_setcharheight(textsize) 
+   call gr_setcharheight(text_size) 
    call gr_settextalign(  TEXT_HALIGN_CENTER , TEXT_VALIGN_HALF  ) 
-   call gr_setlinewidth(1d0)
+   call gr_setlinewidth(AXIS_LINEWIDTH)
   
    call gr_axes(x_tick,y_tick,x_org,y_org, major_x,major_y, tick_size)
 
@@ -645,24 +656,24 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
 !write(*,*)"Test axis yl:", trim(ylabel)
   
    xlabel_x = xmin+(xmax-xmin)*0.5d0
-   xlabel_y = ymin-(ymax-ymin)*0.1d0
+   xlabel_y = ymin-(ymax-ymin)*XLEG_DISTANCE
 
-   ylabel_x = xmin-(xmax-xmin)*0.18d0
+   ylabel_x = xmin-(xmax-xmin)*YLEG_DISTANCE
    ylabel_y = ymin+(ymax-ymin)*0.5d0
 
-   tlabel_x = xmin
-   tlabel_y = ymax+(ymax-ymin)*0.1d0
+   tlabel_x = xmin+(xmax-xmin)*YLEG_DISTANCE   ! to be made individual for Tit
+   tlabel_y = ymax+(ymax-ymin)*TLEG_DISTANCE
 
    if(act_opt == OPTION_X_LOG .or. act_opt == OPTION_XY_LOG) then
         xlabel_x = 10d0**(log10(xmin)+(log10(xmax)-log10(xmin))*0.5d0)
-        ylabel_x = 10d0**(log10(xmin)-(log10(xmax)-log10(xmin))*0.18d0)
-        tlabel_x = xmin
+        ylabel_x = 10d0**(log10(xmin)-(log10(xmax)-log10(xmin))*YLEG_DISTANCE)
+        tlabel_x = 10d0**(log10(xmin)+(log10(xmax)-log10(xmin))*YLEG_DISTANCE) ! to be made individual for Tit
    endif
 
    if(act_opt == OPTION_Y_LOG .or. act_opt == OPTION_XY_LOG) then
-        xlabel_y = 10d0**(log10(ymin)-(log10(ymax)-log10(ymin))*0.1d0)
+        xlabel_y = 10d0**(log10(ymin)-(log10(ymax)-log10(ymin))*XLEG_DISTANCE)
         ylabel_y = 10d0**(log10(ymin)+(log10(ymax)-log10(ymin))*0.5d0)
-        tlabel_y = 10d0**(log10(ymax)+(log10(ymax)-log10(ymin))*0.1d0)
+        tlabel_y = 10d0**(log10(ymax)+(log10(ymax)-log10(ymin))*TLEG_DISTANCE)
    endif
 
 
@@ -695,22 +706,27 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
      
   end subroutine graxes
 
-  subroutine graxes2(xlabel, ylabel, title, color, option)  ! axis origin upper right corner
+  subroutine graxes2(xlabel, ylabel, title, color, option, tick_scale, text_scale)  ! axis origin upper right corner
     implicit none
     character(len=*), intent(in), optional :: xlabel
     character(len=*), intent(in), optional :: ylabel
     character(len=*), intent(in), optional :: title
     integer         , intent(in), optional :: color
     integer         , intent(in), optional :: option ! OPTION_X_LOG, OPTION_Y_LOG, OPTION_Z_LOG, OPTION_FLIP_X, OPTION_FLIP_Z
+    double precision, intent(in), optional :: tick_scale
+    double precision, intent(in), optional :: text_scale
+
 !
    double precision  :: x_tick, y_tick
    double precision  :: x_org , y_org
 
    integer          ,save :: major_x = 1
    integer          ,save :: major_y = 1
-   double precision ,save :: tick_size = 0.008d0
-   double precision ,save :: xmin, xmax, ymin, ymax
-   double precision ,save :: textsize = 0.018d0 ! 0.024d0
+   double precision, parameter  :: tick_size0 = 0.004d0
+   double precision, save  :: tick_size= tick_size0 
+   double precision, save  :: xmin, xmax, ymin, ymax
+   double precision, parameter  :: textsize0 = 0.018d0 ! 0.024d0
+   double precision, save  :: text_size = textsize0
 
    double precision        :: xlabel_x, xlabel_y
    double precision        :: ylabel_x, ylabel_y
@@ -725,6 +741,9 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
    endif
    
    if(present(option)) call gr_setscale(option)  
+   if(present(tick_scale))  tick_size = tick_size0 * tick_scale
+   if(present(text_scale))  text_size = textsize0 * text_scale
+
 
    call gr_inqwindow(xmin, xmax, ymin, ymax)
 
@@ -737,34 +756,34 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
    y_tick = get_tick(ymin,ymax) 
 
    
-   call gr_setcharheight(textsize) 
+   call gr_setcharheight(text_size) 
    call gr_settextalign(  TEXT_HALIGN_CENTER , TEXT_VALIGN_HALF  ) 
 
-   call gr_setlinewidth(1d0)   
+   call gr_setlinewidth(AXIS_LINEWIDTH)   
    call gr_axes(x_tick,y_tick,x_org,y_org, major_x,major_y, tick_size)
 
   ! write labels
    call gr_selntran(0)
 
    xlabel_x = xmin+(xmax-xmin)*0.5d0
-   xlabel_y = ymax+(ymax-ymin)*0.1d0
+   xlabel_y = ymax+(ymax-ymin)*XLEG_DISTANCE
 
-   ylabel_x = xmax+(xmax-xmin)*0.18d0
+   ylabel_x = xmax+(xmax-xmin)*YLEG_DISTANCE
    ylabel_y = ymin+(ymax-ymin)*0.5d0
 
-   tlabel_x = xmin
-   tlabel_y = ymax+(ymax-ymin)*0.1d0
+   tlabel_x = xmax-(xmax-xmin)*YLEG_DISTANCE
+   tlabel_y = ymax+(ymax-ymin)*TLEG_DISTANCE
 
    if(act_opt == OPTION_X_LOG .or. act_opt == OPTION_XY_LOG) then
         xlabel_x = 10d0**(log10(xmin)+(log10(xmax)-log10(xmin))*0.5d0)
-        ylabel_x = 10d0**(log10(xmax)+(log10(xmax)-log10(xmin))*0.18d0)
-        tlabel_x = xmax
+        ylabel_x = 10d0**(log10(xmax)+(log10(xmax)-log10(xmin))*YLEG_DISTANCE)
+        tlabel_x = 10d0**(log10(xmax)-(log10(xmax)-log10(xmin))*TLEG_DISTANCE)
    endif
 
    if(act_opt == OPTION_Y_LOG .or. act_opt == OPTION_XY_LOG) then
-        xlabel_y = 10d0**(log10(ymax)+(log10(ymax)-log10(ymin))*0.1d0)
+        xlabel_y = 10d0**(log10(ymax)+(log10(ymax)-log10(ymin))*XLEG_DISTANCE)
         ylabel_y = 10d0**(log10(ymin)+(log10(ymax)-log10(ymin))*0.5d0)
-        tlabel_y = 10d0**(log10(ymax)+(log10(ymax)-log10(ymin))*0.1d0)
+        tlabel_y = 10d0**(log10(ymax)+(log10(ymax)-log10(ymin))*TLEG_DISTANCE)
    endif
 
 
@@ -855,7 +874,11 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
        if(txt(1:1) .ne. "$") then
          call gr_text(xt,yt,trim(txt)//czero)
        else
-         call gr_textext(xt,yt,trim(grtex_filter(txt(2:)))//czero)
+          if(txt(2:2) .ne. "$") then
+            call gr_textext(xt,yt,trim(grtex_filter(txt(2:)))//czero)   ! one $ at start
+          else
+            call gr_mathtex(xt,yt,trim(grtex_filter(txt(3:)))//czero)   ! two $$ at start
+          endif
        endif
    endif
     
@@ -1080,38 +1103,42 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
 
        logical :: log_x=.false.
        logical :: log_y=.false.
-       double precision ::    log10    !! TBD-> rename
-
 !      --- doplo = false  means: set parameters only ---
        character(len=80) :: xtext,ytext
        character(len=80) :: buf
        character(len=12) :: tag, stunde
        character(len=12) :: tx,sx
 
-      double precision :: xmin=0.d0, xmax=1.d0, ymin=0.d0 ,ymax=1.d0
-      integer :: nkurv=0
-      double precision :: txsize=0.35d0
-      double precision :: sysize=0.6d0
-      double precision :: fyskip=1.2d0
-!?      real :: framx=23.,framy=23.,yensca=0.,frlux=4.,frluy=4.
-      double precision :: framx=23.,framy=23.,frlux=4.,frluy=4.
-      double precision :: epscl  = 0.001
-      integer          :: icol0  = 1
-      double precision :: txsizt = 0.23d0 
-      double precision :: xtshft = 0.0d0
-      double precision :: ytshft = 0.0d0
+      double precision, save :: xmin=0.d0, xmax=1.d0, ymin=0.d0 ,ymax=1.d0
+      integer         , save :: nkurv=0
+      double precision, save :: txsize=0.35d0
+      double precision, save :: sysize=0.6d0
+      double precision, save :: fyskip=1.2d0
+      double precision, save :: epscl  = 0.001
+      integer         , save :: icol0  = 1
+      double precision, save :: txsizt = 0.23d0 
+      double precision, save :: xtshft = 0.0d0
+      double precision, save :: ytshft = 0.0d0
+    
+      double precision :: thcline_thickness = 0.5d0
+      double precision :: datline_thickness = 0.75d0
+
+      double precision, save :: ax_text_scale = 1d0
+      double precision, save :: ax_tick_scale = 1d0
 
       double precision :: yhigh, ylow, xskip
 
-      double precision ::  frxx, fryy, ytxs, yma_s, ymi_s, xh, xtxs, sysiz, ytx
+      double precision ::  ytxs, yma_s, ymi_s, xtxs, ytx
       double precision ::  yepl, yeml, xtx, xmi_s,xma_s
       integer irfcu, j, icco, ik, ip, ircu, nsy, npic, nnpi, it
-      integer npicf, npar, nfkurv, nco, ltext, lopt, lxx, lyy, l, ith, ircf
+      integer npicf, npar, nfkurv, nco, lxx, lyy, l, ith, ircf
 
       integer, save :: iplevel = 0
       integer       :: axis_option
 
       integer       ::  ifont = 0
+
+      
 
 
 
@@ -1134,6 +1161,13 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
        write(6,*)'=      parlev         :  sets level for (more) parameter lsiting             ='
        write(6,*)'=      noparplo p1 p2.:  suppress parameter listing except for p1 p2 ...     ='
        write(6,*)'=      txsize <val>   :  set textsize (legend)                               ='
+       write(6,*)'=      axtxsize <val> :  scale axis script text size                         ='
+       write(6,*)'=      axticlen <val> :  scale axis tick size (neg=outbound)                 ='
+       write(6,*)'=      xlegdist <val> :  distance of x-axis name from axis                   ='
+       write(6,*)'=      ylegdist <val> :  distance of y-axis name from axis                   ='
+       write(6,*)'=      tlegdist <val> :  distance of title from axis top                     ='
+       write(6,*)'=      flinewd  <val> :  fit linewidth                                       ='
+       write(6,*)'=      dfinewd  <val> :  data linewidth                                      ='
        write(6,*)'=      lin_x | log_x  :  lin or log x scale                                  ='
        write(6,*)'=      lin_y | log_y  :  lin or log y scale                                  ='
        write(6,*)'=      # <al>         :  auto num picture storing ON start at <val>,  0=OFF  ='
@@ -1186,7 +1220,6 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
           if(vname(i).eq.'legsize ') txsizt= rpar(j)
           if(vname(i).eq.'legx    ') xtshft= rpar(j)
           if(vname(i).eq.'legy    ') ytshft= rpar(j)
-          if(vname(i).eq.'font    ') ifont = rpar(j) +0.0001
           if(vname(i).eq.'color   ') icol0 = rpar(j) +0.0001
           if(vname(i).eq.'sysize  ') sysize= rpar(j)
           if(vname(i).eq.'parlev  ') iplevel = Nint(rpar(j))
@@ -1205,12 +1238,23 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
           if(vname(i).eq.'lin_x   ') log_x  = .false.
           if(vname(i).eq.'lin_y   ') log_y  = .false.
 !
-          ibild = get_named_value("#    ",ibild,inew)
-          ifont = get_named_value("font ",ifont,inew)
+          ibild               = get_named_value("#          ",ibild,inew)
+          ifont               = get_named_value("font       ",ifont,inew)
+          ax_text_scale       = get_named_value("axtxsize   ",ax_text_scale,inew)
+          ax_tick_scale       = get_named_value("axticlen   ",ax_tick_scale,inew)
+
+          thcline_thickness   = get_named_value("flinewd   ",thcline_thickness,inew)
+          datline_thickness   = get_named_value("dlinewd   ",datline_thickness,inew)
 
 
+! experimental:
+          XLEG_DISTANCE = get_named_value("xlegdist   ",XLEG_DISTANCE,inew)
+          YLEG_DISTANCE = get_named_value("ylegdist   ",YLEG_DISTANCE,inew)
+          TLEG_DISTANCE = get_named_value("tlegdist   ",TLEG_DISTANCE,inew)
 
-          if(vname(i).eq.'symb    ') then
+          
+! to be modernized
+          if(vname(i).eq.'symb    ' .or. vname(i).eq.'isymb   ' ) then
             nsy = 0
             do 49 l=1,inpar(i)
              nsy   = nsy   + 1
@@ -1222,7 +1266,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
    29     continue
 !
 
-          if(vname(i).eq.'icolo   ') then
+          if(vname(i).eq.'colo    ' .or. vname(i).eq.'icolo   ') then
             nco = 0
             do 59 l=1,inpar(i)
              nco   = nco   + 1
@@ -1345,7 +1389,12 @@ scl:   if(found('scaled  ')) then
 
 !write(*,*)"test1:",xtext,ytext,lxx,lyy
 !?        if(paxis) call graxs(lopt,option,lxx,xtext,lyy,ytext)
-       if(paxis) call graxes (trim(xtext),trim(ytext),trim(title),GR_BLACK, axis_option) !> neu
+       if(paxis) then
+            call graxes (trim(xtext),trim(ytext),trim(title),GR_BLACK, axis_option, &
+                         ax_tick_scale, ax_text_scale) !> neu
+            call graxes2 (" "," "," ",GR_BLACK, axis_option, &
+                         -ax_tick_scale, ax_text_scale*0.001d0) !> neu
+       endif
 
 !
 !
@@ -1356,6 +1405,7 @@ scl:   if(found('scaled  ')) then
        do 70 i=1,nfkurv
         irfcu = isfits(i)
         npicf = nwert(irfcu)
+        icco = mod(icolo(i),7) + 1
         nnpi = 0
         do 70010 j=1,npicf
           if(xwerte(j,irfcu).ge.xmin.and.xwerte(j,irfcu).le.xmax) then
@@ -1368,7 +1418,7 @@ scl:   if(found('scaled  ')) then
 
           endif
 70010     continue
-           call grline(x=x, y=y, n=nnpi,   color=GR_BLACK,   thickness=0.5d0, typ=LINETYPE_SOLID) !> neu
+           call grline(x=x, y=y, n=nnpi,   color=icco,   thickness=thcline_thickness, typ=LINETYPE_SOLID) 
 !?         call grln(x,y,nnpi)   
    70   continue
        endif
@@ -1380,6 +1430,7 @@ scl:   if(found('scaled  ')) then
        do 20 i=1,nkurv
         ircu = isels(i)
         ircf = ifits(i)
+        icco = mod(icolo(i),7) + 1
         npic = nwert(ircu)
         if(fitplo) then
         if(ircf.ne.0) then
@@ -1395,12 +1446,9 @@ scl:   if(found('scaled  ')) then
             if(y(nnpi).lt.ymin) y(nnpi) = ymin-(ymax-ymin)*0.02
             if(y(nnpi).gt.ymax) y(nnpi) = ymax+(ymax-ymin)*0.02
             x(nnpi) = xwerte(j,ircf)
-
-
           endif
 20010     continue
-!>        call grln(x,y,nnpi)
-          call grline(x=x, y=y, n=nnpi,   color=GR_BLACK,   thickness=0.5d0, typ=LINETYPE_SOLID) !> neu
+          call grline(x=x, y=y, n=nnpi,   color=icco,   thickness=thcline_thickness, typ=LINETYPE_SOLID)
 
         endif
        endif
@@ -1424,11 +1472,11 @@ scl:   if(found('scaled  ')) then
 !
 ! --- plot ---
 !       if (numor(ircu).gt.0) then
-           icco=mod(icolo(i),7) + 1
+!           icco=mod(icolo(i),7) + 1
 
 !          ----------- plot a dataline -------
            if(isymb(i).eq.0) then
-             call grline(x=x, y=y, n=nnpi,   color=icco,   thickness=0.75d0, typ=LINETYPE_SOLID) !> neu
+             call grline(x=x, y=y, n=nnpi,   color=icco,   thickness=datline_thickness, typ=LINETYPE_SOLID) !> neu
            else
              call grsymbol(x=x, y=y,  n=nnpi, &    ! xerror    = y(ind)*0.2d0, yerror = y(ind)*0.1d0, &
                                       color=icco, symbolsize= sysize, typ= MARKERTYPE(isymb(i)) )
@@ -1443,7 +1491,7 @@ scl:   if(found('scaled  ')) then
              enddo
 ! new
              call grsymbol(x=x, y=y,  n=nnpi, yerror = e, &
-                            color=icco, symbolsize= sysize, typ= MARKERTYPE(isymb(i)) )
+                            color=icco, symbolsize= sysize, typ= MARKERTYPE(max(1,isymb(i))) )
            endif
 
 !>             call grnwpn(1)

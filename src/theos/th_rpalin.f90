@@ -431,12 +431,15 @@ i1:  if( mode == 0 ) then     ! normal spin-echo
      endif i1
 
 
-      allparams(1:42) = [ wl4rous, dble(nrouseff), diffrous, locr2_b, locr2_a, locr2_ta, locr2_lz, locr2_te, &
+      allparams(1:48) = [ wl4rous, dble(nrouseff), diffrous, locr2_b, locr2_a, locr2_ta, locr2_lz, locr2_te, &
                          dble(nro_me) , re_me,   wl4     , betadif, plimit , q , dble(nrous), l, dble(f),   &
                          phirous, dble(nlin), philin, alin, arous, &
                          dble(nlin_cc), dble(analytic), dss, sfak0, dble(npp_plus),xil,epap,epsrpa, &
                          lr2_b_c, lr2_a_c, lr2_ta_c, lr2_lz_c, lr2_te_c, &
-                         dble(nro_me_c) , re_me_c,   wl4_c     , diffmatc, betadifc, difflin, betadifl ]
+                         dble(nro_me_c) , re_me_c,   wl4_c     , diffmatc, betadifc, difflin, betadifl, &
+                         dble(mode), dble(modeex), dble(nxpoints), t0, tmax, rlow ]     
+
+
 
       newcomp_required = ( sum(abs(allparams-last_params)) .ne. 0 ) .and. (modeex > 0)
     

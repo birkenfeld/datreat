@@ -58,8 +58,8 @@ CONTAINS
 !! allows combination of curves within the RPA expressions and either "direct" or numerical
 !! backtransformation (in the complex regime (s --> i omega)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
-     subroutine nexp_match(xv, yv, np, nexps, aexp, rexp, ssq) 
-!    ---------------------------------------------------------
+     subroutine nexp_match(xv, yv, np, nexps, aexp, rexp, ssq, iout) 
+!    ---------------------------------------------------------------
      implicit none
      double precision, intent(in)     :: xv(np)   ! x-values (i.e. time) of cuve to be matched
      double precision, intent(in)     :: yv(np)   ! y-values (i.e. S(q,t)/S(q))
@@ -68,6 +68,7 @@ CONTAINS
      double precision, intent(out)    :: aexp(nexps) ! exp prefactors (ampltiues)
      double precision, intent(out)    :: rexp(nexps) ! exp rates:  y = sum(1...nexps) aexp(i)*exp(-t*rexp(i))
      double precision, intent(out)    :: ssq         ! quality of matching
+     integer         , intent(in), optional :: iout  ! output levevl
 
 
      double precision    :: px(2*nexps) , pxscale(2*nexps), pxerr(2*nexps)
@@ -76,12 +77,24 @@ CONTAINS
 
      double precision    :: ye(np)
      double precision    :: tmax, t
-     integer             :: i, ier
+     integer             :: i, ier, nxs
+
+     logical             :: verbose = .false.
+
+     if(present(iout)) then
+       verbose = (iout > 0)
+     endif
+
+!!??!!      double precision    :: ainf, amean
+!!??!!      double precision    :: rinf, rinit, rmean
 
       ! make estimate
      
+      px      = 0d0
       pxscale = 1d0
       ye      = 1d0
+      ssq     = 0d0
+
       
       tmax = maxval(xv)
       do i=1,nexps
@@ -92,7 +105,72 @@ CONTAINS
       enddo
       
       ssq = fit_simple(fm,2*nexps,px ,pxscale     , np, xv, yv, ye, px, pxerr)
-      
+  
+!!??!! !new  ABER DIE OBIGE SIMPLE METHODE SCHEIN EHER BESSER ZU SEIN .....
+!!??!! ! first compute intial estimates
+!!??!! ! 1. limit t=inf (virtually constant), mean rate and initial rate 50:50 for the rest
+!!??!!       if(nexps < 3) stop "lmfit nexp-modelling needs at least nexps=3"
+!!??!!       ainf  = yv(np)
+!!??!!       rinf  = 2d-5
+!!??!!       rmean = 1d0/ ( dot_product(xv(1:np),(yv(1:np)-ainf)) / sum(yv(1:np)-ainf) )     
+!!??!!       amean = 1d0-ainf
+!!??!!       rinit = min(abs((yv(np/5)-yv(1))/(xv(np/5)-xv(1))*0.5d0), 30d0)
+!!??!!       
+!!??!!       px(1) = ainf     ;       pxscale(1) = 0.1d0
+!!??!!       px(2) = rinf     ;       pxscale(2) = 1 ! 10*rinf
+!!??!!       px(3) = amean/2  ;       pxscale(3) = 0.1d0
+!!??!!       px(4) = rmean    ;       pxscale(4) = 1 ! rmean
+!!??!!       px(5) = amean/2  ;       pxscale(5) = 0.1d0
+!!??!!       px(6) = rinit    ;       pxscale(6) = 1 ! rinit
+!!??!! 
+!!??!!       nxs = 3
+!!??!! 
+!!??!! write(*,*)"ainf=",ainf, yv(np-2:np)
+!!??!! write(*,*)"rinf=",rinf
+!!??!! 
+!!??!! write(*,*)"rmean=",rmean
+!!??!! write(*,*)"amean=",amean
+!!??!! write(*,*)"rinit=",rinit, yv(1:np/5) 
+!!??!! 
+!!??!! 
+!!??!!       write(6,'(a,i2,a,e9.2,a,20(a,f6.3," nexpfit: Start t=",f13.2,"|"))')&
+!!??!!            "# ",nxs," exp model(",ssq,"):|",("a=",px(2*i-1),1d0/px(2*i),i=1,nxs)
+!!??!! 
+!!??!! 
+!!??!!       ssq = fit_simple(fm, 2*nxs ,px ,pxscale     , np, xv, yv, ye, px, pxerr)
+!!??!! 
+!!??!!       write(6,'(a,i2,a,e9.2,a,20(a,f6.3," nexpfit: Step1 t=",f13.2,"|"))')&
+!!??!!            "# ",nxs," exp model(",ssq,"):|",("a=",px(2*i-1),1d0/px(2*i),i=1,nxs)
+!!??!! 
+!!??!!       if(nexps > nxs) then
+!!??!!         
+!!??!! dfl:     do nxs=nxs+1,nexps
+!!??!! 
+!!??!!            do i=1,np
+!!??!!               ye(i) = yv(i)-fm(xv(i),px,2*nxs) 
+!!??!!            enddo
+!!??!!            px(2*nxs)        = 1d0/ ( abs(dot_product(xv(1:np),ye(1:np))) / sum(abs(ye(1:np))) ) 
+!!??!!            pxscale(2*nxs)   = 1 ! px(2*nxs)
+!!??!!  
+!!??!!            px(2*nxs-1)      = maxval(ye(1:np)) 
+!!??!!            pxscale          = 0.1d0
+!!??!! 
+!!??!!            write(6,'(a,i2,a,e9.2,a,20(a,f6.3," nexpfit: Start t=",f13.2,"|"))')&
+!!??!!            "# ",nxs," exp model(",ssq,"):|",("a=",px(2*i-1),1d0/px(2*i),i=1,nxs)
+!!??!! 
+!!??!!            ssq = fit_simple(fm, 2*nxs ,px ,pxscale     , np, xv, yv, ye, px, pxerr)
+!!??!! 
+!!??!!            write(6,'(a,i2,a,e9.2,a,20(a,f6.3," nexpfit: Step  t=",f13.2,"|"))')&
+!!??!!            "# ",nxs," exp model(",ssq,"):|",("a=",px(2*i-1),1d0/px(2*i),i=1,nxs)
+!!??!! 
+!!??!!          enddo dfl
+!!??!! 
+!!??!!       endif
+!!??!! 
+!!??!! 
+
+
+  
       if(ssq > 1d-4) then
         write(6,*)"WARNING: bad matching of exp-model to time function!",ssq
       endif
@@ -102,18 +180,27 @@ CONTAINS
          r0(i) =  px(2*i)
 !!         write(6,'(i8,2f18.7,6x,2f18.7)')i, a0(i), pxerr(2*i-1), r0(i), pxerr(2*i)
          if( r0(i) < 1d-5 ) then
-            write(6,*)"WARNING(nexp_match): rate = ",r0(i)," is set to 1e-5"
+            if(verbose) write(6,*)"WARNING(nexp_match): rate = ",r0(i)," is set to 1e-5"
             r0(i)   = 1d-5
             px(2*i) = r0(i)
          endif 
       enddo
 
-!!      write(6,'(a)')"#    exp fit result: "
-      write(6,'(a,i4,a,2f12.6,a,2f12.6,a)')  &
+      if(verbose) then 
+        write(6,'(a,i4,a,2f12.6,a,2f12.6,a)')  &
            "# exp-fit n, range:",np,"(", xv(1), yv(1),")-->(", xv(np), yv(np),")" 
-      write(6,'(a,i2,a,e9.2,a,20(a,f6.3," t=",f13.2,"|"))')&
+        write(6,'(a,i2,a,e9.2,a,20(a,f6.3," t=",f13.2,"|"))')&
            "# ",nexps," exp model(",ssq,"):|",("a=",px(2*i-1),1d0/px(2*i),i=1,nexps)
-!!      write(6,*)
+      endif
+
+      do i=1,np
+        ye(i) = yv(i)-fm(xv(i),px,2*nexps) 
+      enddo
+      if(maxval(ye(1:np)) > 0.01d0) then
+         write(*,'("Maximum deviation (model-n-exp-rpresentation): ",f12.6," at t= ",f12.4)') &
+                 maxval(ye(1:np)), xv(maxloc(ye(1:np)))
+      endif
+
      
     ! sorting fastes rate first
       iperm = [(i,i=1,nexps)]

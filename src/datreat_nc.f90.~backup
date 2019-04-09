@@ -5187,6 +5187,15 @@ d2:       do j=1,number_of_data_points
        isels(1) = nbuf
 
 
+      deallocate(xva)
+      deallocate(yva)
+      deallocate(yvaer)
+      deallocate(va_used)
+      deallocate(iperm)
+      deallocate(weights)
+
+
+
 
    end subroutine average_data
 
