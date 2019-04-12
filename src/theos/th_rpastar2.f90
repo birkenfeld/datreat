@@ -533,6 +533,8 @@ ilr: if( newcomp_required ) then
 
  end select
 
+ th_rpastar2 = th_rpastar2 * ampli
+
 
   call parset('dss     ',sngl(dss),iadda) 
   call parset('npp_plus',(1.0*npp_plus),iadda) 

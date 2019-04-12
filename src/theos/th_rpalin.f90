@@ -657,7 +657,7 @@ ilr: if( newcomp_required ) then
 
  select case(mode)  ! be sure that in the beginning the assignment of t, q are properly made (if i1:)
    case (0)
-       th_rpalin = Sqt/Sqt0
+       th_rpalin = Sqt/Sqt0 
 
   case (1) ! linear contribution at tau as function of q
      th_rpalin = plin
@@ -673,6 +673,8 @@ ilr: if( newcomp_required ) then
       th_rpalin = 0
 
  end select
+
+ th_rpalin = th_rpalin * ampli
 
   call parset('nlin    ',(1.0*nlin),iadda) 
   call parset('nlin_cc ',(1.0*nlin_cc),iadda) 

@@ -700,6 +700,8 @@ ilr: if( newcomp_required ) then
 
  end select
 
+  th_rpalin2 =  th_rpalin2 * ampli
+
   call parset('nlin    ',(1.0*nlin),iadda) 
   call parset('nlin_cc ',(1.0*nlin_cc),iadda) 
   call parset('nrous   ',(1.0*nrous),iadda) 

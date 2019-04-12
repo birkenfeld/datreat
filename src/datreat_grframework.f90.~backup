@@ -661,19 +661,19 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
    ylabel_x = xmin-(xmax-xmin)*YLEG_DISTANCE
    ylabel_y = ymin+(ymax-ymin)*0.5d0
 
-   tlabel_x = xmin
+   tlabel_x = xmin+(xmax-xmin)*YLEG_DISTANCE   ! to be made individual for Tit
    tlabel_y = ymax+(ymax-ymin)*TLEG_DISTANCE
 
    if(act_opt == OPTION_X_LOG .or. act_opt == OPTION_XY_LOG) then
         xlabel_x = 10d0**(log10(xmin)+(log10(xmax)-log10(xmin))*0.5d0)
-        ylabel_x = 10d0**(log10(xmin)-(log10(xmax)-log10(xmin))*0.18d0)
-        tlabel_x = xmin
+        ylabel_x = 10d0**(log10(xmin)-(log10(xmax)-log10(xmin))*YLEG_DISTANCE)
+        tlabel_x = 10d0**(log10(xmin)+(log10(xmax)-log10(xmin))*YLEG_DISTANCE) ! to be made individual for Tit
    endif
 
    if(act_opt == OPTION_Y_LOG .or. act_opt == OPTION_XY_LOG) then
-        xlabel_y = 10d0**(log10(ymin)-(log10(ymax)-log10(ymin))*0.1d0)
+        xlabel_y = 10d0**(log10(ymin)-(log10(ymax)-log10(ymin))*XLEG_DISTANCE)
         ylabel_y = 10d0**(log10(ymin)+(log10(ymax)-log10(ymin))*0.5d0)
-        tlabel_y = 10d0**(log10(ymax)+(log10(ymax)-log10(ymin))*0.1d0)
+        tlabel_y = 10d0**(log10(ymax)+(log10(ymax)-log10(ymin))*TLEG_DISTANCE)
    endif
 
 
@@ -771,19 +771,19 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
    ylabel_x = xmax+(xmax-xmin)*YLEG_DISTANCE
    ylabel_y = ymin+(ymax-ymin)*0.5d0
 
-   tlabel_x = xmin
+   tlabel_x = xmax-(xmax-xmin)*YLEG_DISTANCE
    tlabel_y = ymax+(ymax-ymin)*TLEG_DISTANCE
 
    if(act_opt == OPTION_X_LOG .or. act_opt == OPTION_XY_LOG) then
         xlabel_x = 10d0**(log10(xmin)+(log10(xmax)-log10(xmin))*0.5d0)
-        ylabel_x = 10d0**(log10(xmax)+(log10(xmax)-log10(xmin))*0.18d0)
-        tlabel_x = xmax
+        ylabel_x = 10d0**(log10(xmax)+(log10(xmax)-log10(xmin))*YLEG_DISTANCE)
+        tlabel_x = 10d0**(log10(xmax)-(log10(xmax)-log10(xmin))*TLEG_DISTANCE)
    endif
 
    if(act_opt == OPTION_Y_LOG .or. act_opt == OPTION_XY_LOG) then
-        xlabel_y = 10d0**(log10(ymax)+(log10(ymax)-log10(ymin))*0.1d0)
+        xlabel_y = 10d0**(log10(ymax)+(log10(ymax)-log10(ymin))*XLEG_DISTANCE)
         ylabel_y = 10d0**(log10(ymin)+(log10(ymax)-log10(ymin))*0.5d0)
-        tlabel_y = 10d0**(log10(ymax)+(log10(ymax)-log10(ymin))*0.1d0)
+        tlabel_y = 10d0**(log10(ymax)+(log10(ymax)-log10(ymin))*TLEG_DISTANCE)
    endif
 
 
@@ -915,6 +915,8 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
      if(sinitial(i:i) == " ") sfinal(i:i) = "_"
      if(sinitial(i:i) == "(") sfinal(i:i) = "["
      if(sinitial(i:i) == ")") sfinal(i:i) = "]"
+     if(sinitial(i:i) == "$") sfinal(i:i) = "t"
+     if(sinitial(i:i) == "\") sfinal(i:i) = "_"
     enddo
    
 

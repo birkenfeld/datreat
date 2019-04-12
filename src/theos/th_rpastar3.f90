@@ -683,6 +683,8 @@ is:   if(astar == 0d0) then
 
  end select
 
+ th_rpastar3 = th_rpastar3 * ampli
+
   call parset('nlin    ',(1.0*nlin),iadda) 
   call parset('nlin_cc ',(1.0*nlin_cc),iadda) 
   call parset('narm    ',(1.0*narm),iadda) 

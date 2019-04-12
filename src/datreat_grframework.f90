@@ -915,6 +915,8 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
      if(sinitial(i:i) == " ") sfinal(i:i) = "_"
      if(sinitial(i:i) == "(") sfinal(i:i) = "["
      if(sinitial(i:i) == ")") sfinal(i:i) = "]"
+     if(sinitial(i:i) == "$") sfinal(i:i) = "t"
+     if(sinitial(i:i) == "\") sfinal(i:i) = "_"
     enddo
    
 
@@ -1650,7 +1652,7 @@ scl:   if(found('scaled  ')) then
 
 !!! finalize and save pictures on disc 
       if(ibild > 0) then
-         write(buf,'("datreat_plot",i0,"pdf")')ibild-1
+         write(buf,'("datreat_plot",i0,".pdf")')ibild-1
       else
          buf = "last_datreat_plot.pdf"
       endif
