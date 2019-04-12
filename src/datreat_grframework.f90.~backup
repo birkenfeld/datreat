@@ -1652,7 +1652,7 @@ scl:   if(found('scaled  ')) then
 
 !!! finalize and save pictures on disc 
       if(ibild > 0) then
-         write(buf,'("datreat_plot",i0,"pdf")')ibild-1
+         write(buf,'("datreat_plot",i0,".pdf")')ibild-1
       else
          buf = "last_datreat_plot.pdf"
       endif

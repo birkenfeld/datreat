@@ -375,6 +375,9 @@ implicit none
 
    logical                      :: grinit = .false.
 
+   double precision :: graspekt
+
+
 CONTAINS                                                                       
 
 !== gr_start =================================================================================================  
@@ -406,6 +409,11 @@ CONTAINS
      call gr_activatews(gr_ws_id)
                                                          
      call gr_setwsviewport(device_xmin, device_xmax, device_ymin, device_ymax) 
+
+!! > neu
+     graspekt =  (device_ymax-device_ymin)/(device_xmax-device_xmin) 
+     call gr_setwswindow( 0d0, 1d0, 0d0, graspekt )
+!! <
      
      if(present(boundary)) then   
        xyboundary = boundary 
@@ -413,7 +421,7 @@ CONTAINS
        xyboundary = DEFAULT_WC_MARGIN   
      endif
      call gr_setviewport(xyboundary,  & 
-             (1d0-0*xyboundary)*(device_ymax-device_ymin)/(device_xmax-device_xmin), xyboundary, 1d0-xyboundary) 
+             (1d0-xyboundary)*graspekt, xyboundary, (1d0-xyboundary)*graspekt) 
 
 
      call gr_setmarkersize(1.0D0) 
@@ -1393,7 +1401,7 @@ scl:   if(found('scaled  ')) then
 !?        if(paxis) call graxs(lopt,option,lxx,xtext,lyy,ytext)
        if(paxis) then
             call graxes (trim(xtext),trim(ytext),trim(title),GR_BLACK, axis_option, &
-                         ax_tick_scale, ax_text_scale) !> neu
+                         ax_tick_scale, ax_text_scale * graspekt) !> neu
             call graxes2 (" "," "," ",GR_BLACK, axis_option, &
                          -ax_tick_scale, ax_text_scale*0.001d0) !> neu
        endif
@@ -1519,13 +1527,13 @@ scl:   if(found('scaled  ')) then
          call gr_setwindow( DEVICE_LOWER_LEFT_X*100 , DEVICE_UPPER_RIGHT_X*100 , &
                             DEVICE_LOWER_LEFT_Y*100 , DEVICE_UPPER_RIGHT_Y*100 )
     
-         call gr_setcharheight(txsizt/35)   !> neu
+         call gr_setcharheight(txsizt/35*graspekt)   !> neu
          xtx =  DEVICE_UPPER_RIGHT_X*100 + 2.0  + xtshft
          ytx =  DEVICE_UPPER_RIGHT_Y*100 + 2.0  + ytshft
 
          yhigh = ytx
          ylow  = DEVICE_LOWER_LEFT_Y*100 - (DEVICE_UPPER_RIGHT_Y- DEVICE_LOWER_LEFT_Y)*DEFAULT_WC_MARGIN*100
-         xskip = 40 * fyskip * txsizt 
+         xskip = 42 * fyskip * txsizt 
 !
 ! - plot date and time info:
 !
