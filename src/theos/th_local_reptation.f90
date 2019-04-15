@@ -66,7 +66,7 @@
         th_file_param(  1,idesc) = "q        > q-value"
 ! >>>>> describe record parameters creaqted by this theory >>>>>>> 
         th_out_param(:,idesc)   = " "
-        th_out_param(1:,idesc)  = "a2sqt = a**2/sqrt(tau) "
+        th_out_param(1,idesc)   = "a2sqt = a**2/sqrt(tau) "
 ! 
         th_locrep = 0.0
  

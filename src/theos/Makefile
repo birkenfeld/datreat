@@ -1,7 +1,7 @@
 
 SHELL = /bin/sh
 SRCF=$(wildcard *.f) 
-SRCF90=$(wildcard *.f90) 
+SRCF90=integration.f90 rpa_laplace.f90 polynom.f90 $(wildcard *.f90) 
 
 
 OBJF=$(SRCF:.f=.o)
@@ -9,13 +9,15 @@ OBJF90=$(SRCF90:.f90=.o)
 
 OBJ=$(OBJF) $(OBJF90)
 .SUFFIXES:
-.SUFFIXES: .f90 .f .o
-FFLAGS=-march=core2 -O2  -save -fPIC -mfpmath=sse -I../
+.SUFFIXES: .f90 .f .o 
+# FFLAGS=-march=core2 -O3  -save -fPIC -mfpmath=sse -I../
+FFLAGS= -O3  -save -fPIC -I../
 THEOS := $(shell grep -h "^ *[Ff][Uu][Nn][Cc][Tt][Ii][Oo][nN] .*( *x *, *pa *, *.*, *.*, *.*, *.*)" *.f *.f90 | sed 's>[Ff]......[Nn] *\(.*\)( *x.*)>\1>'|sort )
 DOUBLE := $(shell grep -h "^ *[Ff][Uu][Nn][Cc][Tt][Ii][Oo][nN] .*( *x *, *pa *, *.*, *.*, *.*, *.*)" *.f *.f90  | sed 's>[Ff]......[Nn] *\(.*\)( *x.*)>\1>'|sort |uniq -d)
 
 FC=gfortran
-FFLAGS=-march=core2 -O2 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -msse4a -mfpmath=sse -Wunused-function -Wunused-variable -I../
+FFLAGS= -O3 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -Wunused-function -Wunused-variable -I../ -fopenmp
+#FFLAGS=-march=core2 -O2 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -msse4a -mfpmath=sse -Wunused-function -Wunused-variable -I../
 
 #FC=ifort
 
@@ -47,5 +49,5 @@ $(error  "!!!Fehler- in $(DOUBLE) : function name used twice change one of it  !
 endif
 
 clean:
-	rm -f *.o *.i90 libtheos*
+	rm -f *.o *.i90 libtheos* *.mod
 

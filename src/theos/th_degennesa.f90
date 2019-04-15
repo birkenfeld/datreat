@@ -12,11 +12,11 @@
       REAL th_degennesA, x, pa, qq, zpi, xh, vol_frac 
       INTEGER ini, npar, nparx 
       DIMENSION pa (20), qq (3) 
-			integer :: mbuf
-			integer, intent(inout) :: nopar                 ! Anzahl der Parameter data
-      character*80, intent(inout) :: napar(mbuf)      ! name des parameters n
+      integer :: mbuf
+      integer, intent(inout) :: nopar                       ! Anzahl der Parameter data
+      character(len=80), intent(inout) :: napar(mbuf)       ! name des parameters n
 			real, intent(inout) :: params(mbuf)             ! value des parameters n
-			      DATA zpi / 6.283185 / 
+     DATA zpi / 6.283185 / 
                                                                         
       DOUBLEPRECISION w, d, q, n, ne, degennesA, t, a, l
       double precision :: dp

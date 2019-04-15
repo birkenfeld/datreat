@@ -8,28 +8,28 @@
 !     author r.biehl
 !     tested
       use theory_description
-		implicit none          ! to make it easier to understand
-		real x                                     ! xvalue
-		real    pa (20)                            ! parameter values of theory
-		CHARACTER(8) thnam                         ! theory    name in datreat
-		CHARACTER(8) parnam (20)                   ! parameter namen of theory
-		integer      npar                          ! maximum number of theory parameters in main program
-		integer      ini                           ! flag initialisation or calculation
- 		integer, intent(inout) :: nopar            ! number of Parameter in data
-		character*80, intent(inout) :: napar(mbuf) ! name of  parameters(n)
-		real, intent(inout) :: params(mbuf)        ! value of parameters(n)
-		integer :: mbuf                            ! maximum length of data arrays in calling main program
+                implicit none          ! to make it easier to understand
+                real x                                     ! xvalue
+                real    pa (20)                            ! parameter values of theory
+                CHARACTER(8) thnam                         ! theory    name in datreat
+                CHARACTER(8) parnam (20)                   ! parameter namen of theory
+                integer      npar                          ! maximum number of theory parameters in main program
+                integer      ini                           ! flag initialisation or calculation
+                integer, intent(inout) :: nopar            ! number of Parameter in data
+                character(len=80), intent(inout) :: napar(mbuf) ! name of  parameters(n)
+                real, intent(inout) :: params(mbuf)        ! value of parameters(n)
+                integer :: mbuf                            ! maximum length of data arrays in calling main program
 
-		! define local parametrs here
-		real amp, tau0, bet, qexp, q, tau, pi, arg
-		real strexpo
-                real :: tauave
-		integer nparx                             ! number of theory parameters
+                ! define local parametrs here
+                real amp, tau0, bet, qexp, q, tau, pi, arg
+                real strexpo
+        real :: tauave, tauave0, deff
+                integer nparx                             ! number of theory parameters
         integer ier                               ! error variable 
 
         integer          :: iadda 
         common/thiadd/iadda
-		
+                
         DATA pi/3.141592653589793/
 !
 ! ----- initialisation of theory-----
@@ -72,14 +72,14 @@
          strexpo = 0
          RETURN
       ENDIF ! of initialisation
-			
+                        
       !     get the parameters from the data
       !     searched by the name of the parameters and assigned to variables
       !     old was call to  parget from data
-		call getpar('q       ',q,nopar ,params,napar,mbuf, ier)
-		if (ier.gt.0) write(*,*) 'q not found in data parameters   ier=',ier      ! only test it
-			
-		! get the parameters from the Theory    (better names)
+                call getpar('q       ',q,nopar ,params,napar,mbuf, ier)
+                if (ier.gt.0) write(*,*) 'q not found in data parameters   ier=',ier      ! only test it
+                        
+                ! get the parameters from the Theory    (better names)
       amp  = pa (1)
       tau0 = abs (pa (2) )
       bet  = abs (pa (3) )
@@ -98,8 +98,12 @@
 !    FINALY the result of this funktion  is ============
       strexpo = amp * exp ( - arg)
 !    for demonstration of calculation of a new parameter accessible by ?? +<name> and writen with save together with all data
-      tauave = tau0 * Gamma(1.0/bet)/bet 
-      call parset('tauave  ',tauave,iadda,ier)		
-			
+      tauave0 = tau0 * Gamma(1.0/bet)/bet 
+      tauave  = tau  * Gamma(1.0/bet)/bet 
+      deff    = 1.0/(tauave*q*q)
+      call parset('tauave0 ',tauave0,iadda,ier)         
+      call parset('tauave  ',tauave ,iadda,ier)         
+      call parset('deff    ',deff   ,iadda,ier)         
+                        
       RETURN
       END FUNCTION strexpo

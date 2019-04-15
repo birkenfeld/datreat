@@ -1,0 +1,35 @@
+numor 0 --> arit identification problems
+
+make arit version that solely uses selections ant not numors
+
+
+thc/fit automatic initial range 
+
+incororate extract_th into datreat code.
+
+
+A
+Write a better Numor Management
+   aux functions to create new numors aviding double numbers and 
+   allow conssten tratcking....
+
+B
+Consistent discrimination between volatile and permament command parameters
+
+C
+newcom
+
+
+
+
+
+!!!!! THIS IS THE NEW VERSION
+
+during make it may be necessary to compile some of the modules in advance (manually)
+since the Makefile ordering is alphabetically and does not consider module dependencies automatically.
+  
+
+still some problem with eval th (needs fixing)
+
+not the command separator in one line has now the default &  instead of the former  ;
+csep command allows to overwrite this ...

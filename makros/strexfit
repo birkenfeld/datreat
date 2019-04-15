@@ -1,0 +1,76 @@
+makro _num_ _seq_ _his_
+c ===================================================================================
+c strexfit
+c ========
+c fitting of dr spine output data with streched exponentials
+c more flexible varaiant as the impelmentation in drspine's report generator
+c
+c enter runnumebr associated with the report
+c sequence number of the report
+c and histogramming variant number
+c 
+c see makro: strfi1
+c for example
+c 
+c strfi1 or similar is run by the gli-makro: plotstr.gli
+c
+c
+c as parameters (edit below) the amplitude may be fitted (asca)
+c                            the streching exponent beta (sca2)
+c the fitting range is the fraction   tfs   of the typical time (tau) 
+c the results are appended to str_num_ 
+c
+c see also cumufit
+c
+c ====================================================================================   
+c makro _f_
+c strexpo fit
+
+purge all
+
+in report_num___seq_._his_.dtr
+set n (nbuf)
+
+c convert q values in m**-1 to A**-1
+qsia
+
+
+set i 0
+
+c set fitting parameters/flags
+set tfs   10
+set asca  0.1
+set sca2  0.01
+set sca3  0.01
+
+
+dac
+ac strexpo
+
+:j1
+   set i (i+1)
+   sel (i)
+   chgthpar strexpo 1 amplitu    par 1        scale (asca)
+   chgthpar strexpo 1 tau        par 0.1      scale 0.01
+   chgthpar strexpo 1 beta       par 0.9      scale 0.
+   chgthpar strexpo 1 qexp       par 0.0      scale 0.
+    
+   fit x1 0 x2 100
+   
+   
+   chgthpar strexpo 1 beta       scale (sca2)
+    
+   fit x2 (tfs*tau)
+   fit x2 (tfs*tau)
+   set tau1 (tau)
+   fit x2 (tfs*tau)
+   set tau2 (tau)
+   fit x2 (tfs*tau)
+   set tau3 (tau)
+
+ c  plot xmin 0.001 xmax 100 log_x errplo
+   
+   if (ssq) > 10              then goto :skip
+   print str_num_ (q) (amplitu) (tau) (e.tau) (tau1) (tau2) (tau3) (beta) (e.beta) (ssq) (_num_) (_seq_) (_his_) 
+:skip
+if (i) < (n) then goto :j1

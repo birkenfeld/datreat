@@ -1,0 +1,12 @@
+makro
+al
+c sys xterm -title "Enter datreat theory parameters, emacs style" -geometry 100x50 -e "emacs lastth"
+c xterm -e "emacs lastth"
+c === MAC simple editor faster but no emacs key-bindings ===
+ sys open -Wn lastth
+c ==========================================================
+c
+c =================================================================
+c sys open -Wna /usr/local/Applications/Aquamacs\ Emacs.app  lastth
+c ==================================================================
+acl

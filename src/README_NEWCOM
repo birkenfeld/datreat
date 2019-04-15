@@ -1,0 +1,21 @@
+Newcom test:
+
+gfortran -o a.out os_utils.F90 new_com.F90 linenoise.o linenoise_f90.o newcom_example.f90
+
+
+modification compared to drspine:
+
+private variables in new_com made public because of the legacy sections in datreat
+
+use Makefile_new..
+
+
+many changes concerning iout etc. --> better separation
+
+some changes in new_com.F90 
+(i.e. quit response)
+
+
+we had to change decode in datreat_subs form & as cmd sing to _ as cmd sign.
+
+makro path etc. muss noch gesetzt werden...

@@ -3711,7 +3711,7 @@ exclude:   if(found('exclude  ')) then
 !          write(6,390)nsel,(isels(i),numor(isels(i)),ifits(i),i=1,nsel)
    390     format(' selected items: ',i5/                                &
       &           ' scan-address:  numor:      fit-address:'/            &
-      &           (1x,i8,5x,i8,5x,i8))
+      &           (1x,i8,5x,i12,5x,i12))
 
 
 !
@@ -4741,6 +4741,7 @@ exclude:   if(found('exclude  ')) then
       implicit none
 
       double precision, save        :: xcatch = 0.05d0
+      double precision              :: yem
       integer                       :: inew, ier
 !?      integer                       :: i,j,k,n
       integer                       :: i,j,n
@@ -4840,9 +4841,15 @@ exclude:   if(found('exclude  ')) then
          yva(n)    =  ywerte(j,isels(i))
          yvaer(n)  =  yerror(j,isels(i))
          if(yvaer(n) <= 0.0d0) then
-           write(6,*)"Error occured with record:",isels(i)," point:",j
-           call errsig(999,"ERROR: Average: Missing y-errors $")
-           return
+           yem = yvaer(max(1,n-1))
+           if(yem > 0.0) then
+             yvaer(n) = yem
+             write(6,*)"WARNING: borrowed error from brevious point",i,j
+           else
+             write(6,*)"Error occured with record:",isels(i)," point:",j
+             call errsig(999,"ERROR: Average: Missing y-errors $")
+             return
+           endif
          endif
          va_used(n)= .false.
         enddo 

@@ -1,0 +1,61 @@
+makros _ftof_ _fbss_
+c =================================
+c combined fitting of TOF and BSS data
+c files must be prepared such that the parameter section
+c contains the gaussian resolution parameters
+c
+purge all
+in _ftof_
+in _fbss_
+if (nbuf) = 2 then goto :c1
+   say "expecting exactly 2 records here"
+   goto :ex
+:c1
+c
+c prepare xwidth parameter
+c
+sel 1
+set kw1 (xv(1,101)-xv(1,100))
+putpar _xwidth (kw1)
+?? +kw1
+sel 2
+set kw2 (xv(2,101)-xv(2,100))
+putpar _xwidth (kw2)
+?? +kw2
+c
+c cut BSS values to bssrange
+c
+sel 2
+set bssrange 150.0
+set n1 (indxval(2,(-bssrange)))
+set n2 (indxval(2,(bssrange)))
+clip from (n2) to (nv(2))
+clip from 1 to (n1)
+c
+c check 
+c
+sel 1 2
+plot xmin -1500 xmax 1500 ymin 0.001 ymax 2000 log_y
+c
+c
+c repair the erroneous error bars of the TOF data
+c
+c
+sel 1
+yformel;(sqrt(yy*250)/250)
+seterr
+c
+c check 
+c
+sel 1 2
+plot errplo
+c
+c
+acl
+thc x1 -300 x2 300
+c
+plot noerrplo q temp _xwidth
+c
+
+
+:ex

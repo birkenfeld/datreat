@@ -128,7 +128,7 @@
        double precision  :: p
        double precision  :: tc
 
-       integer, external :: iout
+!       integer, external :: iout
        
        if(N.le.0) then
          W  = 999
@@ -214,8 +214,8 @@
        Sq  = Sq /N
        Sqt = Sqt/N
 
-       if(iout().gt.1)write(6,'(1x,a,6E14.6)') &
-             'q,t,Sq,Sqt, Sqt/Sq, w=', q,t,Sq,Sqt, Sqt/Sq, w 
+!       if(iout().gt.1)write(6,'(1x,a,6E14.6)') &
+!             'q,t,Sq,Sqt, Sqt/Sq, w=', q,t,Sq,Sqt, Sqt/Sq, w 
 
        
        end subroutine NrouseC
