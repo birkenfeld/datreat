@@ -46,6 +46,7 @@ public :: fm
 public :: nexp_match
 public :: nexp_match2
 public :: match_exp1
+public :: match_exp2
 public :: prepare_ttable1
 
 
@@ -126,7 +127,120 @@ CONTAINS
       
       
       end subroutine match_exp1
-      
+
+     
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+!! matching a relaxation curve given by the table xv(1..np), yv(1..np) with a sum of 
+!! ne1 simple exponentials (maximum me) with prefactors aexp(1..ne1) and decay rates rexp(1..ne1)
+!! the quality of matching is indicated by a small value of maxdev
+!! the main intention of this procedure is to get an analytical model for the Laplace
+!! transform of any computed relaxation curves from the usual (or unusual) models e.g. in datreat
+!! The analytic representation as F(s) = sum(i=1,nexps) aexp(i)/(s+rexp(i))
+!! allows combination of curves within the RPA expressions and either "direct" or numerical
+!! backtransformation (in the complex regime (s --> i omega)
+!! USE: PREPARE_TTABLE to compute a suitable xv table and the fill with some external S:  yv=S(Q,xv)
+!!      then call MATCH_EXP
+!! VARIANTE mit inkrementalen Gap-filling
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+subroutine match_exp2 ( xv,yv,np,me,ne1,a,r,maxdev) 
+ implicit none
+ double precision, intent(in) :: xv(:)     ! table with (log-space t values of tabulated S(Q,t)
+ double precision, intent(in) :: yv(:)     ! table of coresponding S(Q,t=xv) values
+ integer,          intent(in) :: np        ! xv, yv table size 
+ integer,          intent(in) :: me        ! max number of exponentials
+ integer,          intent(out):: ne1       ! actual number of exps (outcome of this fitting proc)
+ double precision, intent(out):: a(me)     ! amplitudes
+ double precision, intent(out):: r(me)     ! rates
+ double precision, intent(out):: maxdev    ! max deviation
+
+
+ integer             :: i, ier, igap
+ double precision    :: ydiff(np), chisq
+ double precision    :: gapratio(me), a0(me), r0(me), mxdev
+
+ if(me < 3) stop "match_exp: me must be at least 3"
+
+
+
+!! TBD new >>>  
+ne1 = 3   
+a(1:ne1) = 1d0/3d0
+r(2)     = 1d0/sum( (yv(1:np-1)-yv(np)) * ( xv(2:np)-xv(1:np-1) ) )
+r(1)     = sqrt(r(2)/xv(1))
+r(3)     = sqrt(r(2)/(xv(np)/NEXP_TABRANGE_EXTENDER))  
+
+call nexp_match2(xv,yv,np,ne1,a,r,chisq)
+
+! check
+do i=1,np
+  ydiff(i) = yv(i) - sum(a(1:ne1)*exp(-xv(i)*r(1:ne1)))
+!  write(*,'(i5,f16.9,2x,f16.7,4x,f16.12)') i, xv(i), yv(i), ydiff(i)
+enddo
+maxdev = maxval(abs(ydiff(1:np)))
+
+mxdev = maxdev+epsilon(maxdev)
+
+if(me <=4) return
+
+
+DO while( (ne1  < me) .and. (maxdev  > NEXP_DEVIATION_TOLERANCE) .and. maxdev < mxdev )
+ 
+  mxdev = maxdev
+
+  a0  = a
+  r0  = r
+  gapratio(1:ne1-1) = r0(2:ne1)/r0(1:ne1-1) * sqrt( abs((a0(1:ne1-1)*a0(2:ne1))) )
+!?  gapratio(1:ne1-1) = r0(2:ne1)/r0(1:ne1-1) *       ( abs((a0(1:ne1-1)*a0(2:ne1))) )
+  igap              = maxloc(gapratio(1:ne1-2),dim=1)
+!                                           !< oder -1 ?? was ist besser ?
+
+write(*,'(a,3i5,e14.7,2x,30f10.4)')"T:",ne1,me,igap,maxdev, r0(1:ne1)
+  
+  do i=1,igap
+   a(i) = a0(i)
+   r(i) = r0(i)
+  enddo
+  r(igap+1) = sqrt(r0(igap)*r0(igap+1))
+  a(igap+1) = 1d-3 
+  ne1       = ne1+1
+  do i=igap+2,ne1
+   a(i)     = a0(i-1)
+   r(i)     = r0(i-1)
+  enddo
+!1 
+!1   
+!1 
+!1 ! >>> previous
+!1 do i=ne1,1,-1
+!1   a(2*i-1) = a(i)
+!1   r(2*i-1) = r(i)
+!1 enddo
+!1 ne1 = ne1+(ne1-1)
+!1 do i=2,ne1,2
+!1   a(i) = 1d-3
+!1   r(i) = sqrt(r(i-1)*r(i+1))
+!1 enddo
+!1 ! <<<
+!1 
+
+call nexp_match2(xv,yv,np,ne1,a,r,chisq)    ! TBD INCLUDE
+
+! check
+do i=1,np
+  ydiff(i) = yv(i) - sum(a(1:ne1)*exp(-xv(i)*r(1:ne1)))
+!  write(*,'(i5,f16.9,2x,f16.7,4x,f16.12)') i, xv(i), yv(i), ydiff(i)
+enddo
+
+maxdev = maxval(abs(ydiff(1:np)))
+
+ENDDO
+
+
+end subroutine match_exp2
+
+
+
+ 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
 !! USE: PREPARE_TTABLE to compute a suitable xv table and the fill with some external S:  yv=S(Q,xv)
