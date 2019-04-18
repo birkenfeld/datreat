@@ -70,14 +70,14 @@
 !
 ! ---- transfer parameters -----
       ampli    =      pa( 1)
-      diff     =      pa( 2)
-      gam_q    =      pa( 3)
+      diff     =  abs(pa( 2))
+      gam_q    =  abs(pa( 3))
       q_exp    =      pa( 4)
       beta     =      pa( 5)
 ! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
       iadda = actual_record_address()
 ! >>> extract: q
-      xh = 
+      xh = 0.0d0
       call parget('q       ',xh,iadda,ier)
       q        = xh
 ! 

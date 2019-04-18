@@ -1,7 +1,7 @@
 
 SHELL = /bin/sh
 SRCF=$(wildcard *.f) 
-SRCF90=integration.f90 rpa_laplace.f90 polynom.f90 $(wildcard *.f90) 
+SRCF90=integration.f90 rpa_laplace.f90 polynom.f90 lmfit.f90 $(wildcard *.f90) 
 
 
 OBJF=$(SRCF:.f=.o)

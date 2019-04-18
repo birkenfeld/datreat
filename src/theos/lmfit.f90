@@ -1,6 +1,3 @@
-
-
-
  MODULE lmfit
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
 !! matching a relaxation curve given by the table xv(1..np), yv(1..np) with a sum of 
@@ -34,20 +31,235 @@
    end interface 
 
 
-
+  double precision, public :: NEXP_DEVIATION_TOLERANCE = 1d-3
+  double precision, public :: NEXP_MINIMUM_RATE        = 1d-6
+  double precision, public :: NEXP_TABRANGE_EXTENDER   = 3d0
 
 
 PRIVATE
+
 
 public :: fit_simple
 public :: f_model
 
 public :: fm
 public :: nexp_match
+public :: nexp_match2
+public :: match_exp1
+public :: prepare_ttable1
 
 
 
 CONTAINS
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+!! matching a relaxation curve given by the table xv(1..np), yv(1..np) with a sum of 
+!! ne1 simple exponentials (maximum me) with prefactors aexp(1..ne1) and decay rates rexp(1..ne1)
+!! the quality of matching is indicated by a small value of maxdev
+!! the main intention of this procedure is to get an analytical model for the Laplace
+!! transform of any computed relaxation curves from the usual (or unusual) models e.g. in datreat
+!! The analytic representation as F(s) = sum(i=1,nexps) aexp(i)/(s+rexp(i))
+!! allows combination of curves within the RPA expressions and either "direct" or numerical
+!! backtransformation (in the complex regime (s --> i omega)
+!! USE: PREPARE_TTABLE to compute a suitable xv table and the fill with some external S:  yv=S(Q,xv)
+!!      then call MATCH_EXP
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+      subroutine match_exp1 ( xv,yv,np,me,ne1,a,r,maxdev) 
+       implicit none
+       double precision, intent(in) :: xv(:)     ! table with (log-space t values of tabulated S(Q,t)
+       double precision, intent(in) :: yv(:)     ! table of coresponding S(Q,t=xv) values
+       integer,          intent(in) :: np        ! xv, yv table size 
+       integer,          intent(in) :: me        ! max number of exponentials
+       integer,          intent(out):: ne1       ! actual number of exps (outcome of this fitting proc)
+       double precision, intent(out):: a(me)     ! amplitudes
+       double precision, intent(out):: r(me)     ! rates
+       double precision, intent(out):: maxdev    ! max deviation
+      
+      
+       integer             :: i, ier
+       double precision    :: ydiff(np), chisq
+      
+       if(me < 3) stop "match_exp: me must be at least 3"
+      
+      !! TBD new >>>  
+      ne1 = 3   
+      a(1:ne1) = 1d0/3d0
+      r(2)     = 1d0/sum( (yv(1:np-1)-yv(np)) * ( xv(2:np)-xv(1:np-1) ) )
+      r(1)     = sqrt(r(2)/xv(1))
+      r(3)     = sqrt(r(2)/(xv(np)/NEXP_TABRANGE_EXTENDER))  
+      
+      call nexp_match2(xv,yv,np,ne1,a,r,chisq)
+      
+      ! check
+      do i=1,np
+        ydiff(i) = yv(i) - sum(a(1:ne1)*exp(-xv(i)*r(1:ne1)))
+      !  write(*,'(i5,f16.9,2x,f16.7,4x,f16.12)') i, xv(i), yv(i), ydiff(i)
+      enddo
+      maxdev = maxval(abs(ydiff(1:np)))
+      
+      if(me <=4) return
+      
+      
+      DO while( 2*ne1 - 1   <= me .and. maxdev  > NEXP_DEVIATION_TOLERANCE)
+      
+      do i=ne1,1,-1
+        a(2*i-1) = a(i)
+        r(2*i-1) = r(i)
+      enddo
+      ne1 = ne1+(ne1-1)
+      do i=2,ne1,2
+        a(i) = 1d-3
+        r(i) = sqrt(r(i-1)*r(i+1))
+      enddo
+      call nexp_match2(xv,yv,np,ne1,a,r,chisq)    ! TBD INCLUDE
+      
+      ! check
+      do i=1,np
+        ydiff(i) = yv(i) - sum(a(1:ne1)*exp(-xv(i)*r(1:ne1)))
+      !  write(*,'(i5,f16.9,2x,f16.7,4x,f16.12)') i, xv(i), yv(i), ydiff(i)
+      enddo
+      
+      maxdev = maxval(abs(ydiff(1:np)))
+      
+      
+      ENDDO
+      
+      
+      end subroutine match_exp1
+      
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+!! USE: PREPARE_TTABLE to compute a suitable xv table and the fill with some external S:  yv=S(Q,xv)
+!!      then call MATCH_EXP
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+    subroutine prepare_ttable1(t0, t1, np, xv)
+     implicit none
+     double precision, intent(in)   :: t0     ! smallest time
+     double precision, intent(in)   :: t1     ! largest time (range)
+     integer         , intent(in)   :: np     ! number of points
+     double precision, intent(out)  :: xv(np) ! xtable containing taus
+     
+     ! double precision    :: t_table_spacing1 = NEXP_TABRANGE_EXTENDER 
+     ! double precision    :: t_table_spacing2 = 1d0 
+     integer             :: i
+     do i=1,np
+      xv(i)  =  exp(i*log(t1*NEXP_TABRANGE_EXTENDER/t0)/np) * t0    !! TBD new here is the table spacing
+     enddo
+         
+    end subroutine prepare_ttable1
+    
+    
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+!! matching a relaxation curve given by the table xv(1..np), yv(1..np) with a sum of 
+!! nexps simple exponentials with prefactors aexp(1..nexp) and decay rates rexp(1..nexp)
+!! the quality of matching is indicated by a small value < 10e-4 of ssq
+!! the main intention of this procedure is to get an analytical model for the Laplace
+!! transform of any computed relaxation curves from the usual (or unusual) models e.g. in datreat
+!! The analytic representation as F(s) = sum(i=1,nexps) aexp(i)/(s+rexp(i))
+!! allows combination of curves within the RPA expressions and either "direct" or numerical
+!! backtransformation (in the complex regime (s --> i omega)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+     subroutine nexp_match2(xv, yv, np, nexps, aexp, rexp, ssq, iout) 
+!    ---------------------------------------------------------------
+     implicit none
+     double precision, intent(in)     :: xv(np)   ! x-values (i.e. time) of cuve to be matched
+     double precision, intent(in)     :: yv(np)   ! y-values (i.e. S(q,t)/S(q))
+     integer         , intent(in)     :: np       ! number of values
+     integer         , intent(inout)  :: nexps    ! number of exponentials to be fitted
+     double precision, intent(inout)    :: aexp(nexps) ! exp prefactors (ampltiues)
+     double precision, intent(inout)    :: rexp(nexps) ! exp rates:  y = sum(1...nexps) aexp(i)*exp(-t*rexp(i))
+     double precision, intent(out)    :: ssq         ! quality of matching
+     integer         , intent(in), optional :: iout  ! output levevl
+
+
+     double precision    :: px(2*nexps) , pxscale(2*nexps), pxerr(2*nexps)
+     integer             :: iperm(nexps)
+     double precision    :: a0(nexps), r0(nexps)
+
+     double precision    :: ye(np)
+     double precision    :: tmax, t
+     integer             :: i, j, ier, nxs
+
+     logical             :: verbose = .false.
+
+     if(present(iout)) then
+       verbose = (iout > 0)
+     endif
+
+
+      ! make estimate
+     
+      px      = 0d0
+      pxscale = 1d0
+      ye      = 1d0
+      ssq     = 0d0
+
+      
+      tmax = maxval(xv)
+      do i=1,nexps
+        if(aexp(i) .eq. 0d0) then
+           px(2*i-1)       = 1d0/nexps
+           pxscale(2*i-1)  = 0.1d0
+           px(2*i)         = exp(-i*log(tmax)/nexps)
+           pxscale(2*i)    = px(2*i)
+        else
+           px(2*i-1)       = aexp(i)
+           pxscale(2*i-1)  = 0.1d0
+           px(2*i)         = rexp(i)
+           pxscale(2*i)    = px(2*i)
+        endif
+      enddo
+      
+      ssq = fit_simple(fm,2*nexps,px ,pxscale     , np, xv, yv, ye, px, pxerr)
+! combine similar rates
+  
+
+
+  
+!1      if(ssq > 1d-4) then
+!1        write(6,*)"WARNING: bad matching of exp-model to time function!",ssq
+!1      endif
+     
+      do i=1,nexps
+         a0(i) =  px(2*i-1)
+         r0(i) =  px(2*i)
+!!         write(6,'(i8,2f18.7,6x,2f18.7)')i, a0(i), pxerr(2*i-1), r0(i), pxerr(2*i)
+         if( r0(i) < NEXP_MINIMUM_RATE ) then
+            if(verbose) write(6,*)"WARNING(nexp_match): rate = ",r0(i)," is set to ",NEXP_MINIMUM_RATE 
+            r0(i)   = NEXP_MINIMUM_RATE 
+            px(2*i) = r0(i)
+         endif 
+      enddo
+
+!3      if(verbose) then 
+!3        write(6,'(a,i4,a,2f12.6,a,2f12.6,a)')  &
+!3           "# exp-fit n, range:",np,"(", xv(1), yv(1),")-->(", xv(np), yv(np),")" 
+!3        write(6,'(a,i2,a,e9.2,a,20(a,f6.3," t=",f13.2,"|"))')&
+!3           "# ",nexps," exp model(",ssq,"):|",("a=",px(2*i-1),1d0/px(2*i),i=1,nexps)
+!3      endif
+
+!2      do i=1,np
+!2        ye(i) = yv(i)-fm(xv(i),px,2*nexps) 
+!2      enddo
+!2      if(maxval(ye(1:np)) > 0.01d0) then
+!2         write(*,'("Maximum deviation (model-n-exp-rpresentation): ",f12.6," at t= ",f12.4)') &
+!2                 maxval(ye(1:np)), xv(maxloc(ye(1:np)))
+!2      endif
+
+     
+    ! sorting fastes rate first
+      iperm = [(i,i=1,nexps)]
+      call  DPSORT (r0, nexps, IPERM,  -1 , ier)
+     
+      aexp = a0(iperm(1:nexps))
+      rexp = r0(iperm(1:nexps))
+     
+     
+     end subroutine nexp_match2
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
 !! matching a relaxation curve given by the table xv(1..np), yv(1..np) with a sum of 
 !! nexps simple exponentials with prefactors aexp(1..nexp) and decay rates rexp(1..nexp)
@@ -85,8 +297,6 @@ CONTAINS
        verbose = (iout > 0)
      endif
 
-!!??!!      double precision    :: ainf, amean
-!!??!!      double precision    :: rinf, rinit, rmean
 
       ! make estimate
      
@@ -105,69 +315,8 @@ CONTAINS
       enddo
       
       ssq = fit_simple(fm,2*nexps,px ,pxscale     , np, xv, yv, ye, px, pxerr)
+!      ssq = fit_simple(fm,2*nexps,px ,pxscale     , np, xv, yv, ye, px, pxerr)
   
-!!??!! !new  ABER DIE OBIGE SIMPLE METHODE SCHEIN EHER BESSER ZU SEIN .....
-!!??!! ! first compute intial estimates
-!!??!! ! 1. limit t=inf (virtually constant), mean rate and initial rate 50:50 for the rest
-!!??!!       if(nexps < 3) stop "lmfit nexp-modelling needs at least nexps=3"
-!!??!!       ainf  = yv(np)
-!!??!!       rinf  = 2d-5
-!!??!!       rmean = 1d0/ ( dot_product(xv(1:np),(yv(1:np)-ainf)) / sum(yv(1:np)-ainf) )     
-!!??!!       amean = 1d0-ainf
-!!??!!       rinit = min(abs((yv(np/5)-yv(1))/(xv(np/5)-xv(1))*0.5d0), 30d0)
-!!??!!       
-!!??!!       px(1) = ainf     ;       pxscale(1) = 0.1d0
-!!??!!       px(2) = rinf     ;       pxscale(2) = 1 ! 10*rinf
-!!??!!       px(3) = amean/2  ;       pxscale(3) = 0.1d0
-!!??!!       px(4) = rmean    ;       pxscale(4) = 1 ! rmean
-!!??!!       px(5) = amean/2  ;       pxscale(5) = 0.1d0
-!!??!!       px(6) = rinit    ;       pxscale(6) = 1 ! rinit
-!!??!! 
-!!??!!       nxs = 3
-!!??!! 
-!!??!! write(*,*)"ainf=",ainf, yv(np-2:np)
-!!??!! write(*,*)"rinf=",rinf
-!!??!! 
-!!??!! write(*,*)"rmean=",rmean
-!!??!! write(*,*)"amean=",amean
-!!??!! write(*,*)"rinit=",rinit, yv(1:np/5) 
-!!??!! 
-!!??!! 
-!!??!!       write(6,'(a,i2,a,e9.2,a,20(a,f6.3," nexpfit: Start t=",f13.2,"|"))')&
-!!??!!            "# ",nxs," exp model(",ssq,"):|",("a=",px(2*i-1),1d0/px(2*i),i=1,nxs)
-!!??!! 
-!!??!! 
-!!??!!       ssq = fit_simple(fm, 2*nxs ,px ,pxscale     , np, xv, yv, ye, px, pxerr)
-!!??!! 
-!!??!!       write(6,'(a,i2,a,e9.2,a,20(a,f6.3," nexpfit: Step1 t=",f13.2,"|"))')&
-!!??!!            "# ",nxs," exp model(",ssq,"):|",("a=",px(2*i-1),1d0/px(2*i),i=1,nxs)
-!!??!! 
-!!??!!       if(nexps > nxs) then
-!!??!!         
-!!??!! dfl:     do nxs=nxs+1,nexps
-!!??!! 
-!!??!!            do i=1,np
-!!??!!               ye(i) = yv(i)-fm(xv(i),px,2*nxs) 
-!!??!!            enddo
-!!??!!            px(2*nxs)        = 1d0/ ( abs(dot_product(xv(1:np),ye(1:np))) / sum(abs(ye(1:np))) ) 
-!!??!!            pxscale(2*nxs)   = 1 ! px(2*nxs)
-!!??!!  
-!!??!!            px(2*nxs-1)      = maxval(ye(1:np)) 
-!!??!!            pxscale          = 0.1d0
-!!??!! 
-!!??!!            write(6,'(a,i2,a,e9.2,a,20(a,f6.3," nexpfit: Start t=",f13.2,"|"))')&
-!!??!!            "# ",nxs," exp model(",ssq,"):|",("a=",px(2*i-1),1d0/px(2*i),i=1,nxs)
-!!??!! 
-!!??!!            ssq = fit_simple(fm, 2*nxs ,px ,pxscale     , np, xv, yv, ye, px, pxerr)
-!!??!! 
-!!??!!            write(6,'(a,i2,a,e9.2,a,20(a,f6.3," nexpfit: Step  t=",f13.2,"|"))')&
-!!??!!            "# ",nxs," exp model(",ssq,"):|",("a=",px(2*i-1),1d0/px(2*i),i=1,nxs)
-!!??!! 
-!!??!!          enddo dfl
-!!??!! 
-!!??!!       endif
-!!??!! 
-!!??!! 
 
 
   
@@ -179,9 +328,9 @@ CONTAINS
          a0(i) =  px(2*i-1)
          r0(i) =  px(2*i)
 !!         write(6,'(i8,2f18.7,6x,2f18.7)')i, a0(i), pxerr(2*i-1), r0(i), pxerr(2*i)
-         if( r0(i) < 1d-5 ) then
-            if(verbose) write(6,*)"WARNING(nexp_match): rate = ",r0(i)," is set to 1e-5"
-            r0(i)   = 1d-5
+         if( r0(i) < NEXP_MINIMUM_RATE ) then
+            if(verbose) write(6,*)"WARNING(nexp_match): rate = ",r0(i)," is set to ",NEXP_MINIMUM_RATE 
+            r0(i)   = NEXP_MINIMUM_RATE 
             px(2*i) = r0(i)
          endif 
       enddo
@@ -3034,84 +3183,151 @@ CONTAINS
 
 end module lmfit
 
-!! 
-!! 
-!! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!! !! The following should go into a separate module once things are settled
-!! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!! 
-!! program testfit
-!! 
-!! use lmfit
-!! 
-!!  implicit none
-!! !    x                   y              error
-!!   integer, parameter  :: mp=80
-!!   double precision    :: xv(mp)
-!!   double precision    :: yv(mp)
-!!   double precision    :: ye(mp)
-!!   double precision    :: yt(mp)
-!! 
-!!  integer, parameter  :: nexps=6
-!! 
-!! 
-!!  double precision    :: px(2*nexps) , pxscale(2*nexps), pxerr(2*nexps), ssq
-!!  integer             :: iperm(nexps)
-!! 
-!!  double precision    :: a(nexps), a0(nexps), r(nexps), r0(nexps)
-!!  double precision    :: tmax, t, y, yeh
-!! 
-!!  integer             :: i, ier, np, ioo, j
-!! 
-!!  ! procedure(f_model)  :: fm
-!!  
-!!  ! prepare test
-!! ! px = [0.1d0,33d0, 0.3d0,10d0, 0.3d0,0.1d0, 0.3d0,0.001d0]
-!! 
-!!     np = mp
-!!     tmax = 100d0
-!!     do i=1,np
-!!      t =  exp(i*log(tmax*300d0)/np)/100d0
-!!      xv(i) = t
-!!    !  yv(i) = fm(xv(i), px, 2*nexps)
-!!      yv(i) = exp(-(0.1d0*t)**0.666)
-!!      ye(i) = 1d0
-!!     enddo
-!! 
-!!     j = 0
-!! d1: do 
-!!       read(5,*,iostat=ioo,end=1) t, y, yeh
-!!       if(ioo == 0) then
-!!         if(j >= mp) exit d1
-!!         j=j+1
-!!         xv(j) = t
-!!         yv(j) = y
-!! write(6,*)i,j,t,y 
-!!       endif
-!!     enddo d1
-!! 1 continue
-!!     np = j
-!! 
-!! 
-!! !!
-!! write(6,*)"Check Nexp Match:"
-!!  call nexp_match(xv,yv,np,nexps,a,r,ssq)
-!! 
-!! 
-!!  write(6,*)"Fit Result (sorted)##: "
-!!  do i=1,nexps
-!!     px(2*i-1) = a(i)
-!!     px(2*i)   = r(i)
-!!     write(6,'(i8,2f18.7)')i, a(i), r(i)
-!!  enddo
-!! 
-!!  write(6,'(a,e14.6)')"Fitting SSQ ##= ",ssq 
-!!  do i=1,np
-!!    yt(i) = fm(xv(i), px, 2*nexps)
-!!    write(6,'(i4,4f14.7)') i, xv(i), yv(i),yt(i), yv(i)-yt(i)
-!!  enddo
-!! 
-!! 
-!! 
-!! end program testfit
-
+!9 ! test program
+!9 program testprog
+!9 use lmfit
+!9 implicit none
+!9 
+!9 integer, parameter  :: NP = 200
+!9 integer, parameter  :: ME = 30
+!9 double precision    :: t0 = 0.001d0       ! start of log list
+!9 double precision    :: t1 = 1000d0        ! end   of log list
+!9 double precision    :: xv(NP), yv(NP), ydiff(NP)
+!9 double precision    :: a(ME) , r(ME)
+!9 double precision    :: chisq
+!9 integer             :: i, ier
+!9 double precision    :: ts
+!9 
+!9 double precision    :: t_table_spacing1 = 3d0 
+!9 double precision    :: t_table_spacing2 = 1d0 
+!9 ! exp(i*log(tmax*300d0)/nxpoints)/100d0
+!9 ! log t table, first point at exp(log(tmax*t_table_spacing1)/nxpoints)/t_table_spacing2 
+!9 !              last  point at exp(log(tmax*t_table_spacing1))/t_table_spacing2 = tmax*(t_table_spacing1/t_table_spacing2) 
+!9 
+!9 integer :: ne = 8
+!9 integer :: ne1
+!9 
+!9 
+!9  NEXP_DEVIATION_TOLERANCE = 1d-3
+!9 
+!9  
+!9 !7  CALL PREPARE_TTABLE(t0, t1, np, xv)
+!9 !7  
+!9 !7  write(*,*)"Initial table:"
+!9 !7  do i=1,np
+!9 !7  !  ts      =  exp(i*log(t1*t_table_spacing1/t0)/np)/(t_table_spacing2/t0)    !! TBD new here is the table spacing
+!9 !7  !  xv(i)   =  ts
+!9 !7    yv(i)   =  testfun(xv(i))
+!9 !7  enddo
+!9 !7       
+!9 !7  
+!9 !7  
+!9 !7  
+!9 !7  !! TBD new >>>  
+!9 !7  ne1 = 3   
+!9 !7  a(1:ne1) = 1d0/3d0
+!9 !7  r(2)     = 1d0/sum( (yv(1:np-1)-yv(np)) * ( xv(2:np)-xv(1:np-1) ) )
+!9 !7  r(1)     = sqrt(r(2)/xv(1))
+!9 !7  r(3)     = sqrt(r(2)/(xv(np)/3))  
+!9 !7  
+!9 !7  write(*,*)"Initial0 params a:",a(1:ne1)
+!9 !7  write(*,*)"Initial0 params r:",r(1:ne1)
+!9 !7  
+!9 !7  call nexp_match2(xv,yv,np,ne1,a,r,chisq)
+!9 !7  
+!9 !7  ! check
+!9 !7  do i=1,np
+!9 !7    ydiff(i) = yv(i) - sum(a(1:ne1)*exp(-xv(i)*r(1:ne1)))
+!9 !7    write(*,'(i5,f16.9,2x,f16.7,4x,f16.12)') i, xv(i), yv(i), ydiff(i)
+!9 !7  enddo
+!9 !7  write(*,*)"Initial3 params a:",a(1:ne1)
+!9 !7  write(*,*)"Initial3 params r:",r(1:ne1)
+!9 !7  
+!9 !7  
+!9 !7  
+!9 !7  
+!9 !7  DO while( 2*ne1 - 1   <= ME .and. maxval(abs(ydiff(1:np))) > 1d-3)
+!9 !7  
+!9 !7  do i=ne1,1,-1
+!9 !7    a(2*i-1) = a(i)
+!9 !7    r(2*i-1) = r(i)
+!9 !7  enddo
+!9 !7  ne1 = ne1+(ne1-1)
+!9 !7  do i=2,ne1,2
+!9 !7    a(i) = 1d-3
+!9 !7    r(i) = sqrt(r(i-1)*r(i+1))
+!9 !7  enddo
+!9 !7  call nexp_match2(xv,yv,np,ne1,a,r,chisq)    ! TBD INCLUDE
+!9 !7  
+!9 !7  
+!9 !7  
+!9 !7  ! check
+!9 !7  do i=1,np
+!9 !7    ydiff(i) = yv(i) - sum(a(1:ne1)*exp(-xv(i)*r(1:ne1)))
+!9 !7    write(*,'(i5,f16.9,2x,f16.7,4x,f16.12)') i, xv(i), yv(i), ydiff(i)
+!9 !7  enddo
+!9 !7  
+!9 !7  
+!9 !7  write(*,*)"NEXP,      AEXP             REXP   "
+!9 !7  write(*,'(i5,f16.9,2x,f16.7)')(i, a(i), r(i), i=1,ne1)
+!9 !7  
+!9 !7  write(*,*)
+!9 !7  write(*,'("Nexp=",i3,"  SSQ=",f12.9,"  Delta= ",2f12.9," suma=",f12.9)') &
+!9 !7            ne1, chisq, minval(ydiff), maxval(ydiff), sum(a(1:ne1))
+!9 !7  
+!9 !7  write(*,*)
+!9 !7  write(*,*)"================================================================================"
+!9 !7  write(*,*)
+!9 !7  
+!9 !7  ENDDO
+!9 !7  
+!9 !7  
+!9 !7 
+!9 
+!9 
+!9 
+!9  CALL PREPARE_TTABLE(t0, t1, np, xv)
+!9 
+!9  do i=1,np
+!9   yv(i)   =  testfun(xv(i))
+!9   write(*,'(i5,f16.9,2x,f16.7)') i, xv(i), yv(i)
+!9  enddo
+!9   
+!9 
+!9 
+!9 call match_exp(xv,yv,np,me,ne1,a,r,chisq)
+!9 write(*,*)"ME: NEXP,      AEXP             REXP   "
+!9 write(*,'(i5,f16.9,2x,f16.7)')(i, a(i), r(i), i=1,ne1)
+!9 
+!9 write(*,*)
+!9 write(*,'("Nexp=",i3,"  Delta=",f12.9,"   suma=",f12.9)') &
+!9           ne1, chisq, sum(a(1:ne1))
+!9 
+!9 write(*,*)
+!9 write(*,*)"================================================================================"
+!9 write(*,*)
+!9 
+!9 
+!9 
+!9 
+!9 !! << TBD new end
+!9 !3 enddo
+!9 
+!9 CONTAINS
+!9 
+!9  function testfun(t) result(y)
+!9  implicit none
+!9  double precision, intent(in) :: t
+!9  double precision             :: y
+!9  double precision             :: a1=0.3d0,  beta1=0.5d0, r1=1d0
+!9  double precision             :: a2=0.5d0,  beta2=0.8d0, r2=20d0
+!9 
+!9  y = a1 * exp(-(t*r1)**beta1) +  &
+!9      a2 * exp(-(t*r2)**beta2) +  &
+!9      (1d0-a1-a2)
+!9 
+!9 end function testfun
+!9 
+!9 
+!9 
+!9 end program testprog
