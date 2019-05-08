@@ -4022,8 +4022,10 @@ exclude:   if(found('exclude  ')) then
 !                    -----
          fsname = 'lastsave'
          if(inames.gt.0)   fsname = argvals(1)
-         title = trim(fsname)  !! experimental... 
+ !        title = trim(fsname)  !! experimental... 
          call msavdat(fsname)
+         call splot(.true.)
+         call execute_command_line("cp last_datreat_plot.pdf "//"plot_"//trim(fsname)//".pdf")
          goto 2000
        endif
 !

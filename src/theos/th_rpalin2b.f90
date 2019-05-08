@@ -335,7 +335,7 @@
       t0       = abs( pa(30+2))
       tmax     = abs( pa(31+2))
       rlow     = abs( pa(32+2))  ! parameter in rpa_laplace
-      qoffs    = abs( pa(33+2))  ! parameter in rpa_laplace
+      qoffs    =    ( pa(33+2))  ! parameter in rpa_laplace
       qscal    = abs( pa(34+2))  ! parameter in rpa_laplace
 
 
