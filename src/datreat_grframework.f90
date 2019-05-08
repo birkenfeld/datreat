@@ -33,7 +33,8 @@ implicit none
   double precision              :: AXIS_LINEWIDTH                = 1d0
   double precision              :: XLEG_DISTANCE                 = 0.075d0
   double precision              :: YLEG_DISTANCE                 = 0.14d0
-  double precision              :: TLEG_DISTANCE                 = 0.08d0
+  double precision              :: TLEG_DISTANCE_X               = 0.0d0
+  double precision              :: TLEG_DISTANCE_Y               = 0.08d0
 
                          
   integer, parameter :: MARKERTYPE_DOT             =  1    !    Smallest displayable dot
@@ -669,19 +670,19 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
    ylabel_x = xmin-(xmax-xmin)*YLEG_DISTANCE
    ylabel_y = ymin+(ymax-ymin)*0.5d0
 
-   tlabel_x = xmin+(xmax-xmin)*YLEG_DISTANCE   ! to be made individual for Tit
-   tlabel_y = ymax+(ymax-ymin)*TLEG_DISTANCE
+   tlabel_x = xmin+(xmax-xmin)*TLEG_DISTANCE_X   ! to be made individual for Tit
+   tlabel_y = ymax+(ymax-ymin)*TLEG_DISTANCE_Y
 
    if(act_opt == OPTION_X_LOG .or. act_opt == OPTION_XY_LOG) then
         xlabel_x = 10d0**(log10(xmin)+(log10(xmax)-log10(xmin))*0.5d0)
         ylabel_x = 10d0**(log10(xmin)-(log10(xmax)-log10(xmin))*YLEG_DISTANCE)
-        tlabel_x = 10d0**(log10(xmin)+(log10(xmax)-log10(xmin))*YLEG_DISTANCE) ! to be made individual for Tit
+        tlabel_x = 10d0**(log10(xmin)+(log10(xmax)-log10(xmin))*TLEG_DISTANCE_X) ! to be made individual for Tit
    endif
 
    if(act_opt == OPTION_Y_LOG .or. act_opt == OPTION_XY_LOG) then
         xlabel_y = 10d0**(log10(ymin)-(log10(ymax)-log10(ymin))*XLEG_DISTANCE)
         ylabel_y = 10d0**(log10(ymin)+(log10(ymax)-log10(ymin))*0.5d0)
-        tlabel_y = 10d0**(log10(ymax)+(log10(ymax)-log10(ymin))*TLEG_DISTANCE)
+        tlabel_y = 10d0**(log10(ymax)+(log10(ymax)-log10(ymin))*TLEG_DISTANCE_Y)
    endif
 
 
@@ -779,19 +780,19 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
    ylabel_x = xmax+(xmax-xmin)*YLEG_DISTANCE
    ylabel_y = ymin+(ymax-ymin)*0.5d0
 
-   tlabel_x = xmax-(xmax-xmin)*YLEG_DISTANCE
-   tlabel_y = ymax+(ymax-ymin)*TLEG_DISTANCE
+   tlabel_x = xmax-(xmax-xmin)*TLEG_DISTANCE_X
+   tlabel_y = ymax+(ymax-ymin)*TLEG_DISTANCE_Y
 
    if(act_opt == OPTION_X_LOG .or. act_opt == OPTION_XY_LOG) then
         xlabel_x = 10d0**(log10(xmin)+(log10(xmax)-log10(xmin))*0.5d0)
         ylabel_x = 10d0**(log10(xmax)+(log10(xmax)-log10(xmin))*YLEG_DISTANCE)
-        tlabel_x = 10d0**(log10(xmax)-(log10(xmax)-log10(xmin))*TLEG_DISTANCE)
+        tlabel_x = 10d0**(log10(xmax)-(log10(xmax)-log10(xmin))*TLEG_DISTANCE_X)
    endif
 
    if(act_opt == OPTION_Y_LOG .or. act_opt == OPTION_XY_LOG) then
         xlabel_y = 10d0**(log10(ymax)+(log10(ymax)-log10(ymin))*XLEG_DISTANCE)
         ylabel_y = 10d0**(log10(ymin)+(log10(ymax)-log10(ymin))*0.5d0)
-        tlabel_y = 10d0**(log10(ymax)+(log10(ymax)-log10(ymin))*TLEG_DISTANCE)
+        tlabel_y = 10d0**(log10(ymax)+(log10(ymax)-log10(ymin))*TLEG_DISTANCE_Y)
    endif
 
 
@@ -1147,7 +1148,8 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
       integer       :: axis_option
 
       integer       ::  ifont = 0
-
+      integer       ::  ubild
+      logical       ::  fileda
       
 
 
@@ -1175,7 +1177,8 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
        write(6,*)'=      axticlen <val> :  scale axis tick size (neg=outbound)                 ='
        write(6,*)'=      xlegdist <val> :  distance of x-axis name from axis                   ='
        write(6,*)'=      ylegdist <val> :  distance of y-axis name from axis                   ='
-       write(6,*)'=      tlegdist <val> :  distance of title from axis top                     ='
+       write(6,*)'=      tit_x <val>    :  distance of title from axis left                    ='
+       write(6,*)'=      tit_x <val>    :  distance of title from axis top                     ='
        write(6,*)'=      flinewd  <val> :  fit linewidth                                       ='
        write(6,*)'=      dfinewd  <val> :  data linewidth                                      ='
        write(6,*)'=      lin_x | log_x  :  lin or log x scale                                  ='
@@ -1190,7 +1193,8 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
        write(6,*)'=       if there is some title (use tit abc...) then                         ='
        write(6,*)'=       plot are stored to <title>.pdf (blanks etc. are replaced by _ etc.   ='
        write(6,*)'=       and always copied to last_datreat_plot.pdf                           ='
-       write(6,*)'=       to create an auto numbered series datreat_plot##.pdf  use plot # <n> xs='
+       write(6,*)'=       to stop creation of auto numbered series datreat_plot##.pdf  use plot # 0'
+       write(6,*)'=       to start creation of auto numbered series datreat_plot##.pdf  use plot # <n>'
        write(6,*)'= VERSION 3.0                                                                ='
        write(6,*)'=============================================================================='
        return
@@ -1258,9 +1262,10 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
 
 
 ! experimental:
-          XLEG_DISTANCE = get_named_value("xlegdist   ",XLEG_DISTANCE,inew)
-          YLEG_DISTANCE = get_named_value("ylegdist   ",YLEG_DISTANCE,inew)
-          TLEG_DISTANCE = get_named_value("tlegdist   ",TLEG_DISTANCE,inew)
+          XLEG_DISTANCE   = get_named_value("xlegdist   ",XLEG_DISTANCE,inew)
+          YLEG_DISTANCE   = get_named_value("ylegdist   ",YLEG_DISTANCE,inew)
+          TLEG_DISTANCE_X = get_named_value("tit_x      ",TLEG_DISTANCE_X,inew)
+          TLEG_DISTANCE_Y = get_named_value("tit_y      ",TLEG_DISTANCE_Y,inew)
 
           
 ! to be modernized
@@ -1359,7 +1364,23 @@ scl:   if(found('scaled  ')) then
        endif scl
 
 !
-       if(ibild>0) ibild = ibild + 1
+!       if(ibild>0) ibild = ibild + 1
+       if(ibild>0) then         
+          inquire(file="datreat_plot_counter",exist=fileda)
+          if(fileda) then
+            open(newunit=ubild,file="datreat_plot_counter")
+            read(ubild,*) ibild
+            ibild = ibild + 1
+            rewind(ubild)
+            write(ubild,*) ibild
+            close(ubild)
+          else
+            open(newunit=ubild,file="datreat_plot_counter")
+            ibild = ibild+1
+            write(ubild,*) ibild
+            close(ubild)
+          endif
+       endif
 !
 ! ---- set frame & scales ----
        if(len_trim(title) > 0) then
