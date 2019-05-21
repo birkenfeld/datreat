@@ -51,6 +51,7 @@
       use PhysicalConstantsPlus
       use unift
       use theory_description
+      use gr_interface
       implicit none
 
       integer iadda
@@ -125,7 +126,8 @@
 
 
 
-       character(len=80) :: cbuffer
+       character(len=80)         :: cbuffer
+       character(len=len(title)) :: tbuffer
 
 
 !
@@ -4022,8 +4024,15 @@ exclude:   if(found('exclude  ')) then
 !                    -----
          fsname = 'lastsave'
          if(inames.gt.0)   fsname = argvals(1)
-         title = trim(fsname)  !! experimental... 
+ !        title = trim(fsname)  !! experimental... 
          call msavdat(fsname)
+         if(.not. found("np      ")) then   ! suppress plotting by option "np"
+           tbuffer = title
+           title = trim(title)//"("//trim(fsname)//")"
+           call splot(.true.)
+           call execute_command_line("cp "//trim(LAST_DTR_PLOT)//" "//"plot_"//trim(fsname)//".pdf")
+           title = tbuffer
+         endif
          goto 2000
        endif
 !
@@ -5148,24 +5157,27 @@ d2:       do j=1,number_of_data_points
       enddo
       weights = weights / sum(weights(1:nsel))
 
-! write(*,*)"TEST0a: weights", weights
+! write(*,*)"TEST0a: weights", weights(1:nsel)
 
-! write(*,*)"TEST0b: nopar", nopar(nbuf), nbuf
+! write(*,*)"TEST0b: nopar", nopar(nbuf), nbuf, nsel
 
-      do ipa=1,nopar(nbuf)
+dipa: do ipa=1,nopar(nbuf)
+        if(nopar(nbuf) <=0) exit
         xpaav = 0
-        do i=1,nsel
-! write(*,*)"TEST1:a ",i, ipa, isels(i), trim(napar(ipa,isels(i)))      
-          cbuf = trim(napar(ipa,isels(i)))   
-! write(*,*)"TEST: cbuf ",cbuf
+dse:    do i=1,nsel
+! write(*,*)"TEST1:a ",i, ipa, isels(i), trim(napar(ipa,isels(i)))     
+          cbuf = "_nomatch" 
+          if(nopar(isels(i)) > ipa) cycle dse
+          cbuf = (napar(ipa,isels(i)))   
+! write(*,*)"TEST: cbuf >",cbuf,"<",i,ipa, len_trim(cbuf) 
           call parget(cbuf, xpa, isels(i), ier )
-
+          if(ier.ne.0) cycle dipa
           xpaav = xpaav + weights(i) * xpa
-! write(*,*)"TEST1: ",i, isels(i), ipa, cbuf, xpa, xpaav,  weights(i)  
-        enddo
-        call parset(cbuf,xpaav,nbuf)
-! write(*,*)"TEST SETTING: ",cbuf, xpaav, nbuf
-      enddo
+! write(*,*)"TEST1: ",i, isels(i), ipa, cbuf, xpa, xpaav,  weights(i), ier  
+        enddo dse
+        call parset(napar(ipa,isels(1)),xpaav,nbuf)
+! write(*,*)"TEST SETTING: ",napar(ipa,isels(1)),":",cbuf,":", xpaav, nbuf
+      enddo dipa
 
 
 

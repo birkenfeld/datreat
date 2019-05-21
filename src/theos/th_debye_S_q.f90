@@ -15,11 +15,11 @@
       REAL debye2, x, pa, qq, zpi, xh, vol_frac
       INTEGER ini, npar, nparx
       DIMENSION pa (20), qq (3)
-		integer :: mbuf
-		integer, intent(inout) :: nopar                 ! Anzahl der Parameter data
-      character*80, intent(inout) :: napar(mbuf)      ! name des parameters n
+      integer :: mbuf
+      integer, intent(inout) :: nopar                 ! Anzahl der Parameter data
+      character(len=80), intent(inout) :: napar(mbuf)      ! name des parameters n
 		real, intent(inout) :: params(mbuf)             ! value des parameters n
-		DATA zpi / 6.283185 /
+      DATA zpi / 6.283185 /
 
       DOUBLE PRECISION :: v, nphi
 
@@ -27,7 +27,7 @@
       COMMON / cdebik / gamma, qrg
 
       DOUBLE PRECISION :: mw, bpoly, drho, conc, rhopoly, fac
-      REAL bsolv
+      REAL :: bsolv = 0d0
 
 
       DOUBLE PRECISION :: dbik, adapint, erra

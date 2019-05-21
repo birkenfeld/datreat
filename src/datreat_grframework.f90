@@ -11,6 +11,7 @@ implicit none
   end interface
 
   character(len=80) :: PDF_VIEWER_COMMAND = "open -a preview "   ! mac
+  character(len=80) :: LAST_DTR_PLOT
 
 
   character(len=4) :: czero
@@ -1193,8 +1194,8 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
        write(6,*)'=       if there is some title (use tit abc...) then                         ='
        write(6,*)'=       plot are stored to <title>.pdf (blanks etc. are replaced by _ etc.   ='
        write(6,*)'=       and always copied to last_datreat_plot.pdf                           ='
-       write(6,*)'=       to stop creation of auto numbered series datreat_plot##.pdf  use plot # 0'
-       write(6,*)'=       to start creation of auto numbered series datreat_plot##.pdf  use plot # <n>'
+       write(6,*)'=       to stop creation of auto numbered series datreat_plot##.pdf  use plot # <neg>'
+       write(6,*)'=       to restart creation of auto numbered series datreat_plot##.pdf  use plot # <n>'
        write(6,*)'= VERSION 3.0                                                                ='
        write(6,*)'=============================================================================='
        return
@@ -1365,7 +1366,7 @@ scl:   if(found('scaled  ')) then
 
 !
 !       if(ibild>0) ibild = ibild + 1
-       if(ibild>0) then         
+       if(ibild>=0) then         
           inquire(file="datreat_plot_counter",exist=fileda)
           if(fileda) then
             open(newunit=ubild,file="datreat_plot_counter")
@@ -1685,6 +1686,7 @@ scl:   if(found('scaled  ')) then
       else
          buf = "last_datreat_plot.pdf"
       endif
+      LAST_DTR_PLOT = buf
       call grende(trim(PDF_VIEWER_COMMAND)//' $plot; cp -f $plot '//trim(buf))  
                                             ! $plot is symbolic for then name of the 
                                             ! created plotfile 

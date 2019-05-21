@@ -2115,11 +2115,11 @@ sl:       do j=1,maxstep
          numor(inbuf) =-numor(iadd)
          name(inbuf)  = 'fit'//name(iadd)(1:5)
          np           = nopar(iadd) + 2
-         call parset('x1      ',x1,inbuf)
-         call parset('x2      ',x2,inbuf)
+!?         call parset('x1      ',x1,inbuf)
+!?         call parset('x2      ',x2,inbuf)
 ! ---- vorlaeufig !!! -----
-         call parset('x1      ',x1,iadd)
-         call parset('x2      ',x2,iadd)
+!?         call parset('x1      ',x1,iadd)
+!?         call parset('x2      ',x2,iadd)
 ! -------------------------
          if(iout().gt.3)write(6,*)'nbuf=',inbuf,'  numor=',numor(inbuf)
          nwert(inbuf) = n
