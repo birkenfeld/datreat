@@ -1524,6 +1524,13 @@ da12:    do i=1,nbuf
 
          goto 2000
        endif
+
+       if(comand.eq.'aligna ') then
+!                    -------
+         call align_a()
+
+         goto 2000
+       endif
 !
        if(comand.eq.'addval  ') then
 !                    ------
@@ -5175,19 +5182,22 @@ d2:       do j=1,number_of_data_points
 dipa: do ipa=1,nopar(nbuf)
         if(nopar(nbuf) <=0) exit
         xpaav = 0
+!TP: write(*,*)"TEST ipa-loop: ",ipa, nopar(nbuf)
 dse:    do i=1,nsel
-! write(*,*)"TEST1:a ",i, ipa, isels(i), trim(napar(ipa,isels(i)))     
+!TP: write(*,*)"TEST1:a ",i, ipa, isels(i), trim(napar(ipa,isels(i))),nopar(isels(i))       
           cbuf = "_nomatch" 
-          if(nopar(isels(i)) > ipa) cycle dse
-          cbuf = (napar(ipa,isels(i)))   
-! write(*,*)"TEST: cbuf >",cbuf,"<",i,ipa, len_trim(cbuf) 
+!?          if(nopar(isels(i)) > ipa) cycle dse
+          cbuf = trim(napar(ipa,isels(i)))   
+!TP: write(*,*)"TEST:     cbuf >",trim(cbuf),"<",i,ipa, len_trim(cbuf) 
           call parget(cbuf, xpa, isels(i), ier )
+!TP: write(*,*)"TEST: get cbuf >",trim(cbuf),"<", xpa, isels(i), ier
+
           if(ier.ne.0) cycle dipa
           xpaav = xpaav + weights(i) * xpa
-! write(*,*)"TEST1: ",i, isels(i), ipa, cbuf, xpa, xpaav,  weights(i), ier  
+!TP: write(*,*)"TEST1: ",i, isels(i), ipa, cbuf, xpa, xpaav,  weights(i), ier  
         enddo dse
         call parset(napar(ipa,isels(1)),xpaav,nbuf)
-! write(*,*)"TEST SETTING: ",napar(ipa,isels(1)),":",cbuf,":", xpaav, nbuf
+!TP: write(*,*)"TEST SETTING: ",trim(napar(ipa,isels(1))),":",trim(cbuf),":", xpaav, nbuf
       enddo dipa
 
 
@@ -5251,8 +5261,10 @@ subroutine  align_y
       use PhysicalConstantsPlus
  
       implicit none
-      double precision     :: mpar(2), errmin
-      integer              :: n1, n2
+      double precision     :: mpar(2) = [0d0,1d0]
+      double precision     :: errmin
+      double precision     :: step(2) = 0.05d0
+      integer              :: n1, n2, ier
 
 
       if(found('help    ')) then 
@@ -5266,6 +5278,10 @@ subroutine  align_y
        write(6,*)'= HINT:                                                                      ='
        write(6,*)'=     check whether clip (ing) marginal points in the overlap could          ='
        write(6,*)'=     improve the accuracy of the result !                                   ='
+       write(6,*)'=  aligny offset <val>                                                       =' 
+       write(6,*)'=  aligny yscale <val>                                                       =' 
+       write(6,*)'=  aligny ostep  <val>                                                       ='  
+       write(6,*)'=  aligny ystep  <val>                                                       ='  
        write(6,*)'=============================================================================='
        return
       endif
@@ -5284,17 +5300,22 @@ subroutine  align_y
         return
       endif
 
+      mpar(1) =  getval("offset ",mpar(1))
+      mpar(2) =  getval("yscale ",mpar(2))
+      step(1) =  getval("ostep  ",step(1)) 
+      step(2) =  getval("ystep  ",step(2)) 
+
 ! prepare destination
       nbuf = nbuf + 1
       call txfera(isels(2),nbuf)
       numor(nbuf)    = numor(isels(2))+300000
 
-      mpar = [0d0, 1d0] 
+ !     mpar = [0d0, 1d0] 
       n1   = nwert(isels(1))
       n2   = nwert(isels(2))
       call smatch(xwerte(1:n1,isels(1)),ywerte(1:n1,isels(1)),yerror(1:n1,isels(1)),n1, &
                   xwerte(1:n2,isels(2)),ywerte(1:n2,isels(2)),yerror(1:n2,isels(2)),n2, &
-                  mpar, errmin )
+                  mpar, step, errmin )
       write(*,'("offset=",f12.6," scale=",f12.6,"   residual error=",f12.6)')mpar(1:2), errmin
 
       xwerte(:,nbuf) =  xwerte(:,isels(2))
@@ -5302,13 +5323,15 @@ subroutine  align_y
       yerror(:,nbuf) =  yerror(:,isels(2))         *mpar(2)
       nwert(nbuf)    =  n2
       call parset("refnum  ",real(numor(isels(1))),nbuf)
-      call parset("alingy_o",sngl(mpar(1)),nbuf)
-      call parset("alingy_s",sngl(mpar(2)),nbuf)
+      call parset("aligny_o",sngl(mpar(1)),nbuf)
+      call parset("aligny_s",sngl(mpar(2)),nbuf)
       isels(2) = nbuf
 
       write(*,'(a,i6)') "Scaled data written to record ",nbuf
       write(*,'(a,2i6)')"Selected are now              ",isels(1:2)
       write(*,'(a)')    "you may use  -> average  to merge them!"
+      call setudf("aligny_o ",mpar(1),ier)
+      call setudf("aligny_s ",mpar(2),ier)
 
 end subroutine  align_y
 
@@ -5316,7 +5339,8 @@ end subroutine  align_y
 
 
 
-subroutine smatch(x1,y1,y1err,n1, x2,y2,y2err,n2, mpar, errmin )
+subroutine smatch(x1,y1,y1err,n1, x2,y2,y2err,n2, mpar, step, errmin )
+  use new_com
   implicit none
   real            , intent(in ) :: x1(n1)      ! x-values of master record
   real            , intent(in ) :: y1(n1)      ! y-values of master record
@@ -5327,19 +5351,24 @@ subroutine smatch(x1,y1,y1err,n1, x2,y2,y2err,n2, mpar, errmin )
   real            , intent(in ) :: y2err(n2)   ! y-error  of slave record
   integer         , intent(in ) :: n2          ! nuber of values in slave
   double precision, intent(inout) :: mpar(2)     ! offset and scale ....
+  double precision, intent(in ) :: step(2)     ! offset and scale step ....
   double precision, intent(out) :: errmin      ! residual matching error
   
-  double precision :: mpar_min(size(mpar))
-  double precision :: step(size(mpar))
   double precision :: reqmin = 1d-7
   integer          :: konvge = 1
   integer          :: kcount = 10000
   integer          :: icount
   integer          :: numres
   integer          :: ifault
+  double precision :: mpar_min(size(mpar))
+
+! --> is mainly for testing
+  reqmin = getval("reqmin ",reqmin)
+  konvge = intval("konvge ",konvge)
+  kcount = intval("kcount ",kcount)
+  write(*,*)"TESTPARA: ", reqmin, konvge, kcount
 
 
-  step   = 0.05d0
   errmin = match_err(mpar, size(mpar))
 
   call nelmin ( match_err, size(mpar), mpar, mpar_min, errmin, reqmin, step, konvge, kcount, &
@@ -5366,15 +5395,191 @@ ds1: do i=1,n2
        xt  = x2(i)
        yt  = (y2(i) + sp(1))* sp(2)
        yte =  y2err(i)      * sp(2)
-       ma = minloc(abs(x1(1:n1)-xt),dim=1)
+       ma = minloc(abs(x1(1:n1)-xt),dim=1)   
        mb = min(ma + 1,n1)
        if(mb>n1) mb = ma-1
-       p             = (xt - x1(ma))/(x1(mb) - x2(ma))
-       if(abs(p) > 2d0) cycle ds1
-       yinterp      = p * y1(ma) + (1d0-p) * y1(mb)
-       yinterp_err  = sqrt(  (p*y1err(ma))**2  +((1d0-p)*y1err(mb))**2 )
+       p             = (xt - x1(ma))/(x1(mb) - x1(ma))
+
+       if(abs(p) > 1d0) cycle ds1
+
+
+       yinterp      = (1-p) * y1(ma) + p * y1(mb)
+       yinterp_err  = sqrt(  ((1d0-p)*y1err(ma))**2  +((p)*y1err(mb))**2 )
        ncompare = ncompare + 1
-       val = val + (yinterp-yt)**2 / (yinterp_err**2 + yte**2)
+       val = val + sqrt( (yinterp-yt)**2 / (yinterp_err**2 + yte**2) )
+     enddo ds1
+ 
+     if(ncompare > 0) then
+       val = val / ncompare
+     else
+       val = Huge(val)
+     endif
+ 
+
+end function match_err
+
+end subroutine smatch
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!>>> TBD: not yet functional align_a  must be reworked !!!  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!>>> TBD: not yet functional align_a  must be reworked !!!  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!>>> TBD: not yet functional align_a  must be reworked !!!  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!>>> TBD: not yet functional align_a  must be reworked !!!  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+subroutine  align_a
+ 
+      use dimensions
+      use new_com
+      ! use cincoc
+      use xoutxx
+      use cdata
+      ! use outlev
+      use theory
+      use selist
+      use fslist
+      use theorc
+      use thparc
+      use formul
+      use cfc
+      use cfunc
+      use cfunce
+      use partran
+      use wlntran
+      use sqtran
+!      use constants
+      use PhysicalConstantsPlus
+ 
+      implicit none
+      double precision     :: errmin
+      double precision,save:: mpar(2)=1d0, step(2)=0.1d0
+      integer              :: n1, n2, ier
+
+
+      if(found('help    ')) then 
+       write(6,*)'=============================================================================='
+       write(6,*)'= aligna        !!! NOT YET FUNCTIONAL, CONTAINS BUGS or ALGORITH MUST BE MODIFIED ='
+       write(6,*)'= determine x and y scales                                                   ='
+       write(6,*)'= of second selected record in order to match the first selected             ='
+       write(6,*)'= the scaled result is copied to a new record                                ='
+       write(6,*)'= this and the "master" record stay selected such tha one may                ='
+       write(6,*)'= use average to merge them                                                  ='
+       write(6,*)'= USAGE: aligna xscale <startval> yscale <startval> xstep <val> ystep <val>  ='
+       write(6,*)'=============================================================================='
+       return
+      endif
+
+ stop "THIS ROUTINE aligna is not yet ready, must be reworked, befor new testsb remove this msg"    
+
+      if(nsel .ne. 2) then
+        write(*,*)"ERROR: aligna needs selection of two curves"
+        write(*,*)"Select just two curves: master and slave to be scaled!"
+        ierrs = 1000
+        return
+      endif
+
+      if(nbuf >= size(nwert)-1) then
+        write(*,*)"..too many buffers", nbuf, size(nwert)
+        ierrs = 2000
+        return
+      endif
+
+      mpar(1) =  getval("xscale ",mpar(1))
+      mpar(2) =  getval("yscale ",mpar(2))
+      step(1) =  getval("xstep  ",step(1)) 
+      step(2) =  getval("ystep  ",step(2)) 
+
+! prepare destination
+      nbuf = nbuf + 1
+      call txfera(isels(2),nbuf)
+      numor(nbuf)    = numor(isels(2))+300000
+
+      n1   = nwert(isels(1))
+      n2   = nwert(isels(2))
+      call amatch(xwerte(1:n1,isels(1)),ywerte(1:n1,isels(1)),yerror(1:n1,isels(1)),n1, &
+                  xwerte(1:n2,isels(2)),ywerte(1:n2,isels(2)),yerror(1:n2,isels(2)),n2, &
+                  mpar, step, errmin )
+      write(*,'("xscale=",f12.6," yscale=",f12.6,"   residual error=",f12.6)')mpar(1:2), errmin
+
+      xwerte(:,nbuf) =  xwerte(:,isels(2))
+      ywerte(:,nbuf) = (ywerte(:,isels(2))+mpar(1))*mpar(2)
+      yerror(:,nbuf) =  yerror(:,isels(2))         *mpar(2)
+      nwert(nbuf)    =  n2
+      call parset("refnum  ",real(numor(isels(1))),nbuf)
+      call parset("aligna_o",sngl(mpar(1)),nbuf)
+      call parset("aligna_s",sngl(mpar(2)),nbuf)
+      isels(2) = nbuf
+
+      write(*,'(a,i6)') "Scaled data written to record ",nbuf
+      write(*,'(a,2i6)')"Selected are now              ",isels(1:2)
+      write(*,'(a)')    "you may use  -> average  to merge them!"
+      call setudf("aligna_o ",mpar(1),ier)
+      call setudf("aligna_s ",mpar(2),ier)
+
+end subroutine  align_a
+
+
+subroutine amatch(x1,y1,y1err,n1, x2,y2,y2err,n2, mpar,step, errmin )
+  implicit none
+  real            , intent(in ) :: x1(n1)      ! x-values of master record
+  real            , intent(in ) :: y1(n1)      ! y-values of master record
+  real            , intent(in ) :: y1err(n1)   ! y-error  of master record
+  integer         , intent(in ) :: n1          ! nuber of values in master
+  real            , intent(in ) :: x2(n2)      ! x-values of slave record
+  real            , intent(in ) :: y2(n2)      ! y-values of slave record
+  real            , intent(in ) :: y2err(n2)   ! y-error  of slave record
+  integer         , intent(in ) :: n2          ! nuber of values in slave
+  double precision, intent(inout) :: mpar(2)     ! offset and scale ....
+  double precision, intent(in ) :: step(2)     ! offset and scale ....
+  double precision, intent(out) :: errmin      ! residual matching error
+ 
+  double precision :: mpar_min(size(mpar))
+
+  double precision :: reqmin = 1d-7
+  integer          :: konvge = 1
+  integer          :: kcount = 10000
+  integer          :: icount
+  integer          :: numres
+  integer          :: ifault
+
+
+  errmin = amatch_err(mpar, size(mpar))
+
+  call nelmin ( amatch_err, size(mpar), mpar, mpar_min, errmin, reqmin, step, konvge, kcount, &
+  icount, numres, ifault )
+
+  mpar = mpar_min
+
+
+contains 
+
+function amatch_err(sp, n ) result(val) 
+  implicit none
+  double precision, intent(in ) :: sp(n)
+  integer         , intent(in ) :: n 
+
+  double precision :: val
+  double precision :: yinterp, yinterp_err, xt, yt, yte, p
+  integer          :: i, ma, mb, ncompare
+
+  !! go through the points of slave and compare with master
+  val      =  0
+  ncompare = 0
+ds1: do i=1,n2
+       xt  = x2(i)          *  sp(1)
+       yt  = (y2(i))        *  sp(2)
+       yte =  y2err(i)      *  sp(2)
+       ma = minloc(abs(x1(1:n1)-xt),dim=1)            ; write(*,'(a,i8,2e14.7,2i8)')"ma: ",i,x1(ma),xt,n1,n2
+       mb = min(ma + 1,n1)
+       if(mb>n1) mb = ma-1
+       p             = (xt - x1(ma))/(x1(mb) - x1(ma))   ; write(*,'(a,e14.7)')"p: ",p
+       if(abs(p) > 2d0) cycle ds1
+       yinterp      = (p-1d0) * y1(ma) + p * y1(mb)      ; write(*,'(a,3e14.7)')"yinterp: ",yinterp, y2(i), yt
+ 
+       yinterp_err  = sqrt(  ((p-1d0)*y1err(ma))**2  +(p*y1err(mb))**2 )
+       ncompare = ncompare + 1
+       val = val - 1d0 / ((yinterp-yt)**2 / (yinterp_err**2 + yte**2))
+write(*,'(a,3i5,7e15.7)')"TP1: ",i,ma,mb,xt,x1(ma),x1(mb),yt,yinterp, yinterp_err,val
      enddo ds1
  
      if(ncompare > 0) then
@@ -5385,9 +5590,11 @@ ds1: do i=1,n2
  
 !!TP: write(*,'(3f12.6)') sp, val
 
-end function match_err
+end function amatch_err
 
-end subroutine smatch
+end subroutine amatch
+
+!<<< TBD: not yet functional align_a  must be reworked !!!  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!! Suroutines from external sources                                          !!
