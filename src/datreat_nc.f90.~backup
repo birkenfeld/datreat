@@ -269,7 +269,6 @@
                         write(6,*)'=  average     : combine points for one or several records       =' 
                         write(6,*)'=  NEW (5/2019)                                                  =' 
                         write(6,*)'=  aligny      : determine scaling to match (e.g SANS col1,2..   =' 
-                        write(6,*)'=  aligna      : determine scaling to match (e.g rheo        .   =' 
                         write(6,*)'=================================================================='
                        
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -3395,6 +3394,7 @@ drer1:    do ik=1,n
                yyee = yerror(i,ia)
                call evaluate(yformel,val8y,iery)
                yerror(i,ia) = val8y
+write(*,'(a,a,4f12.6)')"TEST: form=",trim(yformel),xxxx,yyyy,yyee,val8y
            enddo
           enddo
          goto 2000
@@ -5424,6 +5424,10 @@ end subroutine smatch
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
+!>>> TBD: not yet functional align_a  must be reworked !!!  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!>>> TBD: not yet functional align_a  must be reworked !!!  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!>>> TBD: not yet functional align_a  must be reworked !!!  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!>>> TBD: not yet functional align_a  must be reworked !!!  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 subroutine  align_a
  
       use dimensions
@@ -5455,7 +5459,7 @@ subroutine  align_a
 
       if(found('help    ')) then 
        write(6,*)'=============================================================================='
-       write(6,*)'= aligna                                                                     ='
+       write(6,*)'= aligna        !!! NOT YET FUNCTIONAL, CONTAINS BUGS or ALGORITH MUST BE MODIFIED ='
        write(6,*)'= determine x and y scales                                                   ='
        write(6,*)'= of second selected record in order to match the first selected             ='
        write(6,*)'= the scaled result is copied to a new record                                ='
@@ -5466,6 +5470,7 @@ subroutine  align_a
        return
       endif
 
+ stop "THIS ROUTINE aligna is not yet ready, must be reworked, befor new testsb remove this msg"    
 
       if(nsel .ne. 2) then
         write(*,*)"ERROR: aligna needs selection of two curves"
@@ -5590,6 +5595,7 @@ end function amatch_err
 
 end subroutine amatch
 
+!<<< TBD: not yet functional align_a  must be reworked !!!  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!! Suroutines from external sources                                          !!

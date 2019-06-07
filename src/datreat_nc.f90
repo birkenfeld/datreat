@@ -1465,10 +1465,10 @@ da12:    do i=1,nbuf
            y1 = yerout2(i)
            if(idimux.eq.0) y = (facto1 * y0/xmon1)**2 +                 &
      &          (facto2 * y1 / xmon2)**2
-           if(idimux.eq.1) y = yyy * ((facto1 * y0/xmon1)/y00) *        &
-     &          ((facto2 * y1 / xmon2)/y11)
-           if(idimux.eq.2) y = yyy * ((facto1 * y0/xmon1)/y00) *        &
-     &          ((facto2 * y1 / xmon2)/y11)
+           if(idimux.eq.1) y = ( ( (facto1/facto1)*(xmon2/xmon1) )**2 ) *   &
+               ((yerout1(i)**2 * yout2(i)**2 + yerout2(i)**2 * yout1(i)**2) / yout2(i)**4)
+           if(idimux.eq.2) y = ((facto1*facto2)/(xmon1*xmon2))**2 * &
+                (yerout1(i)**2*yout2(i)**2+yerout2(i)**2*yout1(i)**2)
            yerror(i,newadd) = sqrt(y)
          enddo
          call txfpar(iad1,newadd)
@@ -3394,6 +3394,7 @@ drer1:    do ik=1,n
                yyee = yerror(i,ia)
                call evaluate(yformel,val8y,iery)
                yerror(i,ia) = val8y
+write(*,'(a,a,4f12.6)')"TEST: form=",trim(yformel),xxxx,yyyy,yyee,val8y
            enddo
           enddo
          goto 2000
