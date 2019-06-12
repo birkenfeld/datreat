@@ -3886,7 +3886,10 @@ exclude:   if(found('exclude  ')) then
            tbuffer = title
            title = trim(title)//"("//trim(fsname)//")"
            call splot(.true.)
- !!          call execute_command_line('mv "'//trim(LAST_DTR_PLOT)//'" '//'plot_'//trim(fsname)//'.pdf')
+           write(charbuf,'(a)')'mv "'//trim(LAST_DTR_PLOT)//'" '//'plot_'//trim(fsname)//'.pdf' ! check why obviously instead of mv cp is perfrormed...!
+           write(*,*)"last plot: ",trim(LAST_DTR_PLOT)
+           write(*,*)"executing: ",trim(charbuf)
+           call execute_command_line(trim(charbuf)) ! check why obviously instead of mv cp is perfrormed...!
            title = tbuffer
          endif
          goto 2000
@@ -4240,31 +4243,6 @@ exclude:   if(found('exclude  ')) then
        endif
 !
  
-       if(comand.eq.'oplot    ') then
-!                    -----> plot selected curves with okular
-         write(*,*)"Choose output device 61, 62 or 101 !"
-         write(*,*)
-         call splot(.true.)
-         call execute_command_line("ls -t gli* | head -1 > LGLI")
-         open(33,file="LGLI")
-         read(33,'(a)') fsname
-         close(33)
-         charbuf = ' '
-         do i=1,len_trim(title)
-          if(title(i:i) == ' ') then
-             charbuf(i:i) = '_'
-          else 
-             charbuf(i:i) = title(i:i)
-          endif
-         enddo                 
-!         write(*,*)"fsname ",trim(fsname)," extension:",fsname(len_trim(fsname)-3:len_trim(fsname))
-         charbuf = trim(charbuf)//fsname(len_trim(fsname)-3:len_trim(fsname))
-         call execute_command_line("cp "//trim(fsname)//" "//trim(charbuf))
-         write(*,*)"open ",trim(charbuf)
-         call execute_command_line("okular "//trim(charbuf))
-         goto 2000
-       endif
-
       if(comand.eq.'plot    '.or.comand.eq.'p       '.or.comand.eq.'gp      ') then
 !                    -----> plot selected curves
          call splot(.true.)

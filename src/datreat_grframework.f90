@@ -1386,7 +1386,7 @@ scl:   if(found('scaled  ')) then
 ! ---- set frame & scales ----
        if(len_trim(title) > 0) then
 !          call grstart("dtrplot.pdf")           !>neu, TBD use frlux ....
-          write(*,*)"t1:",trim(grtitle_filter(title))//".pdf"
+          write(*,'(a,i0,a)')"Plot title(#",ibild-1,"): "//trim(grtitle_filter(title))//".pdf"
           call grstart(trim(grtitle_filter(title))//".pdf")           !>neu, TBD use frlux ....
        else
           call grstart 
@@ -1563,7 +1563,8 @@ scl:   if(found('scaled  ')) then
 
        tx = tag(7:8)//'-'//tag(5:6)//'-'//tag(1:4)
        sx = stunde(1:2)//':'//stunde(3:4)//':'//stunde(5:6)
-       xtext = tx//'  '//sx
+!       xtext = tx//'  '//sx
+       write(xtext,'(a,i0)') tx//'  '//sx//' #',ibild-1
        call grtext(-DEFAULT_WC_MARGIN*150*fyskip * txsizt ,ylow,trim(xtext),GR_BLACK) !> neu
 
 ! ---- plot theory parameters ----
