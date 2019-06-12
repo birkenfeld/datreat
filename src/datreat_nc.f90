@@ -1150,7 +1150,7 @@
        endif
 
 !
-       if(comand.eq.'arit    ') then ! alte version von arit 
+       if(comand.eq.'aritold ') then ! alte version von arit 
 !                    ----
           if(found('help    ')) then 
            write(6,*)'=============================================================================='
@@ -1338,176 +1338,13 @@ da1:     do i=1,nbuf
        endif
 !
 !
-       if(comand.eq.'arit2    ') then  ! deals better with interpolation at boundaries of range (vorher arit2)!
+       if(comand.eq.'arit     ') then  ! deals better with interpolation at boundaries of range (vorher arit2)!
 !                    ----
-          if(found('help    ')) then 
-           write(6,*)'=============================================================================='
-           write(6,*)'= arit2 f1 <factor1> f2 <factor2> [to <numor>]  [options]                     '
-           write(6,*)'=      adds the two selected records with factors 1,2 and stores as numor     '
-           write(6,*)'=      for nonmatchig x-values interpolation is applied                       '
-           write(6,*)'=   options:                                                                  '
-           write(6,*)'=            div     : divides (instead of adding)                            '
-           write(6,*)'=            mult    : multiplies (instead of adding)                         '
-           write(6,*)'=            sc <numor1> <numor2>  : selection by numor match instead of sel  '
-           write(6,*)'=   new  version requires sorted data                                         '
-           write(6,*)'=============================================================================='
-           goto 2000
-        endif
+        call arit()
 
-         newnum = 777777
-         idimux = 0
-
-         num1 = 0
-         num2 = 0
-         do i=1,inames
-          j = inapa(i)
-          if(vname(i).eq.'norm    ') withmo = .true.
-          if(vname(i).eq.'nonorm  ') withmo = .false.
-          if(vname(i).eq.'div     ') idimux = 1
-          if(vname(i).eq.'mult    ') idimux = 2
-          if(vname(i).eq.'to      ') newnum = Nint(rpar(j))
-          if(vname(i).eq.'sc      ') then
-            num1 = Nint(rpar(j))
-            num2 = Nint(rpar(j+1))
-          endif
-          if(vname(i).eq.'factor1 '.or.vname(i).eq.'f1      ')          &
-     &                                                 facto1 = rpar(j)
-          if(vname(i).eq.'factor2 '.or.vname(i).eq.'f2      ')          &
-     &                                                 facto2 = rpar(j)
-        enddo
-! --- figuer out the adresses ---
-         if(nsel.eq.2) then
-           iad1 = isels(1)
-           iad2 = isels(2)
-         else
-           iad1 = 0
-           iad2 = 0
-         endif
-da12:    do i=1,nbuf
-          if(numor(i) == 0 ) cycle da12
-          if(numor(i).eq.num1) iad1 = i
-          if(numor(i).eq.num2) iad2 = i
-         enddo da12
-         if(iad1.eq.0) then
-           write(6,*)'file :',num1,' not found'
-           goto 2000
-         endif
-         if(iad2.eq.0) then
-           write(6,*)'file :',num2,' not found'
-           goto 2000
-         endif
-! --- if result is already there , replace it ---
-         newadd = nbuf+1
-         do i=1,nbuf
-          if(numor(i).eq.newnum) newadd = i
-         enddo
-         if(newadd.gt.nbuf) nbuf = newadd
-         if(nbuf.ge.size(nwert)) then
-           write(6,*)'no storage for the result'
-           nbuf = nbuf - 1
-           goto 2000
-         endif
-! ---- normalize to monitor-values ----
-         if(withmo) then
-           write(6,*)'normalizing to monitor-values ....'
-           write(6,*)'use option nonorm to switch off, norm to swit. on'
-! ---- extract monitorvalues ----
-            xmon1 = 0
-           do i=1,nopar(iad1)
-             if(napar(i,iad1).eq.'monitor  ') xmon1 = params(i,iad1)
-           enddo
-           xmon2 = 0
-           do i=1,nopar(iad2)
-             if(napar(i,iad2).eq.'monitor  ') xmon2 = params(i,iad2)
-           enddo
-           if(xmon1.eq.0) then
-             write(6,*)'monitor of first file is lacking take 1'
-             xmon1 = 1
-           endif
-           if(xmon2.eq.0) then
-             write(6,*)'monitor of 2nd   file is lacking take 1'
-             xmon2 = 1
-           endif
-         else
-           xmon1 =1
-           xmon2 =1
-         endif
-!        ------> of if(withmo ..
-! --- start the computation ---
-         n1 = nwert(iad1)
-         n2 = nwert(iad2)
-         n3 = n1
-         if(n3.gt.mwork) then
-           write(6,*)'arit2 workspace insufficient'
-           goto 2000
-         endif
-         call get_pair_of_points(xwerte(1,iad1),ywerte(1,iad1),yerror(1,iad1),n1, &
-    &                            xwerte(1,iad2),ywerte(1,iad2),yerror(1,iad2),n3, &
-    &                            xwerte(1,newadd), yout1, yerout1, yout2, yerout2, nout)
-
-         nwert(newadd) = nout
-         do i=1,nout
-          x1 = xwerte(i,newadd)
-          y0 = yout1(i)
-          y1 = yout2(i)
-          y00 = y0
-          y11 = y1
-           if(idimux.eq.0 ) y  = facto1 * y0/xmon1 +                    &
-     &          facto2 * y1 / xmon2
-           if(idimux.eq.1 ) y  = (facto1 * y0/xmon1) /                  &
-     &        (  facto2 *y1 / xmon2)
-           if(idimux.eq.2 ) y  = (facto1 * y0/xmon1) *                  &
-     &        (  facto2 * y1 / xmon2)
-           ywerte(i,newadd) = y
-           yyy=y
-! --- and the errors ! ----
-           y0 = yerout1(i)
-           y1 = yerout2(i)
-           if(idimux.eq.0) y = (facto1 * y0/xmon1)**2 +                 &
-     &          (facto2 * y1 / xmon2)**2
-           if(idimux.eq.1) y = ( ( (facto1/facto1)*(xmon2/xmon1) )**2 ) *   &
-               ((yerout1(i)**2 * yout2(i)**2 + yerout2(i)**2 * yout1(i)**2) / yout2(i)**4)
-           if(idimux.eq.2) y = ((facto1*facto2)/(xmon1*xmon2))**2 * &
-                (yerout1(i)**2*yout2(i)**2+yerout2(i)**2*yout1(i)**2)
-           yerror(i,newadd) = sqrt(y)
-         enddo
-         call txfpar(iad1,newadd)
-         nwert(newadd) = n3
-         numor(newadd) = newnum
-         xname(newadd) = xname(iad1)
-         yname(newadd) = yname(iad1)
-          name(newadd) =  name(iad1)
-         coment(newadd)= coment(iad1)(1:40)//coment(iad2)(1:40)
-         nnpar=nopar(iad1)
-       if(nnpar.le.mpar-2) then
-         nnpar=nnpar+2
-         nopar(newadd) = nnpar
-         params(1,newadd) = facto1
-         params(2,newadd) = facto2
-         napar(1,newadd)  = name(iad1)
-         napar(2,newadd)  = name(iad2)
-         np=3
+        goto 2000
        endif
-         do  i=np,nnpar
-           params(i,newadd)= params(i+1-np,iad1)
-           napar(i,newadd) = napar (i+1-np,iad1)
-         enddo
-         write(6,*)n3,' points resulting from arit are stored as sc',   &
-     &                  newnum
-         if(idimux.eq.0)                                                &
-     &   write(6,*)'<===',facto1,' * ',name(iad1),' + ',facto2,' * ',   &
-     &             name(iad2)
-         if(idimux.eq.1)                                                &
-     &   write(6,*)'<===',facto1,' * ',name(iad1),' / ',facto2,' * ',   &
-     &             name(iad2)
-         if(idimux.eq.2)                                                &
-     &   write(6,*)'<===',facto1,' * ',name(iad1),' * ',facto2,' * ',   &
-     &             name(iad2)
-         isels(1) = newadd
-         ifits(1) = 0
-         nsel     = 1
-         goto 2000
-       endif
+
 !
 !
        if(comand.eq.'average ') then
@@ -4049,7 +3886,7 @@ exclude:   if(found('exclude  ')) then
            tbuffer = title
            title = trim(title)//"("//trim(fsname)//")"
            call splot(.true.)
-           call execute_command_line("cp "//trim(LAST_DTR_PLOT)//" "//"plot_"//trim(fsname)//".pdf")
+           call execute_command_line('mv "'//trim(LAST_DTR_PLOT)//'" '//'plot_'//trim(fsname)//'.pdf') ! check why obviously instead of mv cp is perfrormed...!
            title = tbuffer
          endif
          goto 2000
@@ -5229,9 +5066,190 @@ dse:    do i=1,nsel
       deallocate(weights)
 
 
-
-
    end subroutine average_data
+
+ 
+   subroutine arit()
+!     -------------------------
+      use dimensions
+      use new_com
+      ! use cincoc
+      use xoutxx
+      use cdata
+      ! use outlev
+      use theory
+      use selist
+      use fslist
+      use theorc
+      use thparc
+      use formul
+      use cfc
+      use cfunc
+      use cfunce
+      use partran
+      use wlntran
+      use sqtran
+!      use constants
+      use PhysicalConstantsPlus
+ 
+      implicit none
+
+      double precision       :: y2   (size(xwerte(:,1)))  ! selection values interpolated to x1 vals
+      double precision       :: y2err(size(xwerte(:,1)))  ! selection values interpolated to x1 vals
+      double precision, save :: f1 = 1d0                  ! factor for sel 1
+      double precision, save :: f2 = 1d0                  ! factor for sel 2 
+      integer                :: mode  
+      integer                :: is1, is2  
+      integer                :: number_of_datapoints, n
+
+      integer                :: imatch1, imatch2
+      integer                :: inew
+      double precision       :: p
+      integer                :: i, to_numor = 1
+
+      integer, parameter     :: add  = 0
+      integer, parameter     :: mult = 1
+      integer, parameter     :: div  = 2
+      integer, parameter     :: vid  = 3
+
+      character(len=1)       :: op
+
+
+
+      if(found('help    ')) then 
+       write(6,*)'=============================================================================='
+       write(6,*)'= arit2 f1 <factor1> f2 <factor2> [to <numor>]  [options]                     '
+       write(6,*)'=      adds the two selected records with factors 1,2 and stores as numor     '
+       write(6,*)'=      for nonmatchig x-values interpolation is applied                       '
+       write(6,*)'=      x-values of first selection serve as master                            '
+       write(6,*)'=   options:                                                                  '
+       write(6,*)'=            div     : divides (1)/(2) (instead of adding)                    '
+       write(6,*)'=            vid     : divides (2)/(1) (instead of adding)                    '
+       write(6,*)'=            mult    : multiplies (instead of adding)                         '
+       write(6,*)'=============================================================================='
+       return
+      endif
+
+
+
+
+
+      f1       = getval("f1      ",f1,inew)
+      f2       = getval("f2      ",f2,inew)
+      to_numor = intval("to      ",to_numor,inew)
+                                      mode = add       ! +
+      if(         found("mult    "))  mode = mult      ! * 
+      if(         found("div     "))  mode = div       ! / 
+      if(         found("vid     "))  mode = vid       ! / 
+
+         
+      if(nsel .ne. 2) then
+        write(6,*)"Needs selection of exactly TWO records!"
+        ierrs = 1000
+        return
+      endif
+
+      is1 = isels(1)      
+      is2 = isels(2)      
+     
+
+
+      if(nbuf >= size(nwert)) then
+        write(6,*)"..too many buffers", nbuf, size(nwert)
+        ierrs = 2000
+        return
+      endif
+
+! prepare destination by pushing paramters etc.
+      nbuf = nbuf + 1
+      call txfera(is1,nbuf)
+      numor(nbuf)        = numor(is1)+1000000
+
+      if(   found("to      ")) numor(nbuf) = to_numor
+      call parset("numor1  ",real(numor(is1)),nbuf)
+      call parset("numor2  ",real(numor(is2)),nbuf)
+! check how many data_points are there
+      number_of_datapoints = nwert(is1)
+
+! prepare selection 2 linear interpolation vector
+      do i=1,nwert(is1)
+       imatch1 = minloc(abs(xwerte(i,is1)-xwerte(1:nwert(is2),is2)),dim=1)
+       imatch2 = minloc(abs(xwerte(i,is1)-xwerte(1:nwert(is2),is2)),dim=1, &
+                        mask=(xwerte(1:nwert(is2),is2).ne.xwerte(imatch1,is2)))
+       p        = (xwerte(i,is1)  -  xwerte(imatch1,is2)) /   &
+                 (xwerte(imatch2,is2) - xwerte(imatch1,is2))
+       y2(i)    = ywerte(imatch1,is2) * (1d0-p) + ywerte(imatch2,is2) * p
+       y2err(i) = yerror(imatch1,is2) * (1d0-p) + yerror(imatch2,is2) * p 
+       if(abs(p) > 1d0) y2err(i) = Huge(p)   
+! write(*,*)"T1:",i, imatch1, imatch2, p, xwerte(i,is1), xwerte(imatch1,is2), xwerte(imatch2,is2)
+! write(*,*)"  :",i, imatch1, imatch2, ywerte(i,is1), y2(i), ywerte(imatch1,is2), ywerte(imatch2,is2)
+      enddo
+
+! do the arithmetic
+      select case(mode)
+      case(add)
+        xwerte(1:number_of_datapoints,nbuf)         = xwerte(1:number_of_datapoints,is1)
+        ywerte(1:number_of_datapoints,nbuf)         =   f1 * ywerte(1:number_of_datapoints,is1)  &
+                                                      + f2 * y2(1:number_of_datapoints)
+
+        yerror(1:number_of_datapoints,nbuf)   = sqrt( (f1 * yerror(1:number_of_datapoints,is1))**2  &
+                                                     +(f2 * y2err(1:number_of_datapoints))**2 )
+        op = "+"
+      case(mult)
+        xwerte(1:number_of_datapoints,nbuf)         = xwerte(1:number_of_datapoints,is1)
+        ywerte(1:number_of_datapoints,nbuf)         =   f1 * ywerte(1:number_of_datapoints,is1)  &
+                                                      * f2 * y2(1:number_of_datapoints)
+
+        yerror(1:number_of_datapoints,nbuf)   = f1*f2*sqrt( ( y2(1:number_of_datapoints)*yerror(1:number_of_datapoints,is1))**2  &
+                                                     +( ywerte(1:number_of_datapoints,is1) * y2err(1:number_of_datapoints))**2 )
+        op = "*"
+      case(div)
+        xwerte(1:number_of_datapoints,nbuf)         = xwerte(1:number_of_datapoints,is1)
+        ywerte(1:number_of_datapoints,nbuf)         =     f1 * ywerte(1:number_of_datapoints,is1)  &
+                                                      / ( f2 * y2(1:number_of_datapoints))
+
+        yerror(1:number_of_datapoints,nbuf)   =(f1/f2)*sqrt( ( y2(1:number_of_datapoints)*yerror(1:number_of_datapoints,is1))**2  &
+                                                     +( ywerte(1:number_of_datapoints,is1) * y2err(1:number_of_datapoints))**2 )  &
+                                                     / y2(1:number_of_datapoints)**2
+        op = "/"
+      case(vid)
+        xwerte(1:number_of_datapoints,nbuf)         = xwerte(1:number_of_datapoints,is1)
+        ywerte(1:number_of_datapoints,nbuf)         = 1d0/  (  f1 * ywerte(1:number_of_datapoints,is1) )  &
+                                                      * ( f2 * y2(1:number_of_datapoints))
+
+        yerror(1:number_of_datapoints,nbuf)   =(f2/f1)*sqrt( ( y2(1:number_of_datapoints)*yerror(1:number_of_datapoints,is1))**2  &
+                                                     +( ywerte(1:number_of_datapoints,is1) * y2err(1:number_of_datapoints))**2 )  &
+                                                     / ywerte(1:number_of_datapoints,is1)**2
+        op = "/"
+        i  = is1;  is1 = is2; is2 = i
+      case default
+        write(6,*)"..unknown arithmetic operation requested", mode
+        ierrs = 3000
+        return
+  
+      end select
+
+!  remove invalid points
+      n = 0
+      do i=1,number_of_datapoints
+         if(y2err(i) < Huge(p)) then
+           n = n + 1
+           xwerte(n,nbuf) = xwerte(i,nbuf) 
+           ywerte(n,nbuf) = ywerte(i,nbuf) 
+           yerror(n,nbuf) = yerror(i,nbuf) 
+         endif
+      enddo
+      nwert(nbuf) = n
+      nsel = 1
+      isels(1)    = nbuf
+
+     write(*,'(a,i0,a,i0,a,i0)')"arit: f1 * (",is1,") "//op//" f2 * (",is2,")  ==> ",nbuf
+     write(*,'(a,e15.8)')       "      f1 = ",f1
+     write(*,'(a,e15.8)')       "      f2 = ",f2
+     write(*,'(a,i0   )')       "      new number of points = ",nwert(nbuf)
+     write(*,'(a,i0,a,i0)')     "      ==> ",nbuf," now selected, new numor = ",numor(nbuf)
+
+   end subroutine arit
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !! intensity aligning two data sets by scale an offset
