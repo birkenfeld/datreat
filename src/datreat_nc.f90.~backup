@@ -34,7 +34,7 @@
       ! use cmargs
       use xoutxx
       use cdata
-      ! use outlev
+      !  use outlev
       use theory
       use selist
       use fslist
@@ -3229,9 +3229,11 @@ drer1:    do ik=1,n
                xxxx = xwerte(i,ia)
                yyyy = ywerte(i,ia)
                yyee = yerror(i,ia)
+write(*,'(a,a,4f12.6)')"TEST: form1=",trim(yformel),xxxx,yyyy,yyee
                call evaluate(yformel,val8y,iery)
+write(*,*)"evaluate: ",trim(yformel), val8y, iery
                yerror(i,ia) = val8y
-write(*,'(a,a,4f12.6)')"TEST: form=",trim(yformel),xxxx,yyyy,yyee,val8y
+write(*,'(a,a,4f12.6)')"TEST: form2=",trim(yformel),xxxx,yyyy,yyee,val8y
            enddo
           enddo
          goto 2000
@@ -3886,10 +3888,10 @@ exclude:   if(found('exclude  ')) then
            tbuffer = title
            title = trim(title)//"("//trim(fsname)//")"
            call splot(.true.)
-           write(charbuf,'(a)')'mv "'//trim(LAST_DTR_PLOT)//'" '//'plot_'//trim(fsname)//'.pdf' ! check why obviously instead of mv cp is perfrormed...!
+           write(charbuf,'(a)')'cp "'//trim(LAST_DTR_PLOT)//'" '//'plot_'//trim(fsname)//'.pdf' 
            write(*,*)"last plot: ",trim(LAST_DTR_PLOT)
            write(*,*)"executing: ",trim(charbuf)
-           call execute_command_line(trim(charbuf)) ! check why obviously instead of mv cp is perfrormed...!
+           call execute_command_line(trim(charbuf)) 
            title = tbuffer
          endif
          goto 2000

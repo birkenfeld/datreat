@@ -34,7 +34,7 @@
       ! use cmargs
       use xoutxx
       use cdata
-      ! use outlev
+      !  use outlev
       use theory
       use selist
       use fslist
@@ -3229,9 +3229,11 @@ drer1:    do ik=1,n
                xxxx = xwerte(i,ia)
                yyyy = ywerte(i,ia)
                yyee = yerror(i,ia)
+write(*,'(a,a,4f12.6)')"TEST: form1=",trim(yformel),xxxx,yyyy,yyee
                call evaluate(yformel,val8y,iery)
+write(*,*)"evaluate: ",trim(yformel), val8y, iery
                yerror(i,ia) = val8y
-write(*,'(a,a,4f12.6)')"TEST: form=",trim(yformel),xxxx,yyyy,yyee,val8y
+write(*,'(a,a,4f12.6)')"TEST: form2=",trim(yformel),xxxx,yyyy,yyee,val8y
            enddo
           enddo
          goto 2000
@@ -3958,7 +3960,7 @@ exclude:   if(found('exclude  ')) then
 !                    -------
 !cc      yformel = title
          if(ioldc.ne.0) then
-           yformel  = reslin
+           yformel  = adjustl(reslin)
            ioldc   = 0
          else
            write(*,*)"no contiunuation with formula found!"
@@ -3974,7 +3976,7 @@ exclude:   if(found('exclude  ')) then
 !                    -------
 !cc      xformel = title
          if(ioldc.ne.0) then
-           xformel  = reslin
+           xformel  = adjustl(reslin)
            ioldc   = 0
          else
            write(*,*)"no contiunuation with formula found!"

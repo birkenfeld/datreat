@@ -295,6 +295,7 @@ end subroutine match_exp2
 
      double precision    :: ye(np)
      double precision    :: tmax, t
+     double precision    :: max_rate
      integer             :: i, j, ier, nxs
 
      logical             :: verbose = .false.
@@ -346,6 +347,15 @@ end subroutine match_exp2
             r0(i)   = NEXP_MINIMUM_RATE 
             px(2*i) = r0(i)
          endif 
+!#>m+ 
+         max_rate = 1d0/(10d0*xv(1))
+         if( r0(i) > max_rate ) then
+            write(6,*)"WARNING(nexp_match): rate(high) = ",r0(i)," is reduced to ",max_rate 
+            r0(i)   = max_rate 
+            px(2*i) = r0(i)
+         endif 
+!#<m
+
       enddo
 
 !3      if(verbose) then 

@@ -6016,7 +6016,7 @@ sl:       do j=1,maxstep
         val = yyyy
         return
       endif
-      if(compare(nam,'ye   ')) then
+      if(compare(nam,'ee   ')) then
         val = yyee
         return
       endif

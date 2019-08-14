@@ -25,6 +25,7 @@
  
 ! the reout parameter representation 
      double precision :: rg         ! radius of gyration                                                              
+     double precision :: re         ! end-end radius of gyration                                                              
  
      double precision :: th
  
@@ -69,7 +70,8 @@
         th_file_param(  1,idesc) = "         > "
 ! >>>>> describe record parameters creaqted by this theory >>>>>>> 
         th_out_param(:,idesc)  = " "
-        th_out_param(  1,idesc) = "rg       > radius of gyration"
+        th_out_param(  1,idesc) = "rg       > radius of gyration for nu .ne. 1/2 this differs from Re/sqrt(6)"
+        th_out_param(  2,idesc) = "re       > end-to-end radius"
 ! 
         th_ndebye = 0.0
  
@@ -96,8 +98,8 @@
 ! 
      q   = x
      ni  = nint(n)
-     rg  =  l * dble(ni)**nu / sqrt(6d0)
-     pq  = nndebye(q, l, nu, ni )
+     re  =  l * dble(ni)**nu 
+     pq  = nndebye(q, l, nu, ni, rg )
      sq  = 1d0 / ( 1d0/(ni*pq) + 2d0 * chi )
      th  = ampli * sq
      if(withsq == 1) then
@@ -108,6 +110,7 @@
  
 ! ---- writing computed parameters to the record >>>  
       call parset('rg      ',sngl(rg),iadda,ier)
+      call parset('re      ',sngl(re),iadda,ier)
  
  CONTAINS 
  
@@ -115,17 +118,18 @@
  
 
 
-function nndebye(q, l, nue,n ) result(val)
+function nndebye(q, l, nue,n ,Rg ) result(val)
    implicit none
    double precision ,intent(in) :: q           ! Q-value
    double precision ,intent(in) :: l           ! effective segment length
    double precision ,intent(in) :: nue         ! exponent
    integer          ,intent(in) :: n           ! number of segments
+   double precision ,intent(out):: Rg          ! radius of gyration
    double precision             :: val
 
    integer          :: i, j
    double precision :: eterms(0:n-1)
-   double precision :: ql2, mu, Rg
+   double precision :: ql2, mu
 
    ql2 = (1d0/6d0) * (q*l)**2
    mu  = 2d0 * nue
@@ -145,6 +149,25 @@ function nndebye(q, l, nue,n ) result(val)
 !$OMP END PARALLEL DO
 
    val = val / (n*n)
+
+!!! ---- consistent Rg determination ----
+!$OMP PARALLEL DO
+         do i=0,n-1
+           eterms(i) = dble(i)**mu
+         enddo
+!$OMP END PARALLEL DO
+
+!$OMP END PARALLEL DO
+         Rg = 0
+!$OMP PARALLEL DO REDUCTION(+:Rg)
+         do i=1,n
+          do j=1,n
+            Rg = Rg + eterms(abs(i-j))
+          enddo
+         enddo
+!$OMP END PARALLEL DO
+        Rg    = sqrt( (0.5d0 * l**2) * Rg/(n**2) )
+ 
 
 end function nndebye
 

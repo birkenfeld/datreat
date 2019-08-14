@@ -1,6 +1,6 @@
  FUNCTION th_havneg(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
 !================================================================================
-!  Havriliak Negami function with tau following Vogel-Fulcher-Tamman tau=tau0 * exp(B/(T-Tvft)
+!  Havriliak Negami function with tau following Vogel-Fulcher-Tamman tau=tau0 * exp(B/(T-Tvft))
 !  Havriliak and Negami
       use theory_description 
       implicit none 
@@ -25,10 +25,11 @@
      double precision :: beta       ! Havriliak Negami beta                                                           
 ! the recin parameter representation 
      double precision :: temp       ! temperature                                                                     
-     integer          :: re_im      ! 1=real (epsilon) else =-imag (epsilon)                                          
-                                                                          
+     double precision :: re_im      ! 1=real (epsilon) else =-imag (epsilon)                                          
+! the reout parameter representation 
+     double precision :: dummy      !                                                                                 
  
-     double precision   :: th
+     double precision :: th
  
      double precision   :: om
      double precision   :: tau
@@ -46,7 +47,7 @@
 ! >>>>> describe theory with >>>>>>> 
        idesc = next_th_desc()
        th_identifier(idesc)   = thnam
-       th_explanation(idesc)  = " Havriliak Negami function with tau following Vogel-Fulcher-Tamman tau=tau0 * exp(B/(T-Tvft)"
+       th_explanation(idesc)  = " Havriliak Negami function with tau following Vogel-Fulcher-Tamman tau=tau0 * exp(B/(T-Tvft))"
        th_citation(idesc)     = " Havriliak and Negami"
 !       --------------> set the parameter names --->
         parnam ( 1) = 'amplitud'  ! prefactor                                                                       
@@ -68,7 +69,7 @@
         th_file_param(  2,idesc) = "re_im    > 1=real (epsilon) else =-imag (epsilon)"
 ! >>>>> describe record parameters creaqted by this theory >>>>>>> 
         th_out_param(:,idesc)  = " "
-        th_out_param(  1,idesc) = "         > "
+        th_out_param(  1,idesc) = "dummy    > "
 ! 
         th_havneg = 0.0
  
@@ -77,27 +78,27 @@
 !
 ! ---- transfer parameters -----
       amplitud =      pa( 1)
-      tau0     =  abs(pa( 2)) 
-      B        =  abs(pa( 3))
-      Tvft     =  abs(pa( 4))
-      alpha    =  abs(pa( 5))
-      beta     =  abs(pa( 6))
+      tau0     =      pa( 2)
+      B        =      pa( 3)
+      Tvft     =      pa( 4)
+      alpha    =      pa( 5)
+      beta     =      pa( 6)
 ! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
       iadda = actual_record_address()
 ! >>> extract: temperature
-      xh = 300
+      xh =          300
       call parget('temp    ',xh,iadda,ier)
       temp     = xh
 ! >>> extract: 1=real (epsilon) else =-imag (epsilon)
-      xh = 2
+      xh =          2
       call parget('re_im   ',xh,iadda,ier)
-      re_im    = nint(xh)
+      re_im    = xh
 ! 
 ! ------------------------------------------------------------------
 ! ----------------------- implementation ---------------------------
 ! ------------------------------------------------------------------
 ! 
-     tau  = tau0 * exp(B*(temp-Tvft))
+     tau  = tau0 * exp(B/(temp-Tvft))
      om   = x
 
      th = amplitud * havneg(om,tau,alpha,beta,re_im)
@@ -106,7 +107,7 @@
      th_havneg = th
  
 ! ---- writing computed parameters to the record >>>  
-!      call parset('        ',sngl(),iadda,ier)
+      call parset('dummy   ',sngl(dummy),iadda,ier)
  
  CONTAINS 
  
@@ -118,7 +119,7 @@
        double precision, intent(in) :: tau
        double precision, intent(in) :: alpha
        double precision, intent(in) :: beta
-       integer         , intent(in) :: re_im
+       double precision, intent(in) :: re_im
 
        double precision             :: hn
 
@@ -126,7 +127,7 @@
 
        y = (1d0,0d0) / ( (1d0,0d0) + ((0d0,1d0)*om*tau)**alpha)**beta
 
-       if(re_im == 1) then
+       if( nint(re_im) == 1) then
         hn =  RealPart(y)
        else
         hn = -ImagPart(y)
