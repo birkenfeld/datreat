@@ -138,6 +138,7 @@ MODULE new_com
 
 
   double precision   , public ::  rpar(minc)
+  integer         ::  iitems
   integer, public ::  inames
   integer, public ::  ipars
   integer, public ::  ioldc
@@ -156,8 +157,14 @@ MODULE new_com
   !      in common/cincom/
   !
   !character(cmd_long)   , public ::  mybuf  !! fuer re_scan testing ! (PAZ) not-used
-  character(cmd_len)    , public ::  comand         ! was 8
-  character(cmd_len)    , public ::  vname(minc)    ! was 8
+  character(cmd_len)    , public ::  comand            ! was 8
+  character(cmd_len)    , public ::  vname(minc)       ! was 8
+  character(cmd_len)             ::  cmd_item(minc)    ! was 8
+  logical                        ::  item_used(minc)   
+  integer                        ::  item_nr_name(minc) !  i-th name associated with this item
+  integer                        ::  name_nr_item(minc) !  i-th item associated with this (j-th) name
+  integer                        ::  item_nr_rpar(minc) !  i-th rpar associated with this item
+  integer                        ::  rpar_nr_item(minc) !  i-th item associated with this (r-par)
   character(cmd_long)   , public ::  title
   character(cmd_long)   , public ::  reslin
   character(cmd_long)   , public ::  inline
@@ -174,6 +181,7 @@ MODULE new_com
   character(len=cmd_long) :: data_path  = './'
   character(len=cmd_long) :: save_path  = './'
   character(len=cmd_long) :: makro_path = './'
+  character(len=cmd_long) :: mxx_path   = './'
   character(len=cmd_long) :: init_file_path  = ' ' ! default no auto init
 #ifdef USE_LINENOISE
   character(cmd_long), private :: history_file = ".history"
@@ -515,6 +523,12 @@ CONTAINS
        !save_path =  './'
        !makro_path = './'
        !datreat_path = './'
+       csep = '&'  !              = --> command separator
+       blank= ' '  !              = --> parameter separator
+       crem = '!'  !              = --> comment !! >> mm (1/16) new comment feature
+       !numeqv = '(.+-0123456789' !=> to reckognize the beginning of a number
+       !bla132 = ' '
+       !
 
 !       prompt       = "-->"
 !			call getenv('HOME', home)
@@ -531,7 +545,7 @@ CONTAINS
           inquire(file=trim(init_file_path),exist=file_exists)
           if(file_exists) then      ! for a init file
              ioldc=1
-             reslin=init_file_path
+             reslin=trim(init_file_path)//csep//trim(reslin)
              write(6,*) 'initialization file "'//trim(init_file_path)//'" found'
           else
              write(6,*) 'initialization file "'//trim(init_file_path)//'" not found'
@@ -545,12 +559,6 @@ CONTAINS
        init_run = 0
 !    endif
     !
-    csep = '&'  !              = --> command separator
-    blank= ' '  !              = --> parameter separator
-    crem = '!'  !              = --> comment !! >> mm (1/16) new comment feature
-    !numeqv = '(.+-0123456789' !=> to reckognize the beginning of a number
-    !bla132 = ' '
-    !
     endif
 
 
@@ -558,19 +566,28 @@ CONTAINS
 8888 continue ! startingpoint of incom loop
     !      --------> reentry-point
     cused = .false.
-    do i=1,minc
-       vname(i) = ' '
-       rpar(i)  = 0
-       iparn(i) = 0
-       inpar(i) = 0
-       inapa(i) = 0
-       vused(i) = .false.
-       rused(i) = .false.
-    enddo
+    
+    vname     = ' '
+    rpar      = 0
+    iparn     = 0
+    inpar     = 0
+    inapa     = 0
+    vused     = .false.
+    rused     = .false.
+    item_used = .false.
+   
     comand = ' '
 
     lstpar    = 0
     lstnam    = 0
+
+    cmd_item     = " "
+    item_nr_name = 0
+    name_nr_item = 0
+    item_nr_rpar = 0
+    rpar_nr_item = 0
+ 
+
     !
     ! ---- error-response -----------------------------------------
     if(ierrr.ne.0) then
@@ -625,8 +642,10 @@ CONTAINS
           ipmls = 0
           read(kanal(ktop),"(a)",end=1001) inread
 #endif
-       else 
+       else
           read(kanal(ktop),"(a)",end=1001) inread
+          !replace tabs with spaces, bug #2295
+          inread = replacetabs(inread)
        endif
        ! ---- last command from history ----
        ii=len_trim(inread(2:))
@@ -756,6 +775,20 @@ CONTAINS
        goto 8888
     endif
 
+    if(comand.eq.'mxxpath') then
+       if((inline(10:10).eq.'?').or. (len_trim(inline).eq.len_trim('mxxpath') )) then
+          write(6,*)TRIM(mxx_path)
+          goto 8888
+       endif
+       if (inline(len_trim(inline):len_trim(inline)).ne.'/') then
+          mxx_path=trim(inline(10:))//'/'
+       else
+          mxx_path=trim(inline(10:))
+       endif
+       if(iot.ge.0) write(6,*)'mxxpath: ',TRIM(mxx_path)
+       goto 8888
+    endif
+
     ! ---- dont analyse further if it is a title ----
     if(comand.eq.'tit     '.or.comand.eq.'title   ') then
        if(comand.eq.'tit     ') title = trim(inline(5:))
@@ -791,6 +824,7 @@ CONTAINS
     !
     ! ---- look for keywords & parameters ----
     !
+    iitems = 0
     inames = 0
     ipars  = 0
     iargs  = 0
@@ -808,7 +842,7 @@ CONTAINS
        buf = inline(i+1:j-1)
        ! --- prepare the textlist of formal makro arguments --
        iargs = iargs + 1
-       arglst(iargs) = buf(1:20)
+       arglst(iargs) = buf(1:20)   !! >>>>>>>>> ??? To be checked MM !!!
        ! --- decode for makro argument values replace strings ! ----
        if(ktop.ne.0) then
           if(ipmlst(ktop).ne.0) then
@@ -822,14 +856,23 @@ CONTAINS
           endif
        endif
        ! ----   discriminate between name & parameter ----
+
+       iitems = iitems + 1
+       cmd_item(iitems) = trim(buf)
+
+
+
        name = .true.
        ! starts with
 
-       if((scan('(+-0123456789',buf(1:1)).gt.0) .or. &         !number starts with number or +-
-            ('.'.eq.buf(1:1) .and. scan('(0123456789',buf(2:2)).gt.0)  .or. &  ! number omitted 0 like .534
-            ((scan(buf(1:len(buf)),'()+-*/^').gt.0 .and.buf(1:2).ne.'./'.and.&
-            scan('/^*.',buf(1:1)).eq.0.and. scan('/^*.',buf(len_trim(buf):len_trim(buf))).eq.0 ))  & ! this is a formula   !
-            )   name = .false.       ! then it is a number or should be evaluated as formula
+!?       if((scan('(+-0123456789',buf(1:1)).gt.0) .or. &         !number starts with number or +-
+!?            ('.'.eq.buf(1:1) .and. scan('(0123456789',buf(2:2)).gt.0)  .or. &  ! number omitted 0 like .534
+!?            ((scan(buf(1:len(buf)),'()+-*/^').gt.0 .and.buf(1:2).ne.'./'.and.&
+!?            scan('/^*.',buf(1:1)).eq.0.and. scan('/^*.',buf(len_trim(buf):len_trim(buf))).eq.0 ))  & ! this is a formula   !
+!?            )   name = .false.       ! then it is a number or should be evaluated as formula
+       if((scan('(+-.0123456789',buf(1:1)).gt.0)  &         !number starts with number or +-
+                 .and.(buf(1:2).ne.'./')  & ! 
+            )   name = .false.                        ! then it is a number or should be evaluated as formula
        if(.not.name) then ! .not.name = zahl oder formel
           call evaluate( buf//' ', val, ierr)
           !  write(6,*)'evaluate: ',buf(1:len_trim(buf))
@@ -837,11 +880,11 @@ CONTAINS
           if(ierr.eq.0) then
              name = .false.
           else
-             name = .true.
-             !					comand = 'f-error!'
-             !					cmd    = comand  (inline(1:1).ne.'&') .and.
-             !					write(6,*)'syntax error in: '//trim(buf)
-             !					write(6,*)'       in line : '//trim(inline)
+             name = .true.                                    
+!<             comand = 'f-error!'                            !! ??
+!<            cmd    = comand  (inline(1:1).ne.'&') .and.
+!<             write(6,*)'syntax error in: '//trim(buf)
+!<             write(6,*)'       in line : '//trim(inline)
           endif
        endif
        !
@@ -857,6 +900,10 @@ CONTAINS
 !!mm<<
           argvals(iargvs) = buf(1:1024)
           inapa(inames) = 0
+
+          item_nr_name(iitems)  = inames         
+          name_nr_item(inames) = iitems
+
        else
           ipars = ipars + 1
           if(ipars.gt.minc) goto 999
@@ -872,6 +919,10 @@ CONTAINS
              inapa(inames) = ipars
              ioldna = inames
           endif
+
+          item_nr_rpar(iitems)  = ipars
+          rpar_nr_item(ipars)  = iitems
+ 
        endif
     enddo ! ende schleife parameterersetzung
 
@@ -1098,7 +1149,7 @@ CONTAINS
           enddo
           ktop = 0
        else ! if we are at the command line level quit program
-          istatus = -1
+          istatus = -3
           return
        endif
        goto 8888
@@ -1187,15 +1238,36 @@ CONTAINS
     if(comand.eq.'set     ') then
        !                    ----------------> set uservar
 
-       do i=1,inames
-          if (inpar(i).eq.1) then
-             call setudf(vname(i)//' ',rpar(inapa(i)),ier)
-          else
-             call errsig(1002,&
-                  '"'//trim(vname(i))//'" cannot be evaluated $')
-             return
-          endif
-       enddo
+!??       do i=1,inames
+!??          if (inpar(i).eq.1) then
+!??             call setudf(vname(i)//' ',rpar(inapa(i)),ier)
+!??          else
+!??             call errsig(1002,&
+!??                  '"'//trim(vname(i))//'" cannot be evaluated $')
+!??             return
+!??          endif
+!??       enddo
+
+
+       if(iitems .ne. 2) then
+          call errsig(9002,'ERROR: set needs ONE name and ONE number/expression as arguments $')
+          goto 8888
+       endif
+
+       call evaluate(trim(cmd_item(2))//' ', val, ierr) 
+       if(ierr .ne. 0) then
+          call errsig(9003,'ERROR: set needs a number/valid expression as 2nd argument $')
+          goto 8888
+       endif      
+
+       if( index("+-.()0123456789",cmd_item(1)(1:1)) > 0 ) then
+          call errsig(9003,'ERROR: invalid variable name $')
+          goto 8888
+       endif 
+
+       call setudf(trim(cmd_item(1))//' ',val,ier) 
+
+
        goto 8888
     endif
     !
@@ -1234,7 +1306,7 @@ CONTAINS
     !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ! ausgang                                             | q
     !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    if(comand.eq.'quit    ') then
+    if(comand.eq.'quit    '.or.comand.eq.'q       ') then
        !         old gr stuff
        !                    ----------------> exit the program
        !         if(ibild.gt.0) then
@@ -1244,13 +1316,69 @@ CONTAINS
        vname(1)='cleanio '
 
        write(6,*)'exit by q, bye...'
-       write(6,*)"presently unlike in drspine the stop is performed within new_com"
-       write(6,*)"full stop now!"
-       stop
-!       istatus = -1
-!       return
+       !write(6,*)"presently unlike in drspine the stop is performed within new_com"
+       !write(6,*)"full stop now!"
+       !stop
+       istatus = -2
+       if(comand.eq.'quit    ') istatus = -3
+       return
     endif
-    !
+    
+!!!!! >>>>>> MM: TEST PRINT FOR DEVELOMENT ONLY !!!!!!
+!  character(cmd_len)             ::  cmd_item(minc)    ! was 8
+!  integer                        ::  item_nr_name(minc) !  i-th name associated with this item
+!  integer                        ::  name_nr_item(minc) !  i-th item associated with this (j-th) name
+!  integer                        ::  item_nr_rpar(minc) !  i-th rpar associated with this item
+!  integer                        ::  rpar_nr_item(minc) !  i-th item associated with this (r-par)
+    if(iot >  0) then 
+       write(*,*)"NEW_COM -> PARSER ANALYSIS"
+       write(*,*)"NEW_COM inline : >",trim(inline),"<"
+       write(*,*)"NEW_COM buf    : >",trim(buf),"<"
+       write(*,*)
+       write(*,*)" #    item               ptnam ptrpar    name                 rpar "
+       write(*,*)" ------------------------------------------------------------------"
+       do i=1,iitems
+         write(*,'(i3,": ",a20,2i6,4x,a20,4x,e14.7)') i, cmd_item(i)(1:20), item_nr_name(i), item_nr_rpar(i), &
+                                              vname(max(1,item_nr_name(i)))(1:20),rpar(max(1,item_nr_rpar(i)))
+       enddo
+       write(*,*)" ------------------------------------------------------------------"
+   
+       write(*,*)
+       write(*,*)" #    name               ptitem inpar   item                 "
+       write(*,*)" ------------------------------------------------------------------"
+       do i=1,inames
+         write(*,'(i3,": ",a20,2i6,4x,a20)') i, vname(i)(1:20), name_nr_item(i),inpar(i), &
+                                             cmd_item(max(1,name_nr_item(i)))(1:20)
+       enddo
+       write(*,*)" ------------------------------------------------------------------"
+   
+       write(*,*)
+       write(*,*)" #    rpar               ptitem iparn inapa   item                 "
+       write(*,*)" ------------------------------------------------------------------"
+       do i=1,ipars
+         write(*,'(i3,": ",e20.7,3i6,4x,a20)') i, rpar(i), rpar_nr_item(i), iparn(i), inapa(i), &
+                                             cmd_item(max(1,rpar_nr_item(i)))(1:20)
+       enddo
+       write(*,*)" ------------------------------------------------------------------"
+     endif   
+   
+
+
+
+    do i=1,inames
+       isum = 0
+       if(ipars.ne.0) then
+          do j=1,ipars
+             if(iparn(j).eq.i) isum = isum + 1
+          enddo
+       endif
+       inpar(i) = isum
+    enddo
+ 
+!!!!! <<<<<<
+
+
+!
     return
     ! ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ! ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1346,12 +1474,12 @@ CONTAINS
     ioldc = 1
     reslin = inline
     lmakro = .true.
-    if(iot.gt.-3)write(6,*)'this is a makro ...'
+    if(iot.gt.3)write(6,*)'this is a makro ...'
     goto 8888
 9888 continue
     lmakro = .false.
     cused  = .true.
-    if(iot.gt.-3)write(6,*)'go on with it ...'
+    if(iot.gt.3)write(6,*)'go on with it ...'
     if(iargs.ne.0) then
        do i=1,iargs
           if(iot.gt.3) write(6,*)'arglst:',arglst(i)
@@ -1735,8 +1863,16 @@ CONTAINS
     !  error signalisierung
     ! ----------------------------------------------------------------------
     ierrr = ierr
+    ierrs = ierr                   ! check which one we need 
     lsay = laenge(say,cmd_len,'$')
     write(6,*)'error:',ierr,' ',say(1:lsay)
+    if(iot.gt.3) then
+        write(*,*)
+        write(*,*)"raw_input        : ",trim(raw_input)
+        write(*,*)"inline           : ",trim(inline)
+        write(*,*)"top_macro_file   : ",trim(top_macro_file)
+        write(*,*)"top_macro_call   : ",trim(top_macro_call)
+    end if
     return
   END subroutine errsig
 
@@ -1789,28 +1925,47 @@ CONTAINS
     double precision             :: defval
     integer, intent(out),optional:: inew0
     !
-    integer :: i, inew
+    integer :: i, inew, ev_err
+    double precision :: ev_val
     !-----------------------------------------------------------------------
     inew      = 0
     if(present(inew0)) inew0 = inew
     getval    = defval
     if(inames.le.0) return
 
-    search: do i=1,inames
-       if(compar(vname(i),pname//' ')) then
-          vused(i) = .true.
-          if(inpar(i).gt.0)then
-             getval = rpar(inapa(i))
-             rused(inapa(i)) = .true.
-             inew = i
-          else
-             inew = -i
+!??   search: do i=1,inames
+!??       if(compar(vname(i),pname//' ')) then
+!??          vused(i) = .true.
+!??          if(inpar(i).gt.0)then
+!??             getval = rpar(inapa(i))
+!??             rused(inapa(i)) = .true.
+!??             inew = i
+!??          else
+!??!             call errsig(9991,"Parameter: "//trim(pname)//" requires a numeric arg $ ")
+!??!             ierrs = ierrs + 9991   !! can this got to errsig or some kined of stack..?
+!??             inew = -i
+!??          endif
+!??          lstpar = inapa(i)
+!??          lstnam = i
+!??          exit search
+!??       endif
+!??    end do search
+
+   search: do i=1,iitems
+      if(compar(cmd_item(i),pname//' ')) then
+          item_used(i) = .true.
+          call evaluate(trim(cmd_item(i+1))//' ',ev_val,ev_err)
+          if(ev_err .ne. 0) then
+            call errsig(9991,"ERROR: Parameter: "//trim(pname)//" requires a numeric arg $ ")
+            ierrs   = ierrs+9991 !??
+            inew   = -1
+            exit search
           endif
-          lstpar = inapa(i)
-          lstnam = i
-          exit search
-       endif
+          item_used(i+1) = .true.
+          getval         = ev_val
+      endif
     end do search
+  
 
     if(present(inew0)) inew0 = inew
 
@@ -1819,7 +1974,7 @@ CONTAINS
   END function getval
 
 
-  double precision   function valnxt(defval,inew)
+  double precision   function valnxt(defval,inew)      !! OBSOLET never Used REMOVE !!
     !-----------------------------------------------------------------------
     !  wert extraktion aus dem incom parameterstack
     !-----------------------------------------------------------------------
@@ -1842,7 +1997,7 @@ CONTAINS
   END function valnxt
 
 
-  subroutine get1(p1)
+  subroutine get1(p1)                                 !! OBSOLET never Used REMOVE !!
     !-----------------------------------------------------------------------
     !  wert extraktion aus dem incom parameterstack
     !-----------------------------------------------------------------------
@@ -2116,30 +2271,50 @@ CONTAINS
     integer          :: idef
     integer,optional :: inew0
     !
-    integer :: i, inew
+    integer :: i, inew, ev_err
+    double precision :: ev_val
     !-----------------------------------------------------------------------
     inew      = 0
     if(present(inew0)) inew0 = inew
     intval    = idef
     if(inames.le.0) return
     !
-    search: do i=1,inames
-       if(compar(vname(i),pname//' ')) then
-          vused(i) = .true.
-          if(inapa(i) > 0) then
-            intval = NINT(rpar(inapa(i)))
-            rused(inapa(i)) = .true.
-            inew = i
-          else
-            inew = -i
+!??    search: do i=1,inames
+!??       if(compar(vname(i),pname//' ')) then
+!??          vused(i) = .true.
+!??          if(inapa(i) > 0) then
+!??            intval = NINT(rpar(inapa(i)))
+!??            rused(inapa(i)) = .true.
+!??            inew = i
+!??          else
+!??            inew = -i
+!??          endif
+!??          lstpar = inapa(i)
+!??          lstnam = i
+!??          exit search
+!??       endif
+!??    end do search
+!??
+
+   search: do i=1,iitems
+      if(compar(cmd_item(i),pname//' ')) then
+          item_used(i) = .true.
+          call evaluate(trim(cmd_item(i+1))//' ',ev_val,ev_err)
+          if(ev_err .ne. 0) then
+            call errsig(9991,"ERROR: Parameter: "//trim(pname)//" requires a numeric arg $ ")
+            ierrs   = ierrs+9991 !??
+            inew   = -1
+            exit search
           endif
-          lstpar = inapa(i)
-          lstnam = i
-          exit search
-       endif
+          item_used(i+1) = .true.
+          intval         = NINT(ev_val)
+      endif
     end do search
+  
+
     if(present(inew0)) inew0 = inew
     return
+
 
   END function intval
 
@@ -2359,6 +2534,7 @@ CONTAINS
           vused(i)            = .true.
           napr = inpar(i)
           if(napr.gt.np) napr = np
+! if(napr<=0)  call errsig(9991,"Parameter: "//trim(pname)//" requires a numeric (numbre or expression) arg.$ ")
           if(napr.gt.0) then
              do j=1,min(inpar(i),np)
                 parout(j) = rpar(inapa(i)-1+j)
@@ -2944,7 +3120,7 @@ CONTAINS
     if(topnumstack.lt.n) then
        if(say) write(6,*)'error: too few num operands!'
        error = .true.
-       do i=topnumstack,n
+       do i=max(1,topnumstack),n
           numstack(i) = 0.d0
        enddo
     endif
@@ -3207,6 +3383,12 @@ CONTAINS
        endif
        if(opstack(j).eq.'+   ') then
           call checknum(2)
+
+          if(topnumstack-1 < 1) then
+            error = .true.
+            goto 200
+          endif
+
           numstack(topnumstack-1)=                                    &
                &      numstack(topnumstack-1)+numstack(topnumstack)
           topnumstack = topnumstack-1
@@ -3214,6 +3396,12 @@ CONTAINS
        endif
        if(opstack(j).eq.'-   ') then
           call checknum(2)
+
+          if(topnumstack-1 < 1) then
+            error = .true.
+            goto 200
+          endif
+
           numstack(topnumstack-1)=                                    &
                &      numstack(topnumstack-1)-numstack(topnumstack)
           topnumstack = topnumstack-1
@@ -3221,6 +3409,12 @@ CONTAINS
        endif
        if(opstack(j).eq.'*   ') then
           call checknum(2)
+
+          if(topnumstack-1 < 1) then
+            error = .true.
+            goto 200
+          endif
+
           numstack(topnumstack-1)=                                    &
                &      numstack(topnumstack-1)*numstack(topnumstack)
           topnumstack = topnumstack-1
@@ -3228,6 +3422,12 @@ CONTAINS
        endif
        if(opstack(j).eq.'/   ') then
           call checknum(2)
+
+          if(topnumstack-1 < 1) then
+            error = .true.
+            goto 200
+          endif
+
           numstack(topnumstack-1)=                                    &
                &      numstack(topnumstack-1)/numstack(topnumstack)
           topnumstack = topnumstack-1
@@ -3235,6 +3435,12 @@ CONTAINS
        endif
        if(opstack(j).eq.'^   ') then
           call checknum(2)
+
+          if(topnumstack-1 < 1) then
+            error = .true.
+            goto 200
+          endif
+
           numstack(topnumstack-1)=                                    &
                &      numstack(topnumstack-1)**numstack(topnumstack)
           topnumstack = topnumstack-1
@@ -3330,7 +3536,7 @@ CONTAINS
     ! --- internal use ---
     double precision   val
     integer i, ierr
-    character*(maxformlength+1) f
+    character(len=*) f
     !
     do i=0,maxformlength
        formula(i) = ' '
@@ -4098,7 +4304,19 @@ END SUBROUTINE intnva
       enddo
     end function stripstring      
 
-  
+    function replacetabs(inpstr) result(outstr)
+       implicit none
+       character(len=1), parameter :: ch_tab = char(9)
+       character(len=*), intent(in) :: inpstr
+       character(len=len(inpstr))   :: outstr
+       !
+       integer :: i
+       !
+       outstr = repeat(' ', len(inpstr))
+       do i=1,len_trim(inpstr)
+          if(inpstr(i:i)/=ch_tab) outstr(i:i)=inpstr(i:i)
+       end do
+    end function replacetabs
 
 
 

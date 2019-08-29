@@ -388,6 +388,10 @@
 
        call get_newcom(comand, istat)  
 
+       if(istat == -2) then   ! exit
+ !         write(*,*)"istat = ",istat
+          stop "exit datreat BYE...."
+       endif
 !       iout() = iot
 !
 !
@@ -3960,7 +3964,7 @@ exclude:   if(found('exclude  ')) then
 !                    -------
 !cc      yformel = title
          if(ioldc.ne.0) then
-           yformel  = reslin
+           yformel  = adjustl(reslin)
            ioldc   = 0
          else
            write(*,*)"no contiunuation with formula found!"
@@ -3976,7 +3980,7 @@ exclude:   if(found('exclude  ')) then
 !                    -------
 !cc      xformel = title
          if(ioldc.ne.0) then
-           xformel  = reslin
+           xformel  = adjustl(reslin)
            ioldc   = 0
          else
            write(*,*)"no contiunuation with formula found!"
@@ -4799,6 +4803,7 @@ exclude:   if(found('exclude  ')) then
       real                          :: xwidth
       logical                       :: relative_catch 
       logical                       :: put_width   
+      logical                       :: logy
 
       real                          :: xpa, xpaav
       integer                       :: ipa   
@@ -4812,6 +4817,7 @@ exclude:   if(found('exclude  ')) then
        write(6,*)'= current default is xcatch  ',xcatch,'  relative '
        write(6,*)'= option (volatile): absolute  catches within absolute distance               ='
        write(6,*)'= option (volatile): putwidth  set _xwidth parameter to min channel distance'
+       write(6,*)'= option (volatile): log_y     averfage y on log scale                        '
        write(6,*)'=============================================================================='
        return
       endif
@@ -4832,7 +4838,7 @@ exclude:   if(found('exclude  ')) then
          put_width      = .false.
       endif
 
-         
+      logy = found('log_y   ')
 
 
       if(nsel <= 0) then
@@ -4847,6 +4853,11 @@ exclude:   if(found('exclude  ')) then
         return
       endif
 
+      write(*,'(a,f12.6)', advance='no')"Averaging with xcatch = ",xcatch
+      if(.not. relative_catch) write(*,'(a)', advance='no')" absolute catch " 
+      if(logy)                 write(*,'(a)')"   y-values on log-scale (log_y)"
+
+
 ! prepare destination
       nbuf = nbuf + 1
       call txfera(isels(1),nbuf)
@@ -4855,6 +4866,11 @@ exclude:   if(found('exclude  ')) then
         call parset("xcatch_r ",sngl(xcatch),nbuf)
       else
         call parset("xcatch_a ",sngl(xcatch),nbuf)
+      endif
+      if(logy) then
+        call parset("log_y ",1.0,nbuf)
+      else
+        call parset("log_y ",0.0,nbuf)
       endif
       do i=1, nsel
         write(cbuf,'("c",i0)')i
@@ -4887,11 +4903,21 @@ exclude:   if(found('exclude  ')) then
          xva(n)    =  xwerte(j,isels(i))
          yva(n)    =  ywerte(j,isels(i))
          yvaer(n)  =  yerror(j,isels(i))
+         if(logy) then
+           if(yva(n) <= 0d0) then
+             n = n - 1
+             cycle
+           endif
+           yvaer(n) = abs(yvaer(n) / yva(n))
+           yva(n)    = log(yva(n))  
+         endif
+
+
          if(yvaer(n) <= 0.0d0) then
            yem = yvaer(max(1,n-1))
            if(yem > 0.0) then
              yvaer(n) = yem
-             write(6,*)"WARNING: borrowed error from brevious point",i,j
+             write(6,*)"WARNING: borrowed error from previous point",i,j
            else
              write(6,*)"Error occured with record:",isels(i)," point:",j
              call errsig(999,"ERROR: Average: Missing y-errors $")
@@ -4964,6 +4990,10 @@ d2:       do j=1,number_of_data_points
        xva  (1:n_result_point) = xwerte(iperm(1:n_result_point),nbuf)
        yva  (1:n_result_point) = ywerte(iperm(1:n_result_point),nbuf)
        yvaer(1:n_result_point) = yerror(iperm(1:n_result_point),nbuf)
+       if(logy) then
+         yva(1:n_result_point)   = exp(yva(1:n_result_point))
+         yvaer(1:n_result_point) = yva(1:n_result_point) * yvaer(1:n_result_point) 
+       endif
        xwerte(1:n_result_point,nbuf) =  xva  (1:n_result_point)
        ywerte(1:n_result_point,nbuf) =  yva  (1:n_result_point) 
        yerror(1:n_result_point,nbuf) = yvaer (1:n_result_point)
@@ -4974,7 +5004,7 @@ d2:       do j=1,number_of_data_points
          call parset ("_xwidth ",xwidth,nbuf)
          write(6,'(a,es14.5)')"the channel width _xwidth used by convoluted theories (kohl..) is ",xwidth
          write(6,'(a)')" the minimum distance between channels! "
-         write(6,'(a)')" CARE: consider whether this is adwqaute here (for quaiselastic spectra like kohl...)"
+         write(6,'(a)')" CARE: consider whether this is adeqaute here (for quaiselastic spectra like kohl...)"
          write(6,'(a)')"       with xcatch relative it is probably ok and good "
          write(6,'(a)')"       with xcatch absolute the new points it must be carefully considered what is good "
          write(6,'(a)')"       average is a kind of interpolation and not an integration, so the original width "
