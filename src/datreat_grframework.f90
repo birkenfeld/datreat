@@ -555,8 +555,8 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
 
 
     if(present(xerror)) then
-     if(maxval(xerror(1:nex)) > 0d0) then 
-      nex = min(np, size(xerror))
+     nex = min(np, size(xerror))
+     if(maxval(abs(xerror(1:nex))) > 0d0) then 
       allocate(xm(nex))
       allocate(xp(nex))
       xm = x(1:nex)-xerror(1:nex)
@@ -568,8 +568,8 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
     endif
 
     if(present(yerror)) then
-     if(maxval(yerror(1:nex)) > 0d0) then 
-      ney = min(np, size(yerror))
+     ney = min(np, size(yerror))
+     if(maxval(abs(yerror(1:ney))) > 0d0) then 
       allocate(xm(ney))
       allocate(xp(ney))
       xm = y(1:ney)-yerror(1:ney)
@@ -1106,7 +1106,8 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
        integer,save :: isymb(1:size(inpar)) = [(i,i=1,size(inpar))]+1   !! check Markertypes 
        integer,save :: ifrec(1:size(inpar))
 
-       double precision, save :: linewidth_scaling(1:size(inpar))
+       double precision, save :: linewidth_scaling(1:size(inpar)) = 1d0
+       double precision, save :: sysize_scaling   (1:size(inpar)) = 1d0
        integer         , save :: linetype(1:size(inpar)) = LINETYPE_SOLID
 
 
@@ -1180,6 +1181,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
        write(6,*)'=      icolo <list>   :  integer color    list (sequence = selected)         ='
        write(6,*)'=      ltype <list>   :  linetypes                                           ='
        write(6,*)'=      lwid  <list>   :  linewidths                                          ='
+       write(6,*)'=      sywid <list>   :  symbol size scalings                                ='
        write(6,*)'=      errplo         :  adds error bars                                     ='
        write(6,*)'=      noerrplo       :  suppress error bars                                 ='
        write(6,*)'=      parplo         :  sets parameter value listing                        ='
@@ -1315,6 +1317,18 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
    49       continue
           endif
    29     continue
+!
+!! to be modernized
+ fsywd:  if(vname(i).eq.'sywid    ') then
+            nsy = 0
+            do l=1,inpar(i)
+             nsy   = nsy   + 1
+             if(nsy.gt.size(inpar)) exit
+             sysize_scaling(nsy) =  rpar(j)
+             j = j + 1
+            enddo
+          endif fsywd
+   
 !
 
           if(vname(i).eq.'colo    ' .or. vname(i).eq.'icolo   ') then
@@ -1547,7 +1561,8 @@ scl:   if(found('scaled  ')) then
                                                            typ=linetype(i)) !> neu
            else
              call grsymbol(x=x, y=y,  n=nnpi, &    ! xerror    = y(ind)*0.2d0, yerror = y(ind)*0.1d0, &
-                                      color=icco, symbolsize= sysize, typ= MARKERTYPE(isymb(i)) )
+                                      color=icco, symbolsize= sysize * sysize_scaling(i), &
+                                      typ= MARKERTYPE(isymb(i)) )
            endif
 
            if(errplo) then
@@ -1555,11 +1570,11 @@ scl:   if(found('scaled  ')) then
              do ik=1,nnpi       
                yepl = y(ik)+e(ik)
                yeml = y(ik)-e(ik)
-              call grline([x(ik),x(ik)],[yeml,yepl], 2)   
+              call grline(x=[x(ik),x(ik)],y=[yeml,yepl],n=2,thickness=datline_thickness, typ=LINETYPE_SOLID)   
              enddo
 ! new
              call grsymbol(x=x, y=y,  n=nnpi, yerror = e, &
-                            color=icco, symbolsize= sysize, typ= MARKERTYPE(max(1,isymb(i))) )
+                            color=icco, symbolsize= sysize* sysize_scaling(i) , typ= MARKERTYPE(max(1,isymb(i))) )
            endif
 
 !>             call grnwpn(1)

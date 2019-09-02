@@ -150,6 +150,7 @@ MODULE new_com
   integer, public ::  iolbuf !Can we delete this and put in a local var?
   integer, public ::  lstpar
   integer, public ::  lstnam
+  integer, public ::  last_item
 
   ! ---- the current command is stored on comand
   !      the names on stack vname(*)
@@ -284,7 +285,8 @@ MODULE new_com
   equivalence(cformulax,formula(0))         ! "   --> re_scan
 
 
-
+  integer :: isignal  ! utilux communication --> rather make utilux a module
+  common/sig/isignal
 
 
   ! constants
@@ -358,7 +360,7 @@ MODULE new_com
   public  ::  lvused ! whether the parameter has already been "used"
 
 
-  !public :: close_all_macros
+  public :: close_all_macros
 
   public  :: intnva
 
@@ -580,6 +582,7 @@ CONTAINS
 
     lstpar    = 0
     lstnam    = 0
+    last_item = 0
 
     cmd_item     = " "
     item_nr_name = 0
@@ -590,8 +593,9 @@ CONTAINS
 
     !
     ! ---- error-response -----------------------------------------
-    if(ierrr.ne.0) then
-       write(6,*)' error return code:',ierrr
+    if(ierrr.ne.0 .or. isignal >=3 ) then
+       if(ierrr   > 0)   write(6,*)' error return code:',ierrr
+       if(isignal >=3) write(6,*)' Halt due to 3+ times ctrl-c',isignal
        ioldc = 0 !-----> if error forget rest of commandline (reslin)
        if(ktop.ne.0) then
           do k=ktop,1,-1
@@ -970,6 +974,7 @@ CONTAINS
          cused = .true.
          rused = .true.
          vused = .true.
+         item_used = .true.
        endif
 
 
@@ -1032,6 +1037,33 @@ CONTAINS
     if(comand.eq.'if      ') then
        !                    ----------------> if-bedingung (numerisch)   !
        itypc = vnamef(1)
+       
+
+ !!>>>      ! reevaluate rpar to detect syntax errors
+       if(.not. found("then    "))then
+          call errsig(9009,'ERROR: if needs then as keyword $')
+          goto 8888
+       endif
+
+      
+       call evaluate(trim(cmd_item(1))//' ', val, ierr) 
+       if(ierr .ne. 0) then
+          call errsig(9010,'ERROR: if needs a number/valid expression as 1st value $')
+          goto 8888
+       endif      
+       rpar(1) = val
+       item_used(1) = .true.
+
+       call evaluate(trim(cmd_item(3))//' ', val, ierr) 
+       if(ierr .ne. 0) then
+          call errsig(9011,'ERROR: if needs a number/valid expression as 2nd value $')
+          goto 8888
+       endif      
+       rpar(2) = val
+       item_used(3) = .true.
+
+!!<<< 
+       
        if(itypc.eq.'=       ') then
           if(rpar(1).eq.rpar(2)) then
              j = index(inline,'then')
@@ -1094,7 +1126,7 @@ CONTAINS
        endif
        write(6,*)'if operator ',trim(itypc), ' unknown'
        ierrs = 1
-       call errsig(1001,'if construction contains invalid items! Check variables or operator! $ ')
+       call errsig(9012,'if construction contains invalid items! Check variables or operator! $ ')
        goto 8888
     endif
     !
@@ -1283,25 +1315,6 @@ CONTAINS
     endif
     !
     !
-    !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    ! rotationsparameter setzen                           | setrot <xyz> <r>
-    !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    if(comand.eq.'setrot  ') then
-       !                    ----------------> set rotation-parameters !
-       call get6( rotvec(1), rotvec(2), rotvec(3),                  &
-            &                xyorig(1), xyorig(2), xyorig(3))
-       xyorig(1) = getval('x       ',xyorig(1),inew)
-       xyorig(2) = getval('y       ',xyorig(2),inew)
-       xyorig(3) = getval('z       ',xyorig(3),inew)
-       rotvec(1) = getval('rx      ',rotvec(1),inew)
-       rotvec(2) = getval('ry      ',rotvec(2),inew)
-       rotvec(3) = getval('rz      ',rotvec(3),inew)
-       write(6,*)'------------------------------------------------'
-       write(6,'(a,3f12.6/a,3f12.6)')' rotation origin =',xyorig,   &
-            &                                   ' rotation vector =',rotvec
-       write(6,*)'------------------------------------------------'
-       goto 8888
-    endif
     !
     !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     ! ausgang                                             | q
@@ -1563,15 +1576,26 @@ CONTAINS
     !---------------------------------------------------------------------
     iretus = 0
 
-    !  -- ignore the first call
+    !  -- ignore the first call ! maybe this should be handled by the caller ?!
     if(aufcal) then
        aufcal = .false.
        return
     endif
 
+!! for backward compatibility we distribute transfer item usage 
+    do i=1,iitems
+        if(item_nr_name(i)   > 0 ) vused(item_nr_name(i))   = vused(item_nr_name(i)) .or. item_used(i) 
+        if(item_nr_rpar(i)   > 0 ) rused(item_nr_rpar(i))   = rused(item_nr_rpar(i)) .or. item_used(i) 
+
+        if(item_nr_name(i)   > 0 ) item_used(i)             = vused(item_nr_name(i)) .or. item_used(i) 
+        if(item_nr_rpar(i)   > 0 ) item_used(i)             = rused(item_nr_rpar(i)) .or. item_used(i) 
+    enddo
+
+
+
     if(iot.gt.0) write(6,*)'command: ',trim(comand)
     if(.not.cused) then
-       cused = .true.
+!mmnc       cused = .true.
        if(icmdus.gt.0) then
           call errsig(icmdus-1,'command not used:'// &
                trim(comand)//'$')
@@ -1579,11 +1603,25 @@ CONTAINS
        endif
     endif
 
+    do i=1,iitems
+       if(iot.gt.0) &
+            write(6,*)'item: ',i,cmd_item(i)(1:lclen(vname(i),80)+1)
+       if(.not.item_used(i)) then
+!mmnc          item_used(i) = .true.
+          if(ivnuse.gt.0 .or. irpuse.gt.0) then
+             call errsig(max(ivnuse-1,irpuse-1),'item    not used:'// &
+                  cmd_item(i)(1:lclen(vname(i),80)+1)//'$')
+             if(max(ivnuse,irpuse).gt.1) iretus = iretus + 200*i
+          endif
+       endif
+    enddo
+
+
     do i=1,inames
        if(iot.gt.0) &
             write(6,*)'vname: ',i,vname(i)(1:lclen(vname(i),80)+1)
        if(.not.vused(i)) then
-          vused(i) = .true.
+!mmnc          vused(i) = .true.
           if(ivnuse.gt.0) then
              call errsig(ivnuse-1,'name    not used:'// &
                   vname(i)(1:lclen(vname(i),80)+1)//'$')
@@ -1595,7 +1633,7 @@ CONTAINS
     do i=1,ipars
        if(iot.gt.0) Write(6,*)'rpar :',i,rpar(i)
        if(.not.rused(i)) then
-          rused(i) = .true.
+!mmnc          rused(i) = .true.
           if(irpuse.gt.0) then
              write(numbuf,'(e13.6)') rpar(i)
              call errsig(irpuse-1,'number  not used:'// &
@@ -1863,10 +1901,10 @@ CONTAINS
     !  error signalisierung
     ! ----------------------------------------------------------------------
     ierrr = ierr
-    ierrs = ierr                   ! check which one we need 
+    ierrs = ierrs+1                 ! check which one we need 
     lsay = laenge(say,cmd_len,'$')
     write(6,*)'error:',ierr,' ',say(1:lsay)
-    if(iot.gt.3) then
+    if(iot.gt.0) then
         write(*,*)
         write(*,*)"raw_input        : ",trim(raw_input)
         write(*,*)"inline           : ",trim(inline)
@@ -1877,42 +1915,6 @@ CONTAINS
   END subroutine errsig
 
 
-!!$  subroutine pushn(pname)
-!!$    !-----------------------------------------------------------------------
-!!$    !  wert eintrag in den namensstack
-!!$    !-----------------------------------------------------------------------
-!!$    implicit none
-!!$
-!!$    character(*) pname
-!!$    double precision   rx
-!!$
-!!$    if(inames.ge.minc) then
-!!$       call errsig(-1,'pushn failed, too many items! '//pname//' $')
-!!$       return
-!!$    endif
-!!$    !
-!!$    inames = inames + 1
-!!$    vname(inames) = pname
-!!$
-!!$    return
-!!$
-!!$    entry pushr(rx)     ! not used as far qas i can see ->RB
-!!$    !     ===============
-!!$    !----------------------------------------------------------------------
-!!$    !     zufuegen eines real-wertes auf den stack
-!!$    !----------------------------------------------------------------------
-!!$    if(ipars.ge.minc) then
-!!$       call errsig(-1,'pushr failed, too many items ! $')
-!!$       return
-!!$    endif
-!!$
-!!$    ipars = ipars+1
-!!$    rpar(ipars)   =  rx
-!!$    if(inpar(inames).eq.0) inapa(inames) =  ipars
-!!$    inpar(inames) =  inpar(inames) + 1
-!!$    iparn(ipars)  =  inames
-!!$    !
-!!$  END subroutine pushn
 
 
   double precision   function getval(pname,defval,inew0)
@@ -1929,31 +1931,15 @@ CONTAINS
     double precision :: ev_val
     !-----------------------------------------------------------------------
     inew      = 0
+    last_item = 0
     if(present(inew0)) inew0 = inew
     getval    = defval
     if(inames.le.0) return
 
-!??   search: do i=1,inames
-!??       if(compar(vname(i),pname//' ')) then
-!??          vused(i) = .true.
-!??          if(inpar(i).gt.0)then
-!??             getval = rpar(inapa(i))
-!??             rused(inapa(i)) = .true.
-!??             inew = i
-!??          else
-!??!             call errsig(9991,"Parameter: "//trim(pname)//" requires a numeric arg $ ")
-!??!             ierrs = ierrs + 9991   !! can this got to errsig or some kined of stack..?
-!??             inew = -i
-!??          endif
-!??          lstpar = inapa(i)
-!??          lstnam = i
-!??          exit search
-!??       endif
-!??    end do search
 
    search: do i=1,iitems
       if(compar(cmd_item(i),pname//' ')) then
-          item_used(i) = .true.
+          item_used(i)                                        = .true.
           call evaluate(trim(cmd_item(i+1))//' ',ev_val,ev_err)
           if(ev_err .ne. 0) then
             call errsig(9991,"ERROR: Parameter: "//trim(pname)//" requires a numeric arg $ ")
@@ -1962,7 +1948,9 @@ CONTAINS
             exit search
           endif
           item_used(i+1) = .true.
+          last_item      = i+1
           getval         = ev_val
+          inew = i
       endif
     end do search
   
@@ -1974,292 +1962,6 @@ CONTAINS
   END function getval
 
 
-  double precision   function valnxt(defval,inew)      !! OBSOLET never Used REMOVE !!
-    !-----------------------------------------------------------------------
-    !  wert extraktion aus dem incom parameterstack
-    !-----------------------------------------------------------------------
-    implicit none
-
-    double precision   defval
-    integer inew
-
-    inew      = 0
-    valnxt    = defval
-    if(ipars.le.lstpar) return
-
-    valnxt = rpar(lstpar+1)
-    rused(lstpar+1) = .true.
-    inew   = lstpar + 1
-    lstpar = inew
-
-    return
-
-  END function valnxt
-
-
-  subroutine get1(p1)                                 !! OBSOLET never Used REMOVE !!
-    !-----------------------------------------------------------------------
-    !  wert extraktion aus dem incom parameterstack
-    !-----------------------------------------------------------------------
-    implicit none
-
-    double precision   p1
-
-    double precision   p2,p3,p4,p5,p6,p7,p8,p9
-
-    if(inames.ne.0) return
-    if(ipars.ge.1) then
-       p1        = rpar(1)
-       rused(1)  = .true.
-       lstpar = 1
-    endif
-    return
-    entry get2(p1,p2)
-    if(inames.ne.0) return
-    if(ipars.ge.1) then
-       p1        = rpar(1)
-       rused(1)  = .true.
-       lstpar = 1
-    endif
-    if(ipars.ge.2) then
-       p2        = rpar(2)
-       rused(2)  = .true.
-       lstpar = 2
-    endif
-    return
-    entry get3(p1,p2,p3)
-    if(inames.ne.0) return
-    if(ipars.ge.1) then
-       p1        = rpar(1)
-       rused(1)  = .true.
-       lstpar = 1
-    endif
-    if(ipars.ge.2) then
-       p2        = rpar(2)
-       rused(2)  = .true.
-       lstpar = 2
-    endif
-    if(ipars.ge.3) then
-       p3        = rpar(3)
-       rused(3)  = .true.
-       lstpar = 3
-    endif
-    return
-    entry get4(p1,p2,p3,p4)
-    if(inames.ne.0) return
-    if(ipars.ge.1) then
-       p1        = rpar(1)
-       rused(1)  = .true.
-       lstpar = 1
-    endif
-    if(ipars.ge.2) then
-       p2        = rpar(2)
-       rused(2)  = .true.
-       lstpar = 2
-    endif
-    if(ipars.ge.3) then
-       p3        = rpar(3)
-       rused(3)  = .true.
-       lstpar = 3
-    endif
-    if(ipars.ge.4) then
-       p4        = rpar(4)
-       rused(4)  = .true.
-       lstpar = 4
-    endif
-    return
-    entry get5(p1,p2,p3,p4,p5)
-    if(inames.ne.0) return
-    if(ipars.ge.1) then
-       p1        = rpar(1)
-       rused(1)  = .true.
-       lstpar = 1
-    endif
-    if(ipars.ge.2) then
-       p2        = rpar(2)
-       rused(2)  = .true.
-       lstpar = 2
-    endif
-    if(ipars.ge.3) then
-       p3        = rpar(3)
-       rused(3)  = .true.
-       lstpar = 3
-    endif
-    if(ipars.ge.4) then
-       p4        = rpar(4)
-       rused(4)  = .true.
-       lstpar = 4
-    endif
-    if(ipars.ge.5) then
-       p5        = rpar(5)
-       rused(5)  = .true.
-       lstpar = 5
-    endif
-    return
-    entry get6(p1,p2,p3,p4,p5,p6)
-    if(inames.ne.0) return
-    if(ipars.ge.1) then
-       p1        = rpar(1)
-       rused(1)  = .true.
-       lstpar = 1
-    endif
-    if(ipars.ge.2) then
-       p2        = rpar(2)
-       rused(2)  = .true.
-       lstpar = 2
-    endif
-    if(ipars.ge.3) then
-       p3        = rpar(3)
-       rused(3)  = .true.
-       lstpar = 3
-    endif
-    if(ipars.ge.4) then
-       p4        = rpar(4)
-       rused(4)  = .true.
-       lstpar = 4
-    endif
-    if(ipars.ge.5) then
-       p5        = rpar(5)
-       rused(5)  = .true.
-       lstpar = 5
-    endif
-    if(ipars.ge.6) then
-       p6        = rpar(6)
-       rused(6)  = .true.
-       lstpar = 6
-    endif
-    return
-    entry get7(p1,p2,p3,p4,p5,p6,p7)
-    if(inames.ne.0) return
-    if(ipars.ge.1) then
-       p1        = rpar(1)
-       rused(1)  = .true.
-       lstpar = 1
-    endif
-    if(ipars.ge.2) then
-       p2        = rpar(2)
-       rused(2)  = .true.
-       lstpar = 2
-    endif
-    if(ipars.ge.3) then
-       p3        = rpar(3)
-       rused(3)  = .true.
-       lstpar = 3
-    endif
-    if(ipars.ge.4) then
-       p4        = rpar(4)
-       rused(4)  = .true.
-       lstpar = 4
-    endif
-    if(ipars.ge.5) then
-       p5        = rpar(5)
-       rused(5)  = .true.
-       lstpar = 5
-    endif
-    if(ipars.ge.6) then
-       p6        = rpar(6)
-       rused(6)  = .true.
-       lstpar = 6
-    endif
-    if(ipars.ge.7) then
-       p7        = rpar(7)
-       rused(7)  = .true.
-       lstpar = 7
-    endif
-    return
-    entry get8(p1,p2,p3,p4,p5,p6,p7,p8)
-    if(inames.ne.0) return
-    if(ipars.ge.1) then
-       p1        = rpar(1)
-       rused(1)  = .true.
-       lstpar = 1
-    endif
-    if(ipars.ge.2) then
-       p2        = rpar(2)
-       rused(2)  = .true.
-       lstpar = 2
-    endif
-    if(ipars.ge.3) then
-       p3        = rpar(3)
-       rused(3)  = .true.
-       lstpar = 3
-    endif
-    if(ipars.ge.4) then
-       p4        = rpar(4)
-       rused(4)  = .true.
-       lstpar = 4
-    endif
-    if(ipars.ge.5) then
-       p5        = rpar(5)
-       rused(5)  = .true.
-       lstpar = 5
-    endif
-    if(ipars.ge.6) then
-       p6        = rpar(6)
-       rused(6)  = .true.
-       lstpar = 6
-    endif
-    if(ipars.ge.7) then
-       p7        = rpar(7)
-       rused(7)  = .true.
-       lstpar = 7
-    endif
-    if(ipars.ge.8) then
-       p8        = rpar(8)
-       rused(8)  = .true.
-       lstpar = 8
-    endif
-    return
-    entry get9(p1,p2,p3,p4,p5,p6,p7,p8,p9)
-    if(inames.ne.0) return
-    if(ipars.ge.1) then
-       p1        = rpar(1)
-       rused(1)  = .true.
-       lstpar = 1
-    endif
-    if(ipars.ge.2) then
-       p2        = rpar(2)
-       rused(2)  = .true.
-       lstpar = 2
-    endif
-    if(ipars.ge.3) then
-       p3        = rpar(3)
-       rused(3)  = .true.
-       lstpar = 3
-    endif
-    if(ipars.ge.4) then
-       p4        = rpar(4)
-       rused(4)  = .true.
-       lstpar = 4
-    endif
-    if(ipars.ge.5) then
-       p5        = rpar(5)
-       rused(5)  = .true.
-       lstpar = 5
-    endif
-    if(ipars.ge.6) then
-       p6        = rpar(6)
-       rused(6)  = .true.
-       lstpar = 6
-    endif
-    if(ipars.ge.7) then
-       p7        = rpar(7)
-       rused(7)  = .true.
-       lstpar = 7
-    endif
-    if(ipars.ge.8) then
-       p8        = rpar(8)
-       rused(8)  = .true.
-       lstpar = 8
-    endif
-    if(ipars.ge.9) then
-       p9        = rpar(9)
-       rused(9)  = .true.
-       lstpar = 9
-    endif
-    return
-    !
-  END subroutine get1
 
 
   integer function intval(pname,idef,inew0)
@@ -2275,30 +1977,15 @@ CONTAINS
     double precision :: ev_val
     !-----------------------------------------------------------------------
     inew      = 0
+    last_item = 0
     if(present(inew0)) inew0 = inew
     intval    = idef
     if(inames.le.0) return
     !
-!??    search: do i=1,inames
-!??       if(compar(vname(i),pname//' ')) then
-!??          vused(i) = .true.
-!??          if(inapa(i) > 0) then
-!??            intval = NINT(rpar(inapa(i)))
-!??            rused(inapa(i)) = .true.
-!??            inew = i
-!??          else
-!??            inew = -i
-!??          endif
-!??          lstpar = inapa(i)
-!??          lstnam = i
-!??          exit search
-!??       endif
-!??    end do search
-!??
 
    search: do i=1,iitems
       if(compar(cmd_item(i),pname//' ')) then
-          item_used(i) = .true.
+          item_used(i)                                        = .true.
           call evaluate(trim(cmd_item(i+1))//' ',ev_val,ev_err)
           if(ev_err .ne. 0) then
             call errsig(9991,"ERROR: Parameter: "//trim(pname)//" requires a numeric arg $ ")
@@ -2307,7 +1994,9 @@ CONTAINS
             exit search
           endif
           item_used(i+1) = .true.
+          last_item      = i+1
           intval         = NINT(ev_val)
+          inew = i
       endif
     end do search
   
@@ -2318,6 +2007,49 @@ CONTAINS
 
   END function intval
 
+
+
+  double precision   function valnxt(defval,inew0)     
+    !-----------------------------------------------------------------------
+    !  wert extraktion aus dem incom parameterstack
+    !-----------------------------------------------------------------------
+    implicit none
+
+    double precision, intent(in)              ::  defval
+    integer,          intent(out), optional   ::  inew0
+
+    double precision ::  inew, ev_val
+    integer          ::  ev_err
+
+    inew      = 0
+    valnxt    = defval
+    if(present(inew0)) inew0 = inew
+
+
+!??    if(ipars.le.lstpar) return
+!??
+!??    valnxt = rpar(lstpar+1)
+!??    rused(lstpar+1) = .true.
+!??    inew   = lstpar + 1
+!??    lstpar = inew
+
+    if(iitems <= last_item) return
+    last_item = last_item+1
+    call evaluate(trim(cmd_item(last_item))//' ',ev_val,ev_err)
+    if(ev_err .ne. 0) then
+       call errsig(9995,"ERROR: Parameter: exected a numeric arg but could not evaluate $ ")
+       ierrs   = ierrs+9995 !??
+       inew   = -1
+    else
+       valnxt               = ev_val
+       item_used(last_item) = .true.
+       inew                 = last_item   !! check usage of valnxt whether this is ok
+    endif
+
+    if(present(inew0)) inew0 = inew
+     
+
+  END function valnxt
 
   integer function ifound(pname)
     !-----------------------------------------------------------------------
@@ -2338,6 +2070,7 @@ CONTAINS
           vused(i) = .true.
           ifound=i
           lstnam=i
+          last_item = name_nr_item(i)  
           goto 20
        endif
     end do
@@ -2383,6 +2116,7 @@ CONTAINS
     endif
     if(folgt) then
        lstnam = j+1
+       last_item = name_nr_item(j+1)  
        vused(j+1) = .true.
     endif
 
@@ -2407,7 +2141,7 @@ CONTAINS
     rused(ipnum) = .true.
     inew      = ipnum
     lstpar    = ipnum
-
+    last_item = rpar_nr_item(ipnum) 
     return
 
   END function intvno
@@ -2428,82 +2162,13 @@ CONTAINS
     getvno = rpar(ipnum)
     inew   = ipnum
     lstpar = ipnum
+    last_item = rpar_nr_item(ipnum) 
 
     return
 
   END function getvno
 
 
-  subroutine getvec(pname,def1,def2,def3,vec ,inew)
-    !-----------------------------------------------------------------------
-    !  vektor-wert extraktion aus dem incom parameterstack mit rotation
-    !-----------------------------------------------------------------------
-    implicit none
-
-    !-----------------------------------------------------------------------
-    character(*) pname
-    double precision   def1, def2, def3, vec
-    dimension vec(3)
-    integer inew
-
-    character(2*cmd_len) :: pnamc
-    integer i, ier
-    !-----------------------------------------------------------------------
-
-    inew      = 0
-    vec(1)    = def1
-    vec(2)    = def2
-    vec(3)    = def3
-    call unrot(vec,xyorig,rotvec)
-    call cappend(pname//' ','.1 ',pnamc)
-    call setudf(pnamc//' ',vec(1),ier)
-    call cappend(pname//' ','.2 ',pnamc)
-    call setudf(pnamc//' ',vec(2),ier)
-    call cappend(pname//' ','.1 ',pnamc)
-    call setudf(pnamc//' ',vec(1),ier)
-    call cappend(pname//' ','.3 ',pnamc)
-    call setudf(pnamc//' ',vec(3),ier)
-    if(inames.le.0) goto 20
-    !
-    do i=1,inames
-       if(compar(vname(i),pname//' ')) then
-          vused(i) = .true.
-          if(inpar(i).gt.0) then
-             vec(1) = rpar(inapa(i))
-             rused(inapa(i)) = .true.
-             lstpar = inapa(i)
-          endif
-          if(inpar(i).gt.1) then
-             vec(2) = rpar(inapa(i)+1)
-             rused(inapa(i+1)) = .true.
-             lstpar = inapa(i)+1
-          endif
-          if(inpar(i).gt.2) then
-             vec(3) = rpar(inapa(i)+2)
-             rused(inapa(i+2)) = .true.
-             lstpar = inapa(i)+2
-          endif
-          lstnam = i
-          inew = i
-
-          goto 20
-       endif
-    end do
-20  continue
-    !
-    !c-setudf--
-    call cappend(pname//' ','.1 ',pnamc)
-    call setudf(pnamc//' ',vec(1),ier)
-    call cappend(pname//' ','.2 ',pnamc)
-    call setudf(pnamc//' ',vec(2),ier)
-    call cappend(pname//' ','.1 ',pnamc)
-    call setudf(pnamc//' ',vec(1),ier)
-    call cappend(pname//' ','.3 ',pnamc)
-    call setudf(pnamc//' ',vec(3),ier)
-
-    call rotavc(vec,xyorig,rotvec)
-    return
-  END subroutine getvec
 
 
   subroutine getnva(pname ,pardef ,parout, np, inew)
@@ -2787,25 +2452,6 @@ CONTAINS
   END subroutine mattxp
 
 
-  subroutine matcpy( a, b )
-    !      =========================
-    !-----------------------------------------------------------------------
-    !      3x3 matrix - kopie
-    !      a     --->   b
-    !-----------------------------------------------------------------------
-    implicit none
-
-    double precision   :: a(3,3), b(3,3)
-    integer :: i, j
-
-    do i=1,3
-       do j=1,3
-          b(j,i) = a(j,i)
-       end do
-    end do
-
-    return
-  END subroutine matcpy
 
 
   subroutine matone( a )
