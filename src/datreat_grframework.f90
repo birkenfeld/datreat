@@ -1433,6 +1433,9 @@ scl:   if(found('scaled  ')) then
        endif
 !
 ! ---- set frame & scales ----
+! !-> preliminary fix       
+       if(len_trim(title) == 0) title="no title"
+
        if(len_trim(title) > 0) then
 !          call grstart("dtrplot.pdf")           !>neu, TBD use frlux ....
           write(*,'(a,i0,a)')"Plot title(#",ibild-1,"): "//trim(grtitle_filter(title))//".pdf"
