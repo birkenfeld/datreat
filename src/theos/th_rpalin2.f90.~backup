@@ -577,9 +577,9 @@ ilr: if( newcomp_required ) then
         Scc00             =   plin0cc  ! unperturbed structure factor S(Q) of "matrix" polymers
         S0011             =   plin0    ! unperturbed structure factor S(Q) of polymer 1
         S0022             =   prous0   ! unperturbed structure factor S(Q) of polymer 2
-        nexpcc            =   modeex   ! number of exp-functions to describe background
-        nexp1             =   modeex   ! number of exp-functions to describe component1
-        nexp2             =   modeex   ! number of exp-functions to describe component2
+        nexpcc            =   modeexcc   ! number of exp-functions to describe background
+        nexp1             =   modeex1   ! number of exp-functions to describe component1
+        nexp2             =   modeex2   ! number of exp-functions to describe component2
         aexp_cc(1:nexpcc) =   aexpcc(1:nexpcc)   ! amplitude coeffs for laplace-exp representation of "matrix"
         rexp_cc(1:nexpcc) =   rexpcc(1:nexpcc)   ! rate      coeffs for laplace-exp representation of "matrix"
         aexp_s1(1:nexp1)  =   aexp11(1:nexp1)    ! amplitude coeffs for laplace-exp representation of polymer 1
@@ -841,7 +841,7 @@ ilr: if( newcomp_required ) then
 
 ! ---- Do the sums -----
 
-!$OMP PARALLEL DO REDUCTION(+:Sq,Sqt,arg2)
+!$OMP PARALLEL DO REDUCTION(+:Sq,Sqt,arg2) PRIVATE(arg10,arg20,ff2)
 
        do nn = 1,N
         do mm = 1,N

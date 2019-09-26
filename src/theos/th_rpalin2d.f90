@@ -136,12 +136,13 @@
      double precision        :: tmax = 1000d0
      logical                 :: newcomp_required
      integer                 :: i
-     double precision        :: ts, ssq
+     double precision        :: ts,  rmsdev, rmsdev_limit = 1d-3
 
      double precision        :: ss11, ss110, ss12, ss120, ss22, ss220
 
      double precision        :: a1, a2, r1, r2, r3, b1, b2, g1, g2, g3
      integer                 :: analytic = 0
+     integer                 :: iout = 0
 
      double precision        :: qoffs, qscal
 
@@ -346,8 +347,8 @@
 
 
       t0       = max(t0      ,tmin)
-      nxpoints = max(nxpoints  , 7)
-      modeex   = max(modeex    , 2)
+      nxpoints = max(nxpoints  ,16)
+      modeex   = max(modeex    , 8)
 
       if( modeex > mexp ) then
          write(6,*)"INFORMATION: Modeex limited to: ",mexp
@@ -517,14 +518,19 @@ ilr: if( newcomp_required ) then
              s_samples(i) = locrep2 * sqt / sqt0 *  exp( -difflin * q*q * (ts)**betadifl )  
           enddo
            
-!          call nexp_match(t_samples,s_samples,nxpoints,modeex,aexp11,rexp11,ssq)
+       
+!new          call nexp_match(t_samples,s_samples,nxpoints,modeex,aexp11,rexp11,ssq)
+!             call match_exp0(t_samples,s_samples,nxpoints,modeex,nexp1,aexp11,rexp11,ssq,iout)
+              rmsdev = rmsdev_limit
+              call match_exp_auto(t_samples,s_samples,nxpoints,modeex,nexp1,aexp11,rexp11,rmsdev,iout)
 
-          call match_exp1 (t_samples,s_samples,nxpoints,mexp, modeex1,aexp11,rexp11,ssq)
 
-
-          if(ssq > 5d-3) then
-            write(6,*)"rpa_test exp model bad match 11", ssq
+          if(rmsdev > rmsdev_limit) then
+            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
+            write(*,*)"         rpa_test exp model bad match 11", rmsdev , rmsdev_limit
+            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
           endif
+
 
 
       ! linear polymer componenet, here: matrix
@@ -544,12 +550,16 @@ ilr: if( newcomp_required ) then
              s_samples(i) = locrep2 * sqt / sqt0 *  exp( -diffmatc * q*q * (ts)**betadifc )    
       enddo
 
-          call match_exp1 (t_samples,s_samples,nxpoints,mexp, modeexcc,aexpcc,rexpcc,ssq)
+          rmsdev = rmsdev_limit
+          call match_exp_auto(t_samples,s_samples,nxpoints,modeex,nexpcc,aexpcc,rexpcc,rmsdev,iout)
  
-!          call nexp_match(t_samples,s_samples,nxpoints,modeex,aexpcc,rexpcc,ssq)
-          if(ssq > 5d-3) then
-            write(6,*)"rpa_test exp model bad match cc", ssq
+
+          if(rmsdev > rmsdev_limit) then
+            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
+            write(*,*)"         rpa_test exp model bad match CC", rmsdev , rmsdev_limit
+            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
           endif
+
 
 
      ! rouse chain ( primary sample component) here the component with index 2
@@ -592,12 +602,17 @@ ilr: if( newcomp_required ) then
              prous        = prous0 * s_samples(i)
 !write(*,*)"TX:",rr_A,rr_B,cx,s_samples(i)
        enddo
-!          call nexp_match(t_samples,s_samples,nxpoints,modeex,aexp22,rexp22,ssq)
-          call match_exp1 (t_samples,s_samples,nxpoints,mexp, modeex2,aexp22,rexp22,ssq)
+          rmsdev = rmsdev_limit
+           call match_exp_auto(t_samples,s_samples,nxpoints,modeex,nexp2,aexp22,rexp22,rmsdev,iout)
 
-           if(ssq > 5d-3) then
-            write(6,*)"rpa_test exp model bad match 22", ssq
-           endif
+
+          if(rmsdev > rmsdev_limit) then
+            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
+            write(*,*)"         rpa_test exp model bad match 22", rmsdev , rmsdev_limit
+            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
+          endif
+
+
 
 
    
@@ -611,9 +626,9 @@ ilr: if( newcomp_required ) then
         Scc00             =   plin0cc  ! unperturbed structure factor S(Q) of "matrix" polymers
         S0011             =   plin0    ! unperturbed structure factor S(Q) of polymer 1
         S0022             =   prous0   ! unperturbed structure factor S(Q) of polymer 2
-        nexpcc            =   modeexcc   ! number of exp-functions to describe background
-        nexp1             =   modeex1   ! number of exp-functions to describe component1
-        nexp2             =   modeex2   ! number of exp-functions to describe component2
+!        nexpcc            =   modeexcc   ! number of exp-functions to describe background
+!        nexp1             =   modeex1   ! number of exp-functions to describe component1
+!        nexp2             =   modeex2   ! number of exp-functions to describe component2
         aexp_cc(1:nexpcc) =   aexpcc(1:nexpcc)   ! amplitude coeffs for laplace-exp representation of "matrix"
         rexp_cc(1:nexpcc) =   rexpcc(1:nexpcc)   ! rate      coeffs for laplace-exp representation of "matrix"
         aexp_s1(1:nexp1)  =   aexp11(1:nexp1)    ! amplitude coeffs for laplace-exp representation of polymer 1

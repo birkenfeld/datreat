@@ -52,6 +52,7 @@
       use unift
       use theory_description
       use gr_interface
+      use lmfit
       implicit none
 
       integer iadda
@@ -388,9 +389,19 @@
 
        call get_newcom(comand, istat)  
 
-       if(istat == -2) then   ! exit
+       if(istat < 0) then   ! exit
  !         write(*,*)"istat = ",istat
-          stop "exit datreat BYE...."
+          select case(istat)
+          case (-1)
+            write(*,*)'..to exit datreat enter "quit" or "exit"!' 
+          case (-2)
+            write(*,*)'..to exit datreat enter "quit" or "exit"!' 
+          case (-3)
+            stop "exit datreat BYE...."
+          case default
+             write(*,*)"PROGRAMMING ERROR (new_com): unknown istatus ", istat
+          end select 
+          goto 2000
        endif
 !       iout() = iot
 !
@@ -4392,9 +4403,18 @@ exclude:   if(found('exclude  ')) then
 
          goto 2000
        endif
-!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!! multi exp fits !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+       if(comand.eq.'mexp    ') then
+!                    ---> estimate a multi exp representation 
+         call dtr_mexp()
 
+         goto 2000
+       endif
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! TOF-Stuff !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
        if(comand.eq.'tofdos  ') then
 !                    ---> remove points

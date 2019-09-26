@@ -35,26 +35,27 @@ PRIVATE
       end function f_model
    end interface 
 
- interface nexp_match
-   module procedure nexp_match2
- end interface nexp_match
+! interface nexp_match
+!   module procedure nexp_match2
+! end interface nexp_match
  public :: nexp_match
 
-  double precision, public :: NEXP_DEVIATION_TOLERANCE = 1d-3
-  double precision, public :: NEXP_MINIMUM_RATE        = 1d-5
-  double precision, public :: NEXP_MAXIMUM_RATE        = 1d2
-  double precision, public :: NEXP_TABRANGE_EXTENDER   = 1d0
+  double precision, public, save :: NEXP_DEVIATION_TOLERANCE = 1d-3
+  double precision, public, save :: NEXP_MINIMUM_RATE        = 1d-5
+  double precision, public, save :: NEXP_MAXIMUM_RATE        = 1d2
+  double precision, public, save :: NEXP_TABRANGE_EXTENDER   = 1d0
 
-  integer, public          :: MAX_COMPACTING_ITERATIONS= 100
-  double precision, public :: LAMBDA_CUTOFF            = 1d-5
-  double precision, public :: RELATIVE_RATE_COMBINE    = 0.25d0
-  double precision, public :: RELATIVE_LOWRATE_COMBINE = 1d0
-  double precision, public :: AMPLITUDE_THRESHOLD      = 1d-6
+  integer, public         , save :: MAX_COMPACTING_ITERATIONS= 100
+  double precision, public, save :: LAMBDA_CUTOFF            = 1d-5
+  double precision, public, save :: RELATIVE_RATE_COMBINE    = 0.25d0
+  double precision, public, save :: RELATIVE_LOWRATE_COMBINE = 1d0
+  double precision, public, save :: AMPLITUDE_THRESHOLD      = 1d-6
  
 
 
 public :: fit_simple
 public :: f_model
+public :: match_exp_auto 
 public :: match_exp0
 public :: match_exp1
 public :: match_exp2
@@ -67,6 +68,83 @@ public :: dsvdc
 
 
 CONTAINS
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+!! matching a relaxation curve given by the table tsam(1..m), y(1..m) with a sum of 
+!! n0 <= n simple exponentials (maximum n) with prefactors aexp(1..n0) and decay rates rexp(1..n0)
+!! the quality of matching is indicated by a small value of rmsdev 
+!! the main intention of this procedure is to get an analytical model for the Laplace
+!! transform of any computed relaxation curves from the usual (or unusual) models e.g. in datreat
+!! The analytic representation as F(s) = sum(i=1,nexps) aexp(i)/(s+rexp(i))
+!! allows combination of curves within the RPA expressions and either "direct" or numerical
+!! backtransformation (in the complex regime (s --> i omega)
+!! USE: PREPARE_TTABLE to compute a suitable tsam table and then fill with some external S:  y=S(Q,tsam)
+!!      then call MATCH_EXP0
+!! This iterates    match_exp0   increasing number of exps and combining neg/pos
+!! until the matching rms deviation is smaller than rmsdev
+!! or iteratin limits have been reached
+!! On output the rmsdev value is set and can be used to check the quality of the solution
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+
+
+    subroutine match_exp_auto(xv, yv, m, nmx, n0, aexp, rexp, rmsdev, iout)
+      implicit none
+       double precision, intent(in) :: xv(:)     ! table with (log-space x values of tabulated yv
+       double precision, intent(in) :: yv(:)     ! table of coresponding  y values
+       integer,          intent(in) :: m         ! xv, yy table size 
+       integer,          intent(in) :: nmx       ! max number of exponentials
+       integer,          intent(out):: n0        ! final number of exps (outcome of this fitting proc)
+       double precision, intent(out):: aexp(nmx) ! amplitudes
+       double precision, intent(out):: rexp(nmx) ! rates
+       double precision, intent(inout):: rmsdev  ! requested rmsdev, on output actual rmsdef
+       integer, intent(in), optional:: iout      ! get diagnostics if > 0
+
+       double precision :: actual_rmsdev
+       integer          :: iout0 = 0
+       integer          :: it,  maximum_iterations  = 20, n
+       integer          :: it2, maximum_iterations2 = 10 
+       integer          :: i
+
+       if(present(iout)) iout0 = iout
+
+       n = 1
+       actual_rmsdev = Huge(actual_rmsdev)
+dit:   do it=1,maximum_iterations
+         if(actual_rmsdev <= rmsdev .or. n >= nmx) exit dit
+         RELATIVE_RATE_COMBINE    = 0.05d0
+         RELATIVE_LOWRATE_COMBINE = 1d0
+         n = n+1
+         call match_exp0 (xv,yv,m,n,n0,aexp,rexp,actual_rmsdev,iout0)
+dit2:    do it2=1, maximum_iterations2 
+         if(minval(aexp(1:n0))>= 0d0) exit dit2
+             RELATIVE_RATE_COMBINE  =  RELATIVE_RATE_COMBINE + 0.05d0
+             call match_exp0 (xv,yv,m,n,n0,aexp,rexp,actual_rmsdev,iout0)
+         enddo dit2
+      enddo dit
+  
+      rmsdev = actual_rmsdev
+
+      if(iout0 >= 0) then
+         write(*,'(a)')"======= match_exp_auto (module lmfit) =================="
+         write(*,'(a)')"Modelling tabulated values by a sum of simple exponentials."
+         write(*,'(i4,a,f10.5,a,f10.1)')m," points (log spaced) table of values extends from",xv(1)," to ",xv(m)
+         write(*,'(a,e14.7)')"Result with  root mean squared deviation =",rmsdev
+         write(*,'(a)')"             Aexp               tau            rate"
+         write(*,'(a)')"--------------------------------------------------------"
+         do i=1,n0
+          write(*,'(i8,f15.8,3x,f15.4,f15.8)') i, aexp(i), 1d0/rexp(i), rexp(i)
+         enddo
+         write(*,'(a)')"--------------------------------------------------------"
+         write(*,'(a,f18.8)')"Sum(amplitudes)    =",sum(aexp(1:n0))
+         write(*,'(a,f18.8)')"tauave(amplitudes) =",dot_product(aexp(1:n0),1d0/rexp(1:n0))/sum(aexp(1:n0))
+         write(*,'(a)')"--------------------------------------------------------"
+      endif
+
+
+
+!       RELATIVE_RATE_COMBINE    = 0.25d0
+!       RELATIVE_LOWRATE_COMBINE = 1d0
+
+     end subroutine match_exp_auto
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
 !! matching a relaxation curve given by the table tsam(1..m), y(1..m) with a sum of 
@@ -140,8 +218,8 @@ CONTAINS
       endif
 
 
-      NEXP_MINIMUM_RATE        = 0.1d0/tsam(m)
-      NEXP_MAXIMUM_RATE        = 10d0/tsam(1)
+      NEXP_MINIMUM_RATE        = 0.1d0/tsam(m) !? an anderer Stelle setzen !
+      NEXP_MAXIMUM_RATE        = 10d0/tsam(1)  !? "
 
 
 ! create a first set of trial characteristic times
@@ -292,6 +370,14 @@ citer: do j=1,MAX_COMPACTING_ITERATIONS
        integer             :: i, ier
        double precision    :: ydiff(np), chisq
       
+       write(*,*)"ATTTENTION ATTENTION ATTTENTION ATTENTION ATTTENTION ATTENTION ATTTENTION ATTENTION"
+       write(*,*)"ATTTENTION                                                                ATTENTION"
+       write(*,*)"ATTTENTION    match_exp1 calls should be replaced by match_exp0 calls     ATTENTION"
+       write(*,*)"ATTTENTION                                                                ATTENTION"
+       write(*,*)"ATTTENTION ATTENTION ATTTENTION ATTENTION ATTTENTION ATTENTION ATTTENTION ATTENTION"
+
+
+
        if(me < 3) stop "match_exp: me must be at least 3"
       
       !! TBD new >>>  
@@ -369,7 +455,18 @@ subroutine match_exp2 ( xv,yv,np,me,ne1,a,r,maxdev)
  double precision    :: ydiff(np), chisq
  double precision    :: gapratio(me), a0(me), r0(me), mxdev
 
+
+      
+       write(*,*)"ATTTENTION ATTENTION ATTTENTION ATTENTION ATTTENTION ATTENTION ATTTENTION ATTENTION"
+       write(*,*)"ATTTENTION                                                                ATTENTION"
+       write(*,*)"ATTTENTION    match_exp2 calls should be replaced by match_exp0 calls     ATTENTION"
+       write(*,*)"ATTTENTION                                                                ATTENTION"
+       write(*,*)"ATTTENTION ATTENTION ATTTENTION ATTENTION ATTTENTION ATTENTION ATTTENTION ATTENTION"
+
+
+
  if(me < 3) stop "match_exp: me must be at least 3"
+
 
 
 
@@ -459,6 +556,108 @@ end subroutine match_exp2
     end subroutine prepare_ttable1
     
     
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+!! matching a relaxation curve given by the table xv(1..np), yv(1..np) with a sum of 
+!! nexps simple exponentials with prefactors aexp(1..nexp) and decay rates rexp(1..nexp)
+!! the quality of matching is indicated by a small value < 10e-4 of ssq
+!! the main intention of this procedure is to get an analytical model for the Laplace
+!! transform of any computed relaxation curves from the usual (or unusual) models e.g. in datreat
+!! The analytic representation as F(s) = sum(i=1,nexps) aexp(i)/(s+rexp(i))
+!! allows combination of curves within the RPA expressions and either "direct" or numerical
+!! backtransformation (in the complex regime (s --> i omega)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+     subroutine nexp_match(xv, yv, np, nexps, aexp, rexp, ssq, iout) 
+!    ---------------------------------------------------------------
+     implicit none
+     double precision, intent(in)     :: xv(np)   ! x-values (i.e. time) of cuve to be matched
+     double precision, intent(in)     :: yv(np)   ! y-values (i.e. S(q,t)/S(q))
+     integer         , intent(in)     :: np       ! number of values
+     integer         , intent(in)  :: nexps    ! number of exponentials to be fitted
+     double precision, intent(inout)    :: aexp(nexps) ! exp prefactors (ampltiues)
+     double precision, intent(inout)    :: rexp(nexps) ! exp rates:  y = sum(1...nexps) aexp(i)*exp(-t*rexp(i))
+     double precision, intent(out)    :: ssq         ! quality of matching
+     integer         , intent(in), optional :: iout  ! output levevl
+
+     double precision    :: px(2*nexps) , pxscale(2*nexps), pxerr(2*nexps)
+     integer             :: iperm(nexps)
+     double precision    :: a0(nexps), r0(nexps)
+
+     double precision    :: ye(np)
+     double precision    :: tmax, t
+     double precision    :: max_rate
+     integer             :: i, j, ier, nxs
+
+     logical             :: verbose = .false.
+
+     if(present(iout)) then
+       verbose = (iout > 0)
+     endif
+      
+       write(*,*)"ATTTENTION ATTENTION ATTTENTION ATTENTION ATTTENTION ATTENTION ATTTENTION ATTENTION"
+       write(*,*)"ATTTENTION                                                                ATTENTION"
+       write(*,*)"ATTTENTION    nexp_match calls should be replaced by match_exp0 calls     ATTENTION"
+       write(*,*)"ATTTENTION                                                                ATTENTION"
+       write(*,*)"ATTTENTION ATTENTION ATTTENTION ATTENTION ATTTENTION ATTENTION ATTTENTION ATTENTION"
+
+
+
+      ! make estimate
+     
+      px      = 0d0
+      pxscale = 1d0
+      ye      = 1d0
+      ssq     = 0d0
+
+      tmax = maxval(xv)
+      do i=1,nexps
+        if(aexp(i) .eq. 0d0) then
+           px(2*i-1)       = 1d0/nexps
+           pxscale(2*i-1)  = 0.1d0
+           px(2*i)         = exp(-i*log(tmax)/nexps)
+           pxscale(2*i)    = px(2*i)
+        else
+           px(2*i-1)       = aexp(i)
+           pxscale(2*i-1)  = 0.1d0
+           px(2*i)         = rexp(i)
+           pxscale(2*i)    = px(2*i)
+        endif
+      enddo
+      
+      ssq = fit_simple(fm,2*nexps,px ,pxscale     , np, xv, yv, ye, px, pxerr)
+! combine similar rates
+     
+      do i=1,nexps
+         a0(i) =  px(2*i-1)
+         r0(i) =  px(2*i)
+!!*! !!         write(6,'(i8,2f18.7,6x,2f18.7)')i, a0(i), pxerr(2*i-1), r0(i), pxerr(2*i)
+!!*!          if( r0(i) < NEXP_MINIMUM_RATE ) then
+!!*!             if(verbose) write(6,*)"WARNING(nexp_match): rate(low)  = ",r0(i)," is set to ",NEXP_MINIMUM_RATE 
+!!*!             r0(i)   = NEXP_MINIMUM_RATE 
+!!*!             px(2*i) = r0(i)
+!!*!          endif
+!!*! !#>m+ 
+!!*!          max_rate = 1d0/(10d0*xv(1))
+!!*!          if( r0(i) > max_rate ) then
+!!*!             if(verbose) write(6,*)"WARNING(nexp_match): rate(high) = ",r0(i)," is reduced to ",max_rate 
+!!*!             r0(i)   = max_rate 
+!!*!             px(2*i) = r0(i)
+!!*!          endif 
+!!*! !#<m
+      enddo
+
+     
+    ! sorting fastes rate first
+      iperm = [(i,i=1,nexps)]
+      call  DPSORT (r0, nexps, IPERM,  -1 , ier)
+     
+      aexp = a0(iperm(1:nexps))
+      rexp = r0(iperm(1:nexps))
+     
+     
+     end subroutine nexp_match
+
+
 
 
 

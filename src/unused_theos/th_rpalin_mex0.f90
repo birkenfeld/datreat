@@ -122,7 +122,7 @@
      double precision        :: tmax = 1000d0
      logical                 :: newcomp_required
      integer                 :: i
-     double precision        :: ts, rmsdev, rmsdev_limit = 1d-3
+     double precision        :: ts, ssq
 
      double precision        :: ss11, ss110, ss12, ss120, ss22, ss220
 
@@ -320,8 +320,8 @@
       iout     = nint( pa(33)) ! output level
 
       t0       = max(t0      ,tmin)
-      nxpoints = max(nxpoints  ,16)
-      modeex   = max(modeex    , 8)
+      nxpoints = max(nxpoints  , 7)
+      modeex   = max(modeex    , 2)
 
       if( modeex > mexp ) then
          write(6,*)"INFORMATION: Modeex limited to: ",mexp
@@ -491,14 +491,11 @@ ilr: if( newcomp_required ) then
            
 !new          call nexp_match(t_samples,s_samples,nxpoints,modeex,aexp11,rexp11,ssq)
 !             call match_exp0(t_samples,s_samples,nxpoints,modeex,nexp1,aexp11,rexp11,ssq,iout)
-              rmsdev = rmsdev_limit
-              call match_exp_auto(t_samples,s_samples,nxpoints,modeex,nexp1,aexp11,rexp11,rmsdev,iout)
+              call match_exp_auto(t_samples,s_samples,nxpoints,modeex,nexp1,aexp11,rexp11,ssq,iout)
 
 
-          if(rmsdev > rmsdev_limit) then
-            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
-            write(*,*)"         rpa_test exp model bad match 11", rmsdev , rmsdev_limit
-            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
+          if(ssq > 1d-2) then
+            write(6,*)"rpa_test exp model bad match 11", ssq
           endif
 
 
@@ -522,14 +519,9 @@ ilr: if( newcomp_required ) then
            
 !new          call nexp_match(t_samples,s_samples,nxpoints,modeex,aexpcc,rexpcc,ssq)
 !          call match_exp0(t_samples,s_samples,nxpoints,modeex,nexpcc,aexpcc,rexpcc,ssq,iout)
-          rmsdev = rmsdev_limit
-          call match_exp_auto(t_samples,s_samples,nxpoints,modeex,nexpcc,aexpcc,rexpcc,rmsdev,iout)
- 
-
-          if(rmsdev > rmsdev_limit) then
-            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
-            write(*,*)"         rpa_test exp model bad match CC", rmsdev , rmsdev_limit
-            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
+          call match_exp_auto(t_samples,s_samples,nxpoints,modeex,nexpcc,aexpcc,rexpcc,ssq,iout)
+          if(ssq > 1d-2) then
+            write(6,*)"rpa_test exp model bad match cc", ssq
           endif
 
 
@@ -554,15 +546,11 @@ ilr: if( newcomp_required ) then
        enddo
 !new          call nexp_match(t_samples,s_samples,nxpoints,modeex,aexp22,rexp22,ssq)
 !          call match_exp0(t_samples,s_samples,nxpoints,modeex,nexp2,aexp22,rexp22,ssq,iout)
-          rmsdev = rmsdev_limit
-           call match_exp_auto(t_samples,s_samples,nxpoints,modeex,nexp2,aexp22,rexp22,rmsdev,iout)
+           call match_exp_auto(t_samples,s_samples,nxpoints,modeex,nexp2,aexp22,rexp22,ssq,iout)
 
-
-          if(rmsdev > rmsdev_limit) then
-            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
-            write(*,*)"         rpa_test exp model bad match 22", rmsdev , rmsdev_limit
-            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
-          endif
+           if(ssq > 1d-2) then
+            write(6,*)"rpa_test exp model bad match 22", ssq
+           endif
 
 
    
