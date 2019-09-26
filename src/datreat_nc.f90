@@ -270,6 +270,8 @@
                         write(6,*)'=  average     : combine points for one or several records       =' 
                         write(6,*)'=  NEW (5/2019)                                                  =' 
                         write(6,*)'=  aligny      : determine scaling to match (e.g SANS col1,2..   =' 
+                        write(6,*)'=  NEW (9/2019)                                                  =' 
+                        write(6,*)'=  mexp        : automatic matching of sum(n=1..N, an*exp(-t/tn))=' 
                         write(6,*)'=================================================================='
                        
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
