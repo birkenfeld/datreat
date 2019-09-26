@@ -86,7 +86,7 @@ CONTAINS
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
 
-    subroutine match_exp_auto(xv, yv, m, nmx, n0, aexp, rexp, rmsdev, iout)
+    subroutine match_exp_auto(xv, yv, m, nmx, n0, aexp, rexp, rmsdev, iout, yerr)
       implicit none
        double precision, intent(in) :: xv(:)     ! table with (log-space x values of tabulated yv
        double precision, intent(in) :: yv(:)     ! table of coresponding  y values
@@ -97,14 +97,18 @@ CONTAINS
        double precision, intent(out):: rexp(nmx) ! rates
        double precision, intent(inout):: rmsdev  ! requested rmsdev, on output actual rmsdef
        integer, intent(in), optional:: iout      ! get diagnostics if > 0
+       double precision, intent(in), optional :: yerr(:) ! errors if applicable
 
        double precision :: actual_rmsdev
        integer          :: iout0 = 0
        integer          :: it,  maximum_iterations  = 20, n
        integer          :: it2, maximum_iterations2 = 10 
        integer          :: i
+       logical          :: witherr 
 
        if(present(iout)) iout0 = iout
+       
+       witherr = present(yerr)
 
        n = 1
        actual_rmsdev = Huge(actual_rmsdev)
@@ -113,11 +117,19 @@ dit:   do it=1,maximum_iterations
          RELATIVE_RATE_COMBINE    = 0.05d0
          RELATIVE_LOWRATE_COMBINE = 1d0
          n = n+1
-         call match_exp0 (xv,yv,m,n,n0,aexp,rexp,actual_rmsdev,iout0)
+         if(witherr) then
+            call match_exp0 (xv,yv,m,n,n0,aexp,rexp,actual_rmsdev,iout0,yerr)
+         else
+            call match_exp0 (xv,yv,m,n,n0,aexp,rexp,actual_rmsdev,iout0)
+         endif
 dit2:    do it2=1, maximum_iterations2 
          if(minval(aexp(1:n0))>= 0d0) exit dit2
              RELATIVE_RATE_COMBINE  =  RELATIVE_RATE_COMBINE + 0.05d0
-             call match_exp0 (xv,yv,m,n,n0,aexp,rexp,actual_rmsdev,iout0)
+         if(witherr) then
+            call match_exp0 (xv,yv,m,n,n0,aexp,rexp,actual_rmsdev,iout0,yerr)
+         else
+            call match_exp0 (xv,yv,m,n,n0,aexp,rexp,actual_rmsdev,iout0)
+         endif
          enddo dit2
       enddo dit
   
@@ -173,8 +185,8 @@ dit2:    do it2=1, maximum_iterations2
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
 
 
-      subroutine match_exp0 ( tsam,y,m,n,n0,aexp,rexp,rmsdev,iout) 
-!     ============================================================
+      subroutine match_exp0 ( tsam,y,m,n,n0,aexp,rexp,rmsdev,iout,yerr) 
+!     =================================================================
       implicit none
        double precision, intent(in) :: tsam(:)   ! table with (log-space t values of tabulated S(Q,t)
        double precision, intent(in) :: y(:)      ! table of coresponding S(Q,t=xv) values
@@ -184,7 +196,8 @@ dit2:    do it2=1, maximum_iterations2
        double precision, intent(out):: aexp(n)   ! amplitudes
        double precision, intent(out):: rexp(n)   ! rates
        double precision, intent(out):: rmsdev    ! max deviation
-       integer, intent(in), optional:: iout      ! get diagnostics if > 0
+       integer, intent(in),          optional :: iout      ! get diagnostics if > 0
+       double precision, intent(in), optional :: yerr(:) ! errors if applicable
  !                                                                       
                 
        logical         ::  verbose = .false.
@@ -296,11 +309,15 @@ citer: do j=1,MAX_COMPACTING_ITERATIONS
             rexp(n0) = NEXP_MINIMUM_RATE 
           endif
 
-
-          call nexp_match2(tsam,y,m,n0,aexp,rexp,chisq,1)
-          rexp = abs(rexp)
-          call nexp_match2(tsam,y,m,n0,aexp,rexp,chisq,1)
- 
+          if(present(yerr)) then
+            call nexp_match2(tsam,y,m,n0,aexp,rexp,chisq,1,yerr)
+            rexp = abs(rexp)
+            call nexp_match2(tsam,y,m,n0,aexp,rexp,chisq,1,yerr)
+          else
+            call nexp_match2(tsam,y,m,n0,aexp,rexp,chisq,1)
+            rexp = abs(rexp)
+            call nexp_match2(tsam,y,m,n0,aexp,rexp,chisq,1)
+          endif
 
 !?          if(abs(rexp(n0)) < NEXP_MINIMUM_RATE ) then
 !?            rexp(n0) = NEXP_MINIMUM_RATE 
@@ -671,8 +688,8 @@ end subroutine match_exp2
 !! allows combination of curves within the RPA expressions and either "direct" or numerical
 !! backtransformation (in the complex regime (s --> i omega)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
-     subroutine nexp_match2(xv, yv, np, nexps, aexp, rexp, ssq, iout) 
-!    ---------------------------------------------------------------
+     subroutine nexp_match2(xv, yv, np, nexps, aexp, rexp, ssq, iout,yerr) 
+!    ---------------------------------------------------------------------
      implicit none
      double precision, intent(in)     :: xv(np)   ! x-values (i.e. time) of cuve to be matched
      double precision, intent(in)     :: yv(np)   ! y-values (i.e. S(q,t)/S(q))
@@ -682,6 +699,7 @@ end subroutine match_exp2
      double precision, intent(inout)    :: rexp(nexps) ! exp rates:  y = sum(1...nexps) aexp(i)*exp(-t*rexp(i))
      double precision, intent(out)    :: ssq         ! quality of matching
      integer         , intent(in), optional :: iout  ! output levevl
+     double precision, intent(in), optional :: yerr(np) ! errors if applicable
 
      double precision    :: px(2*nexps) , pxscale(2*nexps), pxerr(2*nexps)
      integer             :: iperm(nexps)
@@ -703,7 +721,11 @@ end subroutine match_exp2
      
       px      = 0d0
       pxscale = 1d0
-      ye      = 1d0
+      if(present(yerr)) then
+         ye      = yerr
+      else
+         ye      = 1d0
+      endif
       ssq     = 0d0
 
       tmax = maxval(xv)

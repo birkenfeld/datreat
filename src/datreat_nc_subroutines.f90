@@ -253,6 +253,7 @@
        integer, parameter       :: mxx=100
        double precision         :: xv(size(xwerte(:,1))) 
        double precision         :: yv(size(xwerte(:,1))) 
+       double precision         :: ye(size(xwerte(:,1))) 
        double precision         :: aexp(mxx) 
        double precision         :: rexp(mxx) 
        double precision, save   :: rmax            = 1d6
@@ -270,6 +271,10 @@
            write(6,*)'=          iout <iout>                                                        '
            write(6,*)'=    computes a (maximum) n-exp approximation to the selected data record     '
            write(6,*)'=    the parameters are pushed as theory                                      '
+           write(6,*)'=    for computed data with zero error: set rms in the range of 1e-3          '
+           write(6,*)'=                      and typically use    n  in the order of 10             '
+           write(6,*)'=    for experiment data with nonzero error: set rms in the range of a few x 1'
+           write(6,*)'=                      and typically use    n  between 3 and 6                '
            write(6,*)'=============================================================================='
            return
         endif
@@ -291,10 +296,12 @@
 
 ! --- do the fitting (future: add error weigthing) ---   
         xv(1:m) =  xwerte(1:m,ibuf)     
-        yv(1:m) =  ywerte(1:m,ibuf)     
+        yv(1:m) =  ywerte(1:m,ibuf)   
+        ye      =  1
+        forall(i=1:m, yerror(i,ibuf) > 0) ye(i) = yerror(i,ibuf)   
 
 !        call match_exp0    ( xv, yv ,m ,n ,n0, aexp, rexp, rmsdev, iolev) 
-         call match_exp_auto( xv, yv, m, n, n0, aexp, rexp, rmsdev, iolev)
+         call match_exp_auto( xv, yv, m, n, n0, aexp, rexp, rmsdev, iolev, ye)
 
         write(*,'(a)')"Control parameters(1):"
         write(*,'(a,f12.6)')"Relative rate                 combine limit: rtc  =", RELATIVE_RATE_COMBINE 
