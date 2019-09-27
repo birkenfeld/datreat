@@ -100,9 +100,18 @@ CONTAINS
        double precision, intent(in), optional :: yerr(:) ! errors if applicable
 
        double precision :: actual_rmsdev
+       double precision :: rrcombine_increment = 0.05d0
        integer          :: iout0 = 0
-       integer          :: it,  maximum_iterations  = 20, n
-       integer          :: it2, maximum_iterations2 = 10 
+       integer, parameter :: maximum_iterations  = 20
+
+       double precision   :: rmsvals(maximum_iterations) 
+       double precision   :: rtcvals(maximum_iterations) 
+       double precision   :: aexps(nmx,maximum_iterations) 
+       double precision   :: rexps(nmx,maximum_iterations) 
+       integer            :: nvals(maximum_iterations) 
+
+       integer          :: it, n, ibest
+       integer          :: it2, maximum_iterations2 
        integer          :: i
        logical          :: witherr 
 
@@ -110,34 +119,61 @@ CONTAINS
        
        witherr = present(yerr)
 
+       rmsvals             = HUGE(rmsdev)
+       rtcvals             = rrcombine_increment 
+       nvals               = n
+       maximum_iterations2 = nint(0.5d0/rrcombine_increment)
+
        n = 1
        actual_rmsdev = Huge(actual_rmsdev)
 dit:   do it=1,maximum_iterations
          if(actual_rmsdev <= rmsdev .or. n >= nmx) exit dit
-         RELATIVE_RATE_COMBINE    = 0.05d0
+         RELATIVE_RATE_COMBINE    = rrcombine_increment ! ?? 0.05
          RELATIVE_LOWRATE_COMBINE = 1d0
-         n = n+1
-         if(witherr) then
-            call match_exp0 (xv,yv,m,n,n0,aexp,rexp,actual_rmsdev,iout0,yerr)
-         else
-            call match_exp0 (xv,yv,m,n,n0,aexp,rexp,actual_rmsdev,iout0)
-         endif
-dit2:    do it2=1, maximum_iterations2 
-         if(minval(aexp(1:n0))>= 0d0) exit dit2
-             RELATIVE_RATE_COMBINE  =  RELATIVE_RATE_COMBINE + 0.05d0
-         if(witherr) then
-            call match_exp0 (xv,yv,m,n,n0,aexp,rexp,actual_rmsdev,iout0,yerr)
-         else
-            call match_exp0 (xv,yv,m,n,n0,aexp,rexp,actual_rmsdev,iout0)
-         endif
-         enddo dit2
+           n = n+1
+           if(witherr) then
+              call match_exp0 (xv,yv,m,n,n0,aexp,rexp,actual_rmsdev,iout0,yerr)
+           else
+              call match_exp0 (xv,yv,m,n,n0,aexp,rexp,actual_rmsdev,iout0)
+           endif
+dit2:      do it2=1, maximum_iterations2 
+             if(minval(aexp(1:n0))>= 0d0) exit dit2
+               RELATIVE_RATE_COMBINE  =  RELATIVE_RATE_COMBINE + rrcombine_increment
+             if(witherr) then
+               call match_exp0 (xv,yv,m,n,n0,aexp,rexp,actual_rmsdev,iout0,yerr)
+             else
+               call match_exp0 (xv,yv,m,n,n0,aexp,rexp,actual_rmsdev,iout0)
+             endif
+           enddo dit2
+
+           rmsvals(it) = actual_rmsdev
+           rtcvals(it) = RELATIVE_RATE_COMBINE 
+           nvals(it)   = n0
+           aexps(:,it) = aexp
+           rexps(:,it) = rexp
+           
       enddo dit
   
       rmsdev = actual_rmsdev
 
+      ibest = minloc(rmsvals,dim=1)
+      n0    = nvals(ibest) 
+      aexp  = aexps(:,ibest) 
+      rexp  = rexps(:,ibest)
+      rmsdev= rmsvals(ibest)  
+
       if(iout0 >= 0) then
          write(*,'(a)')"======= match_exp_auto (module lmfit) =================="
          write(*,'(a)')"Modelling tabulated values by a sum of simple exponentials."
+
+         write(*,'(a,i0,a)')"   Trial results (ibest=",ibest,"):"
+         write(*,'(a)'     )" iter  nexp    relcomb         rmsdev "
+         do i=1,it-1
+            write(*,'(i4,":",i4,2x,f12.6,2x,e14.7)')i, nvals(i), rtcvals(i), rmsvals(i)
+         enddo
+         write(*,'(a)')" "
+
+
          write(*,'(i4,a,f10.5,a,f10.1)')m," points (log spaced) table of values extends from",xv(1)," to ",xv(m)
          write(*,'(a,e14.7)')"Result with  root mean squared deviation =",rmsdev
          write(*,'(a)')"             Aexp               tau            rate"

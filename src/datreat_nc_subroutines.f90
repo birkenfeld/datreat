@@ -257,11 +257,11 @@
        double precision         :: aexp(mxx) 
        double precision         :: rexp(mxx) 
        double precision, save   :: rmax            = 1d6
-       integer,          save   :: n               = 8
-       integer,          save   :: iolev           = 1
+       integer,          save   :: n               = 10
+       integer,          save   :: iolev           = 0
       
        integer                  :: n0, m, ibuf, ier 
-       double precision         :: rmsdev
+       double precision,save    :: rmsdev          = 1d-3
        integer                  :: i,j, ith, inew 
        character(len=8)         :: sbuf
 
@@ -281,7 +281,7 @@
 
 
         if(nsel .ne. 1) then
-           call errsig(9999,"dtr_mexp ERROR: NUMBER OF SELECTED RECORDS IS NOT ONE !$")
+           call errsig(9999,"mexp ERROR: NUMBER OF SELECTED RECORDS IS NOT ONE !$")
            return
         endif
 
@@ -290,15 +290,36 @@
         n               = intval('n       ', n )
         n               = min(abs(n),mxx)
         iolev           = intval('iout    ', iolev )
-        rmsdev          = getval('rms     ', 1d-3            ,inew)
+        rmsdev          = getval('rms     ', rmsdev           ,inew)
         
-        call unused( 0, 1, 1, ier)
+        call unused( 0, 2, 2, ier)
+        if(ier.ne.0) then
+          call errsig(9999,"mexp ERROR in command line parameterlist! $")
+          return
+        endif
+
+        if( m < 2*n ) then
+          write(*,*)"mexp NOTE: number of data points (m) < max number of exp's (n), setting n=m/2.."
+          n = m/2
+        endif
 
 ! --- do the fitting (future: add error weigthing) ---   
         xv(1:m) =  xwerte(1:m,ibuf)     
         yv(1:m) =  ywerte(1:m,ibuf)   
         ye      =  1
         forall(i=1:m, yerror(i,ibuf) > 0) ye(i) = yerror(i,ibuf)   
+
+        if(minval(yerror(1:m,ibuf)) > 0d0) then 
+          if(rmsdev < 1d0) then
+            write(*,*)"mexp NOTE: data with errors can only expect rms ~ 1, setting rms to 1.5"
+            rmsdev = 1.5d0
+          endif
+        else
+          if(rmsdev >= 1d0) then
+            write(*,*)"mexp NOTE: data withtout errors need rms ~= 1e-3 for a good fit, setting rms to 1e-3"
+            rmsdev = 1d-3
+          endif
+        endif
 
 !        call match_exp0    ( xv, yv ,m ,n ,n0, aexp, rexp, rmsdev, iolev) 
          call match_exp_auto( xv, yv, m, n, n0, aexp, rexp, rmsdev, iolev, ye)
@@ -307,7 +328,8 @@
         write(*,'(a,f12.6)')"Relative rate                 combine limit: rtc  =", RELATIVE_RATE_COMBINE 
         write(*,'(a,f12.6)')"Absolute rate (minrate ratio) combine limit: atc  =", RELATIVE_LOWRATE_COMBINE  
         write(*,'(a,f12.6)')"Maximum rate                               : rmax =", NEXP_MAXIMUM_RATE  
-        write(*,'(a,i6)')"Maximum number of exponentials                : n    =", n 
+        write(*,'(a,f12.6)')"Root mean squared deviation limkit         : rms  =", rmsdev  
+        write(*,'(a,i6)')   "Maximum number of exponentials             : n    =", n 
  
 ! --- distribute the results ---
         call parset('rmsdev  ',sngl(rmsdev),ibuf)  
@@ -318,6 +340,12 @@
           call parset("rexp"//adjustl(sbuf),sngl(rexp(i))    ,ibuf)  
         enddo
 ! --- and build a theory ---
+
+       if(n0 > c_MTCAL) then
+         call errsig(999,"mexp: number of exponentials exceeds allowed number of th-instances. $")
+         return
+       endif
+
         do ith=1,c_MTH
           if(thenam(ith) == "strexpo ") exit
         enddo
@@ -330,8 +358,10 @@
 !        thramin = -1d30
 !        thramax =  1d30
 !        multflg = 0
+        Write(*,*)"Discarding the actual theory defintion..."
         call activa(1)  ! in clear the theory definition
-
+        
+        Write(*,*)"Pushing the resulting n-exp model as actual theory..."
         ntheos  = n0
         do i=1,ntheos
           nthtab(i) = ith
@@ -340,6 +370,9 @@
           thparx(3,i) = 1d0
           thparx(4,i) = 0d0
         enddo
+                
+        call thc(0)
+
 
       end subroutine dtr_mexp
 
