@@ -258,7 +258,7 @@
        double precision         :: rexp(mxx) 
        double precision, save   :: rmax            = 1d6
        integer,          save   :: n               = 10
-       integer,          save   :: iolev           = 0
+       integer,          save   :: iolev           = 1
       
        integer                  :: n0, m, ibuf, ier 
        double precision,save    :: rmsdev          = 1d-3
@@ -332,8 +332,12 @@
         write(*,'(a,i6)')   "Maximum number of exponentials             : n    =", n 
  
 ! --- distribute the results ---
-        call parset('rmsdev  ',sngl(rmsdev),ibuf)  
-        call parset('n0      ',real(n0)    ,ibuf)  
+        call parset('nex_rms ',sngl(rmsdev),ibuf)  
+        call parset('nex_n0  ',real(n0)    ,ibuf)  
+        call parset('nex_tave',real(nexp_tauave),ibuf)
+        call parset('nex_tini',real(nexp_suma/nexp_initial_slope),ibuf)
+        call parset('nex_islo',real(nexp_initial_slope),ibuf)
+        call parset('nex_asum',real(nexp_suma),ibuf)
         do i=1,n0
           write(sbuf,'(i0)') i
           call parset("aexp"//adjustl(sbuf),sngl(aexp(i))    ,ibuf)  
@@ -372,6 +376,8 @@
         enddo
                 
         call thc(0)
+
+        call parset("amplitu ",sngl(sum(aexp(1:ntheos)))    ,ibuf) 
 
 
       end subroutine dtr_mexp

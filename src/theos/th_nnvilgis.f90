@@ -1,10 +1,10 @@
- FUNCTION th_nvilgis(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
+ FUNCTION th_nnvilgis(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
 !================================================================================
 !  Scattering factor of a Rouse  chain in a harmonic potential. Using direct summation over an effective number of beads, however, using the infinite chain rms distance form Eq(24) of the publication.
 !  T.A. Vilgis and F. Boue, Journal of Polymer Science Part B Polymer Physics 26, 2291-2301 (1988)
       use theory_description 
       implicit none 
-      real    :: th_nvilgis
+      real    :: th_nnvilgis
       character(len=8) :: thnam, parnam (*) 
       real    :: pa (*) 
       real    :: x , xh
@@ -19,10 +19,10 @@
 ! the internal parameter representation 
      double precision :: ampli      ! prefactor                                                                       
      double precision :: n          ! number of segments (do not fit, its integer)                                    
-     double precision :: l          ! effective segment length Rg = l * N**nu /sqrt(6)                                
+     double precision :: re         ! effective segment length via Gaussian end-to-end re
      double precision :: wl4        ! Rouse rate                                                                      
      double precision :: rmesh      ! effective potential parameter in terms mesh size, see paper                     
-     double precision :: tmesh      ! lifetime of the rmesh constraint (experimental)                                 
+     double precision :: com        ! with (1) or without (0) com diffusion                                
 ! the recin parameter representation 
      double precision :: q          ! q-value    default value                                                        
 ! the reout parameter representation 
@@ -30,16 +30,16 @@
  
      double precision :: th
  
-   double precision :: q0
-   integer          :: ni
+     double precision :: q0, l, Sq, Sqt, Sqint, Sqtint, t
+     integer          :: ni
 !
 ! ----- initialisation ----- 
     IF (ini.eq.0) then     
-       thnam = 'nvilgis'
+       thnam = 'nnvilgis'
        nparx =        6
        IF (npar.lt.nparx) then
            WRITE (6,*)' theory: ',thnam,' no of parametrs=',nparx,' exceeds current max. = ',npar
-          th_nvilgis = 0
+          th_nnvilgis = 0
           RETURN
        ENDIF
        npar = nparx
@@ -51,10 +51,10 @@
 !       --------------> set the parameter names --->
         parnam ( 1) = 'ampli   '  ! prefactor                                                                       
         parnam ( 2) = 'n       '  ! number of segments (do not fit, its integer)                                    
-        parnam ( 3) = 'l       '  ! effective segment length Rg = l * N**nu /sqrt(6)                                
+        parnam ( 3) = 're      '  ! effective segment length Re = l * N**nu /sqrt(6)                                
         parnam ( 4) = 'wl4     '  ! Rouse rate                                                                      
         parnam ( 5) = 'rmesh   '  ! effective potential parameter in terms mesh size, see paper                     
-        parnam ( 6) = 'tmesh   '  ! lifetime of the rmesh constraint (experimental)                                 
+        parnam ( 6) = 'com     '  ! with (1) or without (0) com diffusion                                   
 ! >>>>> describe parameters >>>>>>> 
         th_param_desc( 1,idesc) = "prefactor" !//cr//parspace//&
         th_param_desc( 2,idesc) = "number of segments (do not fit, its integer)" !//cr//parspace//&
@@ -69,18 +69,18 @@
         th_out_param(:,idesc)  = " "
         th_out_param(  1,idesc) = "rg       > radius of gyration"
 ! 
-        th_nvilgis = 0.0
+        th_nnvilgis = 0.0
  
         RETURN
      ENDIF
 !
 ! ---- transfer parameters -----
       ampli    =      pa( 1)
-      n        =      pa( 2)
-      l        =      pa( 3)
-      wl4      =      pa( 4)
-      rmesh    =      pa( 5)
-      tmesh    =      pa( 6)
+      n        = ABS( pa( 2) )
+      re       = ABS( pa( 3) )
+      wl4      = ABS( pa( 4) )
+      rmesh    = ABS( pa( 5) )
+      com      =    ( pa( 6) )
 ! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
       iadda = actual_record_address()
 ! >>> extract: q-value    default value
@@ -92,134 +92,119 @@
 ! ----------------------- implementation ---------------------------
 ! ------------------------------------------------------------------
 ! 
-     q   = x
+     t   = x
      ni  = nint(n)
-     rg  =  l * dble(ni)**nu / sqrt(6d0)
-     th  = ampli * sq
+     l   = re/sqrt(n)
+     rg  =  l * dble(ni) / sqrt(6d0)
+     q0  = (1d0/rmesh**2) * (l**2) / 3d0
+!     call  NrouseV(q,t,wl4,l,q0,ni, Sq,Sqt)
+     call  NNvilgis(q,0d0,wl4,l,rmesh,ni,sq, sqint)
+     call  NNvilgis(q,t  ,wl4,l,rmesh,ni,sqt, sqtint)
+
+     if(nint(com) == 0) then
+        th  = ampli * Sqtint/Sqint     
+     else
+        th  = ampli * Sqt/Sq     
+     endif
 
 
-     th_nvilgis = th
+     th_nnvilgis = th
  
 ! ---- writing computed parameters to the record >>>  
       call parset('rg      ',sngl(rg),iadda,ier)
+      call parset('l       ',sngl(l),iadda,ier)
  
  CONTAINS 
  
 ! subroutines and functions entered here are private to this theory and share its variables 
  
-
-
-       subroutine NrouseP(q,t,temp,Dr,wl4,N,R, W, l,pmin,pmax, Sq,Sqt)
-!      ========================================================
+ subroutine NNvilgis(q,t,wl4,l,rmesh,N,sqt, sqtint)
+!==================================================
 !
-! Rouse expression for a chain of finite length:
-! Input parameters:
-!    q     ----> momentum transfer in A**-1
-!    t     ----> time in nano-sec
-!    temp  ----> temperature in K
-!    Dr    ----> center of mass diffusion constant in A**2/ns, if 0 <-- Rouse-expectation
-!    wl4   ----> friction coefficient in A**4/ns
-!    N     ----> number of chain segments
-!    R     ----> end-to-end distance of the polymer molecule
-!    pmin  ----> minimum p
-!    pmax  ----> maximum p
-! Output parameters:
-!    W     <--- "Rouse factor" 3kT/(xi*l**2); R**2=N*l**2
-!    l     <--- "Segment length l"
-!    Sq    <--- S(Q)
-!    Sqt   <--- S(Q,t)
-! ------------------------------------------------------------
-!
-       implicit none
+! Implementation of Eq. 30 of 
+! [Vilgis and Boue, J. Polymer Science Part B: Polymer Physics, Vol 26, 2291-2301 (1988)]
+! the Fourier integral can be done analytically an yields terms as b*exp(-a*t/(p**2+p0**2)/(p**2+p0**2)
+! the p-sum is then done explicitly (efficiency increse by observing that all factors can be written as cos*
+! NOTE: there are several typos in the formulae of the paper !! 
+! 
+  implicit none
 
-       double precision kb, pi
-       parameter(kb=1.380662d-23)
-       parameter(pi=3.141592654d0)
-
-       double precision q,t,temp,Dr,xi,R, W,Sq,Sqt, wl4, pmin, pmax
-       integer N, nn,mm,ifix,ip
-
-       double precision l, tau_p, kbt, Sq0, arg1, arg2
-       double precision a0,e0, ff2, ffc,    arg10,arg20
-       double precision aa1 , aa2
-       double precision p, p0fix, pfac
-
-       double precision :: cosarray(N,N), ewfac(N)
-
-       integer :: ipmin, ipmax, i
-
-!       integer iout
-
-       if(N.le.0) then
-         W  = 999
-         Sq = 999
-         Sqt= 999
-         write(6,*)'Error Number of chain segments is <= 0!',N
-         return
-       endif
-
-! ---- determine the segment length l ----
-       l = sqrt(R**2/N)
-
-! ---- and the Rousefactor ----
-       kbt = temp*kb            ! in Joule = kg*m**2/s**2
-       kbt = kbt * 100          ! in         kg*A**2/ns**2
-       xi  = 3*kbt*l**2 / wl4
-       W   = 3*kbt/(xi*(l**2))  ! in 1/ns
+  double precision, intent(in)  :: q        ! momentum transfer
+  double precision, intent(in)  :: t        ! time
+  double precision, intent(in)  :: wl4      ! rouse rate
+  double precision, intent(in)  :: l        ! segment length
+  double precision, intent(in)  :: rmesh    ! "confinement" length due to the harmonic potential
+  integer         , intent(in)  :: N        ! number of segments (summation)
+  double precision, intent(out) :: sqt      ! the sqt-value
+  double precision, intent(out), optional :: sqtint      ! the sqt-value internal modes only
 
 
-! ---- set the diffusion constant if input is zero --- !
-       if(Dr.eq.0.0d0) then
-         Dr = kbt/(N*xi)
-       endif
+  double precision, parameter :: Pi = 4d0*atan(1d0)
 
-!$OMP PARALLEL DO
-       do nn=1,N
-        do ip=1,N
-         cosarray(nn,ip) = cos((pi*ip*nn)/dfloat(N)) / ip
-        enddo
-       enddo
-!$OMP END PARALLEL DO
+  double precision :: coser(1:N,1:N)
+  double precision :: eser(1:N)
+  double precision :: rrarr(N,N)  ! just for checking can be removed later
 
-!$OMP PARALLEL DO
-       do i=1,N
-         ewfac(i) = (1d0-exp(-2*W*(1-cos((pi*i)/dfloat(N)))*t))
-       enddo
-!$OMP END PARALLEL DO
+  double precision :: p0, q0, qq0, W, pidn, rr
 
-       ipmin = max(1,nint(pmin))
-       ipmax = min(N,nint(pmax))
+  integer          :: nn, mm, p
 
-! ---- init sums ----
-       Sq0 = 0
-       Sq  = 0
-       Sqt = 0
-       ff2  = -2*N*(l*q)**2/(3*pi**2)
 
-! ---- Do the sums -----
+  W    = wl4/l**4
+  pidn = Pi / N
+  q0   = l**2/(3*rmesh**2)
+  p0   = q0 * N / Pi
+!$OMP PARALLEL DO 
+  do p=1,N
+    do nn=1,N
+      coser(nn,p) = cos(Pi*p*nn/dfloat(N))  / sqrt((p**2 + p0**2))
+    enddo
+  enddo
+!$OMP END PARALLEL DO 
 
-!$OMP PARALLEL DO REDUCTION(+:Sq,Sqt)
-       do nn = 1,N
-        do mm = 1,N
+!$OMP PARALLEL DO 
+  do p=1,N
+      eser(p) = exp(-(Pi**2/N**2)*W*(p**2 + p0**2)*t)
+! write(*,*)"eser:",p,t,W,(Pi**2/N**2)*W*(p**2 + p0**2),eser(p) 
+  enddo
+!$OMP END PARALLEL DO 
 
-          Sq  = Sq  + exp(-(q**2)*(       abs(nn-mm)*(l**2)/6.0d0))
-          Sqt = Sqt + exp(-(q**2)*(Dr*t + abs(nn-mm)*(l**2)/6.0d0) + &
-                ff2* sum(cosarray(nn,ipmin:ipmax) * cosarray(mm,ipmin:ipmax) *  ewfac(ipmin:ipmax) ))
+  sqt = 0
+!$OMP PARALLEL DO PRIVATE(rr) REDUCTION(+:sqt)
+  do nn=1,N
+    do mm=1,N
+      rr = 0
+!$OMP PARALLEL DO REDUCTION(+:rr)
+      do p=1,N
+        rr = rr + coser(nn,p)**2 + coser(mm,p)**2 - 2*coser(nn,p)*coser(mm,p) * eser(p)
+!        rr = rr + cos(Pi*p*nn/dfloat(N))**2/p**2 + cos(Pi*p*mm/dfloat(N))**2/p**2 - &
+!                2*cos(Pi*p*nn/dfloat(N))*cos(Pi*p*mm/dfloat(N))/p**2
+      enddo
+!$OMP END PARALLEL DO 
+      rr  = rr * 4*N / (2*Pi)  /Pi 
+!                              === dieser Faktor is noetig damit rr(n,m,0)=abs(n-m) 
+!                              === fehlt im Paper ?!
+!write(*,*)nn,mm,rr
+      sqt = sqt + exp(-(q*l)**2/6d0 * rr)
+      rrarr(mm,nn) = rr
+    enddo
+  enddo
+!$OMP END PARALLEL DO 
+  sqt = sqt / (N*N) 
+  if(present(sqtint)) sqtint = sqt
+ 
+! Diffusion
+  qq0 = q0**2
+  if(abs(W*qq0*t) > 1d-6) then
+     rr     = 2*l**2/N/qq0*(1-exp(-W*qq0*t))  ! a factor of 2 different from Vilgis ...
+  else
+     rr     = 2*l**2*W*t/N-l**2*W**2*t**2*qq0/N
+  endif
 
-        enddo
-       enddo
-!$OMP END PARALLEL DO
+  sqt    = sqt*exp(-(q)**2/6d0 * rr)
 
-       Sq  = Sq /N
-       Sqt = Sqt/N
-
-!!       write(6,'(1x,a,6E14.6)')'q,t,Sq,Sqt, Sqt/Sq, w=', q,t,Sq,Sqt, Sqt/Sq, w
-
-       return
-       end
+end subroutine NNvilgis
 
 
 
-
-
- end function th_nvilgis
+ end function th_nnvilgis

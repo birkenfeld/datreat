@@ -133,7 +133,7 @@
      double precision        :: tmax = 1000d0
      logical                 :: newcomp_required
      integer                 :: i
-     double precision        :: ts, rmsdev, rmsdev_limit = 1d-3
+     double precision        :: ts, rmsdev, rmsdev_limit = 1.5d-3
 
      double precision        :: ss11, ss110, ss12, ss120, ss22, ss220
 
@@ -612,7 +612,7 @@ ilr: if( newcomp_required ) then
         endif
 
         if(analytic == 2) then
-            write(6,*)"analytic = 2: log spaced oscillating integral.."
+!            write(6,*)"analytic = 2: log spaced oscillating integral.."
             if(phi1 < 1d-5) phi1 = 1d-5
             if(phi2 < 1d-5) phi2 = 1d-5
 

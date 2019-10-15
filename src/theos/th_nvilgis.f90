@@ -19,7 +19,7 @@
 ! the internal parameter representation 
      double precision :: ampli      ! prefactor                                                                       
      double precision :: n          ! number of segments (do not fit, its integer)                                    
-     double precision :: l          ! effective segment length Rg = l * N**nu /sqrt(6)                                
+     double precision :: re         ! effective segment length via Gaussian end-to-end re
      double precision :: wl4        ! Rouse rate                                                                      
      double precision :: rmesh      ! effective potential parameter in terms mesh size, see paper                     
      double precision :: tmesh      ! lifetime of the rmesh constraint (experimental)                                 
@@ -30,8 +30,8 @@
  
      double precision :: th
  
-   double precision :: q0
-   integer          :: ni
+     double precision :: q0, l, Sq, Sqt, t
+     integer          :: ni
 !
 ! ----- initialisation ----- 
     IF (ini.eq.0) then     
@@ -51,7 +51,7 @@
 !       --------------> set the parameter names --->
         parnam ( 1) = 'ampli   '  ! prefactor                                                                       
         parnam ( 2) = 'n       '  ! number of segments (do not fit, its integer)                                    
-        parnam ( 3) = 'l       '  ! effective segment length Rg = l * N**nu /sqrt(6)                                
+        parnam ( 3) = 're      '  ! effective segment length Re = l * N**nu /sqrt(6)                                
         parnam ( 4) = 'wl4     '  ! Rouse rate                                                                      
         parnam ( 5) = 'rmesh   '  ! effective potential parameter in terms mesh size, see paper                     
         parnam ( 6) = 'tmesh   '  ! lifetime of the rmesh constraint (experimental)                                 
@@ -76,11 +76,11 @@
 !
 ! ---- transfer parameters -----
       ampli    =      pa( 1)
-      n        =      pa( 2)
-      l        =      pa( 3)
-      wl4      =      pa( 4)
-      rmesh    =      pa( 5)
-      tmesh    =      pa( 6)
+      n        = ABS( pa( 2) )
+      re       = ABS( pa( 3) )
+      wl4      = ABS( pa( 4) )
+      rmesh    = ABS( pa( 5) )
+      tmesh    = ABS( pa( 6) )
 ! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
       iadda = actual_record_address()
 ! >>> extract: q-value    default value
@@ -92,10 +92,14 @@
 ! ----------------------- implementation ---------------------------
 ! ------------------------------------------------------------------
 ! 
-     q   = x
+     t   = x
      ni  = nint(n)
-     rg  =  l * dble(ni)**nu / sqrt(6d0)
-     th  = ampli * sq
+     l   = re/sqrt(n)
+     rg  =  l * dble(ni) / sqrt(6d0)
+     q0  = (1d0/rmesh**2) * (l**2) / 3d0
+     call  NrouseV(q,t,wl4,l,q0,ni, Sq,Sqt)
+
+     th  = ampli * Sqt/Sq
 
 
      th_nvilgis = th
@@ -109,111 +113,111 @@
  
 
 
-       subroutine NrouseP(q,t,temp,Dr,wl4,N,R, W, l,pmin,pmax, Sq,Sqt)
-!      ========================================================
+       subroutine NrouseV(q,t,wl4,l,q0,N, Sq,Sqt)
+!      ==========================================
 !
-! Rouse expression for a chain of finite length:
-! Input parameters:
-!    q     ----> momentum transfer in A**-1
-!    t     ----> time in nano-sec
-!    temp  ----> temperature in K
-!    Dr    ----> center of mass diffusion constant in A**2/ns, if 0 <-- Rouse-expectation
-!    wl4   ----> friction coefficient in A**4/ns
-!    N     ----> number of chain segments
-!    R     ----> end-to-end distance of the polymer molecule
-!    pmin  ----> minimum p
-!    pmax  ----> maximum p
-! Output parameters:
-!    W     <--- "Rouse factor" 3kT/(xi*l**2); R**2=N*l**2
-!    l     <--- "Segment length l"
-!    Sq    <--- S(Q)
-!    Sqt   <--- S(Q,t)
-! ------------------------------------------------------------
+! Vilgis Boue: Rousechain in a potential
 !
        implicit none
 
-       double precision kb, pi
-       parameter(kb=1.380662d-23)
-       parameter(pi=3.141592654d0)
+       double precision, intent(in)   :: q             ! momentum transfer
+       double precision, intent(in)   :: t             ! time
+       double precision, intent(in)   :: wl4           ! Rouse rate
+       double precision, intent(in)   :: l             ! (effective) segment length
+       double precision, intent(in)   :: q0            ! potential parameter as defined in Vilgis Boue
+       integer         , intent(in)   :: N             ! number of effective segments
 
-       double precision q,t,temp,Dr,xi,R, W,Sq,Sqt, wl4, pmin, pmax
-       integer N, nn,mm,ifix,ip
+       double precision, intent(out)  :: Sq            ! Sqt=0
+       double precision, intent(out)  :: Sqt           ! Sqt
 
-       double precision l, tau_p, kbt, Sq0, arg1, arg2
-       double precision a0,e0, ff2, ffc,    arg10,arg20
-       double precision aa1 , aa2
-       double precision p, p0fix, pfac
+!       double precision, parameter  :: kb=1.380662d-23
+       double precision, parameter :: pi=3.141592654d0
 
-       double precision :: cosarray(N,N), ewfac(N)
+       double precision :: wlt05, w
+ 
+       double precision :: rrnnt(0:N-1)
+       double precision :: rrnn0(0:N-1)
 
-       integer :: ipmin, ipmax, i
+       integer :: nn, i
 
 !       integer iout
 
        if(N.le.0) then
-         W  = 999
          Sq = 999
          Sqt= 999
          write(6,*)'Error Number of chain segments is <= 0!',N
          return
        endif
 
-! ---- determine the segment length l ----
-       l = sqrt(R**2/N)
-
 ! ---- and the Rousefactor ----
-       kbt = temp*kb            ! in Joule = kg*m**2/s**2
-       kbt = kbt * 100          ! in         kg*A**2/ns**2
-       xi  = 3*kbt*l**2 / wl4
-       W   = 3*kbt/(xi*(l**2))  ! in 1/ns
+!       xi  = 3*kbt*l**2 / wl4
+!       W   = 3*kbt/(xi*(l**2))  ! in 1/ns
 
+       w     = wl4 / l**4
+       wlt05 = sqrt(w*t)
 
-! ---- set the diffusion constant if input is zero --- !
-       if(Dr.eq.0.0d0) then
-         Dr = kbt/(N*xi)
-       endif
+iq0:   if(q0 > 1d-2) then
 
 !$OMP PARALLEL DO
-       do nn=1,N
-        do ip=1,N
-         cosarray(nn,ip) = cos((pi*ip*nn)/dfloat(N)) / ip
-        enddo
-       enddo
+          do nn=0,N-1
+             rrnnt(nn) = l**2/q0 &
+                        * (1d0- 0.5d0 &
+                        *  ( 2d0 * cosh(q0*nn)  &
+                        -    ( &
+                                exp(-q0*nn) * erf(q0*wlt05 - nn/(2d0*wlt05)) &
+                              + exp( q0*nn) * erf(q0*wlt05 + nn/(2d0*wlt05)) &
+                             ) &
+                           ) &
+                          )
+   ! limit for  t==> 0
+             rrnn0(nn)= (l**2*exp(q0*nn)**2-0.2D1*l**2*cosh(q0*nn)*exp(q0*nn)+0.2D1*l**2*exp(q0*nn)-l**2)/exp(q0*nn)/q0/0.2D1
+          enddo
 !$OMP END PARALLEL DO
-
+       else  ! series expansion with respect to q0 up to q0**3
 !$OMP PARALLEL DO
-       do i=1,N
-         ewfac(i) = (1d0-exp(-2*W*(1-cos((pi*i)/dfloat(N)))*t))
-       enddo
+          do nn=0,N-1
+             rrnnt(nn) = &
+                      l**2*(nn*erf(nn/wlt05/2d0)*sqrt(Pi)+2d0*exp(-nn**2/wlt05**2/4d0)*wlt05)*Pi**(-1d0/2d0)- &
+                      l**2*nn**2*q0/2d0+l**2*(nn**3*erf(nn/wlt05/2d0)*sqrt(Pi)+0.2D1*exp(-nn**2/wlt05**2/4d0)*nn**2*wlt05- &
+                      4d0*exp(-nn**2/wlt05**2/4d0)*wlt05**3)*Pi**(-1d0/2d0)*q0**2/6d0-l**2*nn**4*q0**3/24d0
+  ! limit for  t==> 0
+             rrnn0(nn) = l**2*nn-l**2*nn**2*q0/2d0+l**2*nn**3*q0**2/6d0-l**2*nn**4*q0**3/24d0
+          enddo
 !$OMP END PARALLEL DO
-
-       ipmin = max(1,nint(pmin))
-       ipmax = min(N,nint(pmax))
+       endif iq0
 
 ! ---- init sums ----
-       Sq0 = 0
        Sq  = 0
        Sqt = 0
-       ff2  = -2*N*(l*q)**2/(3*pi**2)
 
 ! ---- Do the sums -----
 
+! !$OMP PARALLEL DO REDUCTION(+:Sq,Sqt)
+!        do nn = 1,N
+!         do mm = 1,N
+! 
+!           Sq  = Sq  + exp(-(q**2)*rrnn0(abs(nn-mm))/6.0d0)
+!           Sqt = Sqt + exp(-(q**2)*rrnn1(abs(nn-mm))/6.0d0)
+! 
+!         enddo
+!        enddo
+! !$OMP END PARALLEL DO
+
+
 !$OMP PARALLEL DO REDUCTION(+:Sq,Sqt)
-       do nn = 1,N
-        do mm = 1,N
-
-          Sq  = Sq  + exp(-(q**2)*(       abs(nn-mm)*(l**2)/6.0d0))
-          Sqt = Sqt + exp(-(q**2)*(Dr*t + abs(nn-mm)*(l**2)/6.0d0) + &
-                ff2* sum(cosarray(nn,ipmin:ipmax) * cosarray(mm,ipmin:ipmax) *  ewfac(ipmin:ipmax) ))
-
-        enddo
+       do nn = 1,N-1
+          Sq  = Sq  + (N-nn)*exp(-(q**2)*rrnn0(nn)/6.0d0)
+          Sqt = Sqt + (N-nn)*exp(-(q**2)*rrnnt(nn)/6.0d0)
        enddo
 !$OMP END PARALLEL DO
+       Sq  = 2*Sq  + N*exp(-(q**2)*rrnn0(0)/6.0d0)
+       Sqt = 2*Sqt + N*exp(-(q**2)*rrnnt(0)/6.0d0)
+
 
        Sq  = Sq /N
        Sqt = Sqt/N
 
-!!       write(6,'(1x,a,6E14.6)')'q,t,Sq,Sqt, Sqt/Sq, w=', q,t,Sq,Sqt, Sqt/Sq, w
+!       write(6,'(1x,a,6E14.6)')'q,t,Sq,Sqt, Sqt/Sq ', q,t,Sq,Sqt, Sqt/Sq
 
        return
        end

@@ -122,12 +122,12 @@
      double precision        :: tmax = 1000d0
      logical                 :: newcomp_required
      integer                 :: i
-     double precision        :: ts, rmsdev, rmsdev_limit = 1d-3
+     double precision        :: ts, rmsdev, rmsdev_limit = 1.5d-3
 
      double precision        :: ss11, ss110, ss12, ss120, ss22, ss220
 
      double precision        :: a1, a2, r1, r2, r3, b1, b2, g1, g2, g3
-     integer                 :: analytic = 0
+     integer                 :: analytic = 2
      integer                 :: iout = 0
 
 
@@ -588,14 +588,17 @@ ilr: if( newcomp_required ) then
     
         if(analytic == 1) then
  !! AUS NUMERISCHEN GRUENDEN DARF Phi1 bzw Phi2 nicht NULL sein
- !! erstmal default Aktion    
+ !! erstmal default Aktion      
+          write(6,*)"analytic = 1: semianayltic Laplace inv. BETTER USE analytic=2 (num integration) !! "
+
+
           if(phi1 < 1d-5) phi1 = 1d-5
           if(phi2 < 1d-5) phi2 = 1d-5
           call get_invlaplace_coeffs( il_coeffs11, il_coeffs12, il_coeffs22 , il_alphas, nnsum)  
         endif
 
         if(analytic == 2) then
-            write(6,*)"analytic = 2: log spaced oscillating integral.."
+!            write(6,*)"analytic = 2: log spaced oscillating integral.."
             if(phi1 < 1d-5) phi1 = 1d-5
             if(phi2 < 1d-5) phi2 = 1d-5
 

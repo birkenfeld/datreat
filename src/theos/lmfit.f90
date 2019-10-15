@@ -50,6 +50,10 @@ PRIVATE
   double precision, public, save :: RELATIVE_RATE_COMBINE    = 0.25d0
   double precision, public, save :: RELATIVE_LOWRATE_COMBINE = 1d0
   double precision, public, save :: AMPLITUDE_THRESHOLD      = 1d-6
+
+  double precision, public, save :: nexp_initial_slope      
+  double precision, public, save :: nexp_tauave      
+  double precision, public, save :: nexp_suma     
  
 
 
@@ -122,7 +126,7 @@ CONTAINS
        rmsvals             = HUGE(rmsdev)
        rtcvals             = rrcombine_increment 
        nvals               = n
-       maximum_iterations2 = nint(0.5d0/rrcombine_increment)
+       maximum_iterations2 = nint(1d0/rrcombine_increment)
 
        n = 1
        actual_rmsdev = Huge(actual_rmsdev)
@@ -162,29 +166,40 @@ dit2:      do it2=1, maximum_iterations2
       rexp  = rexps(:,ibest)
       rmsdev= rmsvals(ibest)  
 
-      if(iout0 >= 0) then
+      nexp_suma          = sum(aexp(1:n0))
+      nexp_tauave        = dot_product(aexp(1:n0),1d0/rexp(1:n0))
+      nexp_initial_slope = dot_product(aexp(1:n0),rexp(1:n0))
+
+
+      if(iout0 == 0) then
+         write(*,'(a,i0,a,f10.5,a,f10.1)',advance="no")"mexp-fit from ",m," points between ",xv(1)," to ",xv(m)
+         write(*,'(a,i0,a,f10.5)')" => ",n0,"-exp fit rmsdev =",rmsdev
+      endif
+
+      if(iout0 >= 1) then
          write(*,'(a)')"======= match_exp_auto (module lmfit) =================="
          write(*,'(a)')"Modelling tabulated values by a sum of simple exponentials."
 
-         write(*,'(a,i0,a)')"   Trial results (ibest=",ibest,"):"
-         write(*,'(a)'     )" iter  nexp    relcomb         rmsdev "
-         do i=1,it-1
-            write(*,'(i4,":",i4,2x,f12.6,2x,e14.7)')i, nvals(i), rtcvals(i), rmsvals(i)
-         enddo
-         write(*,'(a)')" "
-
+            write(*,'(a,i0,a)')"   Trial results (ibest=",ibest,"):"
+            write(*,'(a)'     )" iter  nexp    relcomb         rmsdev "
+            do i=1,it-1
+               write(*,'(i4,":",i4,2x,f12.6,2x,e14.7)')i, nvals(i), rtcvals(i), rmsvals(i)
+            enddo
+            write(*,'(a)')" "
 
          write(*,'(i4,a,f10.5,a,f10.1)')m," points (log spaced) table of values extends from",xv(1)," to ",xv(m)
-         write(*,'(a,e14.7)')"Result with  root mean squared deviation =",rmsdev
-         write(*,'(a)')"             Aexp               tau            rate"
-         write(*,'(a)')"--------------------------------------------------------"
-         do i=1,n0
-          write(*,'(i8,f15.8,3x,f15.4,f15.8)') i, aexp(i), 1d0/rexp(i), rexp(i)
-         enddo
-         write(*,'(a)')"--------------------------------------------------------"
-         write(*,'(a,f18.8)')"Sum(amplitudes)    =",sum(aexp(1:n0))
-         write(*,'(a,f18.8)')"tauave(amplitudes) =",dot_product(aexp(1:n0),1d0/rexp(1:n0))/sum(aexp(1:n0))
-         write(*,'(a)')"--------------------------------------------------------"
+         write(*,'(a,i0,a,e14.7)')"Result: ",n0,"-exp fit with rms deviation =",rmsdev
+            write(*,'(a)')"             Aexp               tau            rate"
+            write(*,'(a)')"--------------------------------------------------------"
+            do i=1,n0
+             write(*,'(i8,f15.8,3x,f15.4,f15.8)') i, aexp(i), 1d0/rexp(i), rexp(i)
+            enddo
+            write(*,'(a)')"--------------------------------------------------------"
+            write(*,'(a,f18.8)')"Sum(amplitudes)    =",nexp_suma
+            write(*,'(a,f18.8)')"tauave(amplitudes) =",nexp_tauave
+            write(*,'(a,f18.8)')"initial slope      =",nexp_initial_slope 
+            write(*,'(a,f18.8)')"initial tau        =",nexp_suma/nexp_initial_slope 
+            write(*,'(a)')"--------------------------------------------------------"
       endif
 
 
