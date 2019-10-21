@@ -34,7 +34,7 @@
       ! use cmargs
       use xoutxx
       use cdata
-      ! use outlev
+      !  use outlev
       use theory
       use selist
       use fslist
@@ -51,6 +51,8 @@
       use PhysicalConstantsPlus
       use unift
       use theory_description
+      use gr_interface
+      use lmfit
       implicit none
 
       integer iadda
@@ -125,7 +127,8 @@
 
 
 
-       character(len=80) :: cbuffer
+       character(len=80)         :: cbuffer
+       character(len=len(title)) :: tbuffer
 
 
 !
@@ -264,6 +267,11 @@
                         write(6,*)'=                as templates                                    =' 
                         write(6,*)'=  fxy         : immediate function fxy & x=(..) y=(..)          =' 
                         write(6,*)'=  csep        : set resline separator, default now is: &        =' 
+                        write(6,*)'=  average     : combine points for one or several records       =' 
+                        write(6,*)'=  NEW (5/2019)                                                  =' 
+                        write(6,*)'=  aligny      : determine scaling to match (e.g SANS col1,2..   =' 
+                        write(6,*)'=  NEW (9/2019)                                                  =' 
+                        write(6,*)'=  mexp        : automatic matching of sum(n=1..N, an*exp(-t/tn))=' 
                         write(6,*)'=================================================================='
                        
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -383,6 +391,20 @@
 
        call get_newcom(comand, istat)  
 
+       if(istat < 0) then   ! exit
+ !         write(*,*)"istat = ",istat
+          select case(istat)
+          case (-1)
+            write(*,*)'..to exit datreat enter "quit" or "exit"!' 
+          case (-2)
+            write(*,*)'..to exit datreat enter "quit" or "exit"!' 
+          case (-3)
+            stop "exit datreat BYE...."
+          case default
+             write(*,*)"PROGRAMMING ERROR (new_com): unknown istatus ", istat
+          end select 
+          goto 2000
+       endif
 !       iout() = iot
 !
 !
@@ -1145,7 +1167,7 @@
        endif
 
 !
-       if(comand.eq.'arit    ') then ! alte version von arit 
+       if(comand.eq.'aritold ') then ! alte version von arit 
 !                    ----
           if(found('help    ')) then 
            write(6,*)'=============================================================================='
@@ -1333,181 +1355,33 @@ da1:     do i=1,nbuf
        endif
 !
 !
-       if(comand.eq.'arit2    ') then  ! deals better with interpolation at boundaries of range (vorher arit2)!
+       if(comand.eq.'arit     ') then  ! deals better with interpolation at boundaries of range (vorher arit2)!
 !                    ----
-          if(found('help    ')) then 
-           write(6,*)'=============================================================================='
-           write(6,*)'= arit2 f1 <factor1> f2 <factor2> [to <numor>]  [options]                     '
-           write(6,*)'=      adds the two selected records with factors 1,2 and stores as numor     '
-           write(6,*)'=      for nonmatchig x-values interpolation is applied                       '
-           write(6,*)'=   options:                                                                  '
-           write(6,*)'=            div     : divides (instead of adding)                            '
-           write(6,*)'=            mult    : multiplies (instead of adding)                         '
-           write(6,*)'=            sc <numor1> <numor2>  : selection by numor match instead of sel  '
-           write(6,*)'=   new  version requires sorted data                                         '
-           write(6,*)'=============================================================================='
-           goto 2000
-        endif
+        call arit()
 
-         newnum = 777777
-         idimux = 0
-
-         num1 = 0
-         num2 = 0
-         do i=1,inames
-          j = inapa(i)
-          if(vname(i).eq.'norm    ') withmo = .true.
-          if(vname(i).eq.'nonorm  ') withmo = .false.
-          if(vname(i).eq.'div     ') idimux = 1
-          if(vname(i).eq.'mult    ') idimux = 2
-          if(vname(i).eq.'to      ') newnum = Nint(rpar(j))
-          if(vname(i).eq.'sc      ') then
-            num1 = Nint(rpar(j))
-            num2 = Nint(rpar(j+1))
-          endif
-          if(vname(i).eq.'factor1 '.or.vname(i).eq.'f1      ')          &
-     &                                                 facto1 = rpar(j)
-          if(vname(i).eq.'factor2 '.or.vname(i).eq.'f2      ')          &
-     &                                                 facto2 = rpar(j)
-        enddo
-! --- figuer out the adresses ---
-         if(nsel.eq.2) then
-           iad1 = isels(1)
-           iad2 = isels(2)
-         else
-           iad1 = 0
-           iad2 = 0
-         endif
-da12:    do i=1,nbuf
-          if(numor(i) == 0 ) cycle da12
-          if(numor(i).eq.num1) iad1 = i
-          if(numor(i).eq.num2) iad2 = i
-         enddo da12
-         if(iad1.eq.0) then
-           write(6,*)'file :',num1,' not found'
-           goto 2000
-         endif
-         if(iad2.eq.0) then
-           write(6,*)'file :',num2,' not found'
-           goto 2000
-         endif
-! --- if result is already there , replace it ---
-         newadd = nbuf+1
-         do i=1,nbuf
-          if(numor(i).eq.newnum) newadd = i
-         enddo
-         if(newadd.gt.nbuf) nbuf = newadd
-         if(nbuf.ge.size(nwert)) then
-           write(6,*)'no storage for the result'
-           nbuf = nbuf - 1
-           goto 2000
-         endif
-! ---- normalize to monitor-values ----
-         if(withmo) then
-           write(6,*)'normalizing to monitor-values ....'
-           write(6,*)'use option nonorm to switch off, norm to swit. on'
-! ---- extract monitorvalues ----
-            xmon1 = 0
-           do i=1,nopar(iad1)
-             if(napar(i,iad1).eq.'monitor  ') xmon1 = params(i,iad1)
-           enddo
-           xmon2 = 0
-           do i=1,nopar(iad2)
-             if(napar(i,iad2).eq.'monitor  ') xmon2 = params(i,iad2)
-           enddo
-           if(xmon1.eq.0) then
-             write(6,*)'monitor of first file is lacking take 1'
-             xmon1 = 1
-           endif
-           if(xmon2.eq.0) then
-             write(6,*)'monitor of 2nd   file is lacking take 1'
-             xmon2 = 1
-           endif
-         else
-           xmon1 =1
-           xmon2 =1
-         endif
-!        ------> of if(withmo ..
-! --- start the computation ---
-         n1 = nwert(iad1)
-         n2 = nwert(iad2)
-         n3 = n1
-         if(n3.gt.mwork) then
-           write(6,*)'arit2 workspace insufficient'
-           goto 2000
-         endif
-         call get_pair_of_points(xwerte(1,iad1),ywerte(1,iad1),yerror(1,iad1),n1, &
-    &                            xwerte(1,iad2),ywerte(1,iad2),yerror(1,iad2),n3, &
-    &                            xwerte(1,newadd), yout1, yerout1, yout2, yerout2, nout)
-
-         nwert(newadd) = nout
-         do i=1,nout
-          x1 = xwerte(i,newadd)
-          y0 = yout1(i)
-          y1 = yout2(i)
-          y00 = y0
-          y11 = y1
-           if(idimux.eq.0 ) y  = facto1 * y0/xmon1 +                    &
-     &          facto2 * y1 / xmon2
-           if(idimux.eq.1 ) y  = (facto1 * y0/xmon1) /                  &
-     &        (  facto2 *y1 / xmon2)
-           if(idimux.eq.2 ) y  = (facto1 * y0/xmon1) *                  &
-     &        (  facto2 * y1 / xmon2)
-           ywerte(i,newadd) = y
-           yyy=y
-! --- and the errors ! ----
-           y0 = yerout1(i)
-           y1 = yerout2(i)
-           if(idimux.eq.0) y = (facto1 * y0/xmon1)**2 +                 &
-     &          (facto2 * y1 / xmon2)**2
-           if(idimux.eq.1) y = yyy * ((facto1 * y0/xmon1)/y00) *        &
-     &          ((facto2 * y1 / xmon2)/y11)
-           if(idimux.eq.2) y = yyy * ((facto1 * y0/xmon1)/y00) *        &
-     &          ((facto2 * y1 / xmon2)/y11)
-           yerror(i,newadd) = sqrt(y)
-         enddo
-         call txfpar(iad1,newadd)
-         nwert(newadd) = n3
-         numor(newadd) = newnum
-         xname(newadd) = xname(iad1)
-         yname(newadd) = yname(iad1)
-          name(newadd) =  name(iad1)
-         coment(newadd)= coment(iad1)(1:40)//coment(iad2)(1:40)
-         nnpar=nopar(iad1)
-       if(nnpar.le.mpar-2) then
-         nnpar=nnpar+2
-         nopar(newadd) = nnpar
-         params(1,newadd) = facto1
-         params(2,newadd) = facto2
-         napar(1,newadd)  = name(iad1)
-         napar(2,newadd)  = name(iad2)
-         np=3
+        goto 2000
        endif
-         do  i=np,nnpar
-           params(i,newadd)= params(i+1-np,iad1)
-           napar(i,newadd) = napar (i+1-np,iad1)
-         enddo
-         write(6,*)n3,' points resulting from arit are stored as sc',   &
-     &                  newnum
-         if(idimux.eq.0)                                                &
-     &   write(6,*)'<===',facto1,' * ',name(iad1),' + ',facto2,' * ',   &
-     &             name(iad2)
-         if(idimux.eq.1)                                                &
-     &   write(6,*)'<===',facto1,' * ',name(iad1),' / ',facto2,' * ',   &
-     &             name(iad2)
-         if(idimux.eq.2)                                                &
-     &   write(6,*)'<===',facto1,' * ',name(iad1),' * ',facto2,' * ',   &
-     &             name(iad2)
-         isels(1) = newadd
-         ifits(1) = 0
-         nsel     = 1
-         goto 2000
-       endif
+
 !
 !
        if(comand.eq.'average ') then
 !                    -------
          call average_data()
+
+         goto 2000
+       endif
+!
+!
+       if(comand.eq.'aligny ') then
+!                    -------
+         call align_y()
+
+         goto 2000
+       endif
+
+       if(comand.eq.'aligna ') then
+!                    -------
+         call align_a()
 
          goto 2000
        endif
@@ -3372,8 +3246,11 @@ drer1:    do ik=1,n
                xxxx = xwerte(i,ia)
                yyyy = ywerte(i,ia)
                yyee = yerror(i,ia)
+write(*,'(a,a,4f12.6)')"TEST: form1=",trim(yformel),xxxx,yyyy,yyee
                call evaluate(yformel,val8y,iery)
+write(*,*)"evaluate: ",trim(yformel), val8y, iery
                yerror(i,ia) = val8y
+write(*,'(a,a,4f12.6)')"TEST: form2=",trim(yformel),xxxx,yyyy,yyee,val8y
            enddo
           enddo
          goto 2000
@@ -4022,8 +3899,18 @@ exclude:   if(found('exclude  ')) then
 !                    -----
          fsname = 'lastsave'
          if(inames.gt.0)   fsname = argvals(1)
-         title = trim(fsname)  !! experimental... 
+ !        title = trim(fsname)  !! experimental... 
          call msavdat(fsname)
+         if(.not. found("np      ")) then   ! suppress plotting by option "np"
+           tbuffer = title
+           title = trim(title)//"("//trim(fsname)//")"
+           call splot(.true.)
+           write(charbuf,'(a)')'cp "'//trim(LAST_DTR_PLOT)//'" '//'plot_'//trim(fsname)//'.pdf' 
+           write(*,*)"last plot: ",trim(LAST_DTR_PLOT)
+           write(*,*)"executing: ",trim(charbuf)
+           call execute_command_line(trim(charbuf)) 
+           title = tbuffer
+         endif
          goto 2000
        endif
 !
@@ -4090,7 +3977,7 @@ exclude:   if(found('exclude  ')) then
 !                    -------
 !cc      yformel = title
          if(ioldc.ne.0) then
-           yformel  = reslin
+           yformel  = adjustl(reslin)
            ioldc   = 0
          else
            write(*,*)"no contiunuation with formula found!"
@@ -4106,7 +3993,7 @@ exclude:   if(found('exclude  ')) then
 !                    -------
 !cc      xformel = title
          if(ioldc.ne.0) then
-           xformel  = reslin
+           xformel  = adjustl(reslin)
            ioldc   = 0
          else
            write(*,*)"no contiunuation with formula found!"
@@ -4375,31 +4262,6 @@ exclude:   if(found('exclude  ')) then
        endif
 !
  
-       if(comand.eq.'oplot    ') then
-!                    -----> plot selected curves with okular
-         write(*,*)"Choose output device 61, 62 or 101 !"
-         write(*,*)
-         call splot(.true.)
-         call execute_command_line("ls -t gli* | head -1 > LGLI")
-         open(33,file="LGLI")
-         read(33,'(a)') fsname
-         close(33)
-         charbuf = ' '
-         do i=1,len_trim(title)
-          if(title(i:i) == ' ') then
-             charbuf(i:i) = '_'
-          else 
-             charbuf(i:i) = title(i:i)
-          endif
-         enddo                 
-!         write(*,*)"fsname ",trim(fsname)," extension:",fsname(len_trim(fsname)-3:len_trim(fsname))
-         charbuf = trim(charbuf)//fsname(len_trim(fsname)-3:len_trim(fsname))
-         call execute_command_line("cp "//trim(fsname)//" "//trim(charbuf))
-         write(*,*)"open ",trim(charbuf)
-         call execute_command_line("okular "//trim(charbuf))
-         goto 2000
-       endif
-
       if(comand.eq.'plot    '.or.comand.eq.'p       '.or.comand.eq.'gp      ') then
 !                    -----> plot selected curves
          call splot(.true.)
@@ -4543,9 +4405,18 @@ exclude:   if(found('exclude  ')) then
 
          goto 2000
        endif
-!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!! multi exp fits !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+       if(comand.eq.'mexp    ') then
+!                    ---> estimate a multi exp representation 
+         call dtr_mexp()
 
+         goto 2000
+       endif
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! TOF-Stuff !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
        if(comand.eq.'tofdos  ') then
 !                    ---> remove points
@@ -4954,6 +4825,7 @@ exclude:   if(found('exclude  ')) then
       real                          :: xwidth
       logical                       :: relative_catch 
       logical                       :: put_width   
+      logical                       :: logy
 
       real                          :: xpa, xpaav
       integer                       :: ipa   
@@ -4967,6 +4839,7 @@ exclude:   if(found('exclude  ')) then
        write(6,*)'= current default is xcatch  ',xcatch,'  relative '
        write(6,*)'= option (volatile): absolute  catches within absolute distance               ='
        write(6,*)'= option (volatile): putwidth  set _xwidth parameter to min channel distance'
+       write(6,*)'= option (volatile): log_y     averfage y on log scale                        '
        write(6,*)'=============================================================================='
        return
       endif
@@ -4987,7 +4860,7 @@ exclude:   if(found('exclude  ')) then
          put_width      = .false.
       endif
 
-         
+      logy = found('log_y   ')
 
 
       if(nsel <= 0) then
@@ -5002,6 +4875,11 @@ exclude:   if(found('exclude  ')) then
         return
       endif
 
+      write(*,'(a,f12.6)', advance='no')"Averaging with xcatch = ",xcatch
+      if(.not. relative_catch) write(*,'(a)', advance='no')" absolute catch " 
+      if(logy)                 write(*,'(a)')"   y-values on log-scale (log_y)"
+
+
 ! prepare destination
       nbuf = nbuf + 1
       call txfera(isels(1),nbuf)
@@ -5010,6 +4888,11 @@ exclude:   if(found('exclude  ')) then
         call parset("xcatch_r ",sngl(xcatch),nbuf)
       else
         call parset("xcatch_a ",sngl(xcatch),nbuf)
+      endif
+      if(logy) then
+        call parset("log_y ",1.0,nbuf)
+      else
+        call parset("log_y ",0.0,nbuf)
       endif
       do i=1, nsel
         write(cbuf,'("c",i0)')i
@@ -5042,11 +4925,21 @@ exclude:   if(found('exclude  ')) then
          xva(n)    =  xwerte(j,isels(i))
          yva(n)    =  ywerte(j,isels(i))
          yvaer(n)  =  yerror(j,isels(i))
+         if(logy) then
+           if(yva(n) <= 0d0) then
+             n = n - 1
+             cycle
+           endif
+           yvaer(n) = abs(yvaer(n) / yva(n))
+           yva(n)    = log(yva(n))  
+         endif
+
+
          if(yvaer(n) <= 0.0d0) then
            yem = yvaer(max(1,n-1))
            if(yem > 0.0) then
              yvaer(n) = yem
-             write(6,*)"WARNING: borrowed error from brevious point",i,j
+             write(6,*)"WARNING: borrowed error from previous point",i,j
            else
              write(6,*)"Error occured with record:",isels(i)," point:",j
              call errsig(999,"ERROR: Average: Missing y-errors $")
@@ -5119,6 +5012,10 @@ d2:       do j=1,number_of_data_points
        xva  (1:n_result_point) = xwerte(iperm(1:n_result_point),nbuf)
        yva  (1:n_result_point) = ywerte(iperm(1:n_result_point),nbuf)
        yvaer(1:n_result_point) = yerror(iperm(1:n_result_point),nbuf)
+       if(logy) then
+         yva(1:n_result_point)   = exp(yva(1:n_result_point))
+         yvaer(1:n_result_point) = yva(1:n_result_point) * yvaer(1:n_result_point) 
+       endif
        xwerte(1:n_result_point,nbuf) =  xva  (1:n_result_point)
        ywerte(1:n_result_point,nbuf) =  yva  (1:n_result_point) 
        yerror(1:n_result_point,nbuf) = yvaer (1:n_result_point)
@@ -5129,7 +5026,7 @@ d2:       do j=1,number_of_data_points
          call parset ("_xwidth ",xwidth,nbuf)
          write(6,'(a,es14.5)')"the channel width _xwidth used by convoluted theories (kohl..) is ",xwidth
          write(6,'(a)')" the minimum distance between channels! "
-         write(6,'(a)')" CARE: consider whether this is adwqaute here (for quaiselastic spectra like kohl...)"
+         write(6,'(a)')" CARE: consider whether this is adeqaute here (for quaiselastic spectra like kohl...)"
          write(6,'(a)')"       with xcatch relative it is probably ok and good "
          write(6,'(a)')"       with xcatch absolute the new points it must be carefully considered what is good "
          write(6,'(a)')"       average is a kind of interpolation and not an integration, so the original width "
@@ -5148,24 +5045,30 @@ d2:       do j=1,number_of_data_points
       enddo
       weights = weights / sum(weights(1:nsel))
 
-! write(*,*)"TEST0a: weights", weights
+! write(*,*)"TEST0a: weights", weights(1:nsel)
 
-! write(*,*)"TEST0b: nopar", nopar(nbuf), nbuf
+! write(*,*)"TEST0b: nopar", nopar(nbuf), nbuf, nsel
 
-      do ipa=1,nopar(nbuf)
+dipa: do ipa=1,nopar(nbuf)
+        if(nopar(nbuf) <=0) exit
         xpaav = 0
-        do i=1,nsel
-! write(*,*)"TEST1:a ",i, ipa, isels(i), trim(napar(ipa,isels(i)))      
+!TP: write(*,*)"TEST ipa-loop: ",ipa, nopar(nbuf)
+dse:    do i=1,nsel
+!TP: write(*,*)"TEST1:a ",i, ipa, isels(i), trim(napar(ipa,isels(i))),nopar(isels(i))       
+          cbuf = "_nomatch" 
+!?          if(nopar(isels(i)) > ipa) cycle dse
           cbuf = trim(napar(ipa,isels(i)))   
-! write(*,*)"TEST: cbuf ",cbuf
+!TP: write(*,*)"TEST:     cbuf >",trim(cbuf),"<",i,ipa, len_trim(cbuf) 
           call parget(cbuf, xpa, isels(i), ier )
+!TP: write(*,*)"TEST: get cbuf >",trim(cbuf),"<", xpa, isels(i), ier
 
+          if(ier.ne.0) cycle dipa
           xpaav = xpaav + weights(i) * xpa
-! write(*,*)"TEST1: ",i, isels(i), ipa, cbuf, xpa, xpaav,  weights(i)  
-        enddo
-        call parset(cbuf,xpaav,nbuf)
-! write(*,*)"TEST SETTING: ",cbuf, xpaav, nbuf
-      enddo
+!TP: write(*,*)"TEST1: ",i, isels(i), ipa, cbuf, xpa, xpaav,  weights(i), ier  
+        enddo dse
+        call parset(napar(ipa,isels(1)),xpaav,nbuf)
+!TP: write(*,*)"TEST SETTING: ",trim(napar(ipa,isels(1))),":",trim(cbuf),":", xpaav, nbuf
+      enddo dipa
 
 
 
@@ -5195,11 +5098,927 @@ d2:       do j=1,number_of_data_points
       deallocate(weights)
 
 
-
-
    end subroutine average_data
 
+ 
+   subroutine arit()
+!     -------------------------
+      use dimensions
+      use new_com
+      ! use cincoc
+      use xoutxx
+      use cdata
+      ! use outlev
+      use theory
+      use selist
+      use fslist
+      use theorc
+      use thparc
+      use formul
+      use cfc
+      use cfunc
+      use cfunce
+      use partran
+      use wlntran
+      use sqtran
+!      use constants
+      use PhysicalConstantsPlus
+ 
+      implicit none
 
+      double precision       :: y2   (size(xwerte(:,1)))  ! selection values interpolated to x1 vals
+      double precision       :: y2err(size(xwerte(:,1)))  ! selection values interpolated to x1 vals
+      double precision, save :: f1 = 1d0                  ! factor for sel 1
+      double precision, save :: f2 = 1d0                  ! factor for sel 2 
+      integer                :: mode  
+      integer                :: is1, is2  
+      integer                :: number_of_datapoints, n
+
+      integer                :: imatch1, imatch2
+      integer                :: inew
+      double precision       :: p
+      integer                :: i, to_numor = 1
+
+      integer, parameter     :: add  = 0
+      integer, parameter     :: mult = 1
+      integer, parameter     :: div  = 2
+      integer, parameter     :: vid  = 3
+
+      character(len=1)       :: op
+
+
+
+      if(found('help    ')) then 
+       write(6,*)'=============================================================================='
+       write(6,*)'= arit2 f1 <factor1> f2 <factor2> [to <numor>]  [options]                     '
+       write(6,*)'=      adds the two selected records with factors 1,2 and stores as numor     '
+       write(6,*)'=      for nonmatchig x-values interpolation is applied                       '
+       write(6,*)'=      x-values of first selection serve as master                            '
+       write(6,*)'=   options:                                                                  '
+       write(6,*)'=            div     : divides (1)/(2) (instead of adding)                    '
+       write(6,*)'=            vid     : divides (2)/(1) (instead of adding)                    '
+       write(6,*)'=            mult    : multiplies (instead of adding)                         '
+       write(6,*)'=============================================================================='
+       return
+      endif
+
+
+
+
+
+      f1       = getval("f1      ",f1,inew)
+      f2       = getval("f2      ",f2,inew)
+      to_numor = intval("to      ",to_numor,inew)
+                                      mode = add       ! +
+      if(         found("mult    "))  mode = mult      ! * 
+      if(         found("div     "))  mode = div       ! / 
+      if(         found("vid     "))  mode = vid       ! / 
+
+         
+      if(nsel .ne. 2) then
+        write(6,*)"Needs selection of exactly TWO records!"
+        ierrs = 1000
+        return
+      endif
+
+      is1 = isels(1)      
+      is2 = isels(2)      
+     
+
+
+      if(nbuf >= size(nwert)) then
+        write(6,*)"..too many buffers", nbuf, size(nwert)
+        ierrs = 2000
+        return
+      endif
+
+! prepare destination by pushing paramters etc.
+      nbuf = nbuf + 1
+      call txfera(is1,nbuf)
+      numor(nbuf)        = numor(is1)+1000000
+
+      if(   found("to      ")) numor(nbuf) = to_numor
+      call parset("numor1  ",real(numor(is1)),nbuf)
+      call parset("numor2  ",real(numor(is2)),nbuf)
+! check how many data_points are there
+      number_of_datapoints = nwert(is1)
+
+! prepare selection 2 linear interpolation vector
+      do i=1,nwert(is1)
+       imatch1 = minloc(abs(xwerte(i,is1)-xwerte(1:nwert(is2),is2)),dim=1)
+       imatch2 = minloc(abs(xwerte(i,is1)-xwerte(1:nwert(is2),is2)),dim=1, &
+                        mask=(xwerte(1:nwert(is2),is2).ne.xwerte(imatch1,is2)))
+       p        = (xwerte(i,is1)  -  xwerte(imatch1,is2)) /   &
+                 (xwerte(imatch2,is2) - xwerte(imatch1,is2))
+       y2(i)    = ywerte(imatch1,is2) * (1d0-p) + ywerte(imatch2,is2) * p
+       y2err(i) = yerror(imatch1,is2) * (1d0-p) + yerror(imatch2,is2) * p 
+       if(abs(p) > 1d0) y2err(i) = Huge(p)   
+! write(*,*)"T1:",i, imatch1, imatch2, p, xwerte(i,is1), xwerte(imatch1,is2), xwerte(imatch2,is2)
+! write(*,*)"  :",i, imatch1, imatch2, ywerte(i,is1), y2(i), ywerte(imatch1,is2), ywerte(imatch2,is2)
+      enddo
+
+! do the arithmetic
+      select case(mode)
+      case(add)
+        xwerte(1:number_of_datapoints,nbuf)         = xwerte(1:number_of_datapoints,is1)
+        ywerte(1:number_of_datapoints,nbuf)         =   f1 * ywerte(1:number_of_datapoints,is1)  &
+                                                      + f2 * y2(1:number_of_datapoints)
+
+        yerror(1:number_of_datapoints,nbuf)   = sqrt( (f1 * yerror(1:number_of_datapoints,is1))**2  &
+                                                     +(f2 * y2err(1:number_of_datapoints))**2 )
+        op = "+"
+      case(mult)
+        xwerte(1:number_of_datapoints,nbuf)         = xwerte(1:number_of_datapoints,is1)
+        ywerte(1:number_of_datapoints,nbuf)         =   f1 * ywerte(1:number_of_datapoints,is1)  &
+                                                      * f2 * y2(1:number_of_datapoints)
+
+        yerror(1:number_of_datapoints,nbuf)   = f1*f2*sqrt( ( y2(1:number_of_datapoints)*yerror(1:number_of_datapoints,is1))**2  &
+                                                     +( ywerte(1:number_of_datapoints,is1) * y2err(1:number_of_datapoints))**2 )
+        op = "*"
+      case(div)
+        xwerte(1:number_of_datapoints,nbuf)         = xwerte(1:number_of_datapoints,is1)
+        ywerte(1:number_of_datapoints,nbuf)         =     f1 * ywerte(1:number_of_datapoints,is1)  &
+                                                      / ( f2 * y2(1:number_of_datapoints))
+
+        yerror(1:number_of_datapoints,nbuf)   =(f1/f2)*sqrt( ( y2(1:number_of_datapoints)*yerror(1:number_of_datapoints,is1))**2  &
+                                                     +( ywerte(1:number_of_datapoints,is1) * y2err(1:number_of_datapoints))**2 )  &
+                                                     / y2(1:number_of_datapoints)**2
+        op = "/"
+      case(vid)
+        xwerte(1:number_of_datapoints,nbuf)         = xwerte(1:number_of_datapoints,is1)
+        ywerte(1:number_of_datapoints,nbuf)         = 1d0/  (  f1 * ywerte(1:number_of_datapoints,is1) )  &
+                                                      * ( f2 * y2(1:number_of_datapoints))
+
+        yerror(1:number_of_datapoints,nbuf)   =(f2/f1)*sqrt( ( y2(1:number_of_datapoints)*yerror(1:number_of_datapoints,is1))**2  &
+                                                     +( ywerte(1:number_of_datapoints,is1) * y2err(1:number_of_datapoints))**2 )  &
+                                                     / ywerte(1:number_of_datapoints,is1)**2
+        op = "/"
+        i  = is1;  is1 = is2; is2 = i
+      case default
+        write(6,*)"..unknown arithmetic operation requested", mode
+        ierrs = 3000
+        return
+  
+      end select
+
+!  remove invalid points
+      n = 0
+      do i=1,number_of_datapoints
+         if(y2err(i) < Huge(p)) then
+           n = n + 1
+           xwerte(n,nbuf) = xwerte(i,nbuf) 
+           ywerte(n,nbuf) = ywerte(i,nbuf) 
+           yerror(n,nbuf) = yerror(i,nbuf) 
+         endif
+      enddo
+      nwert(nbuf) = n
+      nsel = 1
+      isels(1)    = nbuf
+
+     write(*,'(a,i0,a,i0,a,i0)')"arit: f1 * (",is1,") "//op//" f2 * (",is2,")  ==> ",nbuf
+     write(*,'(a,e15.8)')       "      f1 = ",f1
+     write(*,'(a,e15.8)')       "      f2 = ",f2
+     write(*,'(a,i0   )')       "      new number of points = ",nwert(nbuf)
+     write(*,'(a,i0,a,i0)')     "      ==> ",nbuf," now selected, new numor = ",numor(nbuf)
+
+   end subroutine arit
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! intensity aligning two data sets by scale an offset
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+subroutine  align_y
+ 
+      use dimensions
+      use new_com
+      ! use cincoc
+      use xoutxx
+      use cdata
+      ! use outlev
+      use theory
+      use selist
+      use fslist
+      use theorc
+      use thparc
+      use formul
+      use cfc
+      use cfunc
+      use cfunce
+      use partran
+      use wlntran
+      use sqtran
+!      use constants
+      use PhysicalConstantsPlus
+ 
+      implicit none
+      double precision     :: mpar(2) = [0d0,1d0]
+      double precision     :: errmin
+      double precision     :: step(2) = 0.05d0
+      integer              :: n1, n2, ier
+
+
+      if(found('help    ')) then 
+       write(6,*)'=============================================================================='
+       write(6,*)'= aligny                                                                     ='
+       write(6,*)'= determine offset and scale y<=(y+offse)*scale                              ='
+       write(6,*)'= of second selected record in order to match the first selected             ='
+       write(6,*)'= the scaled result is copied to a new record                                ='
+       write(6,*)'= this and the "master" record stay selected such tha one may                ='
+       write(6,*)'= use average to merge them                                                  ='
+       write(6,*)'= HINT:                                                                      ='
+       write(6,*)'=     check whether clip (ing) marginal points in the overlap could          ='
+       write(6,*)'=     improve the accuracy of the result !                                   ='
+       write(6,*)'=  aligny offset <val>                                                       =' 
+       write(6,*)'=  aligny yscale <val>                                                       =' 
+       write(6,*)'=  aligny ostep  <val>                                                       ='  
+       write(6,*)'=  aligny ystep  <val>                                                       ='  
+       write(6,*)'=============================================================================='
+       return
+      endif
+
+
+      if(nsel .ne. 2) then
+        write(*,*)"ERROR: aligny needs selection of two curves"
+        write(*,*)"Select just two curves: master and slave to be scaled!"
+        ierrs = 1000
+        return
+      endif
+
+      if(nbuf >= size(nwert)-1) then
+        write(*,*)"..too many buffers", nbuf, size(nwert)
+        ierrs = 2000
+        return
+      endif
+
+      mpar(1) =  getval("offset ",mpar(1))
+      mpar(2) =  getval("yscale ",mpar(2))
+      step(1) =  getval("ostep  ",step(1)) 
+      step(2) =  getval("ystep  ",step(2)) 
+
+! prepare destination
+      nbuf = nbuf + 1
+      call txfera(isels(2),nbuf)
+      numor(nbuf)    = numor(isels(2))+300000
+
+ !     mpar = [0d0, 1d0] 
+      n1   = nwert(isels(1))
+      n2   = nwert(isels(2))
+      call smatch(xwerte(1:n1,isels(1)),ywerte(1:n1,isels(1)),yerror(1:n1,isels(1)),n1, &
+                  xwerte(1:n2,isels(2)),ywerte(1:n2,isels(2)),yerror(1:n2,isels(2)),n2, &
+                  mpar, step, errmin )
+      write(*,'("offset=",f12.6," scale=",f12.6,"   residual error=",f12.6)')mpar(1:2), errmin
+
+      xwerte(:,nbuf) =  xwerte(:,isels(2))
+      ywerte(:,nbuf) = (ywerte(:,isels(2))+mpar(1))*mpar(2)
+      yerror(:,nbuf) =  yerror(:,isels(2))         *mpar(2)
+      nwert(nbuf)    =  n2
+      call parset("refnum  ",real(numor(isels(1))),nbuf)
+      call parset("aligny_o",sngl(mpar(1)),nbuf)
+      call parset("aligny_s",sngl(mpar(2)),nbuf)
+      isels(2) = nbuf
+
+      write(*,'(a,i6)') "Scaled data written to record ",nbuf
+      write(*,'(a,2i6)')"Selected are now              ",isels(1:2)
+      write(*,'(a)')    "you may use  -> average  to merge them!"
+      call setudf("aligny_o ",mpar(1),ier)
+      call setudf("aligny_s ",mpar(2),ier)
+
+end subroutine  align_y
+
+
+
+
+
+subroutine smatch(x1,y1,y1err,n1, x2,y2,y2err,n2, mpar, step, errmin )
+  use new_com
+  implicit none
+  real            , intent(in ) :: x1(n1)      ! x-values of master record
+  real            , intent(in ) :: y1(n1)      ! y-values of master record
+  real            , intent(in ) :: y1err(n1)   ! y-error  of master record
+  integer         , intent(in ) :: n1          ! nuber of values in master
+  real            , intent(in ) :: x2(n2)      ! x-values of slave record
+  real            , intent(in ) :: y2(n2)      ! y-values of slave record
+  real            , intent(in ) :: y2err(n2)   ! y-error  of slave record
+  integer         , intent(in ) :: n2          ! nuber of values in slave
+  double precision, intent(inout) :: mpar(2)     ! offset and scale ....
+  double precision, intent(in ) :: step(2)     ! offset and scale step ....
+  double precision, intent(out) :: errmin      ! residual matching error
+  
+  double precision :: reqmin = 1d-7
+  integer          :: konvge = 1
+  integer          :: kcount = 10000
+  integer          :: icount
+  integer          :: numres
+  integer          :: ifault
+  double precision :: mpar_min(size(mpar))
+
+! --> is mainly for testing
+  reqmin = getval("reqmin ",reqmin)
+  konvge = intval("konvge ",konvge)
+  kcount = intval("kcount ",kcount)
+  write(*,*)"TESTPARA: ", reqmin, konvge, kcount
+
+
+  errmin = match_err(mpar, size(mpar))
+
+  call nelmin ( match_err, size(mpar), mpar, mpar_min, errmin, reqmin, step, konvge, kcount, &
+  icount, numres, ifault )
+
+  mpar = mpar_min
+
+
+contains 
+
+function match_err(sp, n ) result(val) 
+  implicit none
+  double precision, intent(in ) :: sp(n)
+  integer         , intent(in ) :: n 
+
+  double precision :: val
+  double precision :: yinterp, yinterp_err, xt, yt, yte, p
+  integer          :: i, ma, mb, ncompare
+
+  !! go through the points of slave and compare with master
+  val      =  0
+  ncompare = 0
+ds1: do i=1,n2
+       xt  = x2(i)
+       yt  = (y2(i) + sp(1))* sp(2)
+       yte =  y2err(i)      * sp(2)
+       ma = minloc(abs(x1(1:n1)-xt),dim=1)   
+       mb = min(ma + 1,n1)
+       if(mb>n1) mb = ma-1
+       p             = (xt - x1(ma))/(x1(mb) - x1(ma))
+
+       if(abs(p) > 1d0) cycle ds1
+
+
+       yinterp      = (1-p) * y1(ma) + p * y1(mb)
+       yinterp_err  = sqrt(  ((1d0-p)*y1err(ma))**2  +((p)*y1err(mb))**2 )
+       ncompare = ncompare + 1
+       val = val + sqrt( (yinterp-yt)**2 / (yinterp_err**2 + yte**2) )
+     enddo ds1
+ 
+     if(ncompare > 0) then
+       val = val / ncompare
+     else
+       val = Huge(val)
+     endif
+ 
+
+end function match_err
+
+end subroutine smatch
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+!>>> TBD: not yet functional align_a  must be reworked !!!  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!>>> TBD: not yet functional align_a  must be reworked !!!  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!>>> TBD: not yet functional align_a  must be reworked !!!  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!>>> TBD: not yet functional align_a  must be reworked !!!  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+subroutine  align_a
+ 
+      use dimensions
+      use new_com
+      ! use cincoc
+      use xoutxx
+      use cdata
+      ! use outlev
+      use theory
+      use selist
+      use fslist
+      use theorc
+      use thparc
+      use formul
+      use cfc
+      use cfunc
+      use cfunce
+      use partran
+      use wlntran
+      use sqtran
+!      use constants
+      use PhysicalConstantsPlus
+ 
+      implicit none
+      double precision     :: errmin
+      double precision,save:: mpar(2)=1d0, step(2)=0.1d0
+      integer              :: n1, n2, ier
+
+
+      if(found('help    ')) then 
+       write(6,*)'=============================================================================='
+       write(6,*)'= aligna        !!! NOT YET FUNCTIONAL, CONTAINS BUGS or ALGORITH MUST BE MODIFIED ='
+       write(6,*)'= determine x and y scales                                                   ='
+       write(6,*)'= of second selected record in order to match the first selected             ='
+       write(6,*)'= the scaled result is copied to a new record                                ='
+       write(6,*)'= this and the "master" record stay selected such tha one may                ='
+       write(6,*)'= use average to merge them                                                  ='
+       write(6,*)'= USAGE: aligna xscale <startval> yscale <startval> xstep <val> ystep <val>  ='
+       write(6,*)'=============================================================================='
+       return
+      endif
+
+ stop "THIS ROUTINE aligna is not yet ready, must be reworked, befor new testsb remove this msg"    
+
+      if(nsel .ne. 2) then
+        write(*,*)"ERROR: aligna needs selection of two curves"
+        write(*,*)"Select just two curves: master and slave to be scaled!"
+        ierrs = 1000
+        return
+      endif
+
+      if(nbuf >= size(nwert)-1) then
+        write(*,*)"..too many buffers", nbuf, size(nwert)
+        ierrs = 2000
+        return
+      endif
+
+      mpar(1) =  getval("xscale ",mpar(1))
+      mpar(2) =  getval("yscale ",mpar(2))
+      step(1) =  getval("xstep  ",step(1)) 
+      step(2) =  getval("ystep  ",step(2)) 
+
+! prepare destination
+      nbuf = nbuf + 1
+      call txfera(isels(2),nbuf)
+      numor(nbuf)    = numor(isels(2))+300000
+
+      n1   = nwert(isels(1))
+      n2   = nwert(isels(2))
+      call amatch(xwerte(1:n1,isels(1)),ywerte(1:n1,isels(1)),yerror(1:n1,isels(1)),n1, &
+                  xwerte(1:n2,isels(2)),ywerte(1:n2,isels(2)),yerror(1:n2,isels(2)),n2, &
+                  mpar, step, errmin )
+      write(*,'("xscale=",f12.6," yscale=",f12.6,"   residual error=",f12.6)')mpar(1:2), errmin
+
+      xwerte(:,nbuf) =  xwerte(:,isels(2))
+      ywerte(:,nbuf) = (ywerte(:,isels(2))+mpar(1))*mpar(2)
+      yerror(:,nbuf) =  yerror(:,isels(2))         *mpar(2)
+      nwert(nbuf)    =  n2
+      call parset("refnum  ",real(numor(isels(1))),nbuf)
+      call parset("aligna_o",sngl(mpar(1)),nbuf)
+      call parset("aligna_s",sngl(mpar(2)),nbuf)
+      isels(2) = nbuf
+
+      write(*,'(a,i6)') "Scaled data written to record ",nbuf
+      write(*,'(a,2i6)')"Selected are now              ",isels(1:2)
+      write(*,'(a)')    "you may use  -> average  to merge them!"
+      call setudf("aligna_o ",mpar(1),ier)
+      call setudf("aligna_s ",mpar(2),ier)
+
+end subroutine  align_a
+
+
+subroutine amatch(x1,y1,y1err,n1, x2,y2,y2err,n2, mpar,step, errmin )
+  implicit none
+  real            , intent(in ) :: x1(n1)      ! x-values of master record
+  real            , intent(in ) :: y1(n1)      ! y-values of master record
+  real            , intent(in ) :: y1err(n1)   ! y-error  of master record
+  integer         , intent(in ) :: n1          ! nuber of values in master
+  real            , intent(in ) :: x2(n2)      ! x-values of slave record
+  real            , intent(in ) :: y2(n2)      ! y-values of slave record
+  real            , intent(in ) :: y2err(n2)   ! y-error  of slave record
+  integer         , intent(in ) :: n2          ! nuber of values in slave
+  double precision, intent(inout) :: mpar(2)     ! offset and scale ....
+  double precision, intent(in ) :: step(2)     ! offset and scale ....
+  double precision, intent(out) :: errmin      ! residual matching error
+ 
+  double precision :: mpar_min(size(mpar))
+
+  double precision :: reqmin = 1d-7
+  integer          :: konvge = 1
+  integer          :: kcount = 10000
+  integer          :: icount
+  integer          :: numres
+  integer          :: ifault
+
+
+  errmin = amatch_err(mpar, size(mpar))
+
+  call nelmin ( amatch_err, size(mpar), mpar, mpar_min, errmin, reqmin, step, konvge, kcount, &
+  icount, numres, ifault )
+
+  mpar = mpar_min
+
+
+contains 
+
+function amatch_err(sp, n ) result(val) 
+  implicit none
+  double precision, intent(in ) :: sp(n)
+  integer         , intent(in ) :: n 
+
+  double precision :: val
+  double precision :: yinterp, yinterp_err, xt, yt, yte, p
+  integer          :: i, ma, mb, ncompare
+
+  !! go through the points of slave and compare with master
+  val      =  0
+  ncompare = 0
+ds1: do i=1,n2
+       xt  = x2(i)          *  sp(1)
+       yt  = (y2(i))        *  sp(2)
+       yte =  y2err(i)      *  sp(2)
+       ma = minloc(abs(x1(1:n1)-xt),dim=1)            ; write(*,'(a,i8,2e14.7,2i8)')"ma: ",i,x1(ma),xt,n1,n2
+       mb = min(ma + 1,n1)
+       if(mb>n1) mb = ma-1
+       p             = (xt - x1(ma))/(x1(mb) - x1(ma))   ; write(*,'(a,e14.7)')"p: ",p
+       if(abs(p) > 2d0) cycle ds1
+       yinterp      = (p-1d0) * y1(ma) + p * y1(mb)      ; write(*,'(a,3e14.7)')"yinterp: ",yinterp, y2(i), yt
+ 
+       yinterp_err  = sqrt(  ((p-1d0)*y1err(ma))**2  +(p*y1err(mb))**2 )
+       ncompare = ncompare + 1
+       val = val - 1d0 / ((yinterp-yt)**2 / (yinterp_err**2 + yte**2))
+write(*,'(a,3i5,7e15.7)')"TP1: ",i,ma,mb,xt,x1(ma),x1(mb),yt,yinterp, yinterp_err,val
+     enddo ds1
+ 
+     if(ncompare > 0) then
+       val = val / ncompare
+     else
+       val = Huge(val)
+     endif
+ 
+!!TP: write(*,'(3f12.6)') sp, val
+
+end function amatch_err
+
+end subroutine amatch
+
+!<<< TBD: not yet functional align_a  must be reworked !!!  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!! Suroutines from external sources                                          !!
+!!!! ASA047                                                                    !!
+!!!! Nelder-Mead Minimization                                                  !!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+subroutine nelmin ( fn, n, start, xmin, ynewlo, reqmin, step, konvge, kcount, &
+  icount, numres, ifault )
+
+!*****************************************************************************
+!
+!! NELMIN minimizes a function using the Nelder-Mead algorithm.
+!
+!  Discussion:
+!
+!    This routine seeks the minimum value of a user-specified function.
+!
+!    Simplex function minimisation procedure due to Nelder and Mead (1965),
+!    as implemented by O'Neill(1971, Appl.Statist. 20, 338-45), with
+!    subsequent comments by Chambers+Ertel(1974, 23, 250-1), Benyon(1976,
+!    25, 97) and Hill(1978, 27, 380-2)
+!
+!    The function to be minimized must be defined by a function of
+!    the form
+!
+!      function fn ( x, n )
+!      real ( kind = 8 ) fn
+!      real ( kind = 8 ) x(*)
+!
+!    and the name of this subroutine must be declared EXTERNAL in the
+!    calling routine and passed as the argument FN.
+!
+!    This routine does not include a termination test using the
+!    fitting of a quadratic surface.
+!
+!  Licensing:
+!
+!    This code is distributed under the GNU LGPL license.
+!
+!  Modified:
+!
+!    27 February 2008
+!
+!  Author:
+!
+!    Original FORTRAN77 version by R ONeill.
+!    FORTRAN90 version by John Burkardt.
+!
+!  Reference:
+!
+!    John Nelder, Roger Mead,
+!    A simplex method for function minimization,
+!    Computer Journal,
+!    Volume 7, 1965, pages 308-313.
+!
+!    R ONeill,
+!    Algorithm AS 47:
+!    Function Minimization Using a Simplex Procedure,
+!    Applied Statistics,
+!    Volume 20, Number 3, 1971, pages 338-345.
+!
+!  Parameters:
+!
+!    Input, external FN, the name of the function which evaluates
+!    the function to be minimized.
+!
+!    Input, integer ( kind = 4 ) N, the number of variables.
+!    0 < N is required.
+!
+!    Input/output, real ( kind = 8 ) START(N).  On input, a starting point
+!    for the iteration.  On output, this data may have been overwritten.
+!
+!    Output, real ( kind = 8 ) XMIN(N), the coordinates of the point which
+!    is estimated to minimize the function.
+!
+!    Output, real ( kind = 8 ) YNEWLO, the minimum value of the function.
+!
+!    Input, real ( kind = 8 ) REQMIN, the terminating limit for the variance
+!    of the function values.  0 < REQMIN is required.
+!
+!    Input, real ( kind = 8 ) STEP(N), determines the size and shape of the
+!    initial simplex.  The relative magnitudes of its elements should reflect
+!    the units of the variables.
+!
+!    Input, integer ( kind = 4 ) KONVGE, the convergence check is carried out
+!    every KONVGE iterations. 0 < KONVGE is required.
+!
+!    Input, integer ( kind = 4 ) KCOUNT, the maximum number of function
+!    evaluations.
+!
+!    Output, integer ( kind = 4 ) ICOUNT, the number of function evaluations
+!    used.
+!
+!    Output, integer ( kind = 4 ) NUMRES, the number of restarts.
+!
+!    Output, integer ( kind = 4 ) IFAULT, error indicator.
+!    0, no errors detected.
+!    1, REQMIN, N, or KONVGE has an illegal value.
+!    2, iteration terminated because KCOUNT was exceeded without convergence.
+!
+  implicit none
+
+  integer ( kind = 4 ) n
+
+  real ( kind = 8 ), parameter :: ccoeff = 0.5D+00
+  real ( kind = 8 ) del
+  real ( kind = 8 ), parameter :: ecoeff = 2.0D+00
+  real ( kind = 8 ), parameter :: eps = 0.001D+00
+  real ( kind = 8 ), external :: fn
+  integer ( kind = 4 ) i
+  integer ( kind = 4 ) icount
+  integer ( kind = 4 ) ifault
+  integer ( kind = 4 ) ihi
+  integer ( kind = 4 ) ilo
+  integer ( kind = 4 ) j
+  integer ( kind = 4 ) jcount
+  integer ( kind = 4 ) kcount
+  integer ( kind = 4 ) konvge
+  integer ( kind = 4 ) l
+  integer ( kind = 4 ) numres
+  real ( kind = 8 ) p(n,n+1)
+  real ( kind = 8 ) p2star(n)
+  real ( kind = 8 ) pbar(n)
+  real ( kind = 8 ) pstar(n)
+  real ( kind = 8 ), parameter :: rcoeff = 1.0D+00
+  real ( kind = 8 ) reqmin
+  real ( kind = 8 ) rq
+  real ( kind = 8 ) start(n)
+  real ( kind = 8 ) step(n)
+  real ( kind = 8 ) x
+  real ( kind = 8 ) xmin(n)
+  real ( kind = 8 ) y(n+1)
+  real ( kind = 8 ) y2star
+  real ( kind = 8 ) ylo
+  real ( kind = 8 ) ynewlo
+  real ( kind = 8 ) ystar
+  real ( kind = 8 ) z
+!
+!  Check the input parameters.
+!
+  if ( reqmin <= 0.0D+00 ) then
+    ifault = 1
+    return
+  end if
+
+  if ( n < 1 ) then
+    ifault = 1
+    return
+  end if
+
+  if ( konvge < 1 ) then
+    ifault = 1
+    return
+  end if
+!
+!  Initialization.
+!
+  icount = 0
+  numres = 0
+  jcount = konvge
+  del = 1.0D+00
+  rq = reqmin * real ( n, kind = 8 )
+!
+!  Initial or restarted loop.
+!
+  do
+
+    p(1:n,n+1) = start(1:n)
+    y(n+1) = fn ( start, n )
+    icount = icount + 1
+!
+!  Define the initial simplex.
+!
+    do j = 1, n
+      x = start(j)
+      start(j) = start(j) + step(j) * del
+      p(1:n,j) = start(1:n)
+      y(j) = fn ( start, n )
+      icount = icount + 1
+      start(j) = x
+    end do
+!
+!  Find highest and lowest Y values.  YNEWLO = Y(IHI) indicates
+!  the vertex of the simplex to be replaced.
+!
+    ilo = minloc ( y(1:n+1), 1 )
+    ylo = y(ilo)
+!
+!  Inner loop.
+!
+    do while ( icount < kcount )
+!
+!  YNEWLO is, of course, the HIGHEST value???
+!
+      ihi = maxloc ( y(1:n+1), 1 )
+      ynewlo = y(ihi)
+!
+!  Calculate PBAR, the centroid of the simplex vertices
+!  excepting the vertex with Y value YNEWLO.
+!
+      do i = 1, n
+        pbar(i) = ( sum ( p(i,1:n+1) ) - p(i,ihi) ) / real ( n, kind = 8 )
+      end do
+!
+!  Reflection through the centroid.
+!
+      pstar(1:n) = pbar(1:n) + rcoeff * ( pbar(1:n) - p(1:n,ihi) )
+      ystar = fn ( pstar, n )
+      icount = icount + 1
+!
+!  Successful reflection, so extension.
+!
+      if ( ystar < ylo ) then
+
+        p2star(1:n) = pbar(1:n) + ecoeff * ( pstar(1:n) - pbar(1:n) )
+        y2star = fn ( p2star, n )
+        icount = icount + 1
+!
+!  Retain extension or contraction.
+!
+        if ( ystar < y2star ) then
+          p(1:n,ihi) = pstar(1:n)
+          y(ihi) = ystar
+        else
+          p(1:n,ihi) = p2star(1:n)
+          y(ihi) = y2star
+        end if
+!
+!  No extension.
+!
+      else
+
+        l = 0
+        do i = 1, n + 1
+          if ( ystar < y(i) ) then
+            l = l + 1
+          end if
+        end do
+
+        if ( 1 < l ) then
+
+          p(1:n,ihi) = pstar(1:n)
+          y(ihi) = ystar
+!
+!  Contraction on the Y(IHI) side of the centroid.
+!
+        else if ( l == 0 ) then
+
+          p2star(1:n) = pbar(1:n) + ccoeff * ( p(1:n,ihi) - pbar(1:n) )
+          y2star = fn ( p2star, n )
+          icount = icount + 1
+!
+!  Contract the whole simplex.
+!
+          if ( y(ihi) < y2star ) then
+
+            do j = 1, n + 1
+              p(1:n,j) = ( p(1:n,j) + p(1:n,ilo) ) * 0.5D+00
+              xmin(1:n) = p(1:n,j)
+              y(j) = fn ( xmin, n )
+              icount = icount + 1
+            end do
+
+            ilo = minloc ( y(1:n+1), 1 )
+            ylo = y(ilo)
+
+            cycle
+!
+!  Retain contraction.
+!
+          else
+            p(1:n,ihi) = p2star(1:n)
+            y(ihi) = y2star
+          end if
+!
+!  Contraction on the reflection side of the centroid.
+!
+        else if ( l == 1 ) then
+
+          p2star(1:n) = pbar(1:n) + ccoeff * ( pstar(1:n) - pbar(1:n) )
+          y2star = fn ( p2star, n )
+          icount = icount + 1
+!
+!  Retain reflection?
+!
+          if ( y2star <= ystar ) then
+            p(1:n,ihi) = p2star(1:n)
+            y(ihi) = y2star
+          else
+            p(1:n,ihi) = pstar(1:n)
+            y(ihi) = ystar
+          end if
+
+        end if
+
+      end if
+!
+!  Check if YLO improved.
+!
+      if ( y(ihi) < ylo ) then
+        ylo = y(ihi)
+        ilo = ihi
+      end if
+
+      jcount = jcount - 1
+
+      if ( 0 < jcount ) then
+        cycle
+      end if
+!
+!  Check to see if minimum reached.
+!
+      if ( icount <= kcount ) then
+
+        jcount = konvge
+
+        x = sum ( y(1:n+1) ) / real ( n + 1, kind = 8 )
+        z = sum ( ( y(1:n+1) - x )**2 )
+
+        if ( z <= rq ) then
+          exit
+        end if
+
+      end if
+
+    end do
+!
+!  Factorial tests to check that YNEWLO is a local minimum.
+!
+    xmin(1:n) = p(1:n,ilo)
+    ynewlo = y(ilo)
+
+    if ( kcount < icount ) then
+      ifault = 2
+      exit
+    end if
+
+    ifault = 0
+
+    do i = 1, n
+      del = step(i) * eps
+      xmin(i) = xmin(i) + del
+      z = fn ( xmin, n )
+      icount = icount + 1
+      if ( z < ynewlo ) then
+        ifault = 2
+        exit
+      end if
+      xmin(i) = xmin(i) - del - del
+      z = fn ( xmin, n )
+      icount = icount + 1
+      if ( z < ynewlo ) then
+        ifault = 2
+        exit
+      end if
+      xmin(i) = xmin(i) + del
+    end do
+
+    if ( ifault == 0 ) then
+      exit
+    end if
+!
+!  Restart the procedure.
+!
+    start(1:n) = xmin(1:n)
+    del = eps
+    numres = numres + 1
+
+  end do
+
+  return
+end
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!! help functions
@@ -5214,6 +6033,7 @@ d2:       do j=1,number_of_data_points
   write(6,*) "activlst  (synonym) al      " , " "
   write(6,*) "addsels                     " , " "
   write(6,*) "addval                      " , " "
+  write(6,*) "aligny                      " , " determine scale to match y-values of two records "
   write(6,*) "argvals                     " , " "
   write(6,*) "arit                        " , " f1 <factor1>  f2 <factor2> to <numor> [div | mult | (no)norm ]"
   write(6,*) "arit2                       " , " f1 <factor1>  f2 <factor2> to <numor> [div | mult | (no)norm ]"

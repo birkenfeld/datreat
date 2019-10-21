@@ -81,6 +81,9 @@
 
      integer          :: mode       ! mode select 
      integer          :: modeex     ! mode select exp representation
+     integer          :: modeex1      ! mode select exp representation
+     integer          :: modeex2      ! mode select exp representation
+     integer          :: modeexcc     ! mode select exp representation
 
 
      double precision, parameter :: tmin = 0.001d0
@@ -118,7 +121,7 @@
      integer, parameter      :: mparams=60
      double precision        :: last_params(mparams) = 0d0
      double precision        :: allparams(mparams)   = 0d0
-     integer, parameter      :: mexp=10
+     integer, parameter      :: mexp=30
      double precision        :: aexp11(mexp), rexp11(mexp)
      integer                 :: nex11
      double precision        :: aexp22(mexp), rexp22(mexp)
@@ -132,12 +135,13 @@
      double precision        :: tmax = 1000d0
      logical                 :: newcomp_required
      integer                 :: i
-     double precision        :: ts, ssq
+     double precision        :: ts, rmsdev, rmsdev_limit = 1d-3
 
      double precision        :: ss11, ss110, ss12, ss120, ss22, ss220
 
      double precision        :: a1, a2, r1, r2, r3, b1, b2, g1, g2, g3
      integer                 :: analytic = 0
+     integer                 :: iout = 0
 
      double precision        :: qoffs, qscal
 
@@ -241,7 +245,7 @@
         th_param_desc(26+2,idesc) = "betadiff linear  for matrix polymer (c)" !//cr//parspace//&
 
         th_param_desc(27+2,idesc) = "mode: 0 normal, >0 S(x=Q,tau) 1 lin, 2 star 3 rpa" !//cr//parspace//&
-        th_param_desc(28+2,idesc) = "modex: number of exps to represent the undistrurbed S(q,t) relaxation curves" !//cr//parspace//&
+        th_param_desc(28+2,idesc) = "modex: obsolete, will be automatic THIS PARAMETER HAS NO EFFECT" !//cr//parspace//&
         th_param_desc(29+2,idesc) = "number of points to determine representation in terms of nexp" !//cr//parspace//&
         th_param_desc(30+2,idesc) = "preliminary: effective zero time for S(Q,t=0=tzero)" //cr//parspace//&
                                   "for the numerical integration we have a smoothing of the 0-->1 jump " //cr//parspace//&
@@ -332,7 +336,7 @@
       t0       = abs( pa(30+2))
       tmax     = abs( pa(31+2))
       rlow     = abs( pa(32+2))  ! parameter in rpa_laplace
-      qoffs    = abs( pa(33+2))  ! parameter in rpa_laplace
+      qoffs    =    ( pa(33+2))  ! parameter in rpa_laplace
       qscal    = abs( pa(34+2))  ! parameter in rpa_laplace
 
 
@@ -488,11 +492,13 @@ i1:  if( mode == 0 ) then     ! normal spin-echo
 ! linear chain function according to the reptation interpolation model locrep2
 ilr: if( newcomp_required ) then
 
+      call prepare_ttable1(t0, tmax, nxpoints, t_samples)
+
       ! linear polymer componenet: here labelled part with concentration philin
       ! modelling of the long chain linear componente by the empirical locrep scheme  
 
       do i=1,nxpoints
-             ts      =  exp(i*log(tmax*t_table_spacing1)/nxpoints)/t_table_spacing2
+             ts      =  t_samples(i)
 
              sqt0    =  local_reptation2( q*locr2_a, locr2_te   , locr2_b, locr2_lz)
              sqt     =  local_reptation2( q*locr2_a, ts/locr2_ta, locr2_b, locr2_lz)
@@ -502,22 +508,27 @@ ilr: if( newcomp_required ) then
              call  NrousePX(q,ts,temp,Dr,wl4,nro_me,re_me, Wx, lx,ifix, sqt0,sqt)
              plin0   = nlin  * Debye_qnl(q, nlin, l) 
              plin    = plin0 * locrep2 * sqt / sqt0
-             t_samples(i) = ts
+!             t_samples(i) = ts
              s_samples(i) = locrep2 * sqt / sqt0 *  exp( -difflin * q*q * (ts)**betadifl )  
           enddo
            
-          call nexp_match(t_samples,s_samples,nxpoints,modeex,aexp11,rexp11,ssq)
+              rmsdev = rmsdev_limit
+              call match_exp_auto(t_samples,s_samples,nxpoints,modeex,nexp1,aexp11,rexp11,rmsdev,iout)
 
-          if(ssq > 1d-4) then
-            write(6,*)"rpa_test exp model bad match 11", ssq
+
+          if(rmsdev > rmsdev_limit) then
+            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
+            write(*,*)"         rpa_test exp model bad match 11", rmsdev , rmsdev_limit
+            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
           endif
+
 
 
       ! linear polymer componenet, here: matrix
       ! modelling of the long chain linear componente by the empirical locrep scheme  
 
       do i=1,nxpoints
-             ts      =  exp(i*log(tmax*t_table_spacing1)/nxpoints)/t_table_spacing2
+             ts      =  t_samples(i)
 
              sqt0    =  local_reptation2( q*lr2_a_c, lr2_te_c   , lr2_b_c, lr2_lz_c)
              sqt     =  local_reptation2( q*lr2_a_c, ts/lr2_ta_c, lr2_b_c, lr2_lz_c)
@@ -527,21 +538,25 @@ ilr: if( newcomp_required ) then
              call  NrousePX(q,ts,temp,Dr,wl4_c,nro_me_c,re_me_c, Wx, lx,ifix, sqt0,sqt)
              plin0cc   = nlin_cc  * Debye_qnl(q, nlin_cc, l) 
              plincc    = plin0cc * locrep2 * sqt / sqt0
-             t_samples(i) = ts
              s_samples(i) = locrep2 * sqt / sqt0 *  exp( -diffmatc * q*q * (ts)**betadifc )    
       enddo
-           
-          call nexp_match(t_samples,s_samples,nxpoints,modeex,aexpcc,rexpcc,ssq)
-          if(ssq > 1d-4) then
-            write(6,*)"rpa_test exp model bad match cc", ssq
+ 
+          rmsdev = rmsdev_limit
+          call match_exp_auto(t_samples,s_samples,nxpoints,modeex,nexpcc,aexpcc,rexpcc,rmsdev,iout)
+ 
+
+          if(rmsdev > rmsdev_limit) then
+            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
+            write(*,*)"         rpa_test exp model bad match CC", rmsdev , rmsdev_limit
+            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
           endif
+
 
 
      ! rouse chain ( primary sample component) here the component with index 2
 
       do i=1,nxpoints
-             ts     =  exp(i*log(tmax*t_table_spacing1)/nxpoints)/t_table_spacing2
-
+             ts      =  t_samples(i)
              Re_rous = sqrt(nrous * l**2)
 
 
@@ -563,16 +578,20 @@ ilr: if( newcomp_required ) then
 
 !            af = sqrt(Pi)* erf(sqrt(q**2*(rr-anisod*rr))) / (2*sqrt(q**2*(rr-anisod*rr)))
 
-             t_samples(i) = ts
              s_samples(i) = sqt/sqt0 * exp( -(q*q*rr/6d0)**beta_q ) ! * af
              prous        = prous0 * s_samples(i)
 
        enddo
-          call nexp_match(t_samples,s_samples,nxpoints,modeex,aexp22,rexp22,ssq)
+           rmsdev = rmsdev_limit
+           call match_exp_auto(t_samples,s_samples,nxpoints,modeex,nexp2,aexp22,rexp22,rmsdev,iout)
 
-           if(ssq > 1d-4) then
-            write(6,*)"rpa_test exp model bad match 22", ssq
-           endif
+
+          if(rmsdev > rmsdev_limit) then
+            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
+            write(*,*)"         rpa_test exp model bad match 22", rmsdev , rmsdev_limit
+            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
+          endif
+
 
 
    
@@ -586,9 +605,9 @@ ilr: if( newcomp_required ) then
         Scc00             =   plin0cc  ! unperturbed structure factor S(Q) of "matrix" polymers
         S0011             =   plin0    ! unperturbed structure factor S(Q) of polymer 1
         S0022             =   prous0   ! unperturbed structure factor S(Q) of polymer 2
-        nexpcc            =   modeex   ! number of exp-functions to describe background
-        nexp1             =   modeex   ! number of exp-functions to describe component1
-        nexp2             =   modeex   ! number of exp-functions to describe component2
+!        nexpcc            =   modeexcc   ! number of exp-functions to describe background
+!        nexp1             =   modeex1   ! number of exp-functions to describe component1
+!        nexp2             =   modeex2   ! number of exp-functions to describe component2
         aexp_cc(1:nexpcc) =   aexpcc(1:nexpcc)   ! amplitude coeffs for laplace-exp representation of "matrix"
         rexp_cc(1:nexpcc) =   rexpcc(1:nexpcc)   ! rate      coeffs for laplace-exp representation of "matrix"
         aexp_s1(1:nexp1)  =   aexp11(1:nexp1)    ! amplitude coeffs for laplace-exp representation of polymer 1
@@ -850,7 +869,7 @@ ilr: if( newcomp_required ) then
 
 ! ---- Do the sums -----
 
-!$OMP PARALLEL DO REDUCTION(+:Sq,Sqt,arg2)
+!$OMP PARALLEL DO REDUCTION(+:Sq,Sqt,arg2) PRIVATE(arg1,arg10,arg20,ff2)
 
        do nn = 1,N
         do mm = 1,N

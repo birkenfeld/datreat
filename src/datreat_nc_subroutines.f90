@@ -226,6 +226,164 @@
        return
       END
 
+
+!===========================================================================================================
+      subroutine dtr_mexp
+!===========================================================================================================
+
+!
+! ---- serial fit of activated theories, results to new records ----
+!
+       use new_com
+       ! use cincoc
+       use cdata
+       ! use outlev
+       use theory
+       use selist
+       use therrc
+       use theorc
+       use thparc
+        use cfunc
+       use cfunce
+       use lmfit     ! from theos
+       ! use constants
+
+       implicit none
+
+       integer, parameter       :: mxx=100
+       double precision         :: xv(size(xwerte(:,1))) 
+       double precision         :: yv(size(xwerte(:,1))) 
+       double precision         :: ye(size(xwerte(:,1))) 
+       double precision         :: aexp(mxx) 
+       double precision         :: rexp(mxx) 
+       double precision, save   :: rmax            = 1d6
+       integer,          save   :: n               = 10
+       integer,          save   :: iolev           = 1
+      
+       integer                  :: n0, m, ibuf, ier 
+       double precision,save    :: rmsdev          = 1d-3
+       integer                  :: i,j, ith, inew 
+       character(len=8)         :: sbuf
+
+       if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= mexp n <n>  rms <rmsdev level>'
+           write(6,*)'=          iout <iout>                                                        '
+           write(6,*)'=    computes a (maximum) n-exp approximation to the selected data record     '
+           write(6,*)'=    the parameters are pushed as theory                                      '
+           write(6,*)'=    for computed data with zero error: set rms in the range of 1e-3          '
+           write(6,*)'=                      and typically use    n  in the order of 10             '
+           write(6,*)'=    for experiment data with nonzero error: set rms in the range of a few x 1'
+           write(6,*)'=                      and typically use    n  between 3 and 6                '
+           write(6,*)'=============================================================================='
+           return
+        endif
+
+
+        if(nsel .ne. 1) then
+           call errsig(9999,"mexp ERROR: NUMBER OF SELECTED RECORDS IS NOT ONE !$")
+           return
+        endif
+
+        ibuf = isels(1)
+        m    = nwert(ibuf)
+        n               = intval('n       ', n )
+        n               = min(abs(n),mxx)
+        iolev           = intval('iout    ', iolev )
+        rmsdev          = getval('rms     ', rmsdev           ,inew)
+        
+        call unused( 0, 2, 2, ier)
+        if(ier.ne.0) then
+          call errsig(9999,"mexp ERROR in command line parameterlist! $")
+          return
+        endif
+
+        if( m < 2*n ) then
+          write(*,*)"mexp NOTE: number of data points (m) < max number of exp's (n), setting n=m/2.."
+          n = m/2
+        endif
+
+! --- do the fitting (future: add error weigthing) ---   
+        xv(1:m) =  xwerte(1:m,ibuf)     
+        yv(1:m) =  ywerte(1:m,ibuf)   
+        ye      =  1
+        forall(i=1:m, yerror(i,ibuf) > 0) ye(i) = yerror(i,ibuf)   
+
+        if(minval(yerror(1:m,ibuf)) > 0d0) then 
+          if(rmsdev < 1d0) then
+            write(*,*)"mexp NOTE: data with errors can only expect rms ~ 1, setting rms to 1.5"
+            rmsdev = 1.5d0
+          endif
+        else
+          if(rmsdev >= 1d0) then
+            write(*,*)"mexp NOTE: data withtout errors need rms ~= 1e-3 for a good fit, setting rms to 1e-3"
+            rmsdev = 1d-3
+          endif
+        endif
+
+!        call match_exp0    ( xv, yv ,m ,n ,n0, aexp, rexp, rmsdev, iolev) 
+         call match_exp_auto( xv, yv, m, n, n0, aexp, rexp, rmsdev, iolev, ye)
+
+        write(*,'(a)')"Control parameters(1):"
+        write(*,'(a,f12.6)')"Relative rate                 combine limit: rtc  =", RELATIVE_RATE_COMBINE 
+        write(*,'(a,f12.6)')"Absolute rate (minrate ratio) combine limit: atc  =", RELATIVE_LOWRATE_COMBINE  
+        write(*,'(a,f12.6)')"Maximum rate                               : rmax =", NEXP_MAXIMUM_RATE  
+        write(*,'(a,f12.6)')"Root mean squared deviation limkit         : rms  =", rmsdev  
+        write(*,'(a,i6)')   "Maximum number of exponentials             : n    =", n 
+ 
+! --- distribute the results ---
+        call parset('nex_rms ',sngl(rmsdev),ibuf)  
+        call parset('nex_n0  ',real(n0)    ,ibuf)  
+        call parset('nex_tave',real(nexp_tauave),ibuf)
+        call parset('nex_tini',real(nexp_suma/nexp_initial_slope),ibuf)
+        call parset('nex_islo',real(nexp_initial_slope),ibuf)
+        call parset('nex_asum',real(nexp_suma),ibuf)
+        do i=1,n0
+          write(sbuf,'(i0)') i
+          call parset("aexp"//adjustl(sbuf),sngl(aexp(i))    ,ibuf)  
+          call parset("rexp"//adjustl(sbuf),sngl(rexp(i))    ,ibuf)  
+        enddo
+! --- and build a theory ---
+
+       if(n0 > c_MTCAL) then
+         call errsig(999,"mexp: number of exponentials exceeds allowed number of th-instances. $")
+         return
+       endif
+
+        do ith=1,c_MTH
+          if(thenam(ith) == "strexpo ") exit
+        enddo
+!        thparx  = 0
+!        thpsca  = 0
+!        therro  = 0
+!        thpala  = '    '
+!        ncoup   = 0
+!        thrapar = '        '
+!        thramin = -1d30
+!        thramax =  1d30
+!        multflg = 0
+        Write(*,*)"Discarding the actual theory defintion..."
+        call activa(1)  ! in clear the theory definition
+        
+        Write(*,*)"Pushing the resulting n-exp model as actual theory..."
+        ntheos  = n0
+        do i=1,ntheos
+          nthtab(i) = ith
+          thparx(1,i) = aexp(i)
+          thparx(2,i) = 1d0/rexp(i)
+          thparx(3,i) = 1d0
+          thparx(4,i) = 0d0
+        enddo
+                
+        call thc(0)
+
+        call parset("amplitu ",sngl(sum(aexp(1:ntheos)))    ,ibuf) 
+
+
+      end subroutine dtr_mexp
+
+
+
 !===========================================================================================================
        subroutine create_ser
 !      =====================
@@ -2115,11 +2273,11 @@ sl:       do j=1,maxstep
          numor(inbuf) =-numor(iadd)
          name(inbuf)  = 'fit'//name(iadd)(1:5)
          np           = nopar(iadd) + 2
-         call parset('x1      ',x1,inbuf)
-         call parset('x2      ',x2,inbuf)
+!?         call parset('x1      ',x1,inbuf)
+!?         call parset('x2      ',x2,inbuf)
 ! ---- vorlaeufig !!! -----
-         call parset('x1      ',x1,iadd)
-         call parset('x2      ',x2,iadd)
+!?         call parset('x1      ',x1,iadd)
+!?         call parset('x2      ',x2,iadd)
 ! -------------------------
          if(iout().gt.3)write(6,*)'nbuf=',inbuf,'  numor=',numor(inbuf)
          nwert(inbuf) = n
@@ -2612,61 +2770,71 @@ sl:       do j=1,maxstep
 !
        if(iopt.eq.1) then
 !                    ----> clear activations
-         if(ipars.eq.0.or.ntheos.le.1) then
+!?!         if(ipars.eq.0.or.ntheos.le.1) then
            ntheos = 0
+           thparx  = 0
+           thpsca  = 0
+           therro  = 0
+           thpala  = '    '
+           ncoup   = 0
+           thrapar = '        '
+           thramin = -1d30
+           thramax =  1d30
+           multflg = 0
+
            write(6,*)' theory activation stack counter set to zero'
            return
-         endif
-! ---- desactivate only some theories ---
-         do 1501 i=1,ipars
-           j = rpar(i)+0.001
-           if(j.lt.1.or.j.gt.ntheos) then
-             write(6,*)' theory to be activated does not exist ..'
-             ierrs = 700
-             return
-           endif
-           nthtab(j) = 0
- 1501    continue
-! ---- update the stack ----
-         nthn = ntheos
-         it   = 1
- 1511    continue
-           if(nthtab(it).eq.0) then
-            if(it.eq.nthn)then
-              nthn = nthn - 1
-              goto 1530
-            endif
-             do 1512 itt = it+1,nthn
-               ith = nthtab(itt)
-               if(ith.eq.0) then
-                 npars = 1
-               else
-                 npars = nthpar(ith)
-               endif
-               nthtab(itt-1)  = nthtab(itt)
-               multflg(itt-1) = multflg(itt)
-               do 1522 ip=1,npars
-                 thparx(ip,itt-1) = thparx(ip,itt)
-                 thpsca(ip,itt-1) = thpsca(ip,itt)
-                 thpala(ip,itt-1) = thpala(ip,itt)
-                 thpaco(ip,itt-1) = thpaco(ip,itt)
-                 ncc              = ncoup(ip,itt)
-                 ncoup(ip,itt-1)  = ncc
-                 do 1522 lp = 1,ncc
-                    thpalc(lp,ip,itt-1) = thpalc(lp,ip,itt-1)
-                    thpafc(lp,ip,itt-1) = thpafc(lp,ip,itt-1)
- 1522          continue
- 1512        continue
-             nthn = nthn - 1
-             if(it.le.nthn) goto 1511
-            endif
-            if(it.lt.nthn) then
-               it = it + 1
-               goto 1511
-            endif
- 1530      continue
-           ntheos = nthn
-         return
+!?!         endif
+!?! ! ---- desactivate only some theories ---
+!?!          do 1501 i=1,ipars
+!?!            j = rpar(i)+0.001
+!?!            if(j.lt.1.or.j.gt.ntheos) then
+!?!              write(6,*)' theory to be activated does not exist ..'
+!?!              ierrs = 700
+!?!              return
+!?!            endif
+!?!            nthtab(j) = 0
+!?!  1501    continue
+!?! ! ---- update the stack ----
+!?!          nthn = ntheos
+!?!          it   = 1
+!?!  1511    continue
+!?!            if(nthtab(it).eq.0) then
+!?!             if(it.eq.nthn)then
+!?!               nthn = nthn - 1
+!?!               goto 1530
+!?!             endif
+!?!              do 1512 itt = it+1,nthn
+!?!                ith = nthtab(itt)
+!?!                if(ith.eq.0) then
+!?!                  npars = 1
+!?!                else
+!?!                  npars = nthpar(ith)
+!?!                endif
+!?!                nthtab(itt-1)  = nthtab(itt)
+!?!                multflg(itt-1) = multflg(itt)
+!?!                do 1522 ip=1,npars
+!?!                  thparx(ip,itt-1) = thparx(ip,itt)
+!?!                  thpsca(ip,itt-1) = thpsca(ip,itt)
+!?!                  thpala(ip,itt-1) = thpala(ip,itt)
+!?!                  thpaco(ip,itt-1) = thpaco(ip,itt)
+!?!                  ncc              = ncoup(ip,itt)
+!?!                  ncoup(ip,itt-1)  = ncc
+!?!                  do 1522 lp = 1,ncc
+!?!                     thpalc(lp,ip,itt-1) = thpalc(lp,ip,itt-1)
+!?!                     thpafc(lp,ip,itt-1) = thpafc(lp,ip,itt-1)
+!?!  1522          continue
+!?!  1512        continue
+!?!              nthn = nthn - 1
+!?!              if(it.le.nthn) goto 1511
+!?!             endif
+!?!             if(it.lt.nthn) then
+!?!                it = it + 1
+!?!                goto 1511
+!?!             endif
+!?!  1530      continue
+!?!            ntheos = nthn
+!?!         return
        endif
 !
        if(iopt.eq.2) then
@@ -6016,7 +6184,7 @@ sl:       do j=1,maxstep
         val = yyyy
         return
       endif
-      if(compare(nam,'ye   ')) then
+      if(compare(nam,'ee   ')) then
         val = yyee
         return
       endif

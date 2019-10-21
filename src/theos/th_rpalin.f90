@@ -108,7 +108,7 @@
      integer, parameter      :: mparams=60
      double precision        :: last_params(mparams) = 0d0
      double precision        :: allparams(mparams)   = 0d0
-     integer, parameter      :: mexp=10
+     integer, parameter      :: mexp=20
      double precision        :: aexp11(mexp), rexp11(mexp)
      integer                 :: nex11
      double precision        :: aexp22(mexp), rexp22(mexp)
@@ -122,12 +122,13 @@
      double precision        :: tmax = 1000d0
      logical                 :: newcomp_required
      integer                 :: i
-     double precision        :: ts, ssq
+     double precision        :: ts, rmsdev, rmsdev_limit = 1.5d-3
 
      double precision        :: ss11, ss110, ss12, ss120, ss22, ss220
 
      double precision        :: a1, a2, r1, r2, r3, b1, b2, g1, g2, g3
-     integer                 :: analytic = 0
+     integer                 :: analytic = 2
+     integer                 :: iout = 0
 
 
      complex(kind=XPREC)     :: il_coeffs11(3*mexp)
@@ -135,13 +136,18 @@
      complex(kind=XPREC)     :: il_coeffs22(3*mexp)
      complex(kind=XPREC)     :: il_alphas(3*mexp)
      integer                 :: nnsum
+
+     LAMBDA_CUTOFF            = 1d-5
+     RELATIVE_RATE_COMBINE    = 0.25d0
+     RELATIVE_LOWRATE_COMBINE = 1d0
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! write(6,*)"mbuf=",mbuf
 !
 ! ----- initialisation ----- 
     IF (ini.eq.0) then 
        thnam = 'rpalin  '
-       nparx =       32
+       nparx =       33
        IF (npar.lt.nparx) then
            WRITE (6,*)' theory: ',thnam,' no of parametrs=',nparx,' exceeds current max. = ',npar
           th_rpalin = 0
@@ -189,6 +195,7 @@
         parnam (30) = 'tzero   '  ! preliminary: effective zero time for S(Q,t=0=tzero)
         parnam (31) = 'tmaxrng '  ! maximum range that shall be spanned by creating the n-exp model
         parnam (32) = 'minrate '  ! minimum rate allowed in the exp models
+        parnam (33) = 'showexp '  ! output level
 
 ! >>>>> describe parameters >>>>>>> 
         th_param_desc( 1,idesc) = "prefactor" !//cr//parspace//&
@@ -230,6 +237,7 @@
                                   "like 0.001 * tmax could be a good start to try"
         th_param_desc(31,idesc) = " maximum range that shall be spanned by creating the n-exp model" !//cr//parspace//&
         th_param_desc(32,idesc) = " minimum rate allowed in the exp models" !//cr//parspace//&
+        th_param_desc(33,idesc) = " if >0 detailed nexp fitting report" !//cr//parspace//&
 ! >>>>> describe record parameters used >>>>>>>
         th_file_param(:,idesc) = " " 
         th_file_param(  1,idesc) = "q        > scattering wavevector"
@@ -308,11 +316,12 @@
       t0       = abs( pa(30))
       tmax     = abs( pa(31))
       rlow     = abs( pa(32))  ! parameter in rpa_laplace
-
+! new
+      iout     = nint( pa(33)) ! output level
 
       t0       = max(t0      ,tmin)
-      nxpoints = max(nxpoints  , 7)
-      modeex   = max(modeex    , 2)
+      nxpoints = max(nxpoints  ,16)
+      modeex   = max(modeex    , 8)
 
       if( modeex > mexp ) then
          write(6,*)"INFORMATION: Modeex limited to: ",mexp
@@ -430,14 +439,14 @@ i1:  if( mode == 0 ) then     ! normal spin-echo
        q   = x
      endif i1
 
-
+!new
       allparams(1:48) = [ wl4rous, dble(nrouseff), diffrous, locr2_b, locr2_a, locr2_ta, locr2_lz, locr2_te, &
                          dble(nro_me) , re_me,   wl4     , betadif, plimit , q , dble(nrous), l, dble(f),   &
                          phirous, dble(nlin), philin, alin, arous, &
                          dble(nlin_cc), dble(analytic), dss, sfak0, dble(npp_plus),xil,epap,epsrpa, &
                          lr2_b_c, lr2_a_c, lr2_ta_c, lr2_lz_c, lr2_te_c, &
                          dble(nro_me_c) , re_me_c,   wl4_c     , diffmatc, betadifc, difflin, betadifl, &
-                         dble(mode), dble(modeex), dble(nxpoints), t0, tmax, rlow ]     
+                         dble(mode), dble(modeex), dble(nxpoints), t0, tmax, rlow ]
 
 
 
@@ -480,10 +489,16 @@ ilr: if( newcomp_required ) then
              s_samples(i) = locrep2 * sqt / sqt0 *  exp( -difflin * q*q * (ts)**betadifl )  
           enddo
            
-          call nexp_match(t_samples,s_samples,nxpoints,modeex,aexp11,rexp11,ssq)
+!new          call nexp_match(t_samples,s_samples,nxpoints,modeex,aexp11,rexp11,ssq)
+!             call match_exp0(t_samples,s_samples,nxpoints,modeex,nexp1,aexp11,rexp11,ssq,iout)
+              rmsdev = rmsdev_limit
+              call match_exp_auto(t_samples,s_samples,nxpoints,modeex,nexp1,aexp11,rexp11,rmsdev,iout)
 
-          if(ssq > 1d-4) then
-            write(6,*)"rpa_test exp model bad match 11", ssq
+
+          if(rmsdev > rmsdev_limit) then
+            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
+            write(*,*)"         rpa_test exp model bad match 11", rmsdev , rmsdev_limit
+            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
           endif
 
 
@@ -505,9 +520,16 @@ ilr: if( newcomp_required ) then
              s_samples(i) = locrep2 * sqt / sqt0 *  exp( -diffmatc * q*q * (ts)**betadifc )    
       enddo
            
-          call nexp_match(t_samples,s_samples,nxpoints,modeex,aexpcc,rexpcc,ssq)
-          if(ssq > 1d-4) then
-            write(6,*)"rpa_test exp model bad match cc", ssq
+!new          call nexp_match(t_samples,s_samples,nxpoints,modeex,aexpcc,rexpcc,ssq)
+!          call match_exp0(t_samples,s_samples,nxpoints,modeex,nexpcc,aexpcc,rexpcc,ssq,iout)
+          rmsdev = rmsdev_limit
+          call match_exp_auto(t_samples,s_samples,nxpoints,modeex,nexpcc,aexpcc,rexpcc,rmsdev,iout)
+ 
+
+          if(rmsdev > rmsdev_limit) then
+            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
+            write(*,*)"         rpa_test exp model bad match CC", rmsdev , rmsdev_limit
+            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
           endif
 
 
@@ -530,11 +552,17 @@ ilr: if( newcomp_required ) then
              t_samples(i) = ts
              s_samples(i) = sqt/sqt0 *  exp( -diffrous * q*q * (ts)**betadif )    
        enddo
-          call nexp_match(t_samples,s_samples,nxpoints,modeex,aexp22,rexp22,ssq)
+!new          call nexp_match(t_samples,s_samples,nxpoints,modeex,aexp22,rexp22,ssq)
+!          call match_exp0(t_samples,s_samples,nxpoints,modeex,nexp2,aexp22,rexp22,ssq,iout)
+          rmsdev = rmsdev_limit
+           call match_exp_auto(t_samples,s_samples,nxpoints,modeex,nexp2,aexp22,rexp22,rmsdev,iout)
 
-           if(ssq > 1d-4) then
-            write(6,*)"rpa_test exp model bad match 22", ssq
-           endif
+
+          if(rmsdev > rmsdev_limit) then
+            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
+            write(*,*)"         rpa_test exp model bad match 22", rmsdev , rmsdev_limit
+            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
+          endif
 
 
    
@@ -548,9 +576,9 @@ ilr: if( newcomp_required ) then
         Scc00             =   plin0cc  ! unperturbed structure factor S(Q) of "matrix" polymers
         S0011             =   plin0    ! unperturbed structure factor S(Q) of polymer 1
         S0022             =   prous0   ! unperturbed structure factor S(Q) of polymer 2
-        nexpcc            =   modeex   ! number of exp-functions to describe background
-        nexp1             =   modeex   ! number of exp-functions to describe component1
-        nexp2             =   modeex   ! number of exp-functions to describe component2
+!new        nexpcc            =   modeex   ! number of exp-functions to describe background
+!new        nexp1             =   modeex   ! number of exp-functions to describe component1
+!new        nexp2             =   modeex   ! number of exp-functions to describe component2
         aexp_cc(1:nexpcc) =   aexpcc(1:nexpcc)   ! amplitude coeffs for laplace-exp representation of "matrix"
         rexp_cc(1:nexpcc) =   rexpcc(1:nexpcc)   ! rate      coeffs for laplace-exp representation of "matrix"
         aexp_s1(1:nexp1)  =   aexp11(1:nexp1)    ! amplitude coeffs for laplace-exp representation of polymer 1
@@ -560,14 +588,17 @@ ilr: if( newcomp_required ) then
     
         if(analytic == 1) then
  !! AUS NUMERISCHEN GRUENDEN DARF Phi1 bzw Phi2 nicht NULL sein
- !! erstmal default Aktion    
+ !! erstmal default Aktion      
+          write(6,*)"analytic = 1: semianayltic Laplace inv. BETTER USE analytic=2 (num integration) !! "
+
+
           if(phi1 < 1d-5) phi1 = 1d-5
           if(phi2 < 1d-5) phi2 = 1d-5
           call get_invlaplace_coeffs( il_coeffs11, il_coeffs12, il_coeffs22 , il_alphas, nnsum)  
         endif
 
         if(analytic == 2) then
-            write(6,*)"analytic = 2: log spaced oscillating integral.."
+!            write(6,*)"analytic = 2: log spaced oscillating integral.."
             if(phi1 < 1d-5) phi1 = 1d-5
             if(phi2 < 1d-5) phi2 = 1d-5
 
@@ -812,7 +843,7 @@ ilr: if( newcomp_required ) then
 
 ! ---- Do the sums -----
 
-!$OMP PARALLEL DO REDUCTION(+:Sq,Sqt,arg2)
+!$OMP PARALLEL DO REDUCTION(+:Sq,Sqt,arg2) PRIVATE(arg1,arg10,arg20,ff2)
 
        do nn = 1,N
         do mm = 1,N

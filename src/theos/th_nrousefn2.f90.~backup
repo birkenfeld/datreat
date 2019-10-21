@@ -1,10 +1,10 @@
- FUNCTION th_nrousefn(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
+ FUNCTION th_nrousefn2(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
 !================================================================================
 !  Rouse by discrete summation with mode restriction
 !  Rouse, Doi_Edwards
       use theory_description 
       implicit none 
-      real    :: th_nrousefn
+      real    :: th_nrousefn2
       character(len=8) :: thnam, parnam (*) 
       real    :: pa (*) 
       real    :: x , xh
@@ -24,6 +24,10 @@
      double precision :: temp       ! temperature if not in parameters                                                
      double precision :: com_diff   ! center of mass diffusion (if 0, use Rouse default)                              
      double precision :: q_width    ! q_averaging width                                                  
+     double precision :: re0        ! re at t=0                                                  
+     double precision :: re_inf     ! re at t=inf                                                  
+     double precision :: dtau       ! relaxation time re0-> re_inf                                                  
+     double precision :: beta_re    ! streched exp                                                  
 
      integer          :: ifx        ! end fixed (1) or not (0)                                                  
      integer          :: nmin       ! summation start for mix of varoius lengths 
@@ -45,11 +49,11 @@
 !
 ! ----- initialisation ----- 
     IF (ini.eq.0) then     
-       thnam = 'nrousefx'
-       nparx =        9
+       thnam = 'nrousefy'
+       nparx =        12
        IF (npar.lt.nparx) then
            WRITE (6,*)' theory: ',thnam,' no of parametrs=',nparx,' exceeds current max. = ',npar
-          th_nrousefn = 0
+          th_nrousefn2 = 0
           RETURN
        ENDIF
        npar = nparx
@@ -57,7 +61,8 @@
        idesc = next_th_desc()
        th_identifier(idesc)   = thnam
        th_explanation(idesc)  = " Rouse by discrete summation with mode restriction, fix ends and var length" & 
-                //cr//parspace//" replaces nrousefn, ACCELEARTED (OMP+IMPROVED ALG.) VERSION"
+                //cr//parspace//" and expewrimental time dependent Re value " &
+                //cr//parspace//" replaces nrousefn, ..fx, ACCELEARTED (OMP+IMPROVED ALG.) VERSION"
 
        th_citation(idesc)     = " Rouse, Doi_Edwards"
 !       --------------> set the parameter names --->
@@ -70,6 +75,9 @@
         parnam ( 7) = 'q_width '  ! minimum mode to be included                                                     
         parnam ( 8) = 'fixend  '  ! fix end or not                                                    
         parnam ( 9) = 'nmin    '  ! start of length summation                                                   
+        parnam (10) = 're_inf  '  ! infinite time re value
+        parnam (11) = 'dtau    '  ! timeconstant re relaxation                                                  
+        parnam (12) = 'beta_re '  ! streched exp re relaxation                                                   
 ! >>>>> describe parameters >>>>>>> 
         th_param_desc( 1,idesc) = "prefactor" !//cr//parspace//&
         th_param_desc( 2,idesc) = "rouse rate" !//cr//parspace//&
@@ -79,7 +87,10 @@
         th_param_desc( 6,idesc) = "center of mass diffusion (if 0, use Rouse default)" !//cr//parspace//&
         th_param_desc( 7,idesc) = "q-integration width (default=0)" !//cr//parspace//&
         th_param_desc( 8,idesc) = "fixed-end=1, free-chain=0" !//cr//parspace//&
-        th_param_desc( 9,idesc) = "start of length summation nmin..N" !//cr//parspace//&
+        th_param_desc( 9,idesc) = "start of length summation" !//cr//parspace//&
+        th_param_desc(10,idesc) = "infinite time re value   " !//cr//parspace//&
+        th_param_desc(11,idesc) = "timeconstant re relaxation" !//cr//parspace//&
+        th_param_desc(12,idesc) = "streched exp re relaxation" !//cr//parspace//&
  ! >>>>> describe record parameters used >>>>>>>
         th_file_param(:,idesc) = " " 
         th_file_param(  1,idesc) = "q        > momentum transfer"
@@ -91,7 +102,7 @@
         th_out_param(  3,idesc) = "w        > rouse rate: W"
         th_out_param(  4,idesc) = "wl4      > inferred value of Wl4"
 ! 
-        th_nrousefn = 0.0
+        th_nrousefn2 = 0.0
  
         RETURN
      ENDIF
@@ -102,12 +113,15 @@
       amplitu  =      pa( 1)
       wl4      =  abs(pa( 2))
       n_segmen = nint(pa( 3))
-      re       =  abs(pa( 4))
+      re0      =  abs(pa( 4))
       temp     =      pa( 5)
       com_diff =  abs(pa( 6))
       q_width  =      pa( 7)
       ifx      = nint(pa( 8))
       nmin     = nint(pa( 9))
+      re_inf   = abs(pa(10))
+      dtau     = abs(pa(11))
+      beta_re  = abs(pa(12))
 ! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
       iadda = actual_record_address()
 ! >>> extract: momentum transfer
@@ -148,7 +162,7 @@
 ! ------------------------------------------------------------------
 !
 
-      th_nrousefn     = 0
+      th_nrousefn2     = 0
       sums           = 0
       sumnorm        = 0
       nqw            = 15
@@ -157,6 +171,8 @@
         nqw = 0
         q_width = 1.0d0
       endif 
+
+      re = re_inf + (re0-re_inf) * exp(-(t/dtau)**beta_re)
 
       do i=-nqw,nqw
        qzz = q + i*dqw
@@ -182,14 +198,14 @@
 
        if(sumnorm.gt.0.0d0) then
           if(sqof0) then
-            th_nrousefn = sums
+            th_nrousefn2 = sums
           else
-            th_nrousefn = sums/sumnorm
+            th_nrousefn2 = sums/sumnorm
           endif
        else
-          th_nrousefn = 0
+          th_nrousefn2 = 0
        endif 
-       th_nrousefn = th_nrousefn*amplitu
+       th_nrousefn2 = th_nrousefn2*amplitu
 
 
 
@@ -303,7 +319,7 @@
 
 ! ---- Do the sums -----
 
-!$OMP PARALLEL DO REDUCTION(+:Sq,Sqt,arg2)
+!$OMP PARALLEL DO REDUCTION(+:Sq,Sqt,arg2) PRIVATE (arg1,arg10,arg20)
 
        do nn = 1,N
         do mm = 1,N
@@ -355,4 +371,4 @@
        end subroutine NrousePX
  
 
- end function th_nrousefn
+ end function th_nrousefn2

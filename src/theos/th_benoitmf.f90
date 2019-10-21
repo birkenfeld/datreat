@@ -29,7 +29,7 @@
      double precision   :: q
 
      double precision   :: adapint, eps=1d-8, erracc
-     integer            :: maxit  = 1000
+     integer            :: maxit  = 20000
 !
 ! ----- initialisation ----- 
     IF (ini.eq.0) then     
@@ -71,8 +71,8 @@
 !
 ! ---- transfer parameters -----
       ampli    =      pa( 1)
-      rg       =      pa( 2)
-      df       =      pa( 3)
+      rg       =  abs(pa( 2))
+      df       =  abs(pa( 3))
       va2      =      pa( 4)
 ! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
       iadda = actual_record_address()

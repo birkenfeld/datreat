@@ -483,6 +483,8 @@ ist: if( newcomp_required ) then
 
  end select
 
+ th_rpatest = th_rpatest * ampli
+
  CONTAINS 
  
 ! subroutines and functions entered here are private to this theory and share its variables 

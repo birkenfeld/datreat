@@ -319,7 +319,7 @@
 
 ! ---- Do the sums -----
 
-!$OMP PARALLEL DO REDUCTION(+:Sq,Sqt,arg2)
+!$OMP PARALLEL DO REDUCTION(+:Sq,Sqt,arg2) PRIVATE (arg1,arg10,arg20)
 
        do nn = 1,N
         do mm = 1,N

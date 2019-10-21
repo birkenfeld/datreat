@@ -11,6 +11,7 @@ implicit none
   end interface
 
   character(len=80) :: PDF_VIEWER_COMMAND = "open -a preview "   ! mac
+  character(len=80) :: LAST_DTR_PLOT
 
 
   character(len=4) :: czero
@@ -33,7 +34,8 @@ implicit none
   double precision              :: AXIS_LINEWIDTH                = 1d0
   double precision              :: XLEG_DISTANCE                 = 0.075d0
   double precision              :: YLEG_DISTANCE                 = 0.14d0
-  double precision              :: TLEG_DISTANCE                 = 0.08d0
+  double precision              :: TLEG_DISTANCE_X               = 0.0d0
+  double precision              :: TLEG_DISTANCE_Y               = 0.08d0
 
                          
   integer, parameter :: MARKERTYPE_DOT             =  1    !    Smallest displayable dot
@@ -375,6 +377,9 @@ implicit none
 
    logical                      :: grinit = .false.
 
+   double precision :: graspekt
+
+
 CONTAINS                                                                       
 
 !== gr_start =================================================================================================  
@@ -406,6 +411,11 @@ CONTAINS
      call gr_activatews(gr_ws_id)
                                                          
      call gr_setwsviewport(device_xmin, device_xmax, device_ymin, device_ymax) 
+
+!! > neu
+     graspekt =  (device_ymax-device_ymin)/(device_xmax-device_xmin) 
+     call gr_setwswindow( 0d0, 1d0, 0d0, graspekt )
+!! <
      
      if(present(boundary)) then   
        xyboundary = boundary 
@@ -413,7 +423,7 @@ CONTAINS
        xyboundary = DEFAULT_WC_MARGIN   
      endif
      call gr_setviewport(xyboundary,  & 
-             (1d0-0*xyboundary)*(device_ymax-device_ymin)/(device_xmax-device_xmin), xyboundary, 1d0-xyboundary) 
+             (1d0-xyboundary)*graspekt, xyboundary, (1d0-xyboundary)*graspekt) 
 
 
      call gr_setmarkersize(1.0D0) 
@@ -545,7 +555,8 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
 
 
     if(present(xerror)) then
-      nex = min(np, size(xerror))
+     nex = min(np, size(xerror))
+     if(maxval(abs(xerror(1:nex))) > 0d0) then 
       allocate(xm(nex))
       allocate(xp(nex))
       xm = x(1:nex)-xerror(1:nex)
@@ -553,10 +564,12 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
       call gr_herrorbars(nex, x, y, xm, xp)   
       deallocate(xm)
       deallocate(xp)
+     endif
     endif
 
     if(present(yerror)) then
-      ney = min(np, size(yerror))
+     ney = min(np, size(yerror))
+     if(maxval(abs(yerror(1:ney))) > 0d0) then 
       allocate(xm(ney))
       allocate(xp(ney))
       xm = y(1:ney)-yerror(1:ney)
@@ -564,7 +577,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
       call gr_verrorbars(ney, x, y, xm, xp)
       deallocate(xm)
       deallocate(xp)
-
+     endif
     endif
 
   end subroutine grsymbol
@@ -661,19 +674,19 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
    ylabel_x = xmin-(xmax-xmin)*YLEG_DISTANCE
    ylabel_y = ymin+(ymax-ymin)*0.5d0
 
-   tlabel_x = xmin+(xmax-xmin)*YLEG_DISTANCE   ! to be made individual for Tit
-   tlabel_y = ymax+(ymax-ymin)*TLEG_DISTANCE
+   tlabel_x = xmin+(xmax-xmin)*TLEG_DISTANCE_X   ! to be made individual for Tit
+   tlabel_y = ymax+(ymax-ymin)*TLEG_DISTANCE_Y
 
    if(act_opt == OPTION_X_LOG .or. act_opt == OPTION_XY_LOG) then
         xlabel_x = 10d0**(log10(xmin)+(log10(xmax)-log10(xmin))*0.5d0)
         ylabel_x = 10d0**(log10(xmin)-(log10(xmax)-log10(xmin))*YLEG_DISTANCE)
-        tlabel_x = 10d0**(log10(xmin)+(log10(xmax)-log10(xmin))*YLEG_DISTANCE) ! to be made individual for Tit
+        tlabel_x = 10d0**(log10(xmin)+(log10(xmax)-log10(xmin))*TLEG_DISTANCE_X) ! to be made individual for Tit
    endif
 
    if(act_opt == OPTION_Y_LOG .or. act_opt == OPTION_XY_LOG) then
         xlabel_y = 10d0**(log10(ymin)-(log10(ymax)-log10(ymin))*XLEG_DISTANCE)
         ylabel_y = 10d0**(log10(ymin)+(log10(ymax)-log10(ymin))*0.5d0)
-        tlabel_y = 10d0**(log10(ymax)+(log10(ymax)-log10(ymin))*TLEG_DISTANCE)
+        tlabel_y = 10d0**(log10(ymax)+(log10(ymax)-log10(ymin))*TLEG_DISTANCE_Y)
    endif
 
 
@@ -771,19 +784,19 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
    ylabel_x = xmax+(xmax-xmin)*YLEG_DISTANCE
    ylabel_y = ymin+(ymax-ymin)*0.5d0
 
-   tlabel_x = xmax-(xmax-xmin)*YLEG_DISTANCE
-   tlabel_y = ymax+(ymax-ymin)*TLEG_DISTANCE
+   tlabel_x = xmax-(xmax-xmin)*TLEG_DISTANCE_X
+   tlabel_y = ymax+(ymax-ymin)*TLEG_DISTANCE_Y
 
    if(act_opt == OPTION_X_LOG .or. act_opt == OPTION_XY_LOG) then
         xlabel_x = 10d0**(log10(xmin)+(log10(xmax)-log10(xmin))*0.5d0)
         ylabel_x = 10d0**(log10(xmax)+(log10(xmax)-log10(xmin))*YLEG_DISTANCE)
-        tlabel_x = 10d0**(log10(xmax)-(log10(xmax)-log10(xmin))*TLEG_DISTANCE)
+        tlabel_x = 10d0**(log10(xmax)-(log10(xmax)-log10(xmin))*TLEG_DISTANCE_X)
    endif
 
    if(act_opt == OPTION_Y_LOG .or. act_opt == OPTION_XY_LOG) then
         xlabel_y = 10d0**(log10(ymax)+(log10(ymax)-log10(ymin))*XLEG_DISTANCE)
         ylabel_y = 10d0**(log10(ymin)+(log10(ymax)-log10(ymin))*0.5d0)
-        tlabel_y = 10d0**(log10(ymax)+(log10(ymax)-log10(ymin))*TLEG_DISTANCE)
+        tlabel_y = 10d0**(log10(ymax)+(log10(ymax)-log10(ymin))*TLEG_DISTANCE_Y)
    endif
 
 
@@ -829,13 +842,17 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
     m      =   floor(log10(amax-amin))
     tick   =   10.0d0**m
     u      =   (amax-amin)/tick
+
+
     select case(u)
+      case(5:10) 
+        tick = tick*2
       case(3:4) 
-        tick = tick/2
+        tick = tick
       case(2)
+        tick = tick/2
+      case(0:1)
         tick = tick/4
-      case(1)
-        tick = tick/5
       case default
         tick = tick
     end select
@@ -1089,6 +1106,10 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
        integer,save :: isymb(1:size(inpar)) = [(i,i=1,size(inpar))]+1   !! check Markertypes 
        integer,save :: ifrec(1:size(inpar))
 
+       double precision, save :: linewidth_scaling(1:size(inpar)) = 1d0
+       double precision, save :: sysize_scaling   (1:size(inpar)) = 1d0
+       integer         , save :: linetype(1:size(inpar)) = LINETYPE_SOLID
+
 
        double precision, save       :: p0_scale(size(inpar)) = 1.0
        double precision             :: p_scale(size(inpar))
@@ -1139,7 +1160,8 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
       integer       :: axis_option
 
       integer       ::  ifont = 0
-
+      integer       ::  ubild
+      logical       ::  fileda
       
 
 
@@ -1157,6 +1179,9 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
        write(6,*)'=      symb  <list>   :  integer synbmbol list (sequence = selected)         ='
        write(6,*)'=      sysize <val>   :  sets symbol size                                    ='
        write(6,*)'=      icolo <list>   :  integer color    list (sequence = selected)         ='
+       write(6,*)'=      ltype <list>   :  linetypes                                           ='
+       write(6,*)'=      lwid  <list>   :  linewidths                                          ='
+       write(6,*)'=      sywid <list>   :  symbol size scalings                                ='
        write(6,*)'=      errplo         :  adds error bars                                     ='
        write(6,*)'=      noerrplo       :  suppress error bars                                 ='
        write(6,*)'=      parplo         :  sets parameter value listing                        ='
@@ -1167,7 +1192,8 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
        write(6,*)'=      axticlen <val> :  scale axis tick size (neg=outbound)                 ='
        write(6,*)'=      xlegdist <val> :  distance of x-axis name from axis                   ='
        write(6,*)'=      ylegdist <val> :  distance of y-axis name from axis                   ='
-       write(6,*)'=      tlegdist <val> :  distance of title from axis top                     ='
+       write(6,*)'=      tit_x <val>    :  distance of title from axis left                    ='
+       write(6,*)'=      tit_x <val>    :  distance of title from axis top                     ='
        write(6,*)'=      flinewd  <val> :  fit linewidth                                       ='
        write(6,*)'=      dfinewd  <val> :  data linewidth                                      ='
        write(6,*)'=      lin_x | log_x  :  lin or log x scale                                  ='
@@ -1182,7 +1208,8 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
        write(6,*)'=       if there is some title (use tit abc...) then                         ='
        write(6,*)'=       plot are stored to <title>.pdf (blanks etc. are replaced by _ etc.   ='
        write(6,*)'=       and always copied to last_datreat_plot.pdf                           ='
-       write(6,*)'=       to create an auto numbered series datreat_plot##.pdf  use plot # <n> xs='
+       write(6,*)'=       to stop creation of auto numbered series datreat_plot##.pdf  use plot # <neg>'
+       write(6,*)'=       to restart creation of auto numbered series datreat_plot##.pdf  use plot # <n>'
        write(6,*)'= VERSION 3.0                                                                ='
        write(6,*)'=============================================================================='
        return
@@ -1250,12 +1277,36 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
 
 
 ! experimental:
-          XLEG_DISTANCE = get_named_value("xlegdist   ",XLEG_DISTANCE,inew)
-          YLEG_DISTANCE = get_named_value("ylegdist   ",YLEG_DISTANCE,inew)
-          TLEG_DISTANCE = get_named_value("tlegdist   ",TLEG_DISTANCE,inew)
+          XLEG_DISTANCE   = get_named_value("xlegdist   ",XLEG_DISTANCE,inew)
+          YLEG_DISTANCE   = get_named_value("ylegdist   ",YLEG_DISTANCE,inew)
+          TLEG_DISTANCE_X = get_named_value("tit_x      ",TLEG_DISTANCE_X,inew)
+          TLEG_DISTANCE_Y = get_named_value("tit_y      ",TLEG_DISTANCE_Y,inew)
 
           
 ! to be modernized
+          if(vname(i).eq.'ltype    ' ) then
+            nsy = 0
+            do  l=1,inpar(i)
+             nsy   = nsy   + 1
+             if(nsy.gt.size(inpar)) exit
+             linetype(nsy) = nint(abs( rpar(j) ))
+             j = j + 1
+            enddo
+          endif
+           
+! to be modernized
+          if(vname(i).eq.'lwid    ' ) then
+            nsy = 0
+            do  l=1,inpar(i)
+             nsy   = nsy   + 1
+             if(nsy.gt.size(inpar)) exit
+             linewidth_scaling(nsy) =  rpar(j)
+             j = j + 1
+            enddo
+          endif
+ 
+
+!! to be modernized
           if(vname(i).eq.'symb    ' .or. vname(i).eq.'isymb   ' ) then
             nsy = 0
             do 49 l=1,inpar(i)
@@ -1266,6 +1317,18 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
    49       continue
           endif
    29     continue
+!
+!! to be modernized
+ fsywd:  if(vname(i).eq.'sywid    ') then
+            nsy = 0
+            do l=1,inpar(i)
+             nsy   = nsy   + 1
+             if(nsy.gt.size(inpar)) exit
+             sysize_scaling(nsy) =  rpar(j)
+             j = j + 1
+            enddo
+          endif fsywd
+   
 !
 
           if(vname(i).eq.'colo    ' .or. vname(i).eq.'icolo   ') then
@@ -1351,12 +1414,28 @@ scl:   if(found('scaled  ')) then
        endif scl
 
 !
-       if(ibild>0) ibild = ibild + 1
+!       if(ibild>0) ibild = ibild + 1
+       if(ibild>=0) then         
+          inquire(file="datreat_plot_counter",exist=fileda)
+          if(fileda) then
+            open(newunit=ubild,file="datreat_plot_counter")
+            read(ubild,*) ibild
+            ibild = ibild + 1
+            rewind(ubild)
+            write(ubild,*) ibild
+            close(ubild)
+          else
+            open(newunit=ubild,file="datreat_plot_counter")
+            ibild = ibild+1
+            write(ubild,*) ibild
+            close(ubild)
+          endif
+       endif
 !
 ! ---- set frame & scales ----
        if(len_trim(title) > 0) then
 !          call grstart("dtrplot.pdf")           !>neu, TBD use frlux ....
-          write(*,*)"t1:",trim(grtitle_filter(title))//".pdf"
+          write(*,'(a,i0,a)')"Plot title(#",ibild-1,"): "//trim(grtitle_filter(title))//".pdf"
           call grstart(trim(grtitle_filter(title))//".pdf")           !>neu, TBD use frlux ....
        else
           call grstart 
@@ -1393,7 +1472,7 @@ scl:   if(found('scaled  ')) then
 !?        if(paxis) call graxs(lopt,option,lxx,xtext,lyy,ytext)
        if(paxis) then
             call graxes (trim(xtext),trim(ytext),trim(title),GR_BLACK, axis_option, &
-                         ax_tick_scale, ax_text_scale) !> neu
+                         ax_tick_scale, ax_text_scale * graspekt) !> neu
             call graxes2 (" "," "," ",GR_BLACK, axis_option, &
                          -ax_tick_scale, ax_text_scale*0.001d0) !> neu
        endif
@@ -1478,10 +1557,12 @@ scl:   if(found('scaled  ')) then
 
 !          ----------- plot a dataline -------
            if(isymb(i).eq.0) then
-             call grline(x=x, y=y, n=nnpi,   color=icco,   thickness=datline_thickness, typ=LINETYPE_SOLID) !> neu
+             call grline(x=x, y=y, n=nnpi,   color=icco,   thickness=datline_thickness*linewidth_scaling(i),&
+                                                           typ=linetype(i)) !> neu
            else
              call grsymbol(x=x, y=y,  n=nnpi, &    ! xerror    = y(ind)*0.2d0, yerror = y(ind)*0.1d0, &
-                                      color=icco, symbolsize= sysize, typ= MARKERTYPE(isymb(i)) )
+                                      color=icco, symbolsize= sysize * sysize_scaling(i), &
+                                      typ= MARKERTYPE(isymb(i)) )
            endif
 
            if(errplo) then
@@ -1489,11 +1570,11 @@ scl:   if(found('scaled  ')) then
              do ik=1,nnpi       
                yepl = y(ik)+e(ik)
                yeml = y(ik)-e(ik)
-              call grline([x(ik),x(ik)],[yeml,yepl], 2)   
+              call grline(x=[x(ik),x(ik)],y=[yeml,yepl],n=2,thickness=datline_thickness, typ=LINETYPE_SOLID)   
              enddo
 ! new
              call grsymbol(x=x, y=y,  n=nnpi, yerror = e, &
-                            color=icco, symbolsize= sysize, typ= MARKERTYPE(max(1,isymb(i))) )
+                            color=icco, symbolsize= sysize* sysize_scaling(i) , typ= MARKERTYPE(max(1,isymb(i))) )
            endif
 
 !>             call grnwpn(1)
@@ -1519,13 +1600,13 @@ scl:   if(found('scaled  ')) then
          call gr_setwindow( DEVICE_LOWER_LEFT_X*100 , DEVICE_UPPER_RIGHT_X*100 , &
                             DEVICE_LOWER_LEFT_Y*100 , DEVICE_UPPER_RIGHT_Y*100 )
     
-         call gr_setcharheight(txsizt/35)   !> neu
+         call gr_setcharheight(txsizt/35*graspekt)   !> neu
          xtx =  DEVICE_UPPER_RIGHT_X*100 + 2.0  + xtshft
          ytx =  DEVICE_UPPER_RIGHT_Y*100 + 2.0  + ytshft
 
          yhigh = ytx
          ylow  = DEVICE_LOWER_LEFT_Y*100 - (DEVICE_UPPER_RIGHT_Y- DEVICE_LOWER_LEFT_Y)*DEFAULT_WC_MARGIN*100
-         xskip = 40 * fyskip * txsizt 
+         xskip = 42 * fyskip * txsizt 
 !
 ! - plot date and time info:
 !
@@ -1533,7 +1614,8 @@ scl:   if(found('scaled  ')) then
 
        tx = tag(7:8)//'-'//tag(5:6)//'-'//tag(1:4)
        sx = stunde(1:2)//':'//stunde(3:4)//':'//stunde(5:6)
-       xtext = tx//'  '//sx
+!       xtext = tx//'  '//sx
+       write(xtext,'(a,i0)') tx//'  '//sx//' #',ibild-1
        call grtext(-DEFAULT_WC_MARGIN*150*fyskip * txsizt ,ylow,trim(xtext),GR_BLACK) !> neu
 
 ! ---- plot theory parameters ----
@@ -1656,6 +1738,7 @@ scl:   if(found('scaled  ')) then
       else
          buf = "last_datreat_plot.pdf"
       endif
+      LAST_DTR_PLOT = buf
       call grende(trim(PDF_VIEWER_COMMAND)//' $plot; cp -f $plot '//trim(buf))  
                                             ! $plot is symbolic for then name of the 
                                             ! created plotfile 

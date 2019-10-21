@@ -1,7 +1,7 @@
 
 SHELL = /bin/sh
 SRCF=$(wildcard *.f) 
-SRCF90=integration.f90 rpa_laplace.f90 polynom.f90 $(wildcard *.f90) 
+SRCF90=integration.f90 rpa_laplace.f90 polynom.f90 lmfit.f90 $(wildcard *.f90) 
 
 
 OBJF=$(SRCF:.f=.o)
@@ -16,7 +16,11 @@ THEOS := $(shell grep -h "^ *[Ff][Uu][Nn][Cc][Tt][Ii][Oo][nN] .*( *x *, *pa *, *
 DOUBLE := $(shell grep -h "^ *[Ff][Uu][Nn][Cc][Tt][Ii][Oo][nN] .*( *x *, *pa *, *.*, *.*, *.*, *.*)" *.f *.f90  | sed 's>[Ff]......[Nn] *\(.*\)( *x.*)>\1>'|sort |uniq -d)
 
 FC=gfortran
-FFLAGS= -O3 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -Wunused-function -Wunused-variable -I../ -fopenmp
+#FFLAGS= -O3 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -Wunused-function -Wunused-variable -I../ -fopenmp
+FFLAGS= -O3 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -Wunused-function -Wunused-variable -fopenmp -I../ 
+# FFLAGS= -O3 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -Wunused-function -Wunused-variable -I../ 
+
+
 #FFLAGS=-march=core2 -O2 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -msse4a -mfpmath=sse -Wunused-function -Wunused-variable -I../
 
 #FC=ifort

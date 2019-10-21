@@ -1,17 +1,18 @@
- FUNCTION th_rpatest(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
+ FUNCTION th_rpastar2(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
 !================================================================================
 !  applies rpa mixture tor the scattering function for a star-linear polymer micture and extends this into the dynamic regime (i.e. S(Q) --> S(Q,t))
 ! 
       use theory_description 
       use lmfit
       use rpa_laplace
+      use polynom
       implicit none
 !! 
       SAVE
 !!    ====
 
 
-      real    :: th_rpatest
+      real    :: th_rpastar2
       character(len=8) :: thnam, parnam (*) 
       real    :: pa (*) 
       real    :: x , xh
@@ -74,8 +75,14 @@
      double precision   :: Re_arm
      double precision   :: Sinv0, Sinv
      double precision   :: local_reptation2
-     double precision   :: pericostar_sqt3
- 
+
+     double precision, parameter  :: t_table_spacing1 = 300d0 
+     double precision, parameter  :: t_table_spacing2 = 100d0 
+! exp(i*log(tmax*300d0)/nxpoints)/100d0
+! log t table, first point at exp(log(tmax*t_table_spacing1)/nxpoints)/t_table_spacing2 
+!              last  point at exp(log(tmax*t_table_spacing1))/t_table_spacing2 = tmax*(t_table_spacing1/t_table_spacing2) 
+
+
 
      integer            :: ifix
 
@@ -91,7 +98,7 @@
      double precision        :: aexpcc(mexp), rexpcc(mexp)
      integer                 :: nexcc
 
-     integer, parameter      :: mxpoints = 30
+     integer, parameter      :: mxpoints = 1000
      double precision        :: t_samples(mxpoints)
      double precision        :: s_samples(mxpoints)
      double precision        :: tmax = 1000d0
@@ -103,16 +110,23 @@
 
      double precision        :: a1, a2, r1, r2, r3, b1, b2, g1, g2, g3
      integer                 :: analytic = 0
+
+
+     complex(kind=XPREC)     :: il_coeffs11(3*mexp)
+     complex(kind=XPREC)     :: il_coeffs12(3*mexp)
+     complex(kind=XPREC)     :: il_coeffs22(3*mexp)
+     complex(kind=XPREC)     :: il_alphas(3*mexp)
+     integer                 :: nnsum
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !
 ! ----- initialisation ----- 
     IF (ini.eq.0) then 
-       thnam = 'rpatest'
+       thnam = 'rpastar2'
        nparx =       20
        IF (npar.lt.nparx) then
            WRITE (6,*)' theory: ',thnam,' no of parametrs=',nparx,' exceeds current max. = ',npar
-          th_rpatest = 0
+          th_rpastar2 = 0
           RETURN
        ENDIF
        npar = nparx
@@ -177,10 +191,28 @@
         th_file_param(  9,idesc) = "tau      > tau val for mode > 0 calc"
         th_file_param( 10,idesc) = "alin     > scattering contrast linear"
         th_file_param( 11,idesc) = "astar    > scattering contrast star"
-! >>>>> describe record parameters creaqted by this theory >>>>>>> 
+        th_file_param( 12,idesc) = "dss      > modification factor for polynom sampling distance used for polynomial method only" //cr//parspace//&
+                                   "           this is critical for numerical accuracy/stability try other" //cr//parspace//&
+                                   "           values if the computation fails "
+        th_file_param( 12,idesc) = "sfak0    > polynom scaling factor used for polynomial method only" //cr//parspace//&
+                                   "           this is critical for numerical accuracy/stability try other" //cr//parspace//&
+                                   "           values if the computation fails "
+        th_file_param( 14,idesc) = "npp_plus > polynom sampling extra points used for polynomial method only" //cr//parspace//&
+                                   "           increasing the number npp in excess of the minimum needed" //cr//parspace//&
+                                   "           may improve accuracy, eventually decrease dss when increasing npp  "
+        th_file_param( 15,idesc) = "xil      > for analytic=0 (or not present): integration for invlaplace" //cr//parspace//&
+                                   "           xil is the displacement of the -I*inf...I*Inf integration path" //cr//parspace//&
+                                   "           along the real axis, a very small 1e-3 value shoul usually be good  "
+        th_file_param( 16,idesc) = "epap     > for analytic=0 (or not present): integration for invlaplace" //cr//parspace//&
+                                   "           epap is an optional apodisation factor" //cr//parspace//&
+                                   "           a very small 1e-9 value shoul usually be good  "
+        th_file_param( 17,idesc) = "epsrpa   > for analytic=0 (or not present): integration for invlaplace" //cr//parspace//&
+                                   "           epsrpa is an accuracy target for the numerical integratio" //cr//parspace//&
+                                   "           a 1e-5 value should usually be good  "
+!  >>>>> describe record parameters creaqted by this theory >>>>>>> 
         th_out_param(:,idesc)  = " "
 ! 
-        th_rpatest = 0.0
+        th_rpastar2 = 0.0
  
         RETURN
      ENDIF
@@ -268,11 +300,44 @@
       xh = 1.0d0
       call parget('astar    ',xh,iadda,ier)
       astar  = xh
-!!! >>> tentative onl testing
+!!! >>> tentative only testing
       xh = 0d0
       call parget('analytic ',xh,iadda,ier)
       analytic  = nint(xh) 
-!!! 
+!!! >>> tentative only testing
+      xh =  0.0001d0
+      call parget('xil      ',xh,iadda,ier)
+      xil = xh
+!!! >>> tentative only testing
+      xh =  1d-9
+      call parget('epap      ',xh,iadda,ier)
+      epap = xh
+!!! >>> tentative only testing
+      xh =  1d-5
+      call parget('epsrpa    ',xh,iadda,ier)
+      epsrpa = xh
+!!!! >>> in the polynomial analytic this determines the spcing of the polynomial testpoints
+!!      this parameter is critical for the numerical accuracy 
+!!      TBD determine it automatically
+!!      just now: try it out....
+      xh =  1.0
+      call parget('dss       ',xh,iadda,ier)
+      dss = xh
+!!! >>> in the polynomial analytic this determines the scaling of the polynomial testpoints
+!!      this parameter is critical for the numerical accuracy 
+!!      TBD determine it automatically
+!!      just now: try it out....
+      xh =  0.001
+      call parget('sfak0     ',xh,iadda,ier)
+      sfak0 = xh
+!!! >>> in the polynomial analytic this determines the excess point number of tables for polyfit
+!!      this parameter is critical for the numerical accuracy 
+!!      this and the two preceeding parameters are in the global section of module polynom
+!!      just now: try it out....
+      xh =  30
+      call parget('npp_plus  ',xh,iadda,ier)
+      npp_plus = nint(xh)
+!!!!!!!! 
 ! ------------------------------------------------------------------
 ! ----------------------- implementation ---------------------------
 ! ------------------------------------------------------------------
@@ -309,8 +374,13 @@ i1:  if( mode == 0 ) then     ! normal spin-echo
 
 ! linear chain function according to the reptation interpolation model locrep2
 ilr: if( newcomp_required ) then
+
+      ! linear polymer componenet, here: same for labelled admixture and matrix
+      ! modelling of the long chain linear componente by the empirical locrep scheme  
+
       do i=1,nxpoints
-             ts      =  exp(i*log(tmax*300d0)/nxpoints)/100d0
+             ts      =  exp(i*log(tmax*t_table_spacing1)/nxpoints)/t_table_spacing2
+
              sqt0    =  local_reptation2( q*locr2_a, locr2_te   , locr2_b, locr2_lz)
              sqt     =  local_reptation2( q*locr2_a, ts/locr2_ta, locr2_b, locr2_lz)
              locrep2 =  sqt/sqt0
@@ -329,29 +399,20 @@ ilr: if( newcomp_required ) then
           if(ssq > 1d-4) then
             write(6,*)"rpa_test exp model bad match 11", ssq
           endif
-     elseif(modeex==0) then ! diese Berechnung und die analogen jeweils in einen separate Prozedur packen ! --> F(q,t), S(q)
-       sqt0    =  local_reptation2( q*locr2_a, locr2_te  , locr2_b, locr2_lz)
-       sqt     =  local_reptation2( q*locr2_a, t/locr2_ta, locr2_b, locr2_lz)
-       locrep2 =  sqt/sqt0
-       dr      = 1d-20
-       ifix    = 0
-       call  NrouseY(q,t,temp,Dr,wl4,nro_me,re_me, Wx, lx,ifix, sqt0,sqt)
-       plin0   = nlin  * Debye_qnl(q, nlin, l) 
-       plin    = plin0 * locrep2 * sqt / sqt0
-     endif ilr
 
+     ! star ( primary sample component) here the component with index 2
 
- ! star
-ist: if( newcomp_required ) then
       do i=1,nxpoints
-             ts     =  exp(i*log(tmax*300d0)/nxpoints)/100d0
+             ts     =  exp(i*log(tmax*t_table_spacing1)/nxpoints)/t_table_spacing2
+
              Re_arm = sqrt(narm * l**2)
              sqt0   =  pericostar_sqt3(q,0d0,f,narmeff,Re_arm,Wl4star,plimit)    ! automatic diffusion if diffstar==0 
              sqt    =  pericostar_sqt3(q,ts ,f,narmeff,Re_arm,Wl4star,plimit)
- ! fix normalization
+             ! fix normalization
              pstar0 =  SQstar(q,narm,f,l)
              pstar  =  sqt/sqt0 * pstar0
              pstar  =  pstar * exp( -diffstar * q*q * (ts)**betadif )            !! add diffusion expilicitly
+
              t_samples(i) = ts
              s_samples(i) = sqt/sqt0 *  exp( -diffstar * q*q * (ts)**betadif )    
            enddo
@@ -359,86 +420,75 @@ ist: if( newcomp_required ) then
 
            if(ssq > 1d-4) then
             write(6,*)"rpa_test exp model bad match 22", ssq
-          endif
-     elseif(modeex==0) then     
+           endif
 
-        Re_arm = sqrt(narm * l**2)
-        sqt0   =  pericostar_sqt3(q,0d0,f,narmeff,Re_arm,Wl4star,plimit)    ! automatic diffusion if diffstar==0 
-        sqt    =  pericostar_sqt3(q,t  ,f,narmeff,Re_arm,Wl4star,plimit)
- ! fix normalization
-        pstar0 =  SQstar(q,narm,f,l)
-        pstar  =  sqt/sqt0 * pstar0
-        pstar  =  pstar * exp( -diffstar * q*q * (t)**betadif )                       !! add diffusion expilicitly
-
-     endif ist
 
    
-!!     if( modeex > 0 ) then
-!!       plin   = 0
-!!       pstar  = 0
-!!       do i=1,modeex
-!!         plin  = plin  + aexp11(i) * exp( -t * rexp11(i) ) 
-!!         pstar = pstar + aexp22(i) * exp( -t * rexp22(i) ) 
-!!       enddo
-!!       plin  = plin  * plin0
-!!       pstar = pstar * pstar0
-!!     endif
+   !
+   ! componente c    = lineraes polymer (matrix) gleiche Parameter wie comp 1
+   ! componente 1    = lineares polymer (markierter Teil)
+   ! componente 2    = start-polymer
+        phi1              =   philin   ! volume fraction of polymer component 1
+        phi2              =   phistar  ! volume fraction of polymer component 2
+        
+        Scc00             =   plin0    ! unperturbed structure factor S(Q) of "matrix" polymers
+        S0011             =   plin0    ! unperturbed structure factor S(Q) of polymer 1
+        S0022             =   pstar0   ! unperturbed structure factor S(Q) of polymer 2
+        nexpcc            =   modeex   ! number of exp-functions to describe background
+        nexp1             =   modeex   ! number of exp-functions to describe component1
+        nexp2             =   modeex   ! number of exp-functions to describe component2
+        aexp_cc(1:nexpcc) =   aexpcc(1:nexpcc)    ! amplitude coeffs for laplace-exp representation of "matrix"
+        rexp_cc(1:nexpcc) =   rexpcc(1:nexpcc)   ! rate      coeffs for laplace-exp representation of "matrix"
+        aexp_s1(1:nexp1)  =   aexp11(1:nexp1)    ! amplitude coeffs for laplace-exp representation of polymer 1
+        rexp_s1(1:nexp1)  =   rexp11(1:nexp1)    ! rate      coeffs for laplace-exp representation of polymer 1
+        aexp_s2(1:nexp2)  =   aexp22(1:nexp2)    ! amplitude coeffs for laplace-exp representation of polymer 2
+        rexp_s2(1:nexp2)  =   rexp22(1:nexp2)    ! rate      coeffs for laplace-exp representation of polymer 2
+    
+        if(analytic >= 1) then
+ !! AUS NUMERISCHEN GRUENDEN DARF Phi1 bzw Phi2 nicht NULL sein
+ !! erstmal default Aktion    
+          if(phi1 < 1d-5) phi1 = 1d-5
+          if(phi2 < 1d-5) phi2 = 1d-5
+          call get_invlaplace_coeffs( il_coeffs11, il_coeffs12, il_coeffs22 , il_alphas, nnsum)  
+        endif
+
+ !!! testouptput
+ !!  write(6,'(a,d14.7)') "Scc00          = ", Scc00  
+ !!  write(6,'(a,d14.7)') "S0011          = ", S0011  
+ !!  write(6,'(a,d14.7)') "S0022          = ", S0022  
+ !!  write(6,'(a,d14.7)') "phi1           = ", phi1   
+ !!  write(6,'(a,d14.7)') "phi2           = ", phi2   
+ !!  write(6,'(a,i8   )') "nexp1          = ", nexp1  
+ !!  write(6,'(a,i8   )') "nexp2          = ", nexp2  
+ !!  write(6,'(a,i8   )') "nexpcc         = ", nexpcc 
+ !!  write(6,'(a,10(d14.7,","))') "aexp_s1(1:nexp1)  = [", aexp_s1(1:nexp1)  
+ !!  write(6,'(a,10(d14.7,","))') "aexp_s2(1:nexp2)  = [", aexp_s2(1:nexp2)  
+ !!  write(6,'(a,10(d14.7,","))') "aexp_cc(1:nexpcc) = [", aexp_cc(1:nexpcc) 
+ !!  write(6,'(a,10(d14.7,","))') "rexp_s1(1:nexp1)  = [", rexp_s1(1:nexp1)  
+ !!  write(6,'(a,10(d14.7,","))') "rexp_s2(1:nexp2)  = [", rexp_s2(1:nexp2)  
+ !!  write(6,'(a,10(d14.7,","))') "rexp_cc(1:nexpcc) = [", rexp_cc(1:nexpcc) 
+
+
+       
+   
+
+     endif ilr
+
+   
 
 ! RPA VARIABLE TRANSFER
 
 
- xil         =  0.0001d0    ! distance of path for inv-laplace integration
- epap        =  1d-9
- epsrpa      =  1d-5
+!!  xil         =  0.0001d0    ! distance of path for inv-laplace integration
+!!  epap        =  1d-9
+!!  epsrpa      =  1d-5
 
  
-!
-! componente c    = lineraes polymer (matrix) gleiche Parameter wie comp 1
-! componente 1    = lineares polymer (markierter Teil)
-! componente 2    = start-polymer
-     phi1              =   philin   ! volume fraction of polymer component 1
-     phi2              =   phistar  ! volume fraction of polymer component 2
-     Scc00             =   plin0    ! unperturbed structure factor S(Q) of "matrix" polymers
-     S0011             =   plin0    ! unperturbed structure factor S(Q) of polymer 1
-     S0022             =   pstar0   ! unperturbed structure factor S(Q) of polymer 2
-     nexpcc            =   modeex   ! number of exp-functions to describe background
-     nexp1             =   modeex   ! number of exp-functions to describe component1
-     nexp2             =   modeex   ! number of exp-functions to describe component2
-     aexp_cc(1:nexpcc) =   aexpcc(1:nexpcc)    ! amplitude coeffs for laplace-exp representation of "matrix"
-     rexp_cc(1:nexpcc) =   rexpcc(1:nexpcc)   ! rate      coeffs for laplace-exp representation of "matrix"
-     aexp_s1(1:nexp1)  =   aexp11(1:nexp1)    ! amplitude coeffs for laplace-exp representation of polymer 1
-     rexp_s1(1:nexp1)  =   rexp11(1:nexp1)    ! rate      coeffs for laplace-exp representation of polymer 1
-     aexp_s2(1:nexp2)  =   aexp22(1:nexp2)    ! amplitude coeffs for laplace-exp representation of polymer 2
-     rexp_s2(1:nexp2)  =   rexp22(1:nexp2)    ! rate      coeffs for laplace-exp representation of polymer 2
- 
 
-    if( analytic >= 1 .and. modeex == 3 ) then  
-       a1 = aexp_s2(1)
-       a2 = aexp_s2(2)
-       r1 = rexp_s2(1)
-       r2 = rexp_s2(2)
-       r3 = rexp_s2(3)
-
-       b1 = aexp_cc(1)
-       b2 = aexp_cc(2)
-       g1 = rexp_cc(1)
-       g2 = rexp_cc(2)
-       g3 = rexp_cc(3)
-
-!! we have to exchange the roles of 11 and 22 since the analytic function imply S22=Scc
-       if(alin .ne. 0d0) then
-         ss11   = InvLaplace2d22(t,   S0022, a1, a2, r1, r2, r3, S0011, Scc00, b1, b2, g1, g2, g3, phi2, phi1 )
-         if(newcomp_required) ss110  = InvLaplace2d22(0d0, S0022, a1, a2, r1, r2, r3, S0011, Scc00, b1, b2, g1, g2, g3, phi2, phi1 )
-       endif
-       if(astar .ne. 0d0) then
-         ss22   = InvLaplace2d11(t,   S0022, a1, a2, r1, r2, r3, S0011, Scc00, b1, b2, g1, g2, g3, phi2, phi1 )
-         if(newcomp_required) ss220  = InvLaplace2d11(0d0, S0022, a1, a2, r1, r2, r3, S0011, Scc00, b1, b2, g1, g2, g3, phi2, phi1 )
-
-       endif
-        if( alin*astar .ne. 0d0 ) then
-         ss12   = InvLaplace2d12(t,   S0022, a1, a2, r1, r2, r3, S0011, Scc00, b1, b2, g1, g2, g3, phi2, phi1 )
-         if(newcomp_required) ss120  = InvLaplace2d12(0d0, S0022, a1, a2, r1, r2, r3, S0011, Scc00, b1, b2, g1, g2, g3, phi2, phi1 )
-        endif 
+    if( analytic >= 1 ) then  
+!     try the polynomial approach
+      call compute_invlaplace(  t, il_coeffs11, il_coeffs12, il_coeffs22 , il_alphas, nnsum, ss11, ss12, ss22) 
+      call compute_invlaplace(0d0, il_coeffs11, il_coeffs12, il_coeffs22 , il_alphas, nnsum, ss110, ss120, ss220) 
 
      else
 
@@ -466,24 +516,30 @@ ist: if( newcomp_required ) then
 
  select case(mode)  ! be sure that in the beginning the assignment of t, q are properly made (if i1:)
    case (0)
-       th_rpatest = Sqt/Sqt0
+       th_rpastar2 = Sqt/Sqt0
 
   case (1) ! linear contribution at tau as function of q
-     th_rpatest = plin
+     th_rpastar2 = plin
 
   case(2)  ! star contribution at tau  as function of q
-     th_rpatest = pstar
+     th_rpastar2 = pstar
  
   case(3)  ! rpa contribution at tau as function of q
-      th_rpatest = Sqt
+      th_rpastar2 = Sqt
 
   case default
      write(6,*)'invalid mode !'
-      th_rpatest = 0
+      th_rpastar2 = 0
 
  end select
 
- th_rpatest = th_rpatest * ampli
+ th_rpastar2 = th_rpastar2 * ampli
+
+
+  call parset('dss     ',sngl(dss),iadda) 
+  call parset('npp_plus',(1.0*npp_plus),iadda) 
+  call parset('sfak0   ',sngl(sfak0),iadda) 
+
 
  CONTAINS 
  
@@ -519,11 +575,6 @@ ist: if( newcomp_required ) then
 
       end function  SQstar
 
-
-
-
-
- end function th_rpatest
 
 
  
@@ -742,3 +793,8 @@ end function pericostar_sqt3
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+ end function th_rpastar2
+
+

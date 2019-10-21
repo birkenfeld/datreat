@@ -1,7 +1,6 @@
-
-
-
  MODULE lmfit
+!! corresponds to ~/Desktop/RPA/PROGRAM/MODULE-DISTRIBUTION/map_exp_new.f90 
+!! for compatibility reasons in datreat environment the module is called lmfit
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
 !! matching a relaxation curve given by the table xv(1..np), yv(1..np) with a sum of 
 !! nexps simple exponentials with prefactors aexp(1..nexp) and decay rates rexp(1..nexp)
@@ -17,12 +16,15 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
 
 !
-!! based on an encapsulation of the MINPACK routines:
+! USES an encapsulation of the MINPACK routines:
 !     Argonne National Laboratory. MINPACK Project. November 1996.      
 !     Burton S. Garbow, Kenneth E. Hillstrom, Jorge J. More'            
 !
 ! And using (adapted) SLATEC sources to make this self-contained
 !
+
+PRIVATE
+
 
 
   abstract interface 
@@ -33,21 +35,597 @@
       end function f_model
    end interface 
 
+! interface nexp_match
+!   module procedure nexp_match2
+! end interface nexp_match
+ public :: nexp_match
 
+  double precision, public, save :: NEXP_DEVIATION_TOLERANCE = 1d-3
+  double precision, public, save :: NEXP_MINIMUM_RATE        = 1d-5
+  double precision, public, save :: NEXP_MAXIMUM_RATE        = 1d2
+  double precision, public, save :: NEXP_TABRANGE_EXTENDER   = 1d0
 
+  integer, public         , save :: MAX_COMPACTING_ITERATIONS= 100
+  double precision, public, save :: LAMBDA_CUTOFF            = 1d-5
+  double precision, public, save :: RELATIVE_RATE_COMBINE    = 0.25d0
+  double precision, public, save :: RELATIVE_LOWRATE_COMBINE = 1d0
+  double precision, public, save :: AMPLITUDE_THRESHOLD      = 1d-6
 
+  double precision, public, save :: nexp_initial_slope      
+  double precision, public, save :: nexp_tauave      
+  double precision, public, save :: nexp_suma     
+ 
 
-PRIVATE
 
 public :: fit_simple
 public :: f_model
+public :: match_exp_auto 
+public :: match_exp0
+public :: match_exp1
+public :: match_exp2
+public :: prepare_ttable1
 
-public :: fm
-public :: nexp_match
+public :: lesolve
+public :: nexp_match2
+public :: dsvdc
 
 
 
 CONTAINS
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+!! matching a relaxation curve given by the table tsam(1..m), y(1..m) with a sum of 
+!! n0 <= n simple exponentials (maximum n) with prefactors aexp(1..n0) and decay rates rexp(1..n0)
+!! the quality of matching is indicated by a small value of rmsdev 
+!! the main intention of this procedure is to get an analytical model for the Laplace
+!! transform of any computed relaxation curves from the usual (or unusual) models e.g. in datreat
+!! The analytic representation as F(s) = sum(i=1,nexps) aexp(i)/(s+rexp(i))
+!! allows combination of curves within the RPA expressions and either "direct" or numerical
+!! backtransformation (in the complex regime (s --> i omega)
+!! USE: PREPARE_TTABLE to compute a suitable tsam table and then fill with some external S:  y=S(Q,tsam)
+!!      then call MATCH_EXP0
+!! This iterates    match_exp0   increasing number of exps and combining neg/pos
+!! until the matching rms deviation is smaller than rmsdev
+!! or iteratin limits have been reached
+!! On output the rmsdev value is set and can be used to check the quality of the solution
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+
+
+    subroutine match_exp_auto(xv, yv, m, nmx, n0, aexp, rexp, rmsdev, iout, yerr)
+      implicit none
+       double precision, intent(in) :: xv(:)     ! table with (log-space x values of tabulated yv
+       double precision, intent(in) :: yv(:)     ! table of coresponding  y values
+       integer,          intent(in) :: m         ! xv, yy table size 
+       integer,          intent(in) :: nmx       ! max number of exponentials
+       integer,          intent(out):: n0        ! final number of exps (outcome of this fitting proc)
+       double precision, intent(out):: aexp(nmx) ! amplitudes
+       double precision, intent(out):: rexp(nmx) ! rates
+       double precision, intent(inout):: rmsdev  ! requested rmsdev, on output actual rmsdef
+       integer, intent(in), optional:: iout      ! get diagnostics if > 0
+       double precision, intent(in), optional :: yerr(:) ! errors if applicable
+
+       double precision :: actual_rmsdev
+       double precision :: rrcombine_increment = 0.05d0
+       integer          :: iout0 = 0
+       integer, parameter :: maximum_iterations  = 20
+
+       double precision   :: rmsvals(maximum_iterations) 
+       double precision   :: rtcvals(maximum_iterations) 
+       double precision   :: aexps(nmx,maximum_iterations) 
+       double precision   :: rexps(nmx,maximum_iterations) 
+       integer            :: nvals(maximum_iterations) 
+
+       integer          :: it, n, ibest
+       integer          :: it2, maximum_iterations2 
+       integer          :: i
+       logical          :: witherr 
+
+       if(present(iout)) iout0 = iout
+       
+       witherr = present(yerr)
+
+       rmsvals             = HUGE(rmsdev)
+       rtcvals             = rrcombine_increment 
+       nvals               = n
+       maximum_iterations2 = nint(1d0/rrcombine_increment)
+
+       n = 1
+       actual_rmsdev = Huge(actual_rmsdev)
+dit:   do it=1,maximum_iterations
+         if(actual_rmsdev <= rmsdev .or. n >= nmx) exit dit
+         RELATIVE_RATE_COMBINE    = rrcombine_increment ! ?? 0.05
+         RELATIVE_LOWRATE_COMBINE = 1d0
+           n = n+1
+           if(witherr) then
+              call match_exp0 (xv,yv,m,n,n0,aexp,rexp,actual_rmsdev,iout0,yerr)
+           else
+              call match_exp0 (xv,yv,m,n,n0,aexp,rexp,actual_rmsdev,iout0)
+           endif
+dit2:      do it2=1, maximum_iterations2 
+             if(minval(aexp(1:n0))>= 0d0) exit dit2
+               RELATIVE_RATE_COMBINE  =  RELATIVE_RATE_COMBINE + rrcombine_increment
+             if(witherr) then
+               call match_exp0 (xv,yv,m,n,n0,aexp,rexp,actual_rmsdev,iout0,yerr)
+             else
+               call match_exp0 (xv,yv,m,n,n0,aexp,rexp,actual_rmsdev,iout0)
+             endif
+           enddo dit2
+
+           rmsvals(it) = actual_rmsdev
+           rtcvals(it) = RELATIVE_RATE_COMBINE 
+           nvals(it)   = n0
+           aexps(:,it) = aexp
+           rexps(:,it) = rexp
+           
+      enddo dit
+  
+      rmsdev = actual_rmsdev
+
+      ibest = minloc(rmsvals,dim=1)
+      n0    = nvals(ibest) 
+      aexp  = aexps(:,ibest) 
+      rexp  = rexps(:,ibest)
+      rmsdev= rmsvals(ibest)  
+
+      nexp_suma          = sum(aexp(1:n0))
+      nexp_tauave        = dot_product(aexp(1:n0),1d0/rexp(1:n0))
+      nexp_initial_slope = dot_product(aexp(1:n0),rexp(1:n0))
+
+
+      if(iout0 == 0) then
+         write(*,'(a,i0,a,f10.5,a,f10.1)',advance="no")"mexp-fit from ",m," points between ",xv(1)," to ",xv(m)
+         write(*,'(a,i0,a,f10.5)',advance="no")" => ",n0,"-exp fit rmsdev =",rmsdev
+      endif
+
+      if(iout0 >= 1) then
+         write(*,*)
+         write(*,'(a)')"======= match_exp_auto (module lmfit) =================="
+         write(*,'(a)')"Modelling tabulated values by a sum of simple exponentials."
+
+            write(*,'(a,i0,a)')"   Trial results (ibest=",ibest,"):"
+            write(*,'(a)'     )" iter  nexp    relcomb         rmsdev "
+            do i=1,it-1
+               write(*,'(i4,":",i4,2x,f12.6,2x,e14.7)')i, nvals(i), rtcvals(i), rmsvals(i)
+            enddo
+            write(*,'(a)')" "
+
+         write(*,'(i4,a,f10.5,a,f10.1)')m," points (log spaced) table of values extends from",xv(1)," to ",xv(m)
+         write(*,'(a,i0,a,e14.7)')"Result: ",n0,"-exp fit with rms deviation =",rmsdev
+            write(*,'(a)')"             Aexp               tau            rate"
+            write(*,'(a)')"--------------------------------------------------------"
+            do i=1,n0
+             write(*,'(i8,f15.8,3x,f15.4,f15.8)') i, aexp(i), 1d0/rexp(i), rexp(i)
+            enddo
+            write(*,'(a)')"--------------------------------------------------------"
+            write(*,'(a,f18.8)')"Sum(amplitudes)    =",nexp_suma
+            write(*,'(a,f18.8)')"tauave(amplitudes) =",nexp_tauave
+            write(*,'(a,f18.8)')"initial slope      =",nexp_initial_slope 
+            write(*,'(a,f18.8)')"initial tau        =",nexp_suma/nexp_initial_slope 
+            write(*,'(a)')"--------------------------------------------------------"
+      endif
+
+
+
+!       RELATIVE_RATE_COMBINE    = 0.25d0
+!       RELATIVE_LOWRATE_COMBINE = 1d0
+
+     end subroutine match_exp_auto
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+!! matching a relaxation curve given by the table tsam(1..m), y(1..m) with a sum of 
+!! n0 <= n simple exponentials (maximum n) with prefactors aexp(1..n0) and decay rates rexp(1..n0)
+!! the quality of matching is indicated by a small value of rmsdev 
+!! the main intention of this procedure is to get an analytical model for the Laplace
+!! transform of any computed relaxation curves from the usual (or unusual) models e.g. in datreat
+!! The analytic representation as F(s) = sum(i=1,nexps) aexp(i)/(s+rexp(i))
+!! allows combination of curves within the RPA expressions and either "direct" or numerical
+!! backtransformation (in the complex regime (s --> i omega)
+!! USE: PREPARE_TTABLE to compute a suitable tsam table and then fill with some external S:  y=S(Q,tsam)
+!!      then call MATCH_EXP0
+!! This is the ultimate implementation following the route:
+!! 1. Create a set of n tentative logarithimcally spaced time constants (tauex)
+!! 2. Obtain values for the amplitudes by a solution using singular value decomposition 
+!!    module global parameter: LAMBDA_CUTOFF (Eigenvalues with abs(lambda) < LAMBDA_CUTOFF are discarded.
+!! 3. Use last aexp and rexp=1/tauex values as startpoint for a Levenberg-Marquard (LM) fit
+!! 4. Check solution for too close rate values  (parameters: RELATIVE_RATE_COMBINE and RELATIVE_LOWRATE_COMBINE)
+!!    and lump those into one decay
+!! 5. Discard amplitudes (abs) below parameter: AMPLITUDE_THRESHOLD 
+!! 6. Discard decays with rexp > NEXP_MAXIMUM_RATE    
+!! 7. Discard (intermediate) rates with rexp > NEXP_MINIMUM_RATE this however may be retored by subsequent
+!!    LM-fits (feature is still somewhat experimental and in RPA-application this should be checked/set 
+!!    a posteriori externally).
+!! 8  iterate steps 3-8 until no further reduction of the number of decays (n0) could be achieved.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+
+
+      subroutine match_exp0 ( tsam,y,m,n,n0,aexp,rexp,rmsdev,iout,yerr) 
+!     =================================================================
+      implicit none
+       double precision, intent(in) :: tsam(:)   ! table with (log-space t values of tabulated S(Q,t)
+       double precision, intent(in) :: y(:)      ! table of coresponding S(Q,t=xv) values
+       integer,          intent(in) :: m         ! tsam, y table size 
+       integer,          intent(in) :: n         ! max number of exponentials
+       integer,          intent(out):: n0        ! actual number of exps (outcome of this fitting proc)
+       double precision, intent(out):: aexp(n)   ! amplitudes
+       double precision, intent(out):: rexp(n)   ! rates
+       double precision, intent(out):: rmsdev    ! max deviation
+       integer, intent(in),          optional :: iout      ! get diagnostics if > 0
+       double precision, intent(in), optional :: yerr(:) ! errors if applicable
+ !                                                                       
+                
+       logical         ::  verbose = .false.
+                                                     
+       double precision::  A(m,n), U(m,m) ,S(n), E(n), V(n,n) 
+       double precision::  SinvU(n,m)
+       double precision::  Ainv(n,m)
+!??     double precision::  ra(m*n),rb(m*n)
+       double precision::  work(m)
+!??      double precision :: Y(m)=0, amplitude(n)=0, tau(n)=0, Aexp(n), aexpf(n), rexp(n)
+
+      character(len=100) :: col
+      double precision   :: tauex(n)
+      double precision   :: chisq
+      integer :: ierr = 0, info
+      integer :: i, j,  nn, mm
+
+!       call get_characteristic_times(tauex,n)   ! automatisch aus tmin-tmax.. und n berechnen
+
+      double precision :: span
+      double precision :: base
+
+      if(present(iout)) then
+        verbose = iout > 0
+      endif
+      
+      if(m<n .or. n<1) then
+        write(*,*)"ERROR: number of sample points must be greater than number of exp-ftns",m,n
+        rmsdev = HUGE(rmsdev)
+        return
+      endif
+
+
+      NEXP_MINIMUM_RATE        = 0.1d0/tsam(m) !? an anderer Stelle setzen !
+      NEXP_MAXIMUM_RATE        = 10d0/tsam(1)  !? "
+
+
+! create a first set of trial characteristic times
+      span = tsam(m)/tsam(1)
+      base = span**(1d0/(n-1))
+      do i=1,n
+        tauex(i) = base**(i-1)
+      enddo
+! build the (overdetermined matrix equation for the initial startvalues, silved by singukar valued dec.) 
+      do mm=1,m
+        do nn=1,n
+          A(mm,nn) = exp(-tsam(mm)/tauex(nn)) ! * exp( t(mm)*weight )
+        enddo
+      enddo
+! and solve the SVDC to yield the Pseudoinverse Ainv 
+       call  DSVDC (A, M, M, N, S, E, U, M, V, N, WORK, 11,  INFO)      
+       SinvU = 0
+       do i=1,n
+         if(abs(S(i)) > LAMBDA_CUTOFF) then
+           do j=1,m
+             SinvU(i,j)= U(j,i)/S(i) 
+           enddo
+         endif
+       enddo
+       Ainv = matmul( V, SinvU )
+       aexp = matmul(Ainv,y(1:m))           ! this is the SVDC solution 
+     
+
+       if(verbose .and. (iout > 1) ) then
+         write(*,*)"Solution:"
+         forall (i=1:49)   col(i:i)="-"
+                           col(50:50)="|"
+         forall (i=51:100) col(i:i)="+"
+         do i=1,n
+           WRITE(*,'(i8,(2F18.6),2x,a)') i, tauex(i), AEXP(i), col(1:max(1,nint(50+50*aexp(i)/maxval(aexp(1:n),dim=1))))
+         enddo
+       endif
+
+! prepare more fitting
+        rexp(1:n)  = 1d0/tauex(1:n)
+ 
+! ITERATION LOOP (Levenberg-Marquard fits and compacting)
+       n0 = n
+citer: do j=1,MAX_COMPACTING_ITERATIONS
+          nn = n0
+          n0 = 1      
+          do i=2,nn
+  !  write(*,*)"i, n0",i,n0
+   !         if(abs((rexp(n0)-rexp(i))/rexp(n0)) < 0.35d0) then
+            if(abs((rexp(n0)-rexp(i))) < RELATIVE_LOWRATE_COMBINE/tsam(m) .or. &
+               abs((rexp(n0)-rexp(i))/rexp(n0)) < RELATIVE_RATE_COMBINE   ) then
+              rexp(n0)  = sqrt(rexp(n0)*rexp(i))
+              aexp(n0) = aexp(n0)+aexp(i)
+ !  write(*,*)"combine ",i,n0, rexp(n0),rexp(i)
+            else
+              n0 = n0+1
+              rexp(n0)  = rexp(i)
+              aexp(n0) = aexp(i)
+            endif
+            if(abs(aexp(n0)) < AMPLITUDE_THRESHOLD ) then
+! write(*,*)"AMPLITUDE THRESHOLD:",i,n0,aexp(n0),AMPLITUDE_THRESHOLD
+              n0 = n0-1
+            endif
+          enddo
+
+          if(abs(rexp(1)) > NEXP_MAXIMUM_RATE ) then
+            n0 = n0-1
+            aexp(1:n0) = aexp(2:n0+1)
+            rexp (1:n0) = rexp (2:n0+1)
+          endif
+
+
+          if(abs(rexp(n0)) < NEXP_MINIMUM_RATE ) then
+            rexp(n0) = NEXP_MINIMUM_RATE 
+          endif
+
+          if(present(yerr)) then
+            call nexp_match2(tsam,y,m,n0,aexp,rexp,chisq,1,yerr)
+            rexp = abs(rexp)
+            call nexp_match2(tsam,y,m,n0,aexp,rexp,chisq,1,yerr)
+          else
+            call nexp_match2(tsam,y,m,n0,aexp,rexp,chisq,1)
+            rexp = abs(rexp)
+            call nexp_match2(tsam,y,m,n0,aexp,rexp,chisq,1)
+          endif
+
+!?          if(abs(rexp(n0)) < NEXP_MINIMUM_RATE ) then
+!?            rexp(n0) = NEXP_MINIMUM_RATE 
+!?          endif
+
+  
+          if(verbose .and. (iout > 1 .or. n0 == nn) ) then
+             write(*,'(a)')"========================================================"
+             write(*,'(a)')"Modelling tabulated S(Q,t) by a sum of simple exponentials."
+             write(*,'(i4,a,f10.5,a,f10.1)')m," points log space table of S(Q,t) extends from",tsam(1)," to ",tsam(m)
+             write(*,'(a,i0,a,i0)')"the initial trial set of ",n," exp-function has been reduced to ",n0," functions"
+             write(*,'(a,i0,a,e14.7)')      "Fitresult of stage(",j,"):  rmsdev=",sqrt(chisq)
+             write(*,'(a)')"             Aexp               tau            rate"
+             write(*,'(a)')"--------------------------------------------------------"
+             do i=1,n0
+              write(*,'(i8,f15.8,3x,f15.4,f15.8)') i, aexp(i), 1d0/rexp(i), rexp(i)
+             enddo
+             write(*,'(a)')"--------------------------------------------------------"
+             write(*,'(a,f18.8)')"Sum(amplitudes)    =",sum(aexp(1:n0))
+             write(*,'(a,f18.8)')"tauave(amplitudes) =",dot_product(aexp(1:n0),1d0/rexp(1:n0))/sum(aexp(1:n0))
+
+             write(*,'(a)')"--------------------------------------------------------"
+          endif
+
+          if(n0 == nn) exit citer
+       enddo citer
+
+       rmsdev = sqrt(chisq)
+
+       if(verbose) then
+          j = min(10,m/5)
+          write(*,'(a)')"Sample table, comparison S(Q,t) vs. sum(exp)"
+          write(*,'(a)')"   #            t                 S(Q,t)            sum(exp) "
+          do i=1,m,j
+             write(*,'(i8,4f18.9)')i,tsam(i),Y(i), sum(aexp(1:n0)*exp(-rexp(1:n0)*tsam(i)))
+          enddo
+          if(i.ne.m) write(*,'(i8,4f18.9)')m,tsam(m),Y(m), sum(aexp(1:n0)*exp(-rexp(1:n0)*tsam(m)))
+       endif
+
+  end subroutine match_exp0
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+!! matching a relaxation curve given by the table xv(1..np), yv(1..np) with a sum of 
+!! ne1 simple exponentials (maximum me) with prefactors aexp(1..ne1) and decay rates rexp(1..ne1)
+!! the quality of matching is indicated by a small value of maxdev
+!! the main intention of this procedure is to get an analytical model for the Laplace
+!! transform of any computed relaxation curves from the usual (or unusual) models e.g. in datreat
+!! The analytic representation as F(s) = sum(i=1,nexps) aexp(i)/(s+rexp(i))
+!! allows combination of curves within the RPA expressions and either "direct" or numerical
+!! backtransformation (in the complex regime (s --> i omega)
+!! USE: PREPARE_TTABLE to compute a suitable xv table and the fill with some external S:  yv=S(Q,xv)
+!!      then call MATCH_EXP
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+      subroutine match_exp1 ( xv,yv,np,me,ne1,a,r,maxdev) 
+       implicit none
+       double precision, intent(in) :: xv(:)     ! table with (log-space t values of tabulated S(Q,t)
+       double precision, intent(in) :: yv(:)     ! table of coresponding S(Q,t=xv) values
+       integer,          intent(in) :: np        ! xv, yv table size 
+       integer,          intent(in) :: me        ! max number of exponentials
+       integer,          intent(out):: ne1       ! actual number of exps (outcome of this fitting proc)
+       double precision, intent(out):: a(me)     ! amplitudes
+       double precision, intent(out):: r(me)     ! rates
+       double precision, intent(out):: maxdev    ! max deviation
+      
+      
+       integer             :: i, ier
+       double precision    :: ydiff(np), chisq
+      
+       write(*,*)"ATTTENTION ATTENTION ATTTENTION ATTENTION ATTTENTION ATTENTION ATTTENTION ATTENTION"
+       write(*,*)"ATTTENTION                                                                ATTENTION"
+       write(*,*)"ATTTENTION    match_exp1 calls should be replaced by match_exp0 calls     ATTENTION"
+       write(*,*)"ATTTENTION                                                                ATTENTION"
+       write(*,*)"ATTTENTION ATTENTION ATTTENTION ATTENTION ATTTENTION ATTENTION ATTTENTION ATTENTION"
+
+
+
+       if(me < 3) stop "match_exp: me must be at least 3"
+      
+      !! TBD new >>>  
+      ne1 = 3   
+      a(1:ne1) = 1d0/3d0
+      r(2)     = 1d0/sum( (yv(1:np-1)-yv(np)) * ( xv(2:np)-xv(1:np-1) ) )
+      r(1)     = sqrt(r(2)/xv(1))
+      r(3)     = sqrt(r(2)/(xv(np)/NEXP_TABRANGE_EXTENDER))  
+      
+      call nexp_match2(xv,yv,np,ne1,a,r,chisq)
+      
+      ! check
+      do i=1,np
+        ydiff(i) = yv(i) - sum(a(1:ne1)*exp(-xv(i)*r(1:ne1)))
+      !  write(*,'(i5,f16.9,2x,f16.7,4x,f16.12)') i, xv(i), yv(i), ydiff(i)
+      enddo
+      maxdev = maxval(abs(ydiff(1:np)))
+      
+      if(me <=4) return
+      
+      
+      DO while( 2*ne1 - 1   <= me .and. maxdev  > NEXP_DEVIATION_TOLERANCE)
+      
+          do i=ne1,1,-1
+            a(2*i-1) = a(i)
+            r(2*i-1) = r(i)
+          enddo
+          ne1 = ne1+(ne1-1)
+          do i=2,ne1,2
+            a(i) = 1d-3
+            r(i) = sqrt(r(i-1)*r(i+1))
+          enddo
+          call nexp_match2(xv,yv,np,ne1,a,r,chisq)    ! TBD INCLUDE
+          
+          ! check
+          do i=1,np
+            ydiff(i) = yv(i) - sum(a(1:ne1)*exp(-xv(i)*r(1:ne1)))
+          !  write(*,'(i5,f16.9,2x,f16.7,4x,f16.12)') i, xv(i), yv(i), ydiff(i)
+          enddo
+          
+          maxdev = maxval(abs(ydiff(1:np)))
+          
+      ENDDO
+      
+      
+      end subroutine match_exp1
+
+     
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+!! matching a relaxation curve given by the table xv(1..np), yv(1..np) with a sum of 
+!! ne1 simple exponentials (maximum me) with prefactors aexp(1..ne1) and decay rates rexp(1..ne1)
+!! the quality of matching is indicated by a small value of maxdev
+!! the main intention of this procedure is to get an analytical model for the Laplace
+!! transform of any computed relaxation curves from the usual (or unusual) models e.g. in datreat
+!! The analytic representation as F(s) = sum(i=1,nexps) aexp(i)/(s+rexp(i))
+!! allows combination of curves within the RPA expressions and either "direct" or numerical
+!! backtransformation (in the complex regime (s --> i omega)
+!! USE: PREPARE_TTABLE to compute a suitable xv table and the fill with some external S:  yv=S(Q,xv)
+!!      then call MATCH_EXP
+!! VARIANTE mit inkrementalen Gap-filling
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+subroutine match_exp2 ( xv,yv,np,me,ne1,a,r,maxdev) 
+ implicit none
+ double precision, intent(in) :: xv(:)     ! table with (log-space t values of tabulated S(Q,t)
+ double precision, intent(in) :: yv(:)     ! table of coresponding S(Q,t=xv) values
+ integer,          intent(in) :: np        ! xv, yv table size 
+ integer,          intent(in) :: me        ! max number of exponentials
+ integer,          intent(out):: ne1       ! actual number of exps (outcome of this fitting proc)
+ double precision, intent(out):: a(me)     ! amplitudes
+ double precision, intent(out):: r(me)     ! rates
+ double precision, intent(out):: maxdev    ! max deviation
+
+
+ integer             :: i, ier, igap
+ double precision    :: ydiff(np), chisq
+ double precision    :: gapratio(me), a0(me), r0(me), mxdev
+
+
+      
+       write(*,*)"ATTTENTION ATTENTION ATTTENTION ATTENTION ATTTENTION ATTENTION ATTTENTION ATTENTION"
+       write(*,*)"ATTTENTION                                                                ATTENTION"
+       write(*,*)"ATTTENTION    match_exp2 calls should be replaced by match_exp0 calls     ATTENTION"
+       write(*,*)"ATTTENTION                                                                ATTENTION"
+       write(*,*)"ATTTENTION ATTENTION ATTTENTION ATTENTION ATTTENTION ATTENTION ATTTENTION ATTENTION"
+
+
+
+ if(me < 3) stop "match_exp: me must be at least 3"
+
+
+
+
+!! TBD new >>>  
+  ne1 = 3   
+  a(1:ne1) = 1d0/3d0
+  r(2)     = 1d0/sum( (yv(1:np-1)-yv(np)) * ( xv(2:np)-xv(1:np-1) ) )
+  r(1)     = sqrt(r(2)/xv(1))
+  r(3)     = sqrt(r(2)/(xv(np)/NEXP_TABRANGE_EXTENDER))  
+  
+  call nexp_match2(xv,yv,np,ne1,a,r,chisq)
+  
+  ! check
+  do i=1,np
+    ydiff(i) = yv(i) - sum(a(1:ne1)*exp(-xv(i)*r(1:ne1)))
+  !  write(*,'(i5,f16.9,2x,f16.7,4x,f16.12)') i, xv(i), yv(i), ydiff(i)
+  enddo
+  maxdev = maxval(abs(ydiff(1:np)))
+  
+  mxdev = maxdev+epsilon(maxdev)
+  
+  if(me <=4) return
+  
+
+  DO while( (ne1  < me) .and. (maxdev  > NEXP_DEVIATION_TOLERANCE) .and. maxdev < mxdev )
+ 
+      mxdev = maxdev
+    
+      a0  = a
+      r0  = r
+      gapratio(1:ne1-1) = r0(2:ne1)/r0(1:ne1-1) * sqrt( abs((a0(1:ne1-1)*a0(2:ne1))) )
+    !?  gapratio(1:ne1-1) = r0(2:ne1)/r0(1:ne1-1) *       ( abs((a0(1:ne1-1)*a0(2:ne1))) )
+      igap              = maxloc(gapratio(1:ne1-2),dim=1)
+    !                                           !< oder -1 ?? was ist besser ?
+    
+      write(*,'(a,3i5,e14.7,2x,30f10.4)')"T:",ne1,me,igap,maxdev, r0(1:ne1)
+      
+      do i=1,igap
+       a(i) = a0(i)
+       r(i) = r0(i)
+      enddo
+      r(igap+1) = sqrt(r0(igap)*r0(igap+1))
+      a(igap+1) = 1d-3 
+      ne1       = ne1+1
+      do i=igap+2,ne1
+       a(i)     = a0(i-1)
+       r(i)     = r0(i-1)
+      enddo
+    
+      call nexp_match2(xv,yv,np,ne1,a,r,chisq)    ! TBD INCLUDE
+    
+    ! check
+      do i=1,np
+        ydiff(i) = yv(i) - sum(a(1:ne1)*exp(-xv(i)*r(1:ne1)))
+    !  write(*,'(i5,f16.9,2x,f16.7,4x,f16.12)') i, xv(i), yv(i), ydiff(i)
+      enddo
+    
+      maxdev = maxval(abs(ydiff(1:np)))
+
+  ENDDO
+
+
+end subroutine match_exp2
+
+
+
+ 
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+!! USE: PREPARE_TTABLE to compute a suitable xv table and the fill with some external S:  yv=S(Q,xv)
+!!      then call MATCH_EXP
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
+    subroutine prepare_ttable1(t0, t1, np, xv)
+     implicit none
+     double precision, intent(in)   :: t0     ! smallest time
+     double precision, intent(in)   :: t1     ! largest time (range)
+     integer         , intent(in)   :: np     ! number of points
+     double precision, intent(out)  :: xv(np) ! xtable containing taus
+     
+     ! double precision    :: t_table_spacing1 = NEXP_TABRANGE_EXTENDER 
+     ! double precision    :: t_table_spacing2 = 1d0 
+     integer             :: i
+     do i=1,np
+      xv(i)  =  exp(i*log(t1*NEXP_TABRANGE_EXTENDER/t0)/np) * t0    !! TBD new here is the table spacing
+     enddo
+         
+    end subroutine prepare_ttable1
+    
+    
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
 !! matching a relaxation curve given by the table xv(1..np), yv(1..np) with a sum of 
 !! nexps simple exponentials with prefactors aexp(1..nexp) and decay rates rexp(1..nexp)
@@ -64,12 +642,11 @@ CONTAINS
      double precision, intent(in)     :: xv(np)   ! x-values (i.e. time) of cuve to be matched
      double precision, intent(in)     :: yv(np)   ! y-values (i.e. S(q,t)/S(q))
      integer         , intent(in)     :: np       ! number of values
-     integer         , intent(in)     :: nexps    ! number of exponentials to be fitted
-     double precision, intent(out)    :: aexp(nexps) ! exp prefactors (ampltiues)
-     double precision, intent(out)    :: rexp(nexps) ! exp rates:  y = sum(1...nexps) aexp(i)*exp(-t*rexp(i))
+     integer         , intent(in)  :: nexps    ! number of exponentials to be fitted
+     double precision, intent(inout)    :: aexp(nexps) ! exp prefactors (ampltiues)
+     double precision, intent(inout)    :: rexp(nexps) ! exp rates:  y = sum(1...nexps) aexp(i)*exp(-t*rexp(i))
      double precision, intent(out)    :: ssq         ! quality of matching
      integer         , intent(in), optional :: iout  ! output levevl
-
 
      double precision    :: px(2*nexps) , pxscale(2*nexps), pxerr(2*nexps)
      integer             :: iperm(nexps)
@@ -77,16 +654,22 @@ CONTAINS
 
      double precision    :: ye(np)
      double precision    :: tmax, t
-     integer             :: i, ier, nxs
+     double precision    :: max_rate
+     integer             :: i, j, ier, nxs
 
      logical             :: verbose = .false.
 
      if(present(iout)) then
        verbose = (iout > 0)
      endif
+      
+       write(*,*)"ATTTENTION ATTENTION ATTTENTION ATTENTION ATTTENTION ATTENTION ATTTENTION ATTENTION"
+       write(*,*)"ATTTENTION                                                                ATTENTION"
+       write(*,*)"ATTTENTION    nexp_match calls should be replaced by match_exp0 calls     ATTENTION"
+       write(*,*)"ATTTENTION                                                                ATTENTION"
+       write(*,*)"ATTTENTION ATTENTION ATTTENTION ATTENTION ATTTENTION ATTENTION ATTTENTION ATTENTION"
 
-!!??!!      double precision    :: ainf, amean
-!!??!!      double precision    :: rinf, rinit, rmean
+
 
       ! make estimate
      
@@ -95,122 +678,155 @@ CONTAINS
       ye      = 1d0
       ssq     = 0d0
 
-      
       tmax = maxval(xv)
       do i=1,nexps
-        px(2*i-1)       = 1d0/nexps
-        pxscale(2*i-1)  = 0.1d0
-        px(2*i)         = exp(-i*log(tmax)/nexps)
-        pxscale(2*i)    = px(2*i)
+        if(aexp(i) .eq. 0d0) then
+           px(2*i-1)       = 1d0/nexps
+           pxscale(2*i-1)  = 0.1d0
+           px(2*i)         = exp(-i*log(tmax)/nexps)
+           pxscale(2*i)    = px(2*i)
+        else
+           px(2*i-1)       = aexp(i)
+           pxscale(2*i-1)  = 0.1d0
+           px(2*i)         = rexp(i)
+           pxscale(2*i)    = px(2*i)
+        endif
       enddo
       
       ssq = fit_simple(fm,2*nexps,px ,pxscale     , np, xv, yv, ye, px, pxerr)
-  
-!!??!! !new  ABER DIE OBIGE SIMPLE METHODE SCHEIN EHER BESSER ZU SEIN .....
-!!??!! ! first compute intial estimates
-!!??!! ! 1. limit t=inf (virtually constant), mean rate and initial rate 50:50 for the rest
-!!??!!       if(nexps < 3) stop "lmfit nexp-modelling needs at least nexps=3"
-!!??!!       ainf  = yv(np)
-!!??!!       rinf  = 2d-5
-!!??!!       rmean = 1d0/ ( dot_product(xv(1:np),(yv(1:np)-ainf)) / sum(yv(1:np)-ainf) )     
-!!??!!       amean = 1d0-ainf
-!!??!!       rinit = min(abs((yv(np/5)-yv(1))/(xv(np/5)-xv(1))*0.5d0), 30d0)
-!!??!!       
-!!??!!       px(1) = ainf     ;       pxscale(1) = 0.1d0
-!!??!!       px(2) = rinf     ;       pxscale(2) = 1 ! 10*rinf
-!!??!!       px(3) = amean/2  ;       pxscale(3) = 0.1d0
-!!??!!       px(4) = rmean    ;       pxscale(4) = 1 ! rmean
-!!??!!       px(5) = amean/2  ;       pxscale(5) = 0.1d0
-!!??!!       px(6) = rinit    ;       pxscale(6) = 1 ! rinit
-!!??!! 
-!!??!!       nxs = 3
-!!??!! 
-!!??!! write(*,*)"ainf=",ainf, yv(np-2:np)
-!!??!! write(*,*)"rinf=",rinf
-!!??!! 
-!!??!! write(*,*)"rmean=",rmean
-!!??!! write(*,*)"amean=",amean
-!!??!! write(*,*)"rinit=",rinit, yv(1:np/5) 
-!!??!! 
-!!??!! 
-!!??!!       write(6,'(a,i2,a,e9.2,a,20(a,f6.3," nexpfit: Start t=",f13.2,"|"))')&
-!!??!!            "# ",nxs," exp model(",ssq,"):|",("a=",px(2*i-1),1d0/px(2*i),i=1,nxs)
-!!??!! 
-!!??!! 
-!!??!!       ssq = fit_simple(fm, 2*nxs ,px ,pxscale     , np, xv, yv, ye, px, pxerr)
-!!??!! 
-!!??!!       write(6,'(a,i2,a,e9.2,a,20(a,f6.3," nexpfit: Step1 t=",f13.2,"|"))')&
-!!??!!            "# ",nxs," exp model(",ssq,"):|",("a=",px(2*i-1),1d0/px(2*i),i=1,nxs)
-!!??!! 
-!!??!!       if(nexps > nxs) then
-!!??!!         
-!!??!! dfl:     do nxs=nxs+1,nexps
-!!??!! 
-!!??!!            do i=1,np
-!!??!!               ye(i) = yv(i)-fm(xv(i),px,2*nxs) 
-!!??!!            enddo
-!!??!!            px(2*nxs)        = 1d0/ ( abs(dot_product(xv(1:np),ye(1:np))) / sum(abs(ye(1:np))) ) 
-!!??!!            pxscale(2*nxs)   = 1 ! px(2*nxs)
-!!??!!  
-!!??!!            px(2*nxs-1)      = maxval(ye(1:np)) 
-!!??!!            pxscale          = 0.1d0
-!!??!! 
-!!??!!            write(6,'(a,i2,a,e9.2,a,20(a,f6.3," nexpfit: Start t=",f13.2,"|"))')&
-!!??!!            "# ",nxs," exp model(",ssq,"):|",("a=",px(2*i-1),1d0/px(2*i),i=1,nxs)
-!!??!! 
-!!??!!            ssq = fit_simple(fm, 2*nxs ,px ,pxscale     , np, xv, yv, ye, px, pxerr)
-!!??!! 
-!!??!!            write(6,'(a,i2,a,e9.2,a,20(a,f6.3," nexpfit: Step  t=",f13.2,"|"))')&
-!!??!!            "# ",nxs," exp model(",ssq,"):|",("a=",px(2*i-1),1d0/px(2*i),i=1,nxs)
-!!??!! 
-!!??!!          enddo dfl
-!!??!! 
-!!??!!       endif
-!!??!! 
-!!??!! 
-
-
-  
-      if(ssq > 1d-4) then
-        write(6,*)"WARNING: bad matching of exp-model to time function!",ssq
-      endif
+! combine similar rates
      
       do i=1,nexps
          a0(i) =  px(2*i-1)
          r0(i) =  px(2*i)
-!!         write(6,'(i8,2f18.7,6x,2f18.7)')i, a0(i), pxerr(2*i-1), r0(i), pxerr(2*i)
-         if( r0(i) < 1d-5 ) then
-            if(verbose) write(6,*)"WARNING(nexp_match): rate = ",r0(i)," is set to 1e-5"
-            r0(i)   = 1d-5
-            px(2*i) = r0(i)
-         endif 
+!!*! !!         write(6,'(i8,2f18.7,6x,2f18.7)')i, a0(i), pxerr(2*i-1), r0(i), pxerr(2*i)
+!!*!          if( r0(i) < NEXP_MINIMUM_RATE ) then
+!!*!             if(verbose) write(6,*)"WARNING(nexp_match): rate(low)  = ",r0(i)," is set to ",NEXP_MINIMUM_RATE 
+!!*!             r0(i)   = NEXP_MINIMUM_RATE 
+!!*!             px(2*i) = r0(i)
+!!*!          endif
+!!*! !#>m+ 
+!!*!          max_rate = 1d0/(10d0*xv(1))
+!!*!          if( r0(i) > max_rate ) then
+!!*!             if(verbose) write(6,*)"WARNING(nexp_match): rate(high) = ",r0(i)," is reduced to ",max_rate 
+!!*!             r0(i)   = max_rate 
+!!*!             px(2*i) = r0(i)
+!!*!          endif 
+!!*! !#<m
       enddo
-
-      if(verbose) then 
-        write(6,'(a,i4,a,2f12.6,a,2f12.6,a)')  &
-           "# exp-fit n, range:",np,"(", xv(1), yv(1),")-->(", xv(np), yv(np),")" 
-        write(6,'(a,i2,a,e9.2,a,20(a,f6.3," t=",f13.2,"|"))')&
-           "# ",nexps," exp model(",ssq,"):|",("a=",px(2*i-1),1d0/px(2*i),i=1,nexps)
-      endif
-
-      do i=1,np
-        ye(i) = yv(i)-fm(xv(i),px,2*nexps) 
-      enddo
-      if(maxval(ye(1:np)) > 0.01d0) then
-         write(*,'("Maximum deviation (model-n-exp-rpresentation): ",f12.6," at t= ",f12.4)') &
-                 maxval(ye(1:np)), xv(maxloc(ye(1:np)))
-      endif
 
      
     ! sorting fastes rate first
       iperm = [(i,i=1,nexps)]
       call  DPSORT (r0, nexps, IPERM,  -1 , ier)
      
-      aexp = a0(iperm)
-      rexp = r0(iperm)
+      aexp = a0(iperm(1:nexps))
+      rexp = r0(iperm(1:nexps))
      
      
      end subroutine nexp_match
+
+
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+!! matching a relaxation curve given by the table xv(1..np), yv(1..np) with a sum of 
+!! nexps simple exponentials with prefactors aexp(1..nexp) and decay rates rexp(1..nexp)
+!! the quality of matching is indicated by a small value < 10e-4 of ssq
+!! the main intention of this procedure is to get an analytical model for the Laplace
+!! transform of any computed relaxation curves from the usual (or unusual) models e.g. in datreat
+!! The analytic representation as F(s) = sum(i=1,nexps) aexp(i)/(s+rexp(i))
+!! allows combination of curves within the RPA expressions and either "direct" or numerical
+!! backtransformation (in the complex regime (s --> i omega)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
+     subroutine nexp_match2(xv, yv, np, nexps, aexp, rexp, ssq, iout,yerr) 
+!    ---------------------------------------------------------------------
+     implicit none
+     double precision, intent(in)     :: xv(np)   ! x-values (i.e. time) of cuve to be matched
+     double precision, intent(in)     :: yv(np)   ! y-values (i.e. S(q,t)/S(q))
+     integer         , intent(in)     :: np       ! number of values
+     integer         , intent(in)  :: nexps    ! number of exponentials to be fitted
+     double precision, intent(inout)    :: aexp(nexps) ! exp prefactors (ampltiues)
+     double precision, intent(inout)    :: rexp(nexps) ! exp rates:  y = sum(1...nexps) aexp(i)*exp(-t*rexp(i))
+     double precision, intent(out)    :: ssq         ! quality of matching
+     integer         , intent(in), optional :: iout  ! output levevl
+     double precision, intent(in), optional :: yerr(np) ! errors if applicable
+
+     double precision    :: px(2*nexps) , pxscale(2*nexps), pxerr(2*nexps)
+     integer             :: iperm(nexps)
+     double precision    :: a0(nexps), r0(nexps)
+
+     double precision    :: ye(np)
+     double precision    :: tmax, t
+     double precision    :: max_rate
+     integer             :: i, j, ier, nxs
+
+     logical             :: verbose = .false.
+
+     if(present(iout)) then
+       verbose = (iout > 0)
+     endif
+
+
+      ! make estimate
+     
+      px      = 0d0
+      pxscale = 1d0
+      if(present(yerr)) then
+         ye      = yerr
+      else
+         ye      = 1d0
+      endif
+      ssq     = 0d0
+
+      tmax = maxval(xv)
+      do i=1,nexps
+        if(aexp(i) .eq. 0d0) then
+           px(2*i-1)       = 1d0/nexps
+           pxscale(2*i-1)  = 0.1d0
+           px(2*i)         = exp(-i*log(tmax)/nexps)
+           pxscale(2*i)    = px(2*i)
+        else
+           px(2*i-1)       = aexp(i)
+           pxscale(2*i-1)  = 0.1d0
+           px(2*i)         = rexp(i)
+           pxscale(2*i)    = px(2*i)
+        endif
+      enddo
+      
+      ssq = fit_simple(fm,2*nexps,px ,pxscale     , np, xv, yv, ye, px, pxerr)
+! combine similar rates
+     
+      do i=1,nexps
+         a0(i) =  px(2*i-1)
+         r0(i) =  px(2*i)
+!!*! !!         write(6,'(i8,2f18.7,6x,2f18.7)')i, a0(i), pxerr(2*i-1), r0(i), pxerr(2*i)
+!!*!          if( r0(i) < NEXP_MINIMUM_RATE ) then
+!!*!             if(verbose) write(6,*)"WARNING(nexp_match): rate(low)  = ",r0(i)," is set to ",NEXP_MINIMUM_RATE 
+!!*!             r0(i)   = NEXP_MINIMUM_RATE 
+!!*!             px(2*i) = r0(i)
+!!*!          endif
+!!*! !#>m+ 
+!!*!          max_rate = 1d0/(10d0*xv(1))
+!!*!          if( r0(i) > max_rate ) then
+!!*!             if(verbose) write(6,*)"WARNING(nexp_match): rate(high) = ",r0(i)," is reduced to ",max_rate 
+!!*!             r0(i)   = max_rate 
+!!*!             px(2*i) = r0(i)
+!!*!          endif 
+!!*! !#<m
+      enddo
+
+     
+    ! sorting fastes rate first
+      iperm = [(i,i=1,nexps)]
+      call  DPSORT (r0, nexps, IPERM,  -1 , ier)
+     
+      aexp = a0(iperm(1:nexps))
+      rexp = r0(iperm(1:nexps))
+     
+     
+     end subroutine nexp_match2
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!      
@@ -383,20 +999,14 @@ CONTAINS
      CONTAINS
 
 
-       subroutine fcn(m,n,x,fvec)!  - unused (PAZ) ,iflag) 
+       subroutine fcn(m,n,x,fvec)
          implicit none
          integer, intent(in)             :: m
          integer, intent(in)             :: n
          double precision, intent(in)    :: x(n)
          double precision, intent(out)   :: fvec(m)
-         !double precision, intent(inout),optional :: iflag
          
-!         double precision              :: fmodel
          integer                       :: i, j
-
-
-
- !       write(6,*)"fcn: ",m,n,x
 
        ! unscale parameters !
          pa_new = par
@@ -408,7 +1018,6 @@ CONTAINS
             endif
          enddo
 
-    
        ! create scale errors
          do i=1,m
            if(yerr(i) > 0d0) then
@@ -430,9 +1039,61 @@ CONTAINS
 
 
 
-
-
-
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! Minpack Copyright Notice (1999) University of Chicago.  All rights reserved
+!! 
+!! Redistribution and use in source and binary forms, with or
+!! without modification, are permitted provided that the
+!! following conditions are met:
+!! 
+!! 1. Redistributions of source code must retain the above
+!! copyright notice, this list of conditions and the following
+!! disclaimer.
+!! 
+!! 2. Redistributions in binary form must reproduce the above
+!! copyright notice, this list of conditions and the following
+!! disclaimer in the documentation and/or other materials
+!! provided with the distribution.
+!! 
+!! 3. The end-user documentation included with the
+!! redistribution, if any, must include the following
+!! acknowledgment:
+!! 
+!!    "This product includes software developed by the
+!!    University of Chicago, as Operator of Argonne National
+!!    Laboratory.
+!! 
+!! Alternately, this acknowledgment may appear in the software
+!! itself, if and wherever such third-party acknowledgments
+!! normally appear.
+!! 
+!! 4. WARRANTY DISCLAIMER. THE SOFTWARE IS SUPPLIED "AS IS"
+!! WITHOUT WARRANTY OF ANY KIND. THE COPYRIGHT HOLDER, THE
+!! UNITED STATES, THE UNITED STATES DEPARTMENT OF ENERGY, AND
+!! THEIR EMPLOYEES: (1) DISCLAIM ANY WARRANTIES, EXPRESS OR
+!! IMPLIED, INCLUDING BUT NOT LIMITED TO ANY IMPLIED WARRANTIES
+!! OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE
+!! OR NON-INFRINGEMENT, (2) DO NOT ASSUME ANY LEGAL LIABILITY
+!! OR RESPONSIBILITY FOR THE ACCURACY, COMPLETENESS, OR
+!! USEFULNESS OF THE SOFTWARE, (3) DO NOT REPRESENT THAT USE OF
+!! THE SOFTWARE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS, (4)
+!! DO NOT WARRANT THAT THE SOFTWARE WILL FUNCTION
+!! UNINTERRUPTED, THAT IT IS ERROR-FREE OR THAT ANY ERRORS WILL
+!! BE CORRECTED.
+!! 
+!! 5. LIMITATION OF LIABILITY. IN NO EVENT WILL THE COPYRIGHT
+!! HOLDER, THE UNITED STATES, THE UNITED STATES DEPARTMENT OF
+!! ENERGY, OR THEIR EMPLOYEES: BE LIABLE FOR ANY INDIRECT,
+!! INCIDENTAL, CONSEQUENTIAL, SPECIAL OR PUNITIVE DAMAGES OF
+!! ANY KIND OR NATURE, INCLUDING BUT NOT LIMITED TO LOSS OF
+!! PROFITS OR LOSS OF DATA, FOR ANY REASON WHATSOEVER, WHETHER
+!! SUCH LIABILITY IS ASSERTED ON THE BASIS OF CONTRACT, TORT
+!! (INCLUDING NEGLIGENCE OR STRICT LIABILITY), OR OTHERWISE,
+!! EVEN IF ANY OF SAID PARTIES HAS BEEN WARNED OF THE
+!! POSSIBILITY OF SUCH LOSS OR DAMAGES.    
+!! 
 
       recursive &                                  
       subroutine lmdif(fcn,m,n,x,fvec,ftol,xtol,gtol,maxfev,epsfcn,     &
@@ -1855,8 +2516,9 @@ CONTAINS
 
 
 
-
-
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! SLATEC routines from here on:
+!!
 
 
      
@@ -1938,199 +2600,6 @@ CONTAINS
         DASUM = DASUM + ABS(DX(I)) + ABS(DX(I+1)) + ABS(DX(I+2)) +      &
      &          ABS(DX(I+3)) + ABS(DX(I+4)) + ABS(DX(I+5))              
    50 END DO 
-      RETURN 
-      END                                           
-!DECK DAXPY                                                             
-      SUBROUTINE DAXPY (N, DA, DX, INCX, DY, INCY) 
-      IMPLICIT NONE ! (PAZ)
-!***BEGIN PROLOGUE  DAXPY                                               
-!***PURPOSE  Compute a constant times a vector plus a vector.           
-!***LIBRARY   SLATEC (BLAS)                                             
-!***CATEGORY  D1A7                                                      
-!***TYPE      DOUBLE PRECISION (SAXPY-S, DAXPY-D, CAXPY-C)              
-!***KEYWORDS  BLAS, LINEAR ALGEBRA, TRIAD, VECTOR                       
-!***AUTHOR  Lawson, C. L., (JPL)                                        
-!           Hanson, R. J., (SNLA)                                       
-!           Kincaid, D. R., (U. of Texas)                               
-!           Krogh, F. T., (JPL)                                         
-!***DESCRIPTION                                                         
-!                                                                       
-!                B L A S  Subprogram                                    
-!    Description of Parameters                                          
-!                                                                       
-!     --Input--                                                         
-!        N  number of elements in input vector(s)                       
-!       DA  double precision scalar multiplier                          
-!       DX  double precision vector with N elements                     
-!     INCX  storage spacing between elements of DX                      
-!       DY  double precision vector with N elements                     
-!     INCY  storage spacing between elements of DY                      
-!                                                                       
-!     --Output--                                                        
-!       DY  double precision result (unchanged if N .LE. 0)             
-!                                                                       
-!     Overwrite double precision DY with double precision DA*DX + DY.   
-!     For I = 0 to N-1, replace  DY(LY+I*INCY) with DA*DX(LX+I*INCX) +  
-!       DY(LY+I*INCY),                                                  
-!     where LX = 1 if INCX .GE. 0, else LX = 1+(1-N)*INCX, and LY is    
-!     defined in a similar way using INCY.                              
-!                                                                       
-!***REFERENCES  C. L. Lawson, R. J. Hanson, D. R. Kincaid and F. T.     
-!                 Krogh, Basic linear algebra subprograms for Fortran   
-!                 usage, Algorithm No. 539, Transactions on Mathematical
-!                 Software 5, 3 (September 1979), pp. 308-323.          
-!***ROUTINES CALLED  (NONE)                                             
-!***REVISION HISTORY  (YYMMDD)                                          
-!   791001  DATE WRITTEN                                                
-!   890831  Modified array declarations.  (WRB)                         
-!   890831  REVISION DATE from Version 3.2                              
-!   891214  Prologue converted to Version 4.0 format.  (BAB)            
-!   920310  Corrected definition of LX in DESCRIPTION.  (WRB)           
-!   920501  Reformatted the REFERENCES section.  (WRB)                  
-!***END PROLOGUE  DAXPY                                                 
-      DOUBLE PRECISION DX(*), DY(*), DA 
-      INTEGER N
-      INTEGER INCX,INCY
-!
-      INTEGER IX, IY
-      INTEGER I, M, MP1, NS
-!***FIRST EXECUTABLE STATEMENT  DAXPY                                   
-      IF (N.LE.0 .OR. DA.EQ.0.0D0) RETURN 
-      IF (INCX .EQ. INCY) IF (INCX-1) 5,20,60 
-!                                                                       
-!     Code for unequal or nonpositive increments.                       
-!                                                                       
-    5 IX = 1 
-      IY = 1 
-      IF (INCX .LT. 0) IX = (-N+1)*INCX + 1 
-      IF (INCY .LT. 0) IY = (-N+1)*INCY + 1 
-      DO 10 I = 1,N 
-        DY(IY) = DY(IY) + DA*DX(IX) 
-        IX = IX + INCX 
-        IY = IY + INCY 
-   10 END DO 
-      RETURN 
-!                                                                       
-!     Code for both increments equal to 1.                              
-!                                                                       
-!     Clean-up loop so remaining vector length is a multiple of 4.      
-!                                                                       
-   20 M = MOD(N,4) 
-      IF (M .EQ. 0) GO TO 40 
-      DO 30 I = 1,M 
-        DY(I) = DY(I) + DA*DX(I) 
-   30 END DO 
-      IF (N .LT. 4) RETURN 
-   40 MP1 = M + 1 
-      DO 50 I = MP1,N,4 
-        DY(I) = DY(I) + DA*DX(I) 
-        DY(I+1) = DY(I+1) + DA*DX(I+1) 
-        DY(I+2) = DY(I+2) + DA*DX(I+2) 
-        DY(I+3) = DY(I+3) + DA*DX(I+3) 
-   50 END DO 
-      RETURN 
-!                                                                       
-!     Code for equal, positive, non-unit increments.                    
-!                                                                       
-   60 NS = N*INCX 
-      DO 70 I = 1,NS,INCX 
-        DY(I) = DA*DX(I) + DY(I) 
-   70 END DO 
-      RETURN 
-      END                                           
-!DECK DDOT                                                              
-      DOUBLE PRECISION FUNCTION DDOT (N, DX, INCX, DY, INCY) 
-      IMPLICIT NONE ! (PAZ)
-!***BEGIN PROLOGUE  DDOT                                                
-!***PURPOSE  Compute the inner product of two vectors.                  
-!***LIBRARY   SLATEC (BLAS)                                             
-!***CATEGORY  D1A4                                                      
-!***TYPE      DOUBLE PRECISION (SDOT-S, DDOT-D, CDOTU-C)                
-!***KEYWORDS  BLAS, INNER PRODUCT, LINEAR ALGEBRA, VECTOR               
-!***AUTHOR  Lawson, C. L., (JPL)                                        
-!           Hanson, R. J., (SNLA)                                       
-!           Kincaid, D. R., (U. of Texas)                               
-!           Krogh, F. T., (JPL)                                         
-!***DESCRIPTION                                                         
-!                                                                       
-!                B L A S  Subprogram                                    
-!    Description of Parameters                                          
-!                                                                       
-!     --Input--                                                         
-!        N  number of elements in input vector(s)                       
-!       DX  double precision vector with N elements                     
-!     INCX  storage spacing between elements of DX                      
-!       DY  double precision vector with N elements                     
-!     INCY  storage spacing between elements of DY                      
-!                                                                       
-!     --Output--                                                        
-!     DDOT  double precision dot product (zero if N .LE. 0)             
-!                                                                       
-!     Returns the dot product of double precision DX and DY.            
-!     DDOT = sum for I = 0 to N-1 of  DX(LX+I*INCX) * DY(LY+I*INCY),    
-!     where LX = 1 if INCX .GE. 0, else LX = 1+(1-N)*INCX, and LY is    
-!     defined in a similar way using INCY.                              
-!                                                                       
-!***REFERENCES  C. L. Lawson, R. J. Hanson, D. R. Kincaid and F. T.     
-!                 Krogh, Basic linear algebra subprograms for Fortran   
-!                 usage, Algorithm No. 539, Transactions on Mathematical
-!                 Software 5, 3 (September 1979), pp. 308-323.          
-!***ROUTINES CALLED  (NONE)                                             
-!***REVISION HISTORY  (YYMMDD)                                          
-!   791001  DATE WRITTEN                                                
-!   890831  Modified array declarations.  (WRB)                         
-!   890831  REVISION DATE from Version 3.2                              
-!   891214  Prologue converted to Version 4.0 format.  (BAB)            
-!   920310  Corrected definition of LX in DESCRIPTION.  (WRB)           
-!   920501  Reformatted the REFERENCES section.  (WRB)                  
-!***END PROLOGUE  DDOT                                                  
-      DOUBLE PRECISION DX(*), DY(*) 
-      INTEGER N
-      INTEGER INCX,INCY
-!***
-      INTEGER IX, IY
-      INTEGER I, M, MP1, NS
-!***FIRST EXECUTABLE STATEMENT  DDOT                                    
-      DDOT = 0.0D0 
-      IF (N .LE. 0) RETURN 
-      IF (INCX .EQ. INCY) IF (INCX-1) 5,20,60 
-!                                                                       
-!     Code for unequal or nonpositive increments.                       
-!                                                                       
-    5 IX = 1 
-      IY = 1 
-      IF (INCX .LT. 0) IX = (-N+1)*INCX + 1 
-      IF (INCY .LT. 0) IY = (-N+1)*INCY + 1 
-      DO 10 I = 1,N 
-        DDOT = DDOT + DX(IX)*DY(IY) 
-        IX = IX + INCX 
-        IY = IY + INCY 
-   10 END DO 
-      RETURN 
-!                                                                       
-!     Code for both increments equal to 1.                              
-!                                                                       
-!     Clean-up loop so remaining vector length is a multiple of 5.      
-!                                                                       
-   20 M = MOD(N,5) 
-      IF (M .EQ. 0) GO TO 40 
-      DO 30 I = 1,M 
-         DDOT = DDOT + DX(I)*DY(I) 
-   30 END DO 
-      IF (N .LT. 5) RETURN 
-   40 MP1 = M + 1 
-      DO 50 I = MP1,N,5 
-      DDOT = DDOT + DX(I)*DY(I) + DX(I+1)*DY(I+1) + DX(I+2)*DY(I+2) +   &
-     &              DX(I+3)*DY(I+3) + DX(I+4)*DY(I+4)                   
-   50 END DO 
-      RETURN 
-!                                                                       
-!     Code for equal, positive, non-unit increments.                    
-!                                                                       
-   60 NS = N*INCX 
-      DO 70 I = 1,NS,INCX 
-        DDOT = DDOT + DX(I)*DY(I) 
-   70 END DO 
       RETURN 
       END                                           
 !DECK DGECO 
@@ -2591,86 +3060,6 @@ CONTAINS
   100 CONTINUE 
       RETURN 
       END                                           
-!DECK DSCAL                                                             
-      SUBROUTINE DSCAL (N, DA, DX, INCX) 
-!***BEGIN PROLOGUE  DSCAL                                               
-!***PURPOSE  Multiply a vector by a constant.                           
-!***LIBRARY   SLATEC (BLAS)                                             
-!***CATEGORY  D1A6                                                      
-!***TYPE      DOUBLE PRECISION (SSCAL-S, DSCAL-D, CSCAL-C)              
-!***KEYWORDS  BLAS, LINEAR ALGEBRA, SCALE, VECTOR                       
-!***AUTHOR  Lawson, C. L., (JPL)                                        
-!           Hanson, R. J., (SNLA)                                       
-!           Kincaid, D. R., (U. of Texas)                               
-!           Krogh, F. T., (JPL)                                         
-!***DESCRIPTION                                                         
-!                                                                       
-!                B L A S  Subprogram                                    
-!    Description of Parameters                                          
-!                                                                       
-!     --Input--                                                         
-!        N  number of elements in input vector(s)                       
-!       DA  double precision scale factor                               
-!       DX  double precision vector with N elements                     
-!     INCX  storage spacing between elements of DX                      
-!                                                                       
-!     --Output--                                                        
-!       DX  double precision result (unchanged if N.LE.0)               
-!                                                                       
-!     Replace double precision DX by double precision DA*DX.            
-!     For I = 0 to N-1, replace DX(IX+I*INCX) with  DA * DX(IX+I*INCX), 
-!     where IX = 1 if INCX .GE. 0, else IX = 1+(1-N)*INCX.              
-!                                                                       
-!***REFERENCES  C. L. Lawson, R. J. Hanson, D. R. Kincaid and F. T.     
-!                 Krogh, Basic linear algebra subprograms for Fortran   
-!                 usage, Algorithm No. 539, Transactions on Mathematical
-!                 Software 5, 3 (September 1979), pp. 308-323.          
-!***ROUTINES CALLED  (NONE)                                             
-!***REVISION HISTORY  (YYMMDD)                                          
-!   791001  DATE WRITTEN                                                
-!   890831  Modified array declarations.  (WRB)                         
-!   890831  REVISION DATE from Version 3.2                              
-!   891214  Prologue converted to Version 4.0 format.  (BAB)            
-!   900821  Modified to correct problem with a negative increment.      
-!           (WRB)                                                       
-!   920501  Reformatted the REFERENCES section.  (WRB)                  
-!***END PROLOGUE  DSCAL                                                 
-      DOUBLE PRECISION DA, DX(*) 
-      INTEGER I, INCX, IX, M, MP1, N 
-!***FIRST EXECUTABLE STATEMENT  DSCAL                                   
-      IF (N .LE. 0) RETURN 
-      IF (INCX .EQ. 1) GOTO 20 
-!                                                                       
-!     Code for increment not equal to 1.                                
-!                                                                       
-      IX = 1 
-      IF (INCX .LT. 0) IX = (-N+1)*INCX + 1 
-      DO 10 I = 1,N 
-        DX(IX) = DA*DX(IX) 
-        IX = IX + INCX 
-   10 END DO 
-      RETURN 
-!                                                                       
-!     Code for increment equal to 1.                                    
-!                                                                       
-!     Clean-up loop so remaining vector length is a multiple of 5.      
-!                                                                       
-   20 M = MOD(N,5) 
-      IF (M .EQ. 0) GOTO 40 
-      DO 30 I = 1,M 
-        DX(I) = DA*DX(I) 
-   30 END DO 
-      IF (N .LT. 5) RETURN 
-   40 MP1 = M + 1 
-      DO 50 I = MP1,N,5 
-        DX(I) = DA*DX(I) 
-        DX(I+1) = DA*DX(I+1) 
-        DX(I+2) = DA*DX(I+2) 
-        DX(I+3) = DA*DX(I+3) 
-        DX(I+4) = DA*DX(I+4) 
-   50 END DO 
-      RETURN 
-      END                                           
 !DECK IDAMAX                                                            
       INTEGER FUNCTION IDAMAX (N, DX, INCX) 
 !***BEGIN PROLOGUE  IDAMAX                                              
@@ -3032,86 +3421,1432 @@ CONTAINS
 
 
 
-end module lmfit
 
-!! 
-!! 
-!! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!! !! The following should go into a separate module once things are settled
-!! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!! 
-!! program testfit
-!! 
-!! use lmfit
-!! 
-!!  implicit none
-!! !    x                   y              error
-!!   integer, parameter  :: mp=80
-!!   double precision    :: xv(mp)
-!!   double precision    :: yv(mp)
-!!   double precision    :: ye(mp)
-!!   double precision    :: yt(mp)
-!! 
-!!  integer, parameter  :: nexps=6
-!! 
-!! 
-!!  double precision    :: px(2*nexps) , pxscale(2*nexps), pxerr(2*nexps), ssq
-!!  integer             :: iperm(nexps)
-!! 
-!!  double precision    :: a(nexps), a0(nexps), r(nexps), r0(nexps)
-!!  double precision    :: tmax, t, y, yeh
-!! 
-!!  integer             :: i, ier, np, ioo, j
-!! 
-!!  ! procedure(f_model)  :: fm
-!!  
-!!  ! prepare test
-!! ! px = [0.1d0,33d0, 0.3d0,10d0, 0.3d0,0.1d0, 0.3d0,0.001d0]
-!! 
-!!     np = mp
-!!     tmax = 100d0
-!!     do i=1,np
-!!      t =  exp(i*log(tmax*300d0)/np)/100d0
-!!      xv(i) = t
-!!    !  yv(i) = fm(xv(i), px, 2*nexps)
-!!      yv(i) = exp(-(0.1d0*t)**0.666)
-!!      ye(i) = 1d0
-!!     enddo
-!! 
-!!     j = 0
-!! d1: do 
-!!       read(5,*,iostat=ioo,end=1) t, y, yeh
-!!       if(ioo == 0) then
-!!         if(j >= mp) exit d1
-!!         j=j+1
-!!         xv(j) = t
-!!         yv(j) = y
-!! write(6,*)i,j,t,y 
-!!       endif
-!!     enddo d1
-!! 1 continue
-!!     np = j
-!! 
-!! 
-!! !!
-!! write(6,*)"Check Nexp Match:"
-!!  call nexp_match(xv,yv,np,nexps,a,r,ssq)
-!! 
-!! 
-!!  write(6,*)"Fit Result (sorted)##: "
-!!  do i=1,nexps
-!!     px(2*i-1) = a(i)
-!!     px(2*i)   = r(i)
-!!     write(6,'(i8,2f18.7)')i, a(i), r(i)
-!!  enddo
-!! 
-!!  write(6,'(a,e14.6)')"Fitting SSQ ##= ",ssq 
-!!  do i=1,np
-!!    yt(i) = fm(xv(i), px, 2*nexps)
-!!    write(6,'(i4,4f14.7)') i, xv(i), yv(i),yt(i), yv(i)-yt(i)
-!!  enddo
-!! 
-!! 
-!! 
-!! end program testfit
+
+!DECK DGEFS                                                             
+      SUBROUTINE DGEFS (A, LDA, N, V, ITASK, IND, WORK, IWORK) 
+!***BEGIN PROLOGUE  DGEFS                                               
+!***PURPOSE  Solve a general system of linear equations.                
+!***LIBRARY   SLATEC                                                    
+!***CATEGORY  D2A1                                                      
+!***TYPE      DOUBLE PRECISION (SGEFS-S, DGEFS-D, CGEFS-C)              
+!***KEYWORDS  COMPLEX LINEAR EQUATIONS, GENERAL MATRIX,                 
+!             GENERAL SYSTEM OF LINEAR EQUATIONS                        
+!***AUTHOR  Voorhees, E. A., (LANL)                                     
+!***DESCRIPTION                                                         
+!                                                                       
+!    Subroutine DGEFS solves a general NxN system of double             
+!    precision linear equations using LINPACK subroutines DGECO         
+!    and DGESL.  That is, if A is an NxN double precision matrix        
+!    and if X and B are double precision N-vectors, then DGEFS          
+!    solves the equation                                                
+!                                                                       
+!                          A*X=B.                                       
+!                                                                       
+!    The matrix A is first factored into upper and lower tri-           
+!    angular matrices U and L using partial pivoting.  These            
+!    factors and the pivoting information are used to find the          
+!    solution vector X.  An approximate condition number is             
+!    calculated to provide a rough estimate of the number of            
+!    digits of accuracy in the computed solution.                       
+!                                                                       
+!    If the equation A*X=B is to be solved for more than one vector     
+!    B, the factoring of A does not need to be performed again and      
+!    the option to only solve (ITASK.GT.1) will be faster for           
+!    the succeeding solutions.  In this case, the contents of A,        
+!    LDA, N and IWORK must not have been altered by the user follow-    
+!    ing factorization (ITASK=1).  IND will not be changed by DGEFS     
+!    in this case.                                                      
+!                                                                       
+!  Argument Description ***                                             
+!                                                                       
+!    A      DOUBLE PRECISION(LDA,N)                                     
+!             on entry, the doubly subscripted array with dimension     
+!               (LDA,N) which contains the coefficient matrix.          
+!             on return, an upper triangular matrix U and the           
+!               multipliers necessary to construct a matrix L           
+!               so that A=L*U.                                          
+!    LDA    INTEGER                                                     
+!             the leading dimension of the array A.  LDA must be great- 
+!             er than or equal to N.  (terminal error message IND=-1)   
+!    N      INTEGER                                                     
+!             the order of the matrix A.  The first N elements of       
+!             the array A are the elements of the first column of       
+!             the matrix A.  N must be greater than or equal to 1.      
+!             (terminal error message IND=-2)                           
+!    V      DOUBLE PRECISION(N)                                         
+!             on entry, the singly subscripted array(vector) of di-     
+!               mension N which contains the right hand side B of a     
+!               system of simultaneous linear equations A*X=B.          
+!             on return, V contains the solution vector, X .            
+!    ITASK  INTEGER                                                     
+!             If ITASK=1, the matrix A is factored and then the         
+!               linear equation is solved.                              
+!             If ITASK .GT. 1, the equation is solved using the existing
+!               factored matrix A and IWORK.                            
+!             If ITASK .LT. 1, then terminal error message IND=-3 is    
+!               printed.                                                
+!    IND    INTEGER                                                     
+!             GT. 0  IND is a rough estimate of the number of digits    
+!                     of accuracy in the solution, X.                   
+!             LT. 0  see error message corresponding to IND below.      
+!    WORK   DOUBLE PRECISION(N)                                         
+!             a singly subscripted array of dimension at least N.       
+!    IWORK  INTEGER(N)                                                  
+!             a singly subscripted array of dimension at least N.       
+!                                                                       
+!  Error Messages Printed ***                                           
+!                                                                       
+!    IND=-1  terminal   N is greater than LDA.                          
+!    IND=-2  terminal   N is less than 1.                               
+!    IND=-3  terminal   ITASK is less than 1.                           
+!    IND=-4  terminal   The matrix A is computationally singular.       
+!                         A solution has not been computed.             
+!    IND=-10 warning    The solution has no apparent significance.      
+!                         The solution may be inaccurate or the matrix  
+!                         A may be poorly scaled.                       
+!                                                                       
+!               Note-  The above terminal(*fatal*) error messages are   
+!                      designed to be handled by XERMSG in which        
+!                      LEVEL=1 (recoverable) and IFLAG=2 .  LEVEL=0     
+!                      for warning error messages from XERMSG.  Unless  
+!                      the user provides otherwise, an error message    
+!                      will be printed followed by an abort.            
+!                                                                       
+!***REFERENCES  J. J. Dongarra, J. R. Bunch, C. B. Moler, and G. W.     
+!                 Stewart, LINPACK Users' Guide, SIAM, 1979.            
+!***ROUTINES CALLED  D1MACH, DGECO, DGESL, XERMSG                       
+!***REVISION HISTORY  (YYMMDD)                                          
+!   800326  DATE WRITTEN                                                
+!   890531  Changed all specific intrinsics to generic.  (WRB)          
+!   890831  Modified array declarations.  (WRB)                         
+!   890831  REVISION DATE from Version 3.2                              
+!   891214  Prologue converted to Version 4.0 format.  (BAB)            
+!   900315  CALLs to XERROR changed to CALLs to XERMSG.  (THJ)          
+!   900510  Convert XERRWV calls to XERMSG calls.  (RWC)                
+!   920501  Reformatted the REFERENCES section.  (WRB)                  
+!***END PROLOGUE  DGEFS                                                 
+!                                                                       
+      INTEGER LDA,N,ITASK,IND,IWORK(*) 
+      DOUBLE PRECISION A(LDA,*),V(*),WORK(*) ! ,D1MACH 
+      DOUBLE PRECISION RCOND 
+      CHARACTER*8 XERN1, XERN2 
+!***FIRST EXECUTABLE STATEMENT  DGEFS                                   
+      IF (LDA.LT.N) THEN 
+         IND = -1 
+         WRITE (XERN1, '(I8)') LDA 
+         WRITE (XERN2, '(I8)') N 
+!?         CALL XERMSG ('SLATEC', 'DGEFS', 'LDA = ' // XERN1 //           &
+!?     &      ' IS LESS THAN N = ' // XERN2, -1, 1)                       
+         RETURN 
+      ENDIF 
+!                                                                       
+      IF (N.LE.0) THEN 
+         IND = -2 
+         WRITE (XERN1, '(I8)') N 
+!?         CALL XERMSG ('SLATEC', 'DGEFS', 'N = ' // XERN1 //             &
+!?     &      ' IS LESS THAN 1', -2, 1)                                   
+         RETURN 
+      ENDIF 
+!                                                                       
+      IF (ITASK.LT.1) THEN 
+         IND = -3 
+!?         WRITE (XERN1, '(I8)') ITASK 
+!?         CALL XERMSG ('SLATEC', 'DGEFS', 'ITASK = ' // XERN1 //         &
+!?     &      ' IS LESS THAN 1', -3, 1)                                   
+         RETURN 
+      ENDIF 
+!                                                                       
+      IF (ITASK.EQ.1) THEN 
+!                                                                       
+!        FACTOR MATRIX A INTO LU                                        
+!                                                                       
+         CALL DGECO(A,LDA,N,IWORK,RCOND,WORK) 
+!                                                                       
+!        CHECK FOR COMPUTATIONALLY SINGULAR MATRIX                      
+!                                                                       
+         IF (RCOND.EQ.0.0D0) THEN 
+            IND = -4 
+!?            CALL XERMSG ('SLATEC', 'DGEFS',                             &
+!?     &         'SINGULAR MATRIX A - NO SOLUTION', -4, 1)                
+            RETURN 
+         ENDIF 
+!                                                                       
+!        COMPUTE IND (ESTIMATE OF NO. OF SIGNIFICANT DIGITS)            
+!        AND CHECK FOR IND GREATER THAN ZERO                            
+!                                                                       
+         IND = -LOG10(epsilon(1d0)/RCOND) 
+         IF (IND.LE.0) THEN 
+            IND=-10 
+!?            CALL XERMSG ('SLATEC', 'DGEFS',                             &
+!?     &         'SOLUTION MAY HAVE NO SIGNIFICANCE', -10, 0)             
+         ENDIF 
+      ENDIF 
+!                                                                       
+!     SOLVE AFTER FACTORING                                             
+!                                                                       
+      CALL DGESL(A,LDA,N,IWORK,V,0) 
+      RETURN 
+      END                                           
+
+
+!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!  slatec wrapper for linear equation solver SLATEC: DGEFS
+!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+
+       subroutine lesolve(A, IA, B, IB, N, C)
+       
+          integer :: IA, IB, N
+          integer :: ind, itask
+          integer :: iwksp(IA)
+          integer :: i
+          double precision :: A(IA,IA),C(IA,1), B(IB,1)
+          double precision :: WKSPCE(IA)
+   
+          itask = 1
+          ind   = 1
+          call dgefs(A,IA,N,B,itask,ind,WKSPCE,iwksp)
+
+          if( ind < 0 .and. ind > -5) then
+             write(*,*)"Dgefs retuned code = ", ind
+             stop "ERROR: stop in lesolve (dgfes) "
+          endif
+
+          do i=1,N
+             C(i,1)=B(i,1)
+          enddo
+   
+          return
+       END subroutine lesolve
+
+!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+
+!DECK DSVDC                                                             
+      SUBROUTINE DSVDC (X, LDX, N, P, S, E, U, LDU, V, LDV, WORK, JOB,  &
+     &   INFO)                                                          
+!***BEGIN PROLOGUE  DSVDC                                               
+!***PURPOSE  Perform the singular value decomposition of a rectangular  
+!            matrix.                                                    
+!***LIBRARY   SLATEC (LINPACK)                                          
+!***CATEGORY  D6                                                        
+!***TYPE      DOUBLE PRECISION (SSVDC-S, DSVDC-D, CSVDC-C)              
+!***KEYWORDS  LINEAR ALGEBRA, LINPACK, MATRIX,                          
+!             SINGULAR VALUE DECOMPOSITION                              
+!***AUTHOR  Stewart, G. W., (U. of Maryland)                            
+!***DESCRIPTION                                                         
+!                                                                       
+!     DSVDC is a subroutine to reduce a double precision NxP matrix X   
+!     by orthogonal transformations U and V to diagonal form.  The      
+!     diagonal elements S(I) are the singular values of X.  The         
+!     columns of U are the corresponding left singular vectors,         
+!     and the columns of V the right singular vectors.                  
+!                                                                       
+!     On Entry                                                          
+!                                                                       
+!         X         DOUBLE PRECISION(LDX,P), where LDX .GE. N.          
+!                   X contains the matrix whose singular value          
+!                   decomposition is to be computed.  X is              
+!                   destroyed by DSVDC.                                 
+!                                                                       
+!         LDX       INTEGER.                                            
+!                   LDX is the leading dimension of the array X.        
+!                                                                       
+!         N         INTEGER.                                            
+!                   N is the number of rows of the matrix X.            
+!                                                                       
+!         P         INTEGER.                                            
+!                   P is the number of columns of the matrix X.         
+!                                                                       
+!         LDU       INTEGER.                                            
+!                   LDU is the leading dimension of the array U.        
+!                   (See below).                                        
+!                                                                       
+!         LDV       INTEGER.                                            
+!                   LDV is the leading dimension of the array V.        
+!                   (See below).                                        
+!                                                                       
+!         WORK      DOUBLE PRECISION(N).                                
+!                   WORK is a scratch array.                            
+!                                                                       
+!         JOB       INTEGER.                                            
+!                   JOB controls the computation of the singular        
+!                   vectors.  It has the decimal expansion AB           
+!                   with the following meaning                          
+!                                                                       
+!                        A .EQ. 0    do not compute the left singular   
+!                                  vectors.                             
+!                        A .EQ. 1    return the N left singular vectors 
+!                                  in U.                                
+!                        A .GE. 2    return the first MIN(N,P) singular 
+!                                  vectors in U.                        
+!                        B .EQ. 0    do not compute the right singular  
+!                                  vectors.                             
+!                        B .EQ. 1    return the right singular vectors  
+!                                  in V.                                
+!                                                                       
+!     On Return                                                         
+!                                                                       
+!         S         DOUBLE PRECISION(MM), where MM=MIN(N+1,P).          
+!                   The first MIN(N,P) entries of S contain the         
+!                   singular values of X arranged in descending         
+!                   order of magnitude.                                 
+!                                                                       
+!         E         DOUBLE PRECISION(P).                                
+!                   E ordinarily contains zeros.  However see the       
+!                   discussion of INFO for exceptions.                  
+!                                                                       
+!         U         DOUBLE PRECISION(LDU,K), where LDU .GE. N.          
+!                   If JOBA .EQ. 1, then K .EQ. N.                      
+!                   If JOBA .GE. 2, then K .EQ. MIN(N,P).               
+!                   U contains the matrix of right singular vectors.    
+!                   U is not referenced if JOBA .EQ. 0.  If N .LE. P    
+!                   or if JOBA .EQ. 2, then U may be identified with X  
+!                   in the subroutine call.                             
+!                                                                       
+!         V         DOUBLE PRECISION(LDV,P), where LDV .GE. P.          
+!                   V contains the matrix of right singular vectors.    
+!                   V is not referenced if JOB .EQ. 0.  If P .LE. N,    
+!                   then V may be identified with X in the              
+!                   subroutine call.                                    
+!                                                                       
+!         INFO      INTEGER.                                            
+!                   The singular values (and their corresponding        
+!                   singular vectors) S(INFO+1),S(INFO+2),...,S(M)      
+!                   are correct (here M=MIN(N,P)).  Thus if             
+!                   INFO .EQ. 0, all the singular values and their      
+!                   vectors are correct.  In any event, the matrix      
+!                   B = TRANS(U)*X*V is the bidiagonal matrix           
+!                   with the elements of S on its diagonal and the      
+!                   elements of E on its super-diagonal (TRANS(U)       
+!                   is the transpose of U).  Thus the singular          
+!                   values of X and B are the same.                     
+!                                                                       
+!***REFERENCES  J. J. Dongarra, J. R. Bunch, C. B. Moler, and G. W.     
+!                 Stewart, LINPACK Users' Guide, SIAM, 1979.            
+!***ROUTINES CALLED  DAXPY, DDOT, DNRM2, DROT, DROTG, DSCAL, DSWAP      
+!***REVISION HISTORY  (YYMMDD)                                          
+!   790319  DATE WRITTEN                                                
+!   890531  Changed all specific intrinsics to generic.  (WRB)          
+!   890531  REVISION DATE from Version 3.2                              
+!   891214  Prologue converted to Version 4.0 format.  (BAB)            
+!   900326  Removed duplicate information from DESCRIPTION section.     
+!           (WRB)                                                       
+!   920501  Reformatted the REFERENCES section.  (WRB)                  
+!***END PROLOGUE  DSVDC                                                 
+      INTEGER LDX,N,P,LDU,LDV,JOB,INFO 
+      DOUBLE PRECISION X(LDX,*),S(*),E(*),U(LDU,*),V(LDV,*),WORK(*) 
+!                                                                       
+!                                                                       
+      INTEGER I,ITER,J,JOBU,K,KASE,KK,L,LL,LLS,LM1,LP1,LS,LU,M,MAXIT,   &
+     &        MM,MM1,MP1,NCT,NCTP1,NCU,NRT,NRTP1                        
+      DOUBLE PRECISION xDDOT,T 
+      DOUBLE PRECISION B,C,CS,EL,EMM1,F,G,xDNRM2,SCALE,SHIFT,SL,SM,SN,   &
+     &                 SMM1,T1,TEST,ZTEST                               
+      LOGICAL WANTU,WANTV 
+
+!***FIRST EXECUTABLE STATEMENT  DSVDC                                   
+!                                                                       
+!     SET THE MAXIMUM NUMBER OF ITERATIONS.                             
+!                                                                       
+      MAXIT = 30 
+!                                                                       
+!     DETERMINE WHAT IS TO BE COMPUTED.                                 
+!                                                                       
+      WANTU = .FALSE. 
+      WANTV = .FALSE. 
+      JOBU = MOD(JOB,100)/10 
+      NCU = N 
+      IF (JOBU .GT. 1) NCU = MIN(N,P) 
+      IF (JOBU .NE. 0) WANTU = .TRUE. 
+      IF (MOD(JOB,10) .NE. 0) WANTV = .TRUE. 
+!                                                                       
+!     REDUCE X TO BIDIAGONAL FORM, STORING THE DIAGONAL ELEMENTS        
+!     IN S AND THE SUPER-DIAGONAL ELEMENTS IN E.                        
+!                                                                       
+      INFO = 0 
+      NCT = MIN(N-1,P) 
+      NRT = MAX(0,MIN(P-2,N)) 
+      LU = MAX(NCT,NRT) 
+      IF (LU .LT. 1) GO TO 170 
+      DO 160 L = 1, LU 
+         LP1 = L + 1 
+         IF (L .GT. NCT) GO TO 20 
+!                                                                       
+!           COMPUTE THE TRANSFORMATION FOR THE L-TH COLUMN AND          
+!           PLACE THE L-TH DIAGONAL IN S(L).                            
+!                                                                       
+            S(L) = DNRM2(N-L+1,X(L,L),1)
+            IF (S(L) .EQ. 0.0D0) GO TO 10 
+               IF (X(L,L) .NE. 0.0D0) S(L) = SIGN(S(L),X(L,L)) 
+               CALL DSCAL(N-L+1,1.0D0/S(L),X(L,L),1) 
+               X(L,L) = 1.0D0 + X(L,L) 
+   10       CONTINUE 
+            S(L) = -S(L) 
+   20    CONTINUE 
+         IF (P .LT. LP1) GO TO 50 
+         DO 40 J = LP1, P 
+            IF (L .GT. NCT) GO TO 30 
+            IF (S(L) .EQ. 0.0D0) GO TO 30 
+!                                                                       
+!              APPLY THE TRANSFORMATION.                                
+!                                                                       
+               T = -DDOT(N-L+1,X(L,L),1,X(L,J),1)/X(L,L) 
+               CALL DAXPY(N-L+1,T,X(L,L),1,X(L,J),1) 
+   30       CONTINUE 
+!                                                                       
+!           PLACE THE L-TH ROW OF X INTO  E FOR THE                     
+!           SUBSEQUENT CALCULATION OF THE ROW TRANSFORMATION.           
+!                                                                       
+            E(J) = X(L,J) 
+   40    CONTINUE 
+   50    CONTINUE 
+         IF (.NOT.WANTU .OR. L .GT. NCT) GO TO 70 
+!                                                                       
+!           PLACE THE TRANSFORMATION IN U FOR SUBSEQUENT BACK           
+!           MULTIPLICATION.                                             
+!                                                                       
+            DO 60 I = L, N 
+               U(I,L) = X(I,L) 
+   60       CONTINUE 
+   70    CONTINUE 
+         IF (L .GT. NRT) GO TO 150 
+!                                                                       
+!           COMPUTE THE L-TH ROW TRANSFORMATION AND PLACE THE           
+!           L-TH SUPER-DIAGONAL IN E(L).                                
+!                                                                       
+            E(L) = DNRM2(P-L,E(LP1),1) 
+            IF (E(L) .EQ. 0.0D0) GO TO 80 
+               IF (E(LP1) .NE. 0.0D0) E(L) = SIGN(E(L),E(LP1)) 
+               CALL DSCAL(P-L,1.0D0/E(L),E(LP1),1) 
+               E(LP1) = 1.0D0 + E(LP1) 
+   80       CONTINUE 
+            E(L) = -E(L) 
+            IF (LP1 .GT. N .OR. E(L) .EQ. 0.0D0) GO TO 120 
+!                                                                       
+!              APPLY THE TRANSFORMATION.                                
+!                                                                       
+               DO 90 I = LP1, N 
+                  WORK(I) = 0.0D0 
+   90          CONTINUE 
+               DO 100 J = LP1, P 
+                  CALL DAXPY(N-L,E(J),X(LP1,J),1,WORK(LP1),1) 
+  100          CONTINUE 
+               DO 110 J = LP1, P 
+                  CALL DAXPY(N-L,-E(J)/E(LP1),WORK(LP1),1,X(LP1,J),1) 
+  110          CONTINUE 
+  120       CONTINUE 
+            IF (.NOT.WANTV) GO TO 140 
+!                                                                       
+!              PLACE THE TRANSFORMATION IN V FOR SUBSEQUENT             
+!              BACK MULTIPLICATION.                                     
+!                                                                       
+               DO 130 I = LP1, P 
+                  V(I,L) = E(I) 
+  130          CONTINUE 
+  140       CONTINUE 
+  150    CONTINUE 
+  160 END DO 
+  170 CONTINUE 
+!                                                                       
+!     SET UP THE FINAL BIDIAGONAL MATRIX OR ORDER M.                    
+!                                                                       
+      M = MIN(P,N+1) 
+      NCTP1 = NCT + 1 
+      NRTP1 = NRT + 1 
+      IF (NCT .LT. P) S(NCTP1) = X(NCTP1,NCTP1) 
+      IF (N .LT. M) S(M) = 0.0D0 
+      IF (NRTP1 .LT. M) E(NRTP1) = X(NRTP1,M) 
+      E(M) = 0.0D0 
+!                                                                       
+!     IF REQUIRED, GENERATE U.                                          
+!                                                                       
+      IF (.NOT.WANTU) GO TO 300 
+         IF (NCU .LT. NCTP1) GO TO 200 
+         DO 190 J = NCTP1, NCU 
+            DO 180 I = 1, N 
+               U(I,J) = 0.0D0 
+  180       CONTINUE 
+            U(J,J) = 1.0D0 
+  190    CONTINUE 
+  200    CONTINUE 
+         IF (NCT .LT. 1) GO TO 290 
+         DO 280 LL = 1, NCT 
+            L = NCT - LL + 1 
+            IF (S(L) .EQ. 0.0D0) GO TO 250 
+               LP1 = L + 1 
+               IF (NCU .LT. LP1) GO TO 220 
+               DO 210 J = LP1, NCU 
+                  T = -DDOT(N-L+1,U(L,L),1,U(L,J),1)/U(L,L) 
+                  CALL DAXPY(N-L+1,T,U(L,L),1,U(L,J),1) 
+  210          CONTINUE 
+  220          CONTINUE 
+               CALL DSCAL(N-L+1,-1.0D0,U(L,L),1) 
+               U(L,L) = 1.0D0 + U(L,L) 
+               LM1 = L - 1 
+               IF (LM1 .LT. 1) GO TO 240 
+               DO 230 I = 1, LM1 
+                  U(I,L) = 0.0D0 
+  230          CONTINUE 
+  240          CONTINUE 
+            GO TO 270 
+  250       CONTINUE 
+               DO 260 I = 1, N 
+                  U(I,L) = 0.0D0 
+  260          CONTINUE 
+               U(L,L) = 1.0D0 
+  270       CONTINUE 
+  280    CONTINUE 
+  290    CONTINUE 
+  300 CONTINUE 
+!                                                                       
+!     IF IT IS REQUIRED, GENERATE V.                                    
+!                                                                       
+      IF (.NOT.WANTV) GO TO 350 
+         DO 340 LL = 1, P 
+            L = P - LL + 1 
+            LP1 = L + 1 
+            IF (L .GT. NRT) GO TO 320 
+            IF (E(L) .EQ. 0.0D0) GO TO 320 
+               DO 310 J = LP1, P 
+                  T = -DDOT(P-L,V(LP1,L),1,V(LP1,J),1)/V(LP1,L) 
+                  CALL DAXPY(P-L,T,V(LP1,L),1,V(LP1,J),1) 
+  310          CONTINUE 
+  320       CONTINUE 
+            DO 330 I = 1, P 
+               V(I,L) = 0.0D0 
+  330       CONTINUE 
+            V(L,L) = 1.0D0 
+  340    CONTINUE 
+  350 CONTINUE 
+!                                                                       
+!     MAIN ITERATION LOOP FOR THE SINGULAR VALUES.                      
+!                                                                       
+      MM = M 
+      ITER = 0 
+  360 CONTINUE 
+!                                                                       
+!        QUIT IF ALL THE SINGULAR VALUES HAVE BEEN FOUND.               
+!                                                                       
+         IF (M .EQ. 0) GO TO 620 
+!                                                                       
+!        IF TOO MANY ITERATIONS HAVE BEEN PERFORMED, SET                
+!        FLAG AND RETURN.                                               
+!                                                                       
+         IF (ITER .LT. MAXIT) GO TO 370 
+            INFO = M 
+            GO TO 620 
+  370    CONTINUE 
+!                                                                       
+!        THIS SECTION OF THE PROGRAM INSPECTS FOR                       
+!        NEGLIGIBLE ELEMENTS IN THE S AND E ARRAYS.  ON                 
+!        COMPLETION THE VARIABLES KASE AND L ARE SET AS FOLLOWS.        
+!                                                                       
+!           KASE = 1     IF S(M) AND E(L-1) ARE NEGLIGIBLE AND L.LT.M   
+!           KASE = 2     IF S(L) IS NEGLIGIBLE AND L.LT.M               
+!           KASE = 3     IF E(L-1) IS NEGLIGIBLE, L.LT.M, AND           
+!                        S(L), ..., S(M) ARE NOT NEGLIGIBLE (QR STEP).  
+!           KASE = 4     IF E(M-1) IS NEGLIGIBLE (CONVERGENCE).         
+!                                                                       
+         DO 390 LL = 1, M 
+            L = M - LL 
+            IF (L .EQ. 0) GO TO 400 
+            TEST = ABS(S(L)) + ABS(S(L+1)) 
+            ZTEST = TEST + ABS(E(L)) 
+            IF (ZTEST .NE. TEST) GO TO 380 
+               E(L) = 0.0D0 
+               GO TO 400 
+  380       CONTINUE 
+  390    CONTINUE 
+  400    CONTINUE 
+         IF (L .NE. M - 1) GO TO 410 
+            KASE = 4 
+         GO TO 480 
+  410    CONTINUE 
+            LP1 = L + 1 
+            MP1 = M + 1 
+            DO 430 LLS = LP1, MP1 
+               LS = M - LLS + LP1 
+               IF (LS .EQ. L) GO TO 440 
+               TEST = 0.0D0 
+               IF (LS .NE. M) TEST = TEST + ABS(E(LS)) 
+               IF (LS .NE. L + 1) TEST = TEST + ABS(E(LS-1)) 
+               ZTEST = TEST + ABS(S(LS)) 
+               IF (ZTEST .NE. TEST) GO TO 420 
+                  S(LS) = 0.0D0 
+                  GO TO 440 
+  420          CONTINUE 
+  430       CONTINUE 
+  440       CONTINUE 
+            IF (LS .NE. L) GO TO 450 
+               KASE = 3 
+            GO TO 470 
+  450       CONTINUE 
+            IF (LS .NE. M) GO TO 460 
+               KASE = 1 
+            GO TO 470 
+  460       CONTINUE 
+               KASE = 2 
+               L = LS 
+  470       CONTINUE 
+  480    CONTINUE 
+         L = L + 1 
+!                                                                       
+!        PERFORM THE TASK INDICATED BY KASE.                            
+!                                                                       
+         GO TO (490,520,540,570), KASE 
+!                                                                       
+!        DEFLATE NEGLIGIBLE S(M).                                       
+!                                                                       
+  490    CONTINUE 
+            MM1 = M - 1 
+            F = E(M-1) 
+            E(M-1) = 0.0D0 
+            DO 510 KK = L, MM1 
+               K = MM1 - KK + L 
+               T1 = S(K) 
+               CALL DROTG(T1,F,CS,SN) 
+               S(K) = T1 
+               IF (K .EQ. L) GO TO 500 
+                  F = -SN*E(K-1) 
+                  E(K-1) = CS*E(K-1) 
+  500          CONTINUE 
+               IF (WANTV) CALL DROT(P,V(1,K),1,V(1,M),1,CS,SN) 
+  510       CONTINUE 
+         GO TO 610 
+!                                                                       
+!        SPLIT AT NEGLIGIBLE S(L).                                      
+!                                                                       
+  520    CONTINUE 
+            F = E(L-1) 
+            E(L-1) = 0.0D0 
+            DO 530 K = L, M 
+               T1 = S(K) 
+               CALL DROTG(T1,F,CS,SN) 
+               S(K) = T1 
+               F = -SN*E(K) 
+               E(K) = CS*E(K) 
+               IF (WANTU) CALL DROT(N,U(1,K),1,U(1,L-1),1,CS,SN) 
+  530       CONTINUE 
+         GO TO 610 
+!                                                                       
+!        PERFORM ONE QR STEP.                                           
+!                                                                       
+  540    CONTINUE 
+!                                                                       
+!           CALCULATE THE SHIFT.                                        
+!                                                                       
+            SCALE = MAX(ABS(S(M)),ABS(S(M-1)),ABS(E(M-1)),              &
+     &                    ABS(S(L)),ABS(E(L)))                          
+            SM = S(M)/SCALE 
+            SMM1 = S(M-1)/SCALE 
+            EMM1 = E(M-1)/SCALE 
+            SL = S(L)/SCALE 
+            EL = E(L)/SCALE 
+            B = ((SMM1 + SM)*(SMM1 - SM) + EMM1**2)/2.0D0 
+            C = (SM*EMM1)**2 
+            SHIFT = 0.0D0 
+            IF (B .EQ. 0.0D0 .AND. C .EQ. 0.0D0) GO TO 550 
+               SHIFT = SQRT(B**2+C) 
+               IF (B .LT. 0.0D0) SHIFT = -SHIFT 
+               SHIFT = C/(B + SHIFT) 
+  550       CONTINUE 
+            F = (SL + SM)*(SL - SM) - SHIFT 
+            G = SL*EL 
+!                                                                       
+!           CHASE ZEROS.                                                
+!                                                                       
+            MM1 = M - 1 
+            DO 560 K = L, MM1 
+               CALL DROTG(F,G,CS,SN) 
+               IF (K .NE. L) E(K-1) = F 
+               F = CS*S(K) + SN*E(K) 
+               E(K) = CS*E(K) - SN*S(K) 
+               G = SN*S(K+1) 
+               S(K+1) = CS*S(K+1) 
+               IF (WANTV) CALL DROT(P,V(1,K),1,V(1,K+1),1,CS,SN) 
+               CALL DROTG(F,G,CS,SN) 
+               S(K) = F 
+               F = CS*E(K) + SN*S(K+1) 
+               S(K+1) = -SN*E(K) + CS*S(K+1) 
+               G = SN*E(K+1) 
+               E(K+1) = CS*E(K+1) 
+               IF (WANTU .AND. K .LT. N)                                &
+     &            CALL DROT(N,U(1,K),1,U(1,K+1),1,CS,SN)                
+  560       CONTINUE 
+            E(M-1) = F 
+            ITER = ITER + 1 
+         GO TO 610 
+!                                                                       
+!        CONVERGENCE.                                                   
+!                                                                       
+  570    CONTINUE 
+!                                                                       
+!           MAKE THE SINGULAR VALUE  POSITIVE.                          
+!                                                                       
+            IF (S(L) .GE. 0.0D0) GO TO 580 
+               S(L) = -S(L) 
+               IF (WANTV) CALL DSCAL(P,-1.0D0,V(1,L),1) 
+  580       CONTINUE 
+!                                                                       
+!           ORDER THE SINGULAR VALUE.                                   
+!                                                                       
+  590       IF (L .EQ. MM) GO TO 600 
+               IF (S(L) .GE. S(L+1)) GO TO 600 
+               T = S(L) 
+               S(L) = S(L+1) 
+               S(L+1) = T 
+               IF (WANTV .AND. L .LT. P)                                &
+     &            CALL DSWAP(P,V(1,L),1,V(1,L+1),1)                     
+               IF (WANTU .AND. L .LT. N)                                &
+     &            CALL DSWAP(N,U(1,L),1,U(1,L+1),1)                     
+               L = L + 1 
+            GO TO 590 
+  600       CONTINUE 
+            ITER = 0 
+            M = M - 1 
+  610    CONTINUE 
+      GO TO 360 
+  620 CONTINUE 
+      RETURN 
+      END                                           
+
+!DECK DAXPY                                                             
+      SUBROUTINE DAXPY (N, DA, DX, INCX, DY, INCY) 
+!***BEGIN PROLOGUE  DAXPY                                               
+!***PURPOSE  Compute a constant times a vector plus a vector.           
+!***LIBRARY   SLATEC (BLAS)                                             
+!***CATEGORY  D1A7                                                      
+!***TYPE      DOUBLE PRECISION (SAXPY-S, DAXPY-D, CAXPY-C)              
+!***KEYWORDS  BLAS, LINEAR ALGEBRA, TRIAD, VECTOR                       
+!***AUTHOR  Lawson, C. L., (JPL)                                        
+!           Hanson, R. J., (SNLA)                                       
+!           Kincaid, D. R., (U. of Texas)                               
+!           Krogh, F. T., (JPL)                                         
+!***DESCRIPTION                                                         
+!                                                                       
+!                B L A S  Subprogram                                    
+!    Description of Parameters                                          
+!                                                                       
+!     --Input--                                                         
+!        N  number of elements in input vector(s)                       
+!       DA  double precision scalar multiplier                          
+!       DX  double precision vector with N elements                     
+!     INCX  storage spacing between elements of DX                      
+!       DY  double precision vector with N elements                     
+!     INCY  storage spacing between elements of DY                      
+!                                                                       
+!     --Output--                                                        
+!       DY  double precision result (unchanged if N .LE. 0)             
+!                                                                       
+!     Overwrite double precision DY with double precision DA*DX + DY.   
+!     For I = 0 to N-1, replace  DY(LY+I*INCY) with DA*DX(LX+I*INCX) +  
+!       DY(LY+I*INCY),                                                  
+!     where LX = 1 if INCX .GE. 0, else LX = 1+(1-N)*INCX, and LY is    
+!     defined in a similar way using INCY.                              
+!                                                                       
+!***REFERENCES  C. L. Lawson, R. J. Hanson, D. R. Kincaid and F. T.     
+!                 Krogh, Basic linear algebra subprograms for Fortran   
+!                 usage, Algorithm No. 539, Transactions on Mathematical
+!                 Software 5, 3 (September 1979), pp. 308-323.          
+!***ROUTINES CALLED  (NONE)                                             
+!***REVISION HISTORY  (YYMMDD)                                          
+!   791001  DATE WRITTEN                                                
+!   890831  Modified array declarations.  (WRB)                         
+!   890831  REVISION DATE from Version 3.2                              
+!   891214  Prologue converted to Version 4.0 format.  (BAB)            
+!   920310  Corrected definition of LX in DESCRIPTION.  (WRB)           
+!   920501  Reformatted the REFERENCES section.  (WRB)                  
+!***END PROLOGUE  DAXPY                                                 
+      DOUBLE PRECISION DX(*), DY(*), DA 
+!***FIRST EXECUTABLE STATEMENT  DAXPY                                   
+      IF (N.LE.0 .OR. DA.EQ.0.0D0) RETURN 
+      IF (INCX .EQ. INCY) IF (INCX-1) 5,20,60 
+!                                                                       
+!     Code for unequal or nonpositive increments.                       
+!                                                                       
+    5 IX = 1 
+      IY = 1 
+      IF (INCX .LT. 0) IX = (-N+1)*INCX + 1 
+      IF (INCY .LT. 0) IY = (-N+1)*INCY + 1 
+      DO 10 I = 1,N 
+        DY(IY) = DY(IY) + DA*DX(IX) 
+        IX = IX + INCX 
+        IY = IY + INCY 
+   10 END DO 
+      RETURN 
+!                                                                       
+!     Code for both increments equal to 1.                              
+!                                                                       
+!     Clean-up loop so remaining vector length is a multiple of 4.      
+!                                                                       
+   20 M = MOD(N,4) 
+      IF (M .EQ. 0) GO TO 40 
+      DO 30 I = 1,M 
+        DY(I) = DY(I) + DA*DX(I) 
+   30 END DO 
+      IF (N .LT. 4) RETURN 
+   40 MP1 = M + 1 
+      DO 50 I = MP1,N,4 
+        DY(I) = DY(I) + DA*DX(I) 
+        DY(I+1) = DY(I+1) + DA*DX(I+1) 
+        DY(I+2) = DY(I+2) + DA*DX(I+2) 
+        DY(I+3) = DY(I+3) + DA*DX(I+3) 
+   50 END DO 
+      RETURN 
+!                                                                       
+!     Code for equal, positive, non-unit increments.                    
+!                                                                       
+   60 NS = N*INCX 
+      DO 70 I = 1,NS,INCX 
+        DY(I) = DA*DX(I) + DY(I) 
+   70 END DO 
+      RETURN 
+      END                                           
+!DECK DDOT                                                              
+      DOUBLE PRECISION FUNCTION DDOT (N, DX, INCX, DY, INCY) 
+!***BEGIN PROLOGUE  DDOT                                                
+!***PURPOSE  Compute the inner product of two vectors.                  
+!***LIBRARY   SLATEC (BLAS)                                             
+!***CATEGORY  D1A4                                                      
+!***TYPE      DOUBLE PRECISION (SDOT-S, DDOT-D, CDOTU-C)                
+!***KEYWORDS  BLAS, INNER PRODUCT, LINEAR ALGEBRA, VECTOR               
+!***AUTHOR  Lawson, C. L., (JPL)                                        
+!           Hanson, R. J., (SNLA)                                       
+!           Kincaid, D. R., (U. of Texas)                               
+!           Krogh, F. T., (JPL)                                         
+!***DESCRIPTION                                                         
+!                                                                       
+!                B L A S  Subprogram                                    
+!    Description of Parameters                                          
+!                                                                       
+!     --Input--                                                         
+!        N  number of elements in input vector(s)                       
+!       DX  double precision vector with N elements                     
+!     INCX  storage spacing between elements of DX                      
+!       DY  double precision vector with N elements                     
+!     INCY  storage spacing between elements of DY                      
+!                                                                       
+!     --Output--                                                        
+!     DDOT  double precision dot product (zero if N .LE. 0)             
+!                                                                       
+!     Returns the dot product of double precision DX and DY.            
+!     DDOT = sum for I = 0 to N-1 of  DX(LX+I*INCX) * DY(LY+I*INCY),    
+!     where LX = 1 if INCX .GE. 0, else LX = 1+(1-N)*INCX, and LY is    
+!     defined in a similar way using INCY.                              
+!                                                                       
+!***REFERENCES  C. L. Lawson, R. J. Hanson, D. R. Kincaid and F. T.     
+!                 Krogh, Basic linear algebra subprograms for Fortran   
+!                 usage, Algorithm No. 539, Transactions on Mathematical
+!                 Software 5, 3 (September 1979), pp. 308-323.          
+!***ROUTINES CALLED  (NONE)                                             
+!***REVISION HISTORY  (YYMMDD)                                          
+!   791001  DATE WRITTEN                                                
+!   890831  Modified array declarations.  (WRB)                         
+!   890831  REVISION DATE from Version 3.2                              
+!   891214  Prologue converted to Version 4.0 format.  (BAB)            
+!   920310  Corrected definition of LX in DESCRIPTION.  (WRB)           
+!   920501  Reformatted the REFERENCES section.  (WRB)                  
+!***END PROLOGUE  DDOT                                                  
+      DOUBLE PRECISION DX(*), DY(*) 
+!***FIRST EXECUTABLE STATEMENT  DDOT                                    
+      DDOT = 0.0D0 
+      IF (N .LE. 0) RETURN 
+      IF (INCX .EQ. INCY) IF (INCX-1) 5,20,60 
+!                                                                       
+!     Code for unequal or nonpositive increments.                       
+!                                                                       
+    5 IX = 1 
+      IY = 1 
+      IF (INCX .LT. 0) IX = (-N+1)*INCX + 1 
+      IF (INCY .LT. 0) IY = (-N+1)*INCY + 1 
+      DO 10 I = 1,N 
+        DDOT = DDOT + DX(IX)*DY(IY) 
+        IX = IX + INCX 
+        IY = IY + INCY 
+   10 END DO 
+      RETURN 
+!                                                                       
+!     Code for both increments equal to 1.                              
+!                                                                       
+!     Clean-up loop so remaining vector length is a multiple of 5.      
+!                                                                       
+   20 M = MOD(N,5) 
+      IF (M .EQ. 0) GO TO 40 
+      DO 30 I = 1,M 
+         DDOT = DDOT + DX(I)*DY(I) 
+   30 END DO 
+      IF (N .LT. 5) RETURN 
+   40 MP1 = M + 1 
+      DO 50 I = MP1,N,5 
+      DDOT = DDOT + DX(I)*DY(I) + DX(I+1)*DY(I+1) + DX(I+2)*DY(I+2) +   &
+     &              DX(I+3)*DY(I+3) + DX(I+4)*DY(I+4)                   
+   50 END DO 
+      RETURN 
+!                                                                       
+!     Code for equal, positive, non-unit increments.                    
+!                                                                       
+   60 NS = N*INCX 
+      DO 70 I = 1,NS,INCX 
+        DDOT = DDOT + DX(I)*DY(I) 
+   70 END DO 
+      RETURN 
+      END  
+
+                                         
+ !  =====================================================================
+       DOUBLE PRECISION FUNCTION dnrm2(N,X,INCX)
+ !
+ !  -- Reference BLAS level1 routine (version 3.8.0) --
+ !  -- Reference BLAS is a software package provided by Univ. of Tennessee,    --
+ !  -- Univ. of California Berkeley, Univ. of Colorado Denver and NAG Ltd..--
+ !     November 2017
+ !
+ !     .. Scalar Arguments ..
+       INTEGER INCX,N
+ !     ..
+ !     .. Array Arguments ..
+       DOUBLE PRECISION X(*)
+ !     ..
+ !
+ !  =====================================================================
+ !
+ !     .. Parameters ..
+       DOUBLE PRECISION ONE,ZERO
+       parameter(one=1.0d+0,zero=0.0d+0)
+ !     ..
+ !     .. Local Scalars ..
+       DOUBLE PRECISION ABSXI,NORM,SCALE,SSQ
+       INTEGER IX
+ !     ..
+ !     .. Intrinsic Functions ..
+       INTRINSIC abs,sqrt
+ !     ..
+       IF (n.LT.1 .OR. incx.LT.1) THEN
+           norm = zero
+       ELSE IF (n.EQ.1) THEN
+           norm = abs(x(1))
+       ELSE
+           scale = zero
+           ssq = one
+ !        The following loop is equivalent to this call to the LAPACK
+ !        auxiliary routine:
+ !        CALL DLASSQ( N, X, INCX, SCALE, SSQ )
+ !
+           DO 10 ix = 1,1 + (n-1)*incx,incx
+               IF (x(ix).NE.zero) THEN
+                   absxi = abs(x(ix))
+                   IF (scale.LT.absxi) THEN
+                       ssq = one + ssq* (scale/absxi)**2
+                       scale = absxi
+                   ELSE
+                       ssq = ssq + (absxi/scale)**2
+                   END IF
+               END IF
+    10     CONTINUE
+           norm = scale*sqrt(ssq)
+       END IF
+ !
+       dnrm2 = norm
+       RETURN
+ !
+ !     End of DNRM2.
+ !
+       END
+ 
+!DECK DROT                                                              
+      SUBROUTINE DROT (N, DX, INCX, DY, INCY, DC, DS) 
+!***BEGIN PROLOGUE  DROT                                                
+!***PURPOSE  Apply a plane Givens rotation.                             
+!***LIBRARY   SLATEC (BLAS)                                             
+!***CATEGORY  D1A8                                                      
+!***TYPE      DOUBLE PRECISION (SROT-S, DROT-D, CSROT-C)                
+!***KEYWORDS  BLAS, GIVENS ROTATION, GIVENS TRANSFORMATION,             
+!             LINEAR ALGEBRA, PLANE ROTATION, VECTOR                    
+!***AUTHOR  Lawson, C. L., (JPL)                                        
+!           Hanson, R. J., (SNLA)                                       
+!           Kincaid, D. R., (U. of Texas)                               
+!           Krogh, F. T., (JPL)                                         
+!***DESCRIPTION                                                         
+!                                                                       
+!                B L A S  Subprogram                                    
+!    Description of Parameters                                          
+!                                                                       
+!     --Input--                                                         
+!        N  number of elements in input vector(s)                       
+!       DX  double precision vector with N elements                     
+!     INCX  storage spacing between elements of DX                      
+!       DY  double precision vector with N elements                     
+!     INCY  storage spacing between elements of DY                      
+!       DC  D.P. element of rotation matrix                             
+!       DS  D.P. element of rotation matrix                             
+!                                                                       
+!     --Output--                                                        
+!       DX  rotated vector DX (unchanged if N .LE. 0)                   
+!       DY  rotated vector DY (unchanged if N .LE. 0)                   
+!                                                                       
+!     Multiply the 2 x 2 matrix  ( DC DS) times the 2 x N matrix (DX**T)
+!                                (-DS DC)                        (DY**T)
+!     where **T indicates transpose.  The elements of DX are in         
+!     DX(LX+I*INCX), I = 0 to N-1, where LX = 1 if INCX .GE. 0, else    
+!     LX = 1+(1-N)*INCX, and similarly for DY using LY and INCY.        
+!                                                                       
+!***REFERENCES  C. L. Lawson, R. J. Hanson, D. R. Kincaid and F. T.     
+!                 Krogh, Basic linear algebra subprograms for Fortran   
+!                 usage, Algorithm No. 539, Transactions on Mathematical
+!                 Software 5, 3 (September 1979), pp. 308-323.          
+!***ROUTINES CALLED  (NONE)                                             
+!***REVISION HISTORY  (YYMMDD)                                          
+!   791001  DATE WRITTEN                                                
+!   861211  REVISION DATE from Version 3.2                              
+!   891214  Prologue converted to Version 4.0 format.  (BAB)            
+!   920310  Corrected definition of LX in DESCRIPTION.  (WRB)           
+!   920501  Reformatted the REFERENCES section.  (WRB)                  
+!***END PROLOGUE  DROT                                                  
+      DOUBLE PRECISION DX, DY, DC, DS, ZERO, ONE, W, Z 
+      DIMENSION DX(*), DY(*) 
+      SAVE ZERO, ONE 
+      DATA ZERO, ONE /0.0D0, 1.0D0/ 
+!***FIRST EXECUTABLE STATEMENT  DROT                                    
+      IF (N .LE. 0 .OR. (DS .EQ. ZERO .AND. DC .EQ. ONE)) GO TO 40 
+      IF (.NOT. (INCX .EQ. INCY .AND. INCX .GT. 0)) GO TO 20 
+!                                                                       
+!          Code for equal and positive increments.                      
+!                                                                       
+           NSTEPS=INCX*N 
+           DO 10 I = 1,NSTEPS,INCX 
+                W=DX(I) 
+                Z=DY(I) 
+                DX(I)=DC*W+DS*Z 
+                DY(I)=-DS*W+DC*Z 
+   10           CONTINUE 
+           GO TO 40 
+!                                                                       
+!     Code for unequal or nonpositive increments.                       
+!                                                                       
+   20 CONTINUE 
+           KX=1 
+           KY=1 
+!                                                                       
+           IF (INCX .LT. 0) KX = 1-(N-1)*INCX 
+           IF (INCY .LT. 0) KY = 1-(N-1)*INCY 
+!                                                                       
+           DO 30 I = 1,N 
+                W=DX(KX) 
+                Z=DY(KY) 
+                DX(KX)=DC*W+DS*Z 
+                DY(KY)=-DS*W+DC*Z 
+                KX=KX+INCX 
+                KY=KY+INCY 
+   30           CONTINUE 
+   40 CONTINUE 
+!                                                                       
+      RETURN 
+      END                                           
+!DECK DROTG                                                             
+      SUBROUTINE DROTG (DA, DB, DC, DS) 
+!***BEGIN PROLOGUE  DROTG                                               
+!***PURPOSE  Construct a plane Givens rotation.                         
+!***LIBRARY   SLATEC (BLAS)                                             
+!***CATEGORY  D1B10                                                     
+!***TYPE      DOUBLE PRECISION (SROTG-S, DROTG-D, CROTG-C)              
+!***KEYWORDS  BLAS, GIVENS ROTATION, GIVENS TRANSFORMATION,             
+!             LINEAR ALGEBRA, VECTOR                                    
+!***AUTHOR  Lawson, C. L., (JPL)                                        
+!           Hanson, R. J., (SNLA)                                       
+!           Kincaid, D. R., (U. of Texas)                               
+!           Krogh, F. T., (JPL)                                         
+!***DESCRIPTION                                                         
+!                                                                       
+!                B L A S  Subprogram                                    
+!    Description of Parameters                                          
+!                                                                       
+!     --Input--                                                         
+!       DA  double precision scalar                                     
+!       DB  double precision scalar                                     
+!                                                                       
+!     --Output--                                                        
+!       DA  double precision result R                                   
+!       DB  double precision result Z                                   
+!       DC  double precision result                                     
+!       DS  double precision result                                     
+!                                                                       
+!     Construct the Givens transformation                               
+!                                                                       
+!         ( DC  DS )                                                    
+!     G = (        ) ,    DC**2 + DS**2 = 1 ,                           
+!         (-DS  DC )                                                    
+!                                                                       
+!     which zeros the second entry of the 2-vector  (DA,DB)**T .        
+!                                                                       
+!     The quantity R = (+/-)SQRT(DA**2 + DB**2) overwrites DA in        
+!     storage.  The value of DB is overwritten by a value Z which       
+!     allows DC and DS to be recovered by the following algorithm.      
+!                                                                       
+!           If Z=1  set  DC=0.0  and  DS=1.0                            
+!           If ABS(Z) .LT. 1  set  DC=SQRT(1-Z**2)  and  DS=Z           
+!           If ABS(Z) .GT. 1  set  DC=1/Z  and  DS=SQRT(1-DC**2)        
+!                                                                       
+!     Normally, the subprogram DROT(N,DX,INCX,DY,INCY,DC,DS) will       
+!     next be called to apply the transformation to a 2 by N matrix.    
+!                                                                       
+!***REFERENCES  C. L. Lawson, R. J. Hanson, D. R. Kincaid and F. T.     
+!                 Krogh, Basic linear algebra subprograms for Fortran   
+!                 usage, Algorithm No. 539, Transactions on Mathematical
+!                 Software 5, 3 (September 1979), pp. 308-323.          
+!***ROUTINES CALLED  (NONE)                                             
+!***REVISION HISTORY  (YYMMDD)                                          
+!   791001  DATE WRITTEN                                                
+!   890531  Changed all specific intrinsics to generic.  (WRB)          
+!   890531  REVISION DATE from Version 3.2                              
+!   891214  Prologue converted to Version 4.0 format.  (BAB)            
+!   920501  Reformatted the REFERENCES section.  (WRB)                  
+!***END PROLOGUE  DROTG                                                 
+      DOUBLE PRECISION  DA, DB, DC, DS, U, V, R 
+!***FIRST EXECUTABLE STATEMENT  DROTG                                   
+      IF (ABS(DA) .LE. ABS(DB)) GO TO 10 
+!                                                                       
+! *** HERE ABS(DA) .GT. ABS(DB) ***                                     
+!                                                                       
+      U = DA + DA 
+      V = DB / U 
+!                                                                       
+!     NOTE THAT U AND R HAVE THE SIGN OF DA                             
+!                                                                       
+      R = SQRT(0.25D0 + V**2) * U 
+!                                                                       
+!     NOTE THAT DC IS POSITIVE                                          
+!                                                                       
+      DC = DA / R 
+      DS = V * (DC + DC) 
+      DB = DS 
+      DA = R 
+      RETURN 
+!                                                                       
+! *** HERE ABS(DA) .LE. ABS(DB) ***                                     
+!                                                                       
+   10 IF (DB .EQ. 0.0D0) GO TO 20 
+      U = DB + DB 
+      V = DA / U 
+!                                                                       
+!     NOTE THAT U AND R HAVE THE SIGN OF DB                             
+!     (R IS IMMEDIATELY STORED IN DA)                                   
+!                                                                       
+      DA = SQRT(0.25D0 + V**2) * U 
+!                                                                       
+!     NOTE THAT DS IS POSITIVE                                          
+!                                                                       
+      DS = DB / DA 
+      DC = V * (DS + DS) 
+      IF (DC .EQ. 0.0D0) GO TO 15 
+      DB = 1.0D0 / DC 
+      RETURN 
+   15 DB = 1.0D0 
+      RETURN 
+!                                                                       
+! *** HERE DA = DB = 0.0 ***                                            
+!                                                                       
+   20 DC = 1.0D0 
+      DS = 0.0D0 
+      RETURN 
+!                                                                       
+      END                                           
+!DECK DSCAL                                                             
+      SUBROUTINE DSCAL (N, DA, DX, INCX) 
+!***BEGIN PROLOGUE  DSCAL                                               
+!***PURPOSE  Multiply a vector by a constant.                           
+!***LIBRARY   SLATEC (BLAS)                                             
+!***CATEGORY  D1A6                                                      
+!***TYPE      DOUBLE PRECISION (SSCAL-S, DSCAL-D, CSCAL-C)              
+!***KEYWORDS  BLAS, LINEAR ALGEBRA, SCALE, VECTOR                       
+!***AUTHOR  Lawson, C. L., (JPL)                                        
+!           Hanson, R. J., (SNLA)                                       
+!           Kincaid, D. R., (U. of Texas)                               
+!           Krogh, F. T., (JPL)                                         
+!***DESCRIPTION                                                         
+!                                                                       
+!                B L A S  Subprogram                                    
+!    Description of Parameters                                          
+!                                                                       
+!     --Input--                                                         
+!        N  number of elements in input vector(s)                       
+!       DA  double precision scale factor                               
+!       DX  double precision vector with N elements                     
+!     INCX  storage spacing between elements of DX                      
+!                                                                       
+!     --Output--                                                        
+!       DX  double precision result (unchanged if N.LE.0)               
+!                                                                       
+!     Replace double precision DX by double precision DA*DX.            
+!     For I = 0 to N-1, replace DX(IX+I*INCX) with  DA * DX(IX+I*INCX), 
+!     where IX = 1 if INCX .GE. 0, else IX = 1+(1-N)*INCX.              
+!                                                                       
+!***REFERENCES  C. L. Lawson, R. J. Hanson, D. R. Kincaid and F. T.     
+!                 Krogh, Basic linear algebra subprograms for Fortran   
+!                 usage, Algorithm No. 539, Transactions on Mathematical
+!                 Software 5, 3 (September 1979), pp. 308-323.          
+!***ROUTINES CALLED  (NONE)                                             
+!***REVISION HISTORY  (YYMMDD)                                          
+!   791001  DATE WRITTEN                                                
+!   890831  Modified array declarations.  (WRB)                         
+!   890831  REVISION DATE from Version 3.2                              
+!   891214  Prologue converted to Version 4.0 format.  (BAB)            
+!   900821  Modified to correct problem with a negative increment.      
+!           (WRB)                                                       
+!   920501  Reformatted the REFERENCES section.  (WRB)                  
+!***END PROLOGUE  DSCAL                                                 
+      DOUBLE PRECISION DA, DX(*) 
+      INTEGER I, INCX, IX, M, MP1, N 
+!***FIRST EXECUTABLE STATEMENT  DSCAL                                   
+      IF (N .LE. 0) RETURN 
+      IF (INCX .EQ. 1) GOTO 20 
+!                                                                       
+!     Code for increment not equal to 1.                                
+!                                                                       
+      IX = 1 
+      IF (INCX .LT. 0) IX = (-N+1)*INCX + 1 
+      DO 10 I = 1,N 
+        DX(IX) = DA*DX(IX) 
+        IX = IX + INCX 
+   10 END DO 
+      RETURN 
+!                                                                       
+!     Code for increment equal to 1.                                    
+!                                                                       
+!     Clean-up loop so remaining vector length is a multiple of 5.      
+!                                                                       
+   20 M = MOD(N,5) 
+      IF (M .EQ. 0) GOTO 40 
+      DO 30 I = 1,M 
+        DX(I) = DA*DX(I) 
+   30 END DO 
+      IF (N .LT. 5) RETURN 
+   40 MP1 = M + 1 
+      DO 50 I = MP1,N,5 
+        DX(I) = DA*DX(I) 
+        DX(I+1) = DA*DX(I+1) 
+        DX(I+2) = DA*DX(I+2) 
+        DX(I+3) = DA*DX(I+3) 
+        DX(I+4) = DA*DX(I+4) 
+   50 END DO 
+      RETURN 
+      END                                           
+!DECK DSWAP                                                             
+      SUBROUTINE DSWAP (N, DX, INCX, DY, INCY) 
+!***BEGIN PROLOGUE  DSWAP                                               
+!***PURPOSE  Interchange two vectors.                                   
+!***LIBRARY   SLATEC (BLAS)                                             
+!***CATEGORY  D1A5                                                      
+!***TYPE      DOUBLE PRECISION (SSWAP-S, DSWAP-D, CSWAP-C, ISWAP-I)     
+!***KEYWORDS  BLAS, INTERCHANGE, LINEAR ALGEBRA, VECTOR                 
+!***AUTHOR  Lawson, C. L., (JPL)                                        
+!           Hanson, R. J., (SNLA)                                       
+!           Kincaid, D. R., (U. of Texas)                               
+!           Krogh, F. T., (JPL)                                         
+!***DESCRIPTION                                                         
+!                                                                       
+!                B L A S  Subprogram                                    
+!    Description of Parameters                                          
+!                                                                       
+!     --Input--                                                         
+!        N  number of elements in input vector(s)                       
+!       DX  double precision vector with N elements                     
+!     INCX  storage spacing between elements of DX                      
+!       DY  double precision vector with N elements                     
+!     INCY  storage spacing between elements of DY                      
+!                                                                       
+!     --Output--                                                        
+!       DX  input vector DY (unchanged if N .LE. 0)                     
+!       DY  input vector DX (unchanged if N .LE. 0)                     
+!                                                                       
+!     Interchange double precision DX and double precision DY.          
+!     For I = 0 to N-1, interchange  DX(LX+I*INCX) and DY(LY+I*INCY),   
+!     where LX = 1 if INCX .GE. 0, else LX = 1+(1-N)*INCX, and LY is    
+!     defined in a similar way using INCY.                              
+!                                                                       
+!***REFERENCES  C. L. Lawson, R. J. Hanson, D. R. Kincaid and F. T.     
+!                 Krogh, Basic linear algebra subprograms for Fortran   
+!                 usage, Algorithm No. 539, Transactions on Mathematical
+!                 Software 5, 3 (September 1979), pp. 308-323.          
+!***ROUTINES CALLED  (NONE)                                             
+!***REVISION HISTORY  (YYMMDD)                                          
+!   791001  DATE WRITTEN                                                
+!   890831  Modified array declarations.  (WRB)                         
+!   890831  REVISION DATE from Version 3.2                              
+!   891214  Prologue converted to Version 4.0 format.  (BAB)            
+!   920310  Corrected definition of LX in DESCRIPTION.  (WRB)           
+!   920501  Reformatted the REFERENCES section.  (WRB)                  
+!***END PROLOGUE  DSWAP                                                 
+      DOUBLE PRECISION DX(*), DY(*), DTEMP1, DTEMP2, DTEMP3 
+!***FIRST EXECUTABLE STATEMENT  DSWAP                                   
+      IF (N .LE. 0) RETURN 
+      IF (INCX .EQ. INCY) IF (INCX-1) 5,20,60 
+!                                                                       
+!     Code for unequal or nonpositive increments.                       
+!                                                                       
+    5 IX = 1 
+      IY = 1 
+      IF (INCX .LT. 0) IX = (-N+1)*INCX + 1 
+      IF (INCY .LT. 0) IY = (-N+1)*INCY + 1 
+      DO 10 I = 1,N 
+        DTEMP1 = DX(IX) 
+        DX(IX) = DY(IY) 
+        DY(IY) = DTEMP1 
+        IX = IX + INCX 
+        IY = IY + INCY 
+   10 END DO 
+      RETURN 
+!                                                                       
+!     Code for both increments equal to 1.                              
+!                                                                       
+!     Clean-up loop so remaining vector length is a multiple of 3.      
+!                                                                       
+   20 M = MOD(N,3) 
+      IF (M .EQ. 0) GO TO 40 
+      DO 30 I = 1,M 
+        DTEMP1 = DX(I) 
+        DX(I) = DY(I) 
+        DY(I) = DTEMP1 
+   30 END DO 
+      IF (N .LT. 3) RETURN 
+   40 MP1 = M + 1 
+      DO 50 I = MP1,N,3 
+        DTEMP1 = DX(I) 
+        DTEMP2 = DX(I+1) 
+        DTEMP3 = DX(I+2) 
+        DX(I) = DY(I) 
+        DX(I+1) = DY(I+1) 
+        DX(I+2) = DY(I+2) 
+        DY(I) = DTEMP1 
+        DY(I+1) = DTEMP2 
+        DY(I+2) = DTEMP3 
+   50 END DO 
+      RETURN 
+!                                                                       
+!     Code for equal, positive, non-unit increments.                    
+!                                                                       
+   60 NS = N*INCX 
+      DO 70 I = 1,NS,INCX 
+        DTEMP1 = DX(I) 
+        DX(I) = DY(I) 
+        DY(I) = DTEMP1 
+   70 END DO 
+      RETURN 
+      END   
+                                        
+
+END MODUlE lmfit
+!!?! 
+!!?!       PROGRAM TESTSVD 
+!!?!       use map_exp
+!!?!       implicit none
+!!?! !                                                                       
+!!?! !                                                                       
+!!?! ! Program to test (SVD) singular value decomposition.                   
+!!?! !         
+!!?! 
+!!?!       integer, parameter          :: m=200, n=20
+!!?!                                                         
+!!?!                                                                         
+!!?!       REAL(kind=8) :: Y(m)=0, amplitude(n)=0, tau(n)=0, Aexp(n), aexpf(n), rexp(n)
+!!?! 
+!!?!       double precision   :: tsam(1000)
+!!?!       double precision   :: chisq, rmsdev
+!!?!       double precision   :: offset = 0.d0
+!!?! 
+!!?!       integer :: ierr = 0, info, iout=1
+!!?!       integer :: i, j, n0, nn, mm
+!!?! 
+!!?! 
+!!?!       call get_sample_times(tsam,m)           
+!!?! 
+!!?!       amplitude(1) = 10
+!!?!       tau(1)       = 200
+!!?!       amplitude(2) = 2
+!!?!       tau(2)       = 100
+!!?!       amplitude(3) = 20
+!!?!       tau(3)       = 500
+!!?! 
+!!?!       amplitude(4) = 20
+!!?!       tau(4)       = 3
+!!?! 
+!!?! !       call create_sample(Y,amplitude,tau,m,4)
+!!?!        call create_sample_strex(Y,1d0,500d0,0.25d0,m)
+!!?!  
+!!?!        Y = (1-offset)*Y + offset
+!!?!  
+!!?!        call match_exp0 ( tsam,y,m,n,n0,aexp,rexp,rmsdev,iout) 
+!!?! CONTAINS
+!!?!        
+!!?! 
+!!?! !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!?! ! create time vector
+!!?! !
+!!?!  subroutine get_sample_times(t,n)
+!!?! !================================
+!!?!   implicit none
+!!?!   double precision, intent(out)    :: t(*)
+!!?!   integer         , intent(in)  :: n
+!!?! 
+!!?!   double precision :: span=10000d0
+!!?!   double precision :: base
+!!?!   integer          :: i
+!!?! 
+!!?! 
+!!?!   base = span**(1d0/(n-1))
+!!?! 
+!!?!   do i=1,n
+!!?!     t(i) = base**(i-1)
+!!?!   enddo
+!!?! 
+!!?! end subroutine get_sample_times 
+!!?! 
+!!?! subroutine create_sample_strex(Y,amplitude,tau,beta,m)
+!!?!   implicit none
+!!?!   double precision, intent(out) :: Y(m)
+!!?!   double precision, intent(in ) :: amplitude
+!!?!   double precision, intent(in ) :: tau
+!!?!   double precision, intent(in ) :: beta
+!!?!   integer         , intent(in)  :: m
+!!?!   integer, parameter :: mmax=1000
+!!?!   double precision   :: t(mmax)
+!!?!   integer            :: nn, mm 
+!!?! 
+!!?!   call get_sample_times(t,m) 
+!!?! 
+!!?!   do mm=1,m
+!!?!        Y(mm) =  exp(-(t(mm)/tau)**beta) * amplitude  
+!!?!   enddo
+!!?! 
+!!?! end subroutine create_sample_strex
+!!?! 
+!!?! 
+!!?! 
+!!?! function calc_solution(t, Aexp,n) result(y)
+!!?!   implicit none
+!!?!   double precision, intent(in) :: t
+!!?!   double precision, intent(in) :: Aexp(n)
+!!?!   integer         , intent(in) :: n  
+!!?! 
+!!?!   double precision             :: y
+!!?!  integer, parameter ::  nmax=1000
+!!?! 
+!!?! 
+!!?!   double precision   :: tau(nmax)
+!!?!   integer            :: nn, mm 
+!!?! 
+!!?!   call get_characteristic_times(tau,n)
+!!?! 
+!!?!   y = 0
+!!?! 
+!!?!      do nn=1,n
+!!?!        y = y + Aexp(nn)*exp(-t/tau(nn)) 
+!!?!      enddo
+!!?! 
+!!?! end function calc_solution
+!!?! 
+!!?! 
+!!?!        
+!!?!       END program TESTSVD      
+
 

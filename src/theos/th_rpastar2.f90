@@ -104,12 +104,13 @@
      double precision        :: tmax = 1000d0
      logical                 :: newcomp_required
      integer                 :: i
-     double precision        :: ts, ssq
+     double precision        :: ts,  rmsdev, rmsdev_limit = 1d-3
 
      double precision        :: ss11, ss110, ss12, ss120, ss22, ss220
 
      double precision        :: a1, a2, r1, r2, r3, b1, b2, g1, g2, g3
      integer                 :: analytic = 0
+     integer                 :: iout = 0
 
 
      complex(kind=XPREC)     :: il_coeffs11(3*mexp)
@@ -241,8 +242,8 @@
 
 
       t0       = max(t0      ,tmin)
-      nxpoints = max(nxpoints  , 7)
-      modeex   = max(modeex    , 2)
+      nxpoints = max(nxpoints  ,16)
+      modeex   = max(modeex    , 8)
 
       if( modeex > mexp ) then
          write(6,*)"INFORMATION: Modeex limited to: ",mexp
@@ -393,12 +394,19 @@ ilr: if( newcomp_required ) then
              s_samples(i) = locrep2 * sqt / sqt0
           enddo
            
-          call nexp_match(t_samples,s_samples,nxpoints,modeex,aexp11,rexp11,ssq)
+          rmsdev = rmsdev_limit
+          call match_exp_auto(t_samples,s_samples,nxpoints,modeex,nexp1,aexp11,rexp11,rmsdev,iout)
           aexpcc = aexp11
           rexpcc = rexp11
-          if(ssq > 1d-4) then
-            write(6,*)"rpa_test exp model bad match 11", ssq
+          nexpcc = nexp1 
+
+          if(rmsdev > rmsdev_limit) then
+            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
+            write(*,*)"         rpa_test exp model bad match 11", rmsdev , rmsdev_limit
+            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
           endif
+
+
 
      ! star ( primary sample component) here the component with index 2
 
@@ -416,11 +424,18 @@ ilr: if( newcomp_required ) then
              t_samples(i) = ts
              s_samples(i) = sqt/sqt0 *  exp( -diffstar * q*q * (ts)**betadif )    
            enddo
-          call nexp_match(t_samples,s_samples,nxpoints,modeex,aexp22,rexp22,ssq)
 
-           if(ssq > 1d-4) then
-            write(6,*)"rpa_test exp model bad match 22", ssq
-           endif
+          rmsdev = rmsdev_limit
+          call match_exp_auto(t_samples,s_samples,nxpoints,modeex,nexp2,aexp22,rexp22,rmsdev,iout)
+
+
+          if(rmsdev > rmsdev_limit) then
+            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
+            write(*,*)"         rpa_test exp model bad match 22", rmsdev , rmsdev_limit
+            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
+          endif
+
+
 
 
    
@@ -434,9 +449,9 @@ ilr: if( newcomp_required ) then
         Scc00             =   plin0    ! unperturbed structure factor S(Q) of "matrix" polymers
         S0011             =   plin0    ! unperturbed structure factor S(Q) of polymer 1
         S0022             =   pstar0   ! unperturbed structure factor S(Q) of polymer 2
-        nexpcc            =   modeex   ! number of exp-functions to describe background
-        nexp1             =   modeex   ! number of exp-functions to describe component1
-        nexp2             =   modeex   ! number of exp-functions to describe component2
+!        nexpcc            =   modeex   ! number of exp-functions to describe background
+!        nexp1             =   modeex   ! number of exp-functions to describe component1
+!        nexp2             =   modeex   ! number of exp-functions to describe component2
         aexp_cc(1:nexpcc) =   aexpcc(1:nexpcc)    ! amplitude coeffs for laplace-exp representation of "matrix"
         rexp_cc(1:nexpcc) =   rexpcc(1:nexpcc)   ! rate      coeffs for laplace-exp representation of "matrix"
         aexp_s1(1:nexp1)  =   aexp11(1:nexp1)    ! amplitude coeffs for laplace-exp representation of polymer 1

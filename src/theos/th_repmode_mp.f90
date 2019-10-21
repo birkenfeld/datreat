@@ -328,7 +328,7 @@ iv:    if(   ( n        .ne.  n0        ) .or.  &
        Sqt = 0
        ff2  = -2*N*(l*q)**2/(3*pi**2)
 
-!$OMP PARALLEL DO REDUCTION(+:Sq,Sqt)
+!$OMP PARALLEL DO REDUCTION(+:Sq,Sqt) PRIVATE(arg2)
 ! ---- Do the sums -----
        do nn = 1,N
         do mm = 1,N
