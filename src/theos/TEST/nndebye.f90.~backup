@@ -1,0 +1,45 @@
+program nndebye_test
+implicit none
+double precision :: qq=0.1d0, ll=3d0, nu=0.6d0, y
+integer          :: nn=100, i
+
+do i=0,100
+  qq = 0.01d0*i
+  y  = nndebye(qq, ll, nu,nn )
+  write(*,*) i, qq, y 
+enddo
+
+
+CONTAINS
+
+
+function nndebye(q, l, nue,n ) result(val) 
+implicit none
+double precision ,intent(in) :: q           ! Q-value
+double precision ,intent(in) :: l           ! effective segment length
+double precision ,intent(in) :: nue         ! exponent
+integer          ,intent(in) :: n           ! number of segments
+double precision             :: val
+
+integer          :: i, j
+double precision :: eterms(0:n-1)
+double precision :: ql2
+
+   ql2 = (q*l)**2
+   do i=0,n-1
+     eterms(i) = exp(-ql2*dble(i)**nue)
+   enddo
+   val = 0
+   do i=1,n
+    do j=1,n
+      val = val + eterms(abs(i-j))
+    enddo
+   enddo
+   val = val / (n*n)
+ 
+end function nndebye
+
+
+end program nndebye_test
+
+

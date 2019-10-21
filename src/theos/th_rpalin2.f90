@@ -133,7 +133,7 @@
      double precision        :: tmax = 1000d0
      logical                 :: newcomp_required
      integer                 :: i
-     double precision        :: ts, rmsdev, rmsdev_limit = 1.5d-3
+     double precision        :: ts, rmsdev, rmsdev_limit = 2.5d-3
 
      double precision        :: ss11, ss110, ss12, ss120, ss22, ss220
 
@@ -505,9 +505,12 @@ ilr: if( newcomp_required ) then
 
 
           if(rmsdev > rmsdev_limit) then
-            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
-            write(*,*)"         rpa_test exp model bad match 11", rmsdev , rmsdev_limit
-            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
+             write(*,'(a)')" LOW ACC WARN"
+!            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
+!            write(*,*)"         rpa_test exp model bad match 11", rmsdev , rmsdev_limit
+!            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
+          else
+            write(*,*)
           endif
 
 
@@ -534,9 +537,12 @@ ilr: if( newcomp_required ) then
  
 
           if(rmsdev > rmsdev_limit) then
-            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
-            write(*,*)"         rpa_test exp model bad match CC", rmsdev , rmsdev_limit
-            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
+            write(*,'(a)')" LOW ACC WARN"
+!            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
+!            write(*,*)"         rpa_test exp model bad match CC", rmsdev , rmsdev_limit
+!            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
+          else
+            write(*,*)
           endif
 
 
@@ -575,9 +581,12 @@ ilr: if( newcomp_required ) then
 
 
           if(rmsdev > rmsdev_limit) then
-            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
-            write(*,*)"         rpa_test exp model bad match 22", rmsdev , rmsdev_limit
-            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
+            write(*,'(a)')" LOW ACC WARN"
+!            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
+!            write(*,*)"         rpa_test exp model bad match 22", rmsdev , rmsdev_limit
+!            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
+          else
+            write(*,*)
           endif
 
 

@@ -1,4 +1,4 @@
- FUNCTION th_rpalin2(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
+ FUNCTION th_rpalin3(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
 !================================================================================
 !  applies rpa mixture tor the scattering function for a star-linear polymer micture and extends this into the dynamic regime (i.e. S(Q) --> S(Q,t))
 ! 
@@ -12,7 +12,7 @@
 !!    ====
 
 
-      real    :: th_rpalin2
+      real    :: th_rpalin3
       character(len=8) :: thnam, parnam (*) 
       real    :: pa (*) 
       real    :: x , xh
@@ -104,6 +104,8 @@
      double precision   :: Re_rous
      double precision   :: Sinv0, Sinv
      double precision   :: local_reptation2
+     
+     double precision   :: anisod, af
 
      double precision, parameter  :: t_table_spacing1 = 300d0 
      double precision, parameter  :: t_table_spacing2 = 100d0 
@@ -119,7 +121,7 @@
      integer, parameter      :: mparams=60
      double precision        :: last_params(mparams) = 0d0
      double precision        :: allparams(mparams)   = 0d0
-     integer, parameter      :: mexp=10
+     integer, parameter      :: mexp=30
      double precision        :: aexp11(mexp), rexp11(mexp)
      integer                 :: nex11
      double precision        :: aexp22(mexp), rexp22(mexp)
@@ -133,14 +135,16 @@
      double precision        :: tmax = 1000d0
      logical                 :: newcomp_required
      integer                 :: i
-     double precision        :: ts, rmsdev, rmsdev_limit = 2.5d-3
+     double precision        :: ts, rmsdev, rmsdev_limit = 1d-3
 
      double precision        :: ss11, ss110, ss12, ss120, ss22, ss220
 
      double precision        :: a1, a2, r1, r2, r3, b1, b2, g1, g2, g3
      integer                 :: analytic = 0
-     integer                 :: iout = 0
+     integer                 :: iout     = 0
 
+     double precision        :: qoffs, qscal
+     double precision        :: clfw, clf_alpha
 
      complex(kind=XPREC)     :: il_coeffs11(3*mexp)
      complex(kind=XPREC)     :: il_coeffs12(3*mexp)
@@ -152,18 +156,19 @@
 !
 ! ----- initialisation ----- 
     IF (ini.eq.0) then 
-       thnam = 'rpalin2a  '
-       nparx =       34
+       thnam = 'rpalin3   '
+       nparx =       38
        IF (npar.lt.nparx) then
            WRITE (6,*)' theory: ',thnam,' no of parametrs=',nparx,' exceeds current max. = ',npar
-          th_rpalin2 = 0
+          th_rpalin3 = 0
           RETURN
        ENDIF
        npar = nparx
 ! >>>>> describe theory with >>>>>>> 
        idesc = next_th_desc()
        th_identifier(idesc)   = thnam
-       th_explanation(idesc)  = " applies rpa mixture tor the scattering function for a star-linear polymer micture and extends this into the dynamic regime (i.e. S(Q) --> S(Q,t))"
+       th_explanation(idesc)  = " applies rpa mixture tor the scattering function for a star-linear polymer micture and extends this into the dynamic regime (i.e. S(Q) --> S(Q,t))" //cr//parspace//&
+       "EXPERIMENTAL subdiff ist heir auf nlin (difflin, keine funktion) BUT NOT YET ESTABLISHED use with caution!"
        th_citation(idesc)     = ""
 !       --------------> set the parameter names --->
         parnam ( 1) = 'ampli   '  ! prefactor
@@ -204,6 +209,11 @@
         parnam (30+2) = 'tzero   '  ! preliminary: effective zero time for S(Q,t=0=tzero)
         parnam (31+2) = 'tmaxrng '  ! maximum range that shall be spanned by creating the n-exp model
         parnam (32+2) = 'minrate '  ! minimum rate allowed in the exp models
+        parnam (33+2) = 'qoffs   '  ! qoffset
+        parnam (34+2) = 'qscal   '  ! qscale
+
+        parnam (35+2) = 'clfw    '  ! w for clf of lin chain  
+        parnam (36+2) = 'clfalpha'  ! alpha for clf of lin chain  
 
 ! >>>>> describe parameters >>>>>>> 
         th_param_desc( 1,idesc) = "prefactor" !//cr//parspace//&
@@ -239,7 +249,7 @@
         th_param_desc(26+2,idesc) = "betadiff linear  for matrix polymer (c)" !//cr//parspace//&
 
         th_param_desc(27+2,idesc) = "mode: 0 normal, >0 S(x=Q,tau) 1 lin, 2 star 3 rpa" !//cr//parspace//&
-        th_param_desc(28+2,idesc) = "modex: number of exps to represent the undistrurbed S(q,t) relaxation curves" !//cr//parspace//&
+        th_param_desc(28+2,idesc) = "modex: obsolete, will be automatic THIS PARAMETER HAS NO EFFECT" !//cr//parspace//&
         th_param_desc(29+2,idesc) = "number of points to determine representation in terms of nexp" !//cr//parspace//&
         th_param_desc(30+2,idesc) = "preliminary: effective zero time for S(Q,t=0=tzero)" //cr//parspace//&
                                   "for the numerical integration we have a smoothing of the 0-->1 jump " //cr//parspace//&
@@ -248,6 +258,10 @@
                                   "like 0.001 * tmax could be a good start to try"
         th_param_desc(31+2,idesc) = " maximum range that shall be spanned by creating the n-exp model" !//cr//parspace//&
         th_param_desc(32+2,idesc) = " minimum rate allowed in the exp models" !//cr//parspace//&
+        th_param_desc(33+2,idesc) = " qscaling offset " !//cr//parspace//&
+        th_param_desc(34+2,idesc) = " qscaling factor " !//cr//parspace//&
+        th_param_desc(35+2,idesc) = " rate for clf of lin (0=auto) " !//cr//parspace//&
+        th_param_desc(36+2,idesc) = " alpha for clf of lin " !//cr//parspace//&
 ! >>>>> describe record parameters used >>>>>>>
         th_file_param(:,idesc) = " " 
         th_file_param(  1,idesc) = "q        > scattering wavevector"
@@ -285,7 +299,7 @@
 ! >>>>> describe record parameters creaqted by this theory >>>>>>> 
         th_out_param(:,idesc)  = " "
 ! 
-        th_rpalin2 = 0.0
+        th_rpalin3 = 0.0
  
         RETURN
      ENDIF
@@ -328,6 +342,10 @@
       t0       = abs( pa(30+2))
       tmax     = abs( pa(31+2))
       rlow     = abs( pa(32+2))  ! parameter in rpa_laplace
+      qoffs    =    ( pa(33+2))  ! parameter in rpa_laplace
+      qscal    = abs( pa(34+2))  ! parameter in rpa_laplace
+      clfw     = abs( pa(35+2))  ! parameter in rpa_laplace
+      clf_alpha= abs( pa(36+2))  ! parameter in rpa_laplace
 
 
       t0       = max(t0      ,tmin)
@@ -450,15 +468,16 @@ i1:  if( mode == 0 ) then     ! normal spin-echo
        q   = x
      endif i1
 
+     q = (q + qoffs)*qscal
 
-      allparams(1:51) = [ wl4rous, dble(nrouseff), locr2_b, locr2_a, locr2_ta, locr2_lz, locr2_te, &
+      allparams(1:55) = [ wl4rous, dble(nrouseff), locr2_b, locr2_a, locr2_ta, locr2_lz, locr2_te, &
                          dble(nro_me) , re_me,   wl4     , betadif , q , dble(nrous), l, dble(f),   &
                          phirous, dble(nlin), philin, alin, arous, &
                          dble(nlin_cc), dble(analytic), dss, sfak0, dble(npp_plus),xil,epap,epsrpa, &
                          lr2_b_c, lr2_a_c, lr2_ta_c, lr2_lz_c, lr2_te_c, &
                          dble(nro_me_c) , re_me_c,   wl4_c     , diffmatc, betadifc, difflin, betadifl, &
                          diff, r02, nu_subdiff, a_cross, beta_q , &
-                         dble(mode), dble(modeex), dble(nxpoints), t0, tmax, rlow ]  
+                         dble(mode), dble(modeex), dble(nxpoints), t0, tmax, rlow, qoffs, qscal, clfw, clf_alpha ]  
 
       newcomp_required = ( sum(abs(allparams-last_params)) .ne. 0 ) .and. (modeex > 0)
     
@@ -497,18 +516,29 @@ ilr: if( newcomp_required ) then
              call  NrousePX(q,ts,temp,Dr,wl4,nro_me,re_me, Wx, lx,ifix, sqt0,sqt)
              plin0   = nlin  * Debye_qnl(q, nlin, l) 
              plin    = plin0 * locrep2 * sqt / sqt0
-             s_samples(i) = locrep2 * sqt / sqt0 *  exp( -difflin * q*q * (ts)**betadifl )  
+
+             if(clfw==0) clfw = Wx
+             locrep2 = locrep2 * likhtman_clf(ts,q,re_me,clfw,dble(nlin),lx,clf_alpha)
+
+!             t_samples(i) = ts
+!             s_samples(i) = locrep2 * sqt / sqt0 *  exp( -difflin * q*q * (ts)**betadifl ) 
+! erstmal hier die subdiffusion (in rouse gelssen da nicht markiert.... Quick and dirty!
+             rr = ((exp(-log(r02/diff/6)*nu_subdiff)*r02*ts** nu_subdiff)** a_cross +&
+                 (6*diff*ts)**a_cross)**(1d0/a_cross)
+             s_samples(i) = locrep2 * sqt / sqt0 *  exp( -(q*q*rr/6d0)**beta_q ) 
+
+ 
           enddo
-               
+!new          call nexp_match(t_samples,s_samples,nxpoints,modeex,aexp11,rexp11,ssq)
+!             call match_exp0(t_samples,s_samples,nxpoints,modeex,nexp1,aexp11,rexp11,ssq,iout)
               rmsdev = rmsdev_limit
               call match_exp_auto(t_samples,s_samples,nxpoints,modeex,nexp1,aexp11,rexp11,rmsdev,iout)
 
 
           if(rmsdev > rmsdev_limit) then
-             write(*,'(a)')" LOW ACC WARN"
-!            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
-!            write(*,*)"         rpa_test exp model bad match 11", rmsdev , rmsdev_limit
-!            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
+            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
+            write(*,*)"         rpa_test exp model bad match 11", rmsdev , rmsdev_limit
+            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
           endif
 
 
@@ -530,25 +560,24 @@ ilr: if( newcomp_required ) then
              s_samples(i) = locrep2 * sqt / sqt0 *  exp( -diffmatc * q*q * (ts)**betadifc )    
       enddo
 
+!          call match_exp1 (t_samples,s_samples,nxpoints,mexp, modeexcc,aexpcc,rexpcc,ssq)
+ 
           rmsdev = rmsdev_limit
           call match_exp_auto(t_samples,s_samples,nxpoints,modeex,nexpcc,aexpcc,rexpcc,rmsdev,iout)
  
 
           if(rmsdev > rmsdev_limit) then
-            write(*,'(a)')" LOW ACC WARN"
-!            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
-!            write(*,*)"         rpa_test exp model bad match CC", rmsdev , rmsdev_limit
-!            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
+            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
+            write(*,*)"         rpa_test exp model bad match CC", rmsdev , rmsdev_limit
+            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
           endif
-
 
 
 
      ! rouse chain ( primary sample component) here the component with index 2
 
       do i=1,nxpoints
-             ts     =  t_samples(i)
-
+             ts      =  t_samples(i)
              Re_rous = sqrt(nrous * l**2)
 
 
@@ -568,20 +597,22 @@ ilr: if( newcomp_required ) then
             rr = ((exp(-log(r02/diff/6)*nu_subdiff)*r02*ts** nu_subdiff)** a_cross +&
                  (6*diff*ts)**a_cross)**(1d0/a_cross)
 
-             s_samples(i) = sqt/sqt0 * exp( -(q*q*rr/6d0)**beta_q )
+!            af = sqrt(Pi)* erf(sqrt(q**2*(rr-anisod*rr))) / (2*sqrt(q**2*(rr-anisod*rr)))
+
+             s_samples(i) = sqt/sqt0 * exp( -(q*q*rr/6d0)**beta_q ) ! * af
              prous        = prous0 * s_samples(i)
 
        enddo
           rmsdev = rmsdev_limit
-           call match_exp_auto(t_samples,s_samples,nxpoints,modeex,nexp2,aexp22,rexp22,rmsdev,iout)
+          call match_exp_auto(t_samples,s_samples,nxpoints,modeex,nexp2,aexp22,rexp22,rmsdev,iout)
 
 
           if(rmsdev > rmsdev_limit) then
-            write(*,'(a)')" LOW ACC WARN"
-!            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
-!            write(*,*)"         rpa_test exp model bad match 22", rmsdev , rmsdev_limit
-!            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
+            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
+            write(*,*)"         rpa_test exp model bad match 22", rmsdev , rmsdev_limit
+            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
           endif
+
 
 
 
@@ -615,7 +646,7 @@ ilr: if( newcomp_required ) then
         endif
 
         if(analytic == 2) then
-!            write(6,*)"analytic = 2: log spaced oscillating integral.."
+            write(6,*)"analytic = 2: log spaced oscillating integral.."
             if(phi1 < 1d-5) phi1 = 1d-5
             if(phi2 < 1d-5) phi2 = 1d-5
 
@@ -705,24 +736,24 @@ ilr: if( newcomp_required ) then
 
  select case(mode)  ! be sure that in the beginning the assignment of t, q are properly made (if i1:)
    case (0)
-       th_rpalin2 = Sqt/Sqt0
+       th_rpalin3 = Sqt/Sqt0
 
   case (1) ! linear contribution at tau as function of q
-     th_rpalin2 = plin
+     th_rpalin3 = plin
 
   case(2)  ! star contribution at tau  as function of q
-     th_rpalin2 = prous
+     th_rpalin3 = prous
  
   case(3)  ! rpa contribution at tau as function of q
-      th_rpalin2 = Sqt
+      th_rpalin3 = Sqt
 
   case default
      write(6,*)'invalid mode !'
-      th_rpalin2 = 0
+      th_rpalin3 = 0
 
  end select
 
-  th_rpalin2 =  th_rpalin2 * ampli
+ th_rpalin3 = th_rpalin3 * ampli
 
   call parset('nlin    ',(1.0*nlin),iadda) 
   call parset('nlin_cc ',(1.0*nlin_cc),iadda) 
@@ -860,7 +891,7 @@ ilr: if( newcomp_required ) then
 
 ! ---- Do the sums -----
 
-!$OMP PARALLEL DO REDUCTION(+:Sq,Sqt,arg2) PRIVATE(arg10,arg20,ff2)
+!$OMP PARALLEL DO REDUCTION(+:Sq,Sqt,arg2) PRIVATE(arg1,arg10,arg20,ff2)
 
        do nn = 1,N
         do mm = 1,N
@@ -913,9 +944,45 @@ ilr: if( newcomp_required ) then
  
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ 
+function likhtman_clf(t,q,d,W,n,l,alpha) result(sumlik)
+  implicit none 
+  double precision, intent(in ) :: t     ! time
+  double precision, intent(in ) :: q     ! momentum transfer
+  double precision, intent(in ) :: d     ! tube diameter
+  double precision, intent(in ) :: W     ! Rouse rate
+  double precision, intent(in ) :: n     ! Rouse rate
+  double precision, intent(in ) :: l     ! segment length 
+  double precision, intent(in ) :: alpha ! CLF exponent (default approx 1.5)
+
+  double precision, parameter :: Pi = 3.141592654d0
+  double precision :: sumlik
+  double precision :: sumlik0, st
+  double precision :: mue
+  double precision :: taue
+  double precision :: tau0
+  double precision :: num
+  double precision :: ne
+
+
+       ne   =  (d/l)**2
+       tau0 =  36.d0/(W*((q*l)**4))
+       taue =  ne**2/((pi**2)*W)
+
+       mue  =  q**2*n*l**2/12.d0
+       num  =  n/ne
+       st   =  min(0.5d0*((alpha/num)*(t/taue)**0.25d0), 0.5d0)
+       sumlik  = (n/(2*mue**2))*(2*mue+exp(-2*mue)+2.d0-4*mue*st-4 * exp(-2*mue*st)+exp(-4d0*mue*st))
+       sumlik0 = (n/(2*mue**2))*(2*mue+exp(-2*mue)-1.d0)
+       sumlik  = sumlik/sumlik0
+
+end function likhtman_clf
+
+
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
- end function th_rpalin2
+ end function th_rpalin3
 
 

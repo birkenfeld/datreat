@@ -177,7 +177,6 @@ dit2:      do it2=1, maximum_iterations2
       endif
 
       if(iout0 >= 1) then
-         write(*,*)
          write(*,'(a)')"======= match_exp_auto (module lmfit) =================="
          write(*,'(a)')"Modelling tabulated values by a sum of simple exponentials."
 

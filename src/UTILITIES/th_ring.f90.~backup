@@ -1,0 +1,294 @@
+ FUNCTION th_ring(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
+!================================================================================
+!  Dynamic scattering function for a polymer ring melt as developed in the PRL of S. Goossen
+!  S. Goossen et al., PRL 2014, 113, 168302
+      use theory_description 
+      implicit none 
+      real    :: th_ring
+      character(len=8) :: thnam, parnam (*) 
+      real    :: pa (*) 
+      real    :: x , xh
+      integer :: mbuf, nparx, ier, ini, npar, iadda
+      integer, intent(inout) :: nopar       
+      character(len=80), intent(inout) :: napar(mbuf) 
+      real, intent(inout) :: params(mbuf) 
+     
+      double precision, parameter :: Pi = 4*atan(1d0)
+      integer                     :: actual_record_address
+     
+! the internal parameter representation 
+     double precision :: ampli      ! prefactor                                                                       
+     double precision :: diff       ! limiting diffusion (NMR value) in [A**2/ns]                                     
+     double precision :: r02        ! reference mean squared displacement at transition point to D0 in [A**2]         
+     double precision :: alpha      ! sub-diffussion  exponent of short time diffusion                                
+     double precision :: a_cross    ! transition exponent between short and long time diffusion (sharper kink for larg
+     double precision :: nring      ! number of segments in one ring                                                  
+     double precision :: lseg       ! effective segment length                                                        
+     double precision :: nu         ! chain statistics exponent (nu=0.5 => random walk, Gaussian)                     
+     double precision :: wl4        ! Rouse rate in [A**4/ns]                                                         
+     double precision :: pmin       ! transition mode number between simple ring-Rouse and large p modification       
+     double precision :: pwidth     ! sharpness of transition                                                         
+     double precision :: f0         ! prefactor f(p) limit for small p values (default 1)                             
+     double precision :: finf       ! prefactor f(p) limit for large p values (default F=0.9??) transitin width is pwi
+     double precision :: tauinf     ! large p tau(p) = tauinf/p**pexinf                                               
+     double precision :: pexinf     ! large p tau(p) = tauinf/p**pexinf                                               
+! the recin parameter representation 
+     double precision :: q          ! q                                                                               
+! the reout parameter representation 
+     double precision :: Rg         ! predicted ring radius of gyration                                               
+ 
+     double precision :: th
+ 
+     double precision :: t
+     double precision :: rr
+!
+! ----- initialisation ----- 
+    IF (ini.eq.0) then     
+       thnam = 'ring'
+       nparx =       15
+       IF (npar.lt.nparx) then
+           WRITE (6,*)' theory: ',thnam,' no of parametrs=',nparx,' exceeds current max. = ',npar
+          th_ring = 0
+          RETURN
+       ENDIF
+       npar = nparx
+! >>>>> describe theory with >>>>>>> 
+       idesc = next_th_desc()
+       th_identifier(idesc)   = thnam
+       th_explanation(idesc)  = " Dynamic scattering function for a polymer ring melt as developed in the PRL of S. Goossen"
+       th_citation(idesc)     = " S. Goossen et al., PRL 2014, 113, 168302"
+!       --------------> set the parameter names --->
+        parnam ( 1) = 'ampli   '  ! prefactor                                                                       
+        parnam ( 2) = 'diff    '  ! limiting diffusion (NMR value) in [A**2/ns]                                     
+        parnam ( 3) = 'r02     '  ! reference mean squared displacement at transition point to D0 in [A**2]         
+        parnam ( 4) = 'alpha   '  ! sub-diffussion  exponent of short time diffusion                                
+        parnam ( 5) = 'a_cross '  ! transition exponent between short and long time diffusion (sharper kink for larg
+        parnam ( 6) = 'nring   '  ! number of segments in one ring                                                  
+        parnam ( 7) = 'lseg    '  ! effective segment length                                                        
+        parnam ( 8) = 'nu      '  ! chain statistics exponent (nu=0.5 => random walk, Gaussian)                     
+        parnam ( 9) = 'wl4     '  ! Rouse rate in [A**4/ns]                                                         
+        parnam (10) = 'pmin    '  ! transition mode number between simple ring-Rouse and large p modification       
+        parnam (11) = 'pwidth  '  ! sharpness of transition                                                         
+        parnam (12) = 'f0      '  ! prefactor f(p) limit for small p values (default 1)                             
+        parnam (13) = 'finf    '  ! prefactor f(p) limit for large p values (default F=0.9??) transitin width is pwi
+        parnam (14) = 'tauinf  '  ! large p tau(p) = tauinf/p**pexinf                                               
+        parnam (15) = 'pexinf  '  ! large p tau(p) = tauinf/p**pexinf                                               
+! >>>>> describe parameters >>>>>>> 
+        th_param_desc( 1,idesc) = "prefactor" !//cr//parspace//&
+        th_param_desc( 2,idesc) = "limiting diffusion (NMR value) in [A**2/ns]" !//cr//parspace//&
+        th_param_desc( 3,idesc) = "reference mean squared displacement at transition point to D0 in [A**2]" !//cr//parspace//&
+        th_param_desc( 4,idesc) = "sub-diffussion  exponent of short time diffusion" !//cr//parspace//&
+        th_param_desc( 5,idesc) = "transition exponent between short and long time diffusion (sharper kink for larger a)" !//cr//parspace//&
+        th_param_desc( 6,idesc) = "number of segments in one ring" !//cr//parspace//&
+        th_param_desc( 7,idesc) = "effective segment length" !//cr//parspace//&
+        th_param_desc( 8,idesc) = "chain statistics exponent (nu=0.5 => random walk, Gaussian)" !//cr//parspace//&
+        th_param_desc( 9,idesc) = "Rouse rate in [A**4/ns]" !//cr//parspace//&
+        th_param_desc(10,idesc) = "transition mode number between simple ring-Rouse and large p modification" !//cr//parspace//&
+        th_param_desc(11,idesc) = "sharpness of transition" !//cr//parspace//&
+        th_param_desc(12,idesc) = "prefactor f(p) limit for small p values (default 1)" !//cr//parspace//&
+        th_param_desc(13,idesc) = "prefactor f(p) limit for large p values (default F=0.9??) transitin width is pwidth" !//cr//parspace//&
+        th_param_desc(14,idesc) = "large p tau(p) = tauinf/p**pexinf" !//cr//parspace//&
+        th_param_desc(15,idesc) = "large p tau(p) = tauinf/p**pexinf" !//cr//parspace//&
+! >>>>> describe record parameters used >>>>>>>
+        th_file_param(:,idesc) = " " 
+        th_file_param(  1,idesc) = "q        > q"
+! >>>>> describe record parameters creaqted by this theory >>>>>>> 
+        th_out_param(:,idesc)  = " "
+        th_out_param(  1,idesc) = "Rg       > predicted ring radius of gyration"
+! 
+        th_ring = 0.0
+ 
+        RETURN
+     ENDIF
+!
+! ---- transfer parameters -----
+      ampli    =      pa( 1)
+      diff     =      pa( 2)
+      r02      =      pa( 3)
+      alpha    =      pa( 4)
+      a_cross  =      pa( 5)
+      nring    =      pa( 6)
+      lseg     =      pa( 7)
+      nu       =      pa( 8)
+      wl4      =      pa( 9)
+      pmin     =      pa(10)
+      pwidth   =      pa(11)
+      f0       =      pa(12)
+      finf     =      pa(13)
+      tauinf   =      pa(14)
+      pexinf   =      pa(15)
+! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
+      iadda = actual_record_address()
+! >>> extract: q
+      xh = 
+      call parget('q       ',xh,iadda,ier)
+      q        = xh
+! 
+! ------------------------------------------------------------------
+! ----------------------- implementation ---------------------------
+! ------------------------------------------------------------------
+! 
+     t   = x
+     rr  = ((exp(-log(r02/diff/6)*alpha)*r02*t**alpha)**a_cross+(6*diff*t)**a_cross)**(1d0/a_cross)
+
+
+     th  = ampli *  exp(-rr * q*q / 6d0)
+     th_ring = th
+ 
+! ---- writing computed parameters to the record >>>  
+      call parset('Rg      ',sngl(Rg),iadda,ier)
+ 
+ CONTAINS 
+ 
+! subroutines and functions entered here are private to this theory and share its variables 
+ 
+       subroutine Nrouse_ring(q,t,Wl4,Nb,R,ampmod,pmin,pwidth,l,SqAve,SqtAve)
+!      ======================================================
+!
+! Rouse expression for a ring polymer
+! with Nb segments each, the ideal Ree of the linear version of the polymer is given by R.
+! amod contains mode modifiers
+! Input parameters:
+!    q     ----> momentum transfer in A**-1
+!    t     ----> time in nano-sec
+!    Wl4   ----> Rouse rate in A**4/ns
+!    N     ----> number of chain segments in one block
+!    R     ----> end-to-end distance of the polymer molecule
+!    amodm ----> mode modiufiers
+! Output parameters:
+!    l     <--- segment length
+!    Sq    <--- S(Q)
+!    Sqt   <--- S(Q,t)
+! ------------------------------------------------------------
+!
+       implicit none
+
+       double precision kb, pi
+       parameter(kb=1.380662d-23)
+       parameter(pi=3.141592654d0)
+
+       double precision, intent(in)     ::  q,t,Wl4,R
+       double precision, intent(in)     ::  ampmod(1000)
+       double precision, intent(in)     ::  pmin         ! pmin in ring mode counting (i.e p--> p/2)
+       double precision, intent(in)     ::  pwidth
+       double precision, intent(out)    ::  l, SqAve, SqtAve
+       integer,          intent(in)     ::  Nb
+
+       integer                          ::  nn,mm,p
+
+       double precision :: W, rate_p, kbt, Sq0, arg1, arg2, Dr
+       double precision :: a0,e0, ff2, ffc,    arg10,arg20
+       double precision :: aa1 , aa2, weight, Sqt, Sq, weightsum, wmode
+
+
+       double precision :: cosarray(0:Nb,Nb/2), ewfac(Nb/2)
+
+
+
+
+       integer          :: N, ip, N2
+
+       integer          :: iout, itrans
+
+       if(Nb.le.0) then
+         W  = 999
+         Sq = 999
+         Sqt= 999
+         write(6,*)'Error Number of chain segments is <= 0!',Nb
+         return
+       endif
+
+! ---- determine the segment length l ----
+       l = sqrt(R**2/Nb)
+
+! ---- and the Rousefactor ----
+
+       W   = Wl4 / l**4
+
+! ---- init sums ----
+       N2 = N/2
+
+!$OMP PARALLEL DO
+       do nn=0,N
+        do ip=1,N2
+
+         cosarray(nn,ip) = cos((pi*2*ip*(nn))/dfloat(N))  &
+                          *  ampmod(ip) / (1d0+exp(-(ip-pmin)/pwidth)) &
+                          /  (2*ip)**2
+        enddo
+       enddo
+!$OMP END PARALLEL DO
+
+
+!$OMP PARALLEL DO
+       do ip=1,N/2
+         ewfac(ip) = 1.0d0-exp(-t * 2*W*(1-cos((pi*ip*2)/dfloat(N))) )
+       enddo
+!$OMP END PARALLEL DO
+
+
+
+       Sq0 = 0
+       SqAve  = 0
+       SqtAve = 0
+       weightsum = 0
+
+
+           Sq0 = 0
+           Sq  = 0
+           Sqt = 0
+
+           N      =  Nb
+           ff2  = -2*N*(l*q)**2/(3*pi**2)
+
+! ---- Do the sums -----
+!$OMP PARALLEL DO REDUCTION(+:Sq,Sqt)
+           do nn = 1,N
+            do mm = 1,N
+
+
+              Sq  = Sq  + exp(-(q**2)*( abs(nn-mm)*(N-abs(nn-mm))*(l**2)/(6.0d0*N)))
+              Sqt = Sqt + exp(-(q**2)*( abs(nn-mm)*(N-abs(nn-mm))*(l**2)/(6.0d0*N)) &
+                              + ff2*sum(cosarray(abs(nn-mm),1:N2)*ewfac(1:N2)) )
+
+            enddo
+           enddo
+!$OMP END PARALLEL DO
+
+           Sq  = Sq /Nb
+           Sqt = Sqt/Nb
+
+
+       SqAve  = Sq
+       SqtAve = Sqt
+
+       return
+       end
+
+end function th_ringrouse_mp
+
+       double precision function transf_p(x,p,w)
+!      -----------------------------------------
+       implicit none
+       double precision x, p, w, f, arg
+
+       if(w.le.0.0d0) then
+         if(x.gt.p) then
+          f = 0.0d0
+         else
+          f = 1.0d0
+         endif
+       else
+          arg = (x-p)/w
+          if(arg.lt.-200d0) arg = -200d0
+          if(arg.gt. 200d0) arg =  200d0
+          f   = 1.0d0/(1.0d0+exp(arg))
+       endif
+
+       transf_p = f
+
+       return
+      END function transf_p
+
+
+ end function th_ring
