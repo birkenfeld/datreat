@@ -294,8 +294,8 @@
 !
 	module outlev 
 		save
-		integer :: iout = 0 
-		integer :: ibild = 1
+		integer :: iout  = 0 
+		integer :: ibild = -2
 		integer ierrs
 		integer :: inka = 5
 		integer iibuf

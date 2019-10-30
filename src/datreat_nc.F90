@@ -343,7 +343,8 @@
 
        title='Datreat Plot'
 
-       makro_path='/Users/monk/Desktop/datreat/makros/'     ! here better solution needed ...!
+!       makro_path='/Users/monk/Desktop/datreat/makros/'     ! here better solution needed ...!
+       makro_path=PATH_TO_MAKROS                            ! set in Makefile
 
        write(6,*)"Actual makro path: ",trim(makro_path)
 
