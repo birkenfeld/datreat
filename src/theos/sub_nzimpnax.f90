@@ -112,7 +112,7 @@
        ff2  = -2*(R*q)**2/(3*pi**2) 
 
                 
-!$OMP PARALLEL DO PRIVATE(arg1,arg10) REDUCTION(+:Sq,Sqt,arg2)
+!$OMP PARALLEL DO PRIVATE(arg2) REDUCTION(+:Sq,Sqt)
                                                         
 ! ---- Do the sums -----                                                
        do nn = 1,N 

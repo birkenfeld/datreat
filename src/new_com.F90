@@ -241,7 +241,7 @@ MODULE new_com
   ! xxxx,yyyy = aktuelle addersse fuer wertextraktion xx,yy
   !
   !integer, private  :: iout_nc = 0 ! (PAZ) not-used
-  integer, public  :: ibild = 0   ! (PAZ) not-used
+  integer, public  :: ibild = -2   ! (PAZ) not-used
   integer, public  :: ierrs
   !integer, private  :: inka = 5    ! (PAZ) not-used
   integer, public  :: iibuf       ! (PAZ) not-used

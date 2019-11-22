@@ -1198,7 +1198,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
        write(6,*)'=      dfinewd  <val> :  data linewidth                                      ='
        write(6,*)'=      lin_x | log_x  :  lin or log x scale                                  ='
        write(6,*)'=      lin_y | log_y  :  lin or log y scale                                  ='
-       write(6,*)'=      # <al>         :  auto num picture storing ON start at <val>,  0=OFF  ='
+       write(6,*)'=      # <al>         :  auto num picture store  ON start at <val>, neg=OFF  ='
        write(6,*)'=        for further options see manual ....                                 ='
        write(6,*)'= HINTS:  (prior to plot)                                                    ='
        write(6,*)'=       use the:  title    command to set a plot title                       ='
@@ -1434,15 +1434,15 @@ scl:   if(found('scaled  ')) then
 !
 ! ---- set frame & scales ----
 ! !-> preliminary fix       
-       if(len_trim(title) == 0) title="no title"
+       if(len_trim(title) == 0) title=" "
 
-       if(len_trim(title) > 0) then
+!       if(len_trim(title) > 0) then
 !          call grstart("dtrplot.pdf")           !>neu, TBD use frlux ....
-          write(*,'(a,i0,a)')"Plot title(#",ibild-1,"): "//trim(grtitle_filter(title))//".pdf"
-          call grstart(trim(grtitle_filter(title))//".pdf")           !>neu, TBD use frlux ....
-       else
-          call grstart 
-       endif
+          write(*,'(a,i0,a)')"Plot title(#",ibild-1,"): "//"dtrplot_"//trim(grtitle_filter(title))//".pdf"
+          call grstart("dtrplot_"//trim(grtitle_filter(title))//".pdf")           !>neu, TBD use frlux ....
+!       else
+!          call grstart 
+!       endif
 
        call gr_setwindow(xmin,xmax,ymin,ymax)      !>neu
        call gr_settextfontprec(3, ifont )   ! ???? 

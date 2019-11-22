@@ -343,7 +343,8 @@
 
        title='Datreat Plot'
 
-       makro_path='/Users/monk/Desktop/datreat/makros/'     ! here better solution needed ...!
+!       makro_path='/Users/monk/Desktop/datreat/makros/'     ! here better solution needed ...!
+       makro_path=PATH_TO_MAKROS                            ! set in Makefile
 
        write(6,*)"Actual makro path: ",trim(makro_path)
 
@@ -2133,9 +2134,9 @@ drer1:    do ik=1,n
              do j=1,nwert(ia)
                if(xwerte(j,ia) >= xcopy1 .and. xwerte(j,ia) <= xcopy2) then
                   nwert(nbuf) = nwert(nbuf) + 1
-                  xwerte(nwert(nbuf) ,ia)  = xwerte(j,ia)
-                  ywerte(nwert(nbuf) ,ia)  = ywerte(j,ia)
-                  yerror(nwert(nbuf) ,ia)  = yerror(j,ia)
+                  xwerte(nwert(nbuf) ,nbuf)  = xwerte(j,ia)
+                  ywerte(nwert(nbuf) ,nbuf)  = ywerte(j,ia)
+                  yerror(nwert(nbuf) ,nbuf)  = yerror(j,ia)
                endif
              enddo
            endif
