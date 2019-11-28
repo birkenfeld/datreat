@@ -6192,6 +6192,22 @@ sl:       do j=1,maxstep
         val = xxxx
         return
       endif
+!! simpler more intuitive names (keep the old ones above to be backward compatible) >>
+      if(compare(nam,'Y    ')) then
+        val = yyyy
+        return
+      endif
+      if(compare(nam,'ERR  ')) then
+        val = yyee
+        return
+      endif
+      if(compare(nam,'X    ')) then
+        val = xxxx
+        return
+      endif
+!! <<
+
+
       if(compare(nam,'iout ')) then
         val = iout()
         return

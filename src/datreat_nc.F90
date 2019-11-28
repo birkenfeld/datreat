@@ -129,6 +129,10 @@
 
        character(len=80)         :: cbuffer
        character(len=len(title)) :: tbuffer
+ 
+       character(len=len(xname(1)))         :: cbufferx, nbufferx
+       character(len=len(yname(1)))         :: cbuffery, nbuffery
+
 
 
 !
@@ -3086,6 +3090,24 @@ drer1:    do ik=1,n
 !
 !
        if(comand.eq.'fxy     ') then
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= fxy x=(expression) y=(expression)                                           '
+           write(6,*)'=    expression=formula containing no blanks!                                 '
+           write(6,*)'=    in expression the values of the selected data are referred as:  X, Y, ERR'
+           write(6,*)'=    the processed records are newly generated and are selected               '
+           write(6,*)'=    except if option op  (on place) is given (in that case the selected      '
+           write(6,*)'=    records are modified                                                     '
+           write(6,*)'= Note: the expression definition are not remembered between calls !          '
+           write(6,*)'=============================================================================='
+           goto 2000
+        endif
+  
+         if(ioldc==0) then
+           reslin = inline(4:)
+           ioldc  = 1
+         endif
+
          if(ioldc.ne.0) then
            ixf=index(reslin,"x=")
            iyf=index(reslin,"y=")
@@ -3094,7 +3116,7 @@ drer1:    do ik=1,n
              goto 2000
            endif
            if(ixf==0) then 
-             xformel="(xx)"
+             xformel="(x)"
            else
              if(iyf > 0) then
                 xformel=reslin(ixf+2:iyf-1)
@@ -3103,7 +3125,7 @@ drer1:    do ik=1,n
              endif 
            endif   
            if(iyf==0) then
-             yformel="(yy)"
+             yformel="(y)"
            else
              yformel=reslin(iyf+2:)
            endif               
@@ -3159,9 +3181,40 @@ drer1:    do ik=1,n
            enddo
            call txfpar(ia,ib)
            numor(ib)=mod(numor(ia),numpls)+9*numpls
-           xname(ib)  = '!'//xformel(1:7)
-           yname(ib)  = '!'//yformel(1:7)
-           coment(ib) = 'x='//xformel(1:36)//' y='//yformel(1:36)
+
+            if(xname(ib)(1:2) == "$$") then
+              cbufferx     = xname(ib)(1:2) 
+              nbufferx     = xname(ib)(3:)
+           else
+              nbufferx = xname(ib)
+              cbufferx = " "
+           endif
+           if(yname(ib)(1:2) == "$$") then
+              cbuffery     = yname(ib)(1:2) 
+              nbuffery     = yname(ib)(3:)
+           else
+              nbuffery = yname(ib)
+              cbuffery = " "
+           endif
+ 
+          charbuf = trim(xformel)//" "
+! write(*,*)"TC1:", len(charbuf), trim(charbuf)," -- ",trim(xname(ib))
+           if(cbufferx(1:2)=="$$")  call replace_str(charbuf,"/",":")
+           call replace_str(charbuf,"X",trim(nbufferx))
+           call replace_str(charbuf,"Y",trim(nbuffery))           
+
+! write(*,*)"TC2:", len(charbuf), trim(charbuf)
+           xname(ib)  = trim(cbufferx)//charbuf(1:80-len_trim(cbufferx))
+
+           charbuf = trim(yformel)//" "
+           if(cbuffery(1:2)=="$$")  call replace_str(charbuf,"/",":")
+ !write(*,*)"TC1:", len(charbuf), trim(charbuf)," -- ",trim(yname(ib))
+           call replace_str(charbuf,"X",trim(nbufferx))
+           call replace_str(charbuf,"Y",trim(nbuffery))
+ !write(*,*)"TC2:", len(charbuf), trim(charbuf)
+           yname(ib)  = trim(cbuffery)//charbuf(1:80-len_trim(cbuffery))
+
+           coment(ib) = 'x='//trim(xformel(1:36))//' y='//trim(yformel(1:36))
            isels(ii) = ib
            ifits(ii) = 0
           enddo
@@ -3902,7 +3955,7 @@ exclude:   if(found('exclude  ')) then
          if(inames.gt.0)   fsname = argvals(1)
  !        title = trim(fsname)  !! experimental... 
          call msavdat(fsname)
-         if(.not. found("np      ")) then   ! suppress plotting by option "np"
+         if(found("pl      ")) then   ! also plotting by option "pl"
            tbuffer = title
            title = trim(title)//"("//trim(fsname)//")"
            call splot(.true.)
@@ -6021,6 +6074,65 @@ subroutine nelmin ( fn, n, start, xmin, ynewlo, reqmin, step, konvge, kcount, &
   return
 end
 
+
+  ! -------------------------------------------------------------------
+  !> replace substring by a new string
+  subroutine replace_str(string,substr,newstring)
+    character(len=*), intent(inout) :: string
+    character(len=*), intent(in)    :: substr
+    character(len=*), intent(in)    :: newstring
+    !
+    integer   :: pos1, slen, sublen, cadd, mlen
+
+    sublen  = len_trim(substr)
+    cadd    = len_trim(newstring)-sublen
+    mlen    = len(string)
+
+    lp: do
+        pos1    = index(string, trim(substr))
+        if(pos1 <= 0 )       return
+        slen    = len_trim(string)
+        if(slen+cadd > mlen) return
+        string  = string(1:pos1-1)//trim(newstring)//string(pos1+sublen:)
+    enddo lp
+  end subroutine replace_str
+
+
+  ! =========================================================================
+  !> another one, this time it is a function and trims empty space in between
+  function string_replace(string, substring1, substring2) result(new_string)
+    character(len=*), intent(in)         :: string
+    character(len=*), intent(in)         :: substring1
+    character(len=*), intent(in)         :: substring2
+    character(len=len(string)+(len(string)/len(substring1)+1)*len(substring2)) :: new_string
+    integer  :: i, k, l, i1, i2, len0, len1, len2
+
+    l    = len(string)
+    len0 = len_trim(string)
+    len1 = len_trim(substring1)
+    len2 = len_trim(substring2)
+
+    new_string = ' '
+    i1 = 1
+    i2 = l
+
+    do k=1,l
+        i = index(string(i1:l),substring1(1:len1))
+        if(i == 0) then
+            new_string = trim(new_string)//string(i1:l)
+            exit
+        endif
+
+        i = i + i1 - 1
+        new_string = trim(new_string)//string(i1:i-1)//substring2(1:len2)
+        i1 = i+len1
+    enddo
+
+    new_string = trim(new_string)
+    return
+  end function string_replace
+
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!! help functions
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -6085,7 +6197,7 @@ end
   write(6,*) "noise                       " , " "
   write(6,*) "numorchg                    " , " "
   write(6,*) "numorpls                    " , " "
-  write(6,*) "open                        " , " "
+  write(6,*) "fopen                       " , " "
   write(6,*) "out_gli   (synonym) gli     " , " "
   write(6,*) "paraout                     " , " "
   write(6,*) "parextra                    " , " "

@@ -223,7 +223,6 @@ MODULE new_com
   !data ktop /0/
 
 
-
   integer, private :: iot=0
   integer, private :: ierrr=0
 
@@ -297,7 +296,7 @@ MODULE new_com
   public  :: set_usrextr
   public  :: set_init_file
   public  :: get_newcom
-  private :: creplace
+  public  :: creplace
   private :: re_scan
   public  :: parse
   public  :: errsig

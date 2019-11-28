@@ -1206,7 +1206,9 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
        write(6,*)'=                 rename   names starting with $ may contain some tex codeing='
        write(6,*)'= PRINTING/SAVING:                                                           ='
        write(6,*)'=       if there is some title (use tit abc...) then                         ='
-       write(6,*)'=       plot are stored to <title>.pdf (blanks etc. are replaced by _ etc.   ='
+       write(6,*)'=       plot are stored to dtrplot_<title>-#.pdf                             ='
+       write(6,*)'=       (blanks etc. are replaced by _ etc.) # is the plotnumber shown also  ='
+       write(6,*)'=       on the lower left cormer of the plot                                 ='
        write(6,*)'=       and always copied to last_datreat_plot.pdf                           ='
        write(6,*)'=       to stop creation of auto numbered series datreat_plot##.pdf  use plot # <neg>'
        write(6,*)'=       to restart creation of auto numbered series datreat_plot##.pdf  use plot # <n>'
@@ -1439,7 +1441,8 @@ scl:   if(found('scaled  ')) then
 !       if(len_trim(title) > 0) then
 !          call grstart("dtrplot.pdf")           !>neu, TBD use frlux ....
           write(*,'(a,i0,a)')"Plot title(#",ibild-1,"): "//"dtrplot_"//trim(grtitle_filter(title))//".pdf"
-          call grstart("dtrplot_"//trim(grtitle_filter(title))//".pdf")           !>neu, TBD use frlux ....
+          write(buf,'(i0)')ibild-1
+          call grstart("dtrplot_"//trim(grtitle_filter(title))//"-"//trim(buf)//".pdf") !>neu, TBD use frlux ....
 !       else
 !          call grstart 
 !       endif
@@ -1736,7 +1739,7 @@ scl:   if(found('scaled  ')) then
 
 
 !!! finalize and save pictures on disc 
-      if(ibild > 0) then
+      if(ibild > 0 .and. len_trim(title)==0) then
          write(buf,'("datreat_plot",i0,".pdf")')ibild-1
       else
          buf = "last_datreat_plot.pdf"
