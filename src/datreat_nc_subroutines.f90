@@ -5727,6 +5727,34 @@ sl:       do j=1,maxstep
         return
       endif
 
+      if(compare(nam,'erf  ')) then
+        if(nx.lt.1) then
+          ier =1
+          return
+        endif
+        x(nx) = erf(x(nx))
+        return
+      endif
+
+      if(compare(nam,'J0  ')) then
+        if(nx.lt.1) then
+          ier =1
+          return
+        endif
+        x(nx) = bessel_j0(x(nx))
+        return
+      endif
+
+
+      if(compare(nam,'J1  ')) then
+        if(nx.lt.1) then
+          ier =1
+          return
+        endif
+        x(nx) = bessel_j1(x(nx))
+        return
+      endif
+
       if(compare(nam,'yv ')) then
         if(nx.lt.2) then
           ier =1

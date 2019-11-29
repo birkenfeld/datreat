@@ -1095,6 +1095,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
        use therrc
        use thparc
        use constants
+       use formul
        implicit none
 
        double precision    :: e(size(xwerte(:,1)))
@@ -1182,8 +1183,8 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
        write(6,*)'=      ltype <list>   :  linetypes                                           ='
        write(6,*)'=      lwid  <list>   :  linewidths                                          ='
        write(6,*)'=      sywid <list>   :  symbol size scalings                                ='
-       write(6,*)'=      errplo         :  adds error bars                                     ='
-       write(6,*)'=      noerrplo       :  suppress error bars                                 ='
+       write(6,*)'=      errors         :  adds error bars                                     ='
+       write(6,*)'=      noerrors       :  suppress error bars                                 ='
        write(6,*)'=      parplo         :  sets parameter value listing                        ='
        write(6,*)'=      parlev         :  sets level for (more) parameter lsiting             ='
        write(6,*)'=      noparplo p1 p2.:  suppress parameter listing except for p1 p2 ...     ='
@@ -1258,6 +1259,8 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
           if(vname(i).eq.'noparplo') paplo=.false.
           if(vname(i).eq.'errplo  ') errplo=.true.
           if(vname(i).eq.'noerrplo') errplo=.false.
+          if(vname(i).eq.'errors  ') errplo=.true.
+          if(vname(i).eq.'noerrors') errplo=.false.
           if(vname(i).eq.'axis    ') paxis =.true.
           if(vname(i).eq.'noaxis  ') paxis =.false.
           if(vname(i).eq.'txaxis  ') taxis =.true.
@@ -1633,6 +1636,7 @@ scl:   if(found('scaled  ')) then
              else
                 write(xtext,'(8htheory+ ,a8)')thenam(ith)
              endif
+             if(thenam(ith)=="eval    ") write(xtext,'(a,":",a)')trim(xtext),trim(yfitform)
              call grtext(xtx,ytx,trim(xtext),GR_BLACK) !> neu
 
              call advance_text(xtx,ytx,yhigh,ylow,xskip)

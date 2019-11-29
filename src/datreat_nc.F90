@@ -343,7 +343,7 @@
 
 !--------------------------------------
        ! comment-length in dir (display)
-       len_comm = 30
+       len_comm = 20
 
        title='Datreat Plot'
 
@@ -370,9 +370,9 @@
          write(6,*)' Final: error return code:',ierrs
          ioldc = 0
 !        ----------> if error forget rest of commandline (reslin)
-         write(*,*)" check how to deal with those errors when usingh new_com"
-         write(*,*)" check how to deal with those errors when usingh new_com"
-         write(*,*)" check how to deal with those errors when usingh new_com"
+!         write(*,*)" check how to deal with those errors when usingh new_com"
+!         write(*,*)" check how to deal with those errors when usingh new_com"
+!         write(*,*)" check how to deal with those errors when usingh new_com"
 !!         if(inka.ne.5) then
 !!            close(inka)
 !!            inka = 5
@@ -3095,10 +3095,10 @@ drer1:    do ik=1,n
            write(6,*)'= fxy x=(expression) y=(expression)                                           '
            write(6,*)'=    expression=formula containing no blanks!                                 '
            write(6,*)'=    in expression the values of the selected data are referred as:  X, Y, ERR'
+           write(6,*)'=    NOTE: variable names X, Y, ERR must be in capital letters   !!!          '
            write(6,*)'=    the processed records are newly generated and are selected               '
            write(6,*)'=    except if option op  (on place) is given (in that case the selected      '
            write(6,*)'=    records are modified                                                     '
-           write(6,*)'= Note: the expression definition are not remembered between calls !          '
            write(6,*)'=============================================================================='
            goto 2000
         endif
@@ -3116,7 +3116,7 @@ drer1:    do ik=1,n
              goto 2000
            endif
            if(ixf==0) then 
-             xformel="(x)"
+!?             xformel="(X)"
            else
              if(iyf > 0) then
                 xformel=reslin(ixf+2:iyf-1)
@@ -3125,7 +3125,7 @@ drer1:    do ik=1,n
              endif 
            endif   
            if(iyf==0) then
-             yformel="(y)"
+!?             yformel="(Y)"
            else
              yformel=reslin(iyf+2:)
            endif               
@@ -3357,6 +3357,22 @@ write(*,'(a,a,4f12.6)')"TEST: form2=",trim(yformel),xxxx,yyyy,yyee,val8y
 !
        if(comand.eq.'dir     ') then
 !                    ---
+
+      if(found('help    ')) then 
+       write(6,*)'=============================================================================='
+       write(6,*)'= dir                                                                        ='
+       write(6,*)'= list loaded records in memory                                              ='
+       write(6,*)'=    dir clength <n>                                                         ='
+       write(6,*)'=            sets display length of comment                                  ='
+       write(6,*)'=    dir  <parname1> <parname2> ....                                         ='
+       write(6,*)'=            displays also values of specified parameters                    ='                  
+       write(6,*)'=                                                                            ='
+       write(6,*)'=    use dsl to check selections!                                            ='
+       write(6,*)'=============================================================================='
+       goto 2000
+      endif
+
+
          len_comm = intval('clength ',len_comm,inew)
          if(len_comm.lt.1 ) len_comm=1
          if(len_comm.gt.80) len_comm=80
@@ -3390,17 +3406,17 @@ write(*,'(a,a,4f12.6)')"TEST: form2=",trim(yformel),xxxx,yyyy,yyee,val8y
              endif
            enddo
             if(ip.gt.0) then
-            write(fostring,'(a,i4,a)')'(',ip,'(1x,a8,f12.6))'
-            write(pastring,fostring)(dirpan(j),dirpav(j),j=1,ip)
+            write(fostring,'(a,i4,a)')'(',ip,'(1x,a,f12.6))'
+            write(pastring,fostring)(trim(dirpan(j)),dirpav(j),j=1,ip)
             endif
            endif
 
 
-           if(iy.ne.0) then
+!!           if(iy.ne.0) then
            write(6,171) csel,i,numor(i),name(i),yname(i),xname(i)       &
      &    ,'"'//coment(i)(1:len_comm)//'"',pastring(1:ip*21)
-  171    format(1x,a1,i4,':#',i14,' : ',a8,':',a8,' vs ',a8,'>',a,' ',a)
-           endif
+  171    format(1x,a1,i4,':#',i10,' : ',a8,' :',a8,' vs ',a8,'>',a,' ',a)
+!!           endif
   170    continue
 
          if(numspl.ne.0)write(6,1711)numspl
@@ -3814,17 +3830,17 @@ exclude:   if(found('exclude  ')) then
              endif
            enddo
             if(ip.gt.0) then
-            write(fostring,'(a,i4,a)')'(',ip,'(1x,a8,f12.6))'
-            write(pastring,fostring)(dirpan(j),dirpav(j),j=1,ip)
+            write(fostring,'(a,i4,a)')'(',ip,'(1x,a,f12.6))'
+            write(pastring,fostring)(trim(dirpan(j)),dirpav(j),j=1,ip)
             endif
            endif
 
 
-           if(iy.ne.0) then
-           write(6,'(1x,a1,i4,2H [,i4,1H],2H:#,i14,3H : ,a8,1H:,a8,4H vs ,a8,1H>,a,1x,a)') &
+!!           if(iy.ne.0) then
+           write(6,'(1x,a1,i4,2H [,i4,1H],2H:#,i10,3H : ,a8,1H:,a8,4H vs ,a8,1H>,a,1x,a)') &
      &     csel,i,ifits(l),numor(i),name(i),xname(i),yname(i)       &
      &    ,'"'//coment(i)(1:len_comm)//'"',pastring(1:ip*21)
-           endif
+!!           endif
          enddo
 
          if(numspl.ne.0)write(6,1711)numspl
@@ -4014,14 +4030,36 @@ exclude:   if(found('exclude  ')) then
        endif
 !
        if(comand.eq.'yfitform ') then
+        if(found('help    ')) then 
+         write(6,*)'=============================================================================='
+         write(6,*)'= yfitform y= <myformula>                                                    ='
+         write(6,*)'=     specify an expression = <myformula> that is evaluate with the special  ='
+         write(6,*)'=     theory eval                                                            ='
+         write(6,*)'=                                                                            ='
+         write(6,*)'=     the expression may not contain blanks                                  ='
+         write(6,*)'=     the fit parameters can be specified as p(1) ... p(10)  (max no. is 10) ='
+         write(6,*)'=     the indepependent variable is specified as X                           ='
+         write(6,*)'=     prameters assoiated to the records are referred by their name          ='
+         write(6,*)'=                                                                            ='
+         write(6,*)'= example a parabola: yfitform y=p(1)+p(2)*X+p(3)*X*X                        ='
+         write(6,*)'=============================================================================='
+         goto 2000
+      endif
+
          if(ioldc.ne.0) then
-           yfitform = reslin
+           yfitform = trim(reslin)
            ioldc   = 0
          else
-           write(*,*)"no contiunuation with formula found!"
-           write(*,*)"use command csep to check and/or change spearator!"
-           write(*,*)"default changed form ; to &"
-           call errsig(999,"needs a formula after separator!$")
+           i = index(inline,"y=")
+           yfitform = trim(inline(i+2:))
+           if(i>0) then
+           else
+             write(*,*)"no formula found!"
+             write(*,*)"use yfitform y=<myformula> !"
+             write(*,*)"eval parameter names are p(1) ... p(9)"
+             write(*,*)"name for x-variable: X"
+             call errsig(999,"needs a formula !$")
+           endif
          endif
          write(6,*)'y-fit-formel=',trim(yfitform)
          goto 2000
