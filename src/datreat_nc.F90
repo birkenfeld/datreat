@@ -3897,7 +3897,8 @@ exclude:   if(found('exclude  ')) then
            call execute_command_line("emacs datbuf")
          else
 !           call execute_command_line('open -eW datbuf')
-           call execute_command_line('gvim datbuf')
+            call execute_command_line('vim datbuf')
+!           call execute_command_line('open -W -n -a MacVim datbuf')
          endif
 ! --- reread it to the same place ---
 !         nbuff = nbuf
