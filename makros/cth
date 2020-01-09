@@ -9,6 +9,7 @@ c
 c =================================================================
 c sys open -Wna /usr/local/Applications/Aquamacs\ Emacs.app  lastth
 c ==================================================================
- gvim lastth
-c sys open -Wna MacVim lastth
+c gvim lastth
+! sys open -Wna MacVim lastth
+ed lastth
 acl

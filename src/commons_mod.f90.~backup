@@ -295,7 +295,7 @@
 	module outlev 
 		save
 		integer :: iout  = 0 
-		integer :: ibild = -1
+		integer :: ibild = -2
 		integer ierrs
 		integer :: inka = 5
 		integer iibuf
@@ -439,8 +439,8 @@
 	module formul
                 use dimensions
 		save
-		character*1025 :: xformel = '(xx)'
-		character*1025 :: yformel = '(yy)'
+		character*1025 :: xformel = '(X)'
+		character*1025 :: yformel = '(Y)'
 		character*1025 yfitform
 	end module formul
 

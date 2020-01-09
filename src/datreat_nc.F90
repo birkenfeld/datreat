@@ -40,6 +40,7 @@
       use fslist
       use theorc
       use thparc
+      use therrc
       use formul
       use cfc
       use cfunc
@@ -86,7 +87,7 @@
        integer iaddf, iad2, iadd, iad1, ia1, ia2, ia3, ia4, ia5, ia6, i, ia
        integer itcal, ias, igrand
 
-       
+       real :: xh  
 
        character :: fpnam*8,xpnam*8,ypnam*8
        character fsname*1024
@@ -181,6 +182,8 @@
        real    ::   lower_range 
        real    ::   upper_range
        logical ::   range_is_y  
+
+       logical ::   keep
  
        character(len=len(thenam(1))) :: hwork(mth)
        integer                       :: iperm(mth)
@@ -349,6 +352,7 @@
 
 !       makro_path='/Users/monk/Desktop/datreat/makros/'     ! here better solution needed ...!
        makro_path=PATH_TO_MAKROS                            ! set in Makefile
+       editor    =DEFAULT_EDIT                              !  "        "
 
        write(6,*)"Actual makro path: ",trim(makro_path)
 
@@ -441,6 +445,48 @@
          goto 2000
        endif
 
+       if(comand.eq.'editor  ') then
+!                    ------ 
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= editor <editor>                                                             '
+           write(6,*)'=    sets the system command to invoke the default deitor to be use           '
+           write(6,*)'=    on mac: open -W -a <mypreferrededitor>                                   '
+           write(6,*)'=============================================================================='
+           write(6,*)'= present setting for editor cmd: ',trim(editor)
+           goto 2000
+        endif
+    
+        i = index(inline,"editor ")
+        if(i>0) then
+          editor = inline(8:87)
+          write(*,'(a)')"Editor now will be invoked by: ",trim(editor)
+        endif                
+   
+         goto 2000
+       endif
+
+       if(comand.eq.'ed      ') then
+!                    ------ 
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= ed <file>                                                                   '
+           write(6,*)'=    edit file                                                                '
+           write(6,*)'=============================================================================='
+           goto 2000
+        endif
+        i = index(inline,"ed ")
+        if(i>0) then
+          if(iargvs == 0) then
+            call execute_command_line(trim(editor)//" "//trim(inline(4:)))
+          else
+            call execute_command_line(trim(editor)//" "//trim(argvals(1)))       
+          endif
+        endif                
+   
+         goto 2000
+       endif
+
        if(comand.eq.'title   ') then
 !                    ------ 
         if(found('help    ')) then 
@@ -467,9 +513,9 @@
 !                    --                      -----
          mask_err = .true.
          call input
-         nsel = 1
-         isels(1) = nbuf
-         ifits(1) = 0
+ !?        nsel = 1
+ !?        isels(1) = nbuf
+ !?        ifits(1) = 0
          mask_err = .false.
          goto 2000
        endif
@@ -526,45 +572,77 @@
            write(6,*)'=    add gaussian noise to the selected data record                           '
            write(6,*)'=    parameters:                                                              '
            write(6,*)'=      a   <val>        : factor scaling ydata to original counts for errdet  '
-           write(6,*)'=      iseed  <val>     : seed for random number generator                    '
-           write(6,*)'=      errors           : option, if there: estimae errors from plain ydata   '
-           write(6,*)'=                         otherwise form noisy ydata                          '
-           write(6,*)'=   RESULT: a copy on a new record is generated     xs                          '
+           write(6,*)'=      iseed  <val>     : seed for random number generator (optional)         '
+           write(6,*)'=      errors           : option, if there: only estimate errors from y-values'
+           write(6,*)'=                         if not: add noise to y-valuse and set errors        '
+           write(6,*)'=   RESULT: a copy on a new record is generated     xs                        '
            write(6,*)'=============================================================================='
            goto 2000
         endif
 
-         if(nsel.ne.1) then
-           write(6,*)'wrong number of selected items ',nsel
-           call errsig(999,"ERROR: noise no or more than one record was selected$")
+         if(nsel <= 0) then
+           write(6,*)'no records selected !'
+           call errsig(999,"ERROR: noise no records selected $")
            goto 2000
          endif
- 
-         iadd = isels(1)
-         nbuf = nbuf + 1
-         if(nbuf.gt.size(nwert)) nbuf = size(nwert)
-         ides = nbuf
-         call txfera(iadd,ides)
-         nn   = nwert(iadd)
+
+         if(nbuf+nsel > ubound(ywerte,dim=2)) then
+           write(6,*)'too many records selected !'
+           call errsig(999,"ERROR: noise too many records selected $")
+           goto 2000
+         endif
+
          ampli = getval('a       ',dble(ampli),inew)
          iseed = intval('iseed   ',iseed,inew)
-!cccc    call rnopt(6)
          if(inew.ne.0) then
             call rnset(iseed)
             write(6,*)'new seed=',iseed
          endif
+
+       
+ 
+         do j=1,nsel
+            iadd = isels(j)
+            nbuf = nbuf + 1
+            if(nbuf.gt.size(nwert)) nbuf = size(nwert)
+            ides = nbuf
+            call txfera(iadd,ides)
+            nn   = nwert(iadd)
+            if(found('errors  ')) then
+              do i=1,nn
+                yerror(i,ides) = sqrt(ampli*ywerte(i,ides))/ampli
+              enddo
+            else
+              do i=1,nn
+               ywerte(i,ides) = igrand(ywerte(i,iadd)*ampli)
+               yerror(i,ides) = sqrt(ywerte(i,ides))
+              enddo
+            endif
+            xh = 1
+            call     parget('noise_a ',xh    ,iadd, ier)
+            call     parset('noise_a ',ampli*xh ,ides)
+            if(xh .ne. 1) write(*,*)"WARNING: noise applied more than once!"
+         enddo
+ 
          if(found('errors  ')) then
-           do i=1,nn
-             yerror(i,ides) = sqrt(ampli*ywerte(i,ides))/ampli
-           enddo
+           write(*,*) "y-values have been scaled with factor a (noise_a) = ",ampli
+           write(*,*) "         in order to have counts equivalent. "
+           write(*,*) "y-errors then are set to the expecation of count statistics"
          else
-           do i=1,nn
-            ywerte(i,ides) = igrand(ywerte(i,iadd)*ampli)
-            yerror(i,ides) = sqrt(ywerte(i,ides))
-           enddo
+           write(*,*) "y-values have been scaled with factor a (noise_a) = ",ampli
+           write(*,*) "  and according GAUSSIAN NOISE HAS BEEN ADDED."
+           write(*,*) "         in order to have counts equivalent. "
+           write(*,*) "y-errors then are set to the expecation of count statistics"
          endif
-         isels(1) = ides
-         nsel     = 1
+
+         write(*,'(a)',advance='no')"Originally selected:"
+         write(*,'(40(1x,i0))') isels(1:nsel)
+   
+         isels(1:nsel) = [(i,i=nbuf-nsel+1,nbuf)]  ! select the newly created records
+ 
+         write(*,'(a)',advance='no')"Now the results are selected:"
+         write(*,'(40(1x,i0))') isels(1:nsel)
+         
          goto 2000
        endif
 !
@@ -3427,69 +3505,84 @@ write(*,'(a,a,4f12.6)')"TEST: form2=",trim(yformel),xxxx,yyyy,yyee,val8y
 !
        if(comand.eq.'purge   ') then
 !                    -----
-         if(ipars.eq.0 .and. inames.eq.0) then
-           write(6,*)'nothing removed use arguments no1 no2 .. or all'
-           goto 2000
-         endif
-         if(found('all     ')) then
-           nbuf = 0
-           write(6,*)'purging all ...'
-           do ia=1,size(nwert)
-            do j=1,mwert
-             xwerte(j,ia) = 0
-             ywerte(j,ia) = 0
-             yerror(j,ia) = 0
-            enddo
-            nwert(ia) = 0
-            numor(ia) = 0
-            xname(ia) = ' '
-            yname(ia) = ' '
-            coment(ia) = ' '
-            nopar(ia) = 0
-           enddo
-           goto 18051
-         endif
-         do 1801 i=1,ipars
-           ia = Nint(rpar(i))
-           write(6,*)'purging no.: ',ia,' ...'
-            do j=1,mwert
-             xwerte(j,ia) = 0
-             ywerte(j,ia) = 0
-             yerror(j,ia) = 0
-            enddo
-            nwert(ia) = 0
-            numor(ia) = 0
-            xname(ia) = ' '
-            yname(ia) = ' '
-            coment(ia) = ' '
-            nopar(ia) = 0
- 1801    continue
+!!?!         if(ipars.eq.0 .and. inames.eq.0) then
+!!?!           write(6,*)'nothing removed use arguments no1 no2 .. or all'
+!!?!           goto 2000
+!!?!         endif
+!!?!         if(found('all     ')) then
+!!?!           nbuf = 0
+!!?!           write(6,*)'purging all ...'
+!!?!           do ia=1,size(nwert)
+!!?!            do j=1,mwert
+!!?!             xwerte(j,ia) = 0
+!!?!             ywerte(j,ia) = 0
+!!?!             yerror(j,ia) = 0
+!!?!            enddo
+!!?!            nwert(ia) = 0
+!!?!            numor(ia) = 0
+!!?!            xname(ia) = ' '
+!!?!            yname(ia) = ' '
+!!?!            coment(ia) = ' '
+!!?!            nopar(ia) = 0
+!!?!           enddo
+!!?!           goto 18051
+!!?!         endif
+!!?!         do 1801 i=1,ipars
+!!?!           ia = Nint(rpar(i))
+!!?!           write(6,*)'purging no.: ',ia,' ...'
+!!?!            do j=1,mwert
+!!?!             xwerte(j,ia) = 0
+!!?!             ywerte(j,ia) = 0
+!!?!             yerror(j,ia) = 0
+!!?!            enddo
+!!?!            nwert(ia) = 0
+!!?!            numor(ia) = 0
+!!?!            xname(ia) = ' '
+!!?!            yname(ia) = ' '
+!!?!            coment(ia) = ' '
+!!?!            nopar(ia) = 0
+!!?! 1801    continue
 ! ---- compress data ----
 !   --- find the first gap in the data ...
-         do 1803 i=1,nbuf
-            if(numor(i).eq.0) then
-              m = i-1
-              goto 1804
-            endif
- 1803    continue
- 1804    continue
 !   --- ok here it is ...
 !     --- and shift the rest down now ---
-              do 1805 j=i,nbuf
-                if(numor(j).ne.0) then
-                  m = m + 1
-                  call txfera(j,m)
-                endif
- 1805         continue
+          if(found('all     ')) nwert = 0
+          if(found('sel     ')) then
+            if(nsel > 0) then
+              nwert(isels(1:nsel)) = 0
+            endif
+          else
+            do i=1,nbuf
+             keep = .false.
+             do j=1,nsel
+               if(i.eq.isels(j)) then
+                 keep = .true.                 
+               endif
+             enddo
+             if(.not.keep) nwert(i) = 0   
+           enddo
+          endif
+
+          m = 0
+          do  j=1,nbuf
+            if(nwert(j).ne.0) then
+              m = m + 1
+              if(j>m) call txfera(j,m)
+            endif
+          enddo
           nbuf = m
+          nwert(nbuf+1:) = 0
 18051     continue
           write(6,*)'nbuf is now ',nbuf
-          do 1807 i=1,msel
-            isels(i) = 0
-            ifits(i) = 0
- 1807     continue
-          nsel = 0
-          write(6,*)'selections are removed'
+          ifits = 0
+          if(found('all     ') .or. found('sel     ') ) then
+            nsel  = 0
+            isels = 0
+            write(6,*)'selections are removed'
+          else
+            nsel  = m
+            isels = [(i,i=1,m)]
+          endif
          goto 2000
        endif
 !
@@ -3891,14 +3984,16 @@ exclude:   if(found('exclude  ')) then
 ! ----------> write data onto buffer <---------------------------------
          call savdat('datbuf  ',ispc)
 ! ----------> enter the system editor with that file <-----------------
-!         call system('emacs datbuf')
-         call get_environment_variable("OSTYPE",cbuffer)
-           if(index(cbuffer,"linux") > 0) then
-           call execute_command_line("emacs datbuf")
-         else
-!           call execute_command_line('open -eW datbuf')
-           call execute_command_line('gvim datbuf')
-         endif
+!!!         call system('emacs datbuf')
+!!         call get_environment_variable("OSTYPE",cbuffer)
+!!           if(index(cbuffer,"linux") > 0) then
+!!           call execute_command_line("emacs datbuf")
+!!         else
+!!!           call execute_command_line('open -eW datbuf')
+!!            call execute_command_line('vim datbuf')
+!!!           call execute_command_line('open -W -n -a MacVim datbuf')
+!!         endif
+          call execute_command_line(trim(editor)//" datbuf")
 ! --- reread it to the same place ---
 !         nbuff = nbuf
 !         nbuf = ispc - 1
@@ -4252,6 +4347,22 @@ exclude:   if(found('exclude  ')) then
          thpala(jpar,itcal) = vname(3)(1:4)
          goto 2000
       endif
+
+      if(comand.eq.'extthpar') then
+!                   --------> extract a thory parameter
+         call lsearch(jpar,itcal,ierr)
+         if(ierr .eq. 0) then
+           ithc  = nthtab(itcal)
+           call setudf('lastpar  ',dble( thparx(jpar,itcal) ), ierr)
+           call setudf('lastperr ',dble( therro(jpar,itcal) ), ierr)
+           write(*,'(a,i0,a,i0,a,e15.7,a)')"Parameter value(",jpar,",",itcal,") = ",thparx(jpar,itcal),"  put to variable lastpar"
+           write(*,'(a,i0,a,i0,a,e15.7,a)')"Parameter error(",jpar,",",itcal,") = ",therro(jpar,itcal),"  put to variable lastperr"
+         else
+           call errsig(1999,"theory parameter not found! $") 
+         endif
+         goto 2000
+      endif
+!
 
       if(comand.eq.'chgthpar') then
 !                   --------> change single theory parameters

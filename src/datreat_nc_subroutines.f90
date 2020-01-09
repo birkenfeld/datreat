@@ -3188,7 +3188,9 @@ sl:       do j=1,maxstep
        use cdata
        ! use outlev
        ! use constants
-
+       use selist
+       use fslist
+ 
        implicit none
        integer ln, le, la, lx, ly, j, inew, i,ier
        character*1024  infile
@@ -3197,7 +3199,7 @@ sl:       do j=1,maxstep
        real*8       xshift, yshift
 
        logical      :: is_inx, is_ins 
-
+       integer      :: nfirst, nlast
 
 !  neu fuer pfad
        character*1024 uspfad
@@ -3259,7 +3261,8 @@ sl:       do j=1,maxstep
      
       call setudf('read1    ',dble(nbuf+1),ier)                        
       call setudf('readlast ',dble(0),ier)
-
+      nfirst = nbuf+1
+      nlast  = 0
 
 
 ! -- and use a new subroutine for inx reading (clearer and more efficient) ---
@@ -3267,6 +3270,8 @@ sl:       do j=1,maxstep
         call inx_reading(20,infile)
         close(20)
         call setudf('readlast ',dble(nbuf),ier)
+        nlast = nbuf
+        call selectreads
         return
       endif
 
@@ -3274,9 +3279,11 @@ sl:       do j=1,maxstep
         call ins_reading(20,infile)
         close(20)
         call setudf('readlast ',dble(nbuf),ier)
+        nlast = nbuf
+        call selectreads
         return
       endif
-
+   
 
 20000  continue                         !  new dataset
       nbuf = nbuf + 1
@@ -3289,7 +3296,9 @@ sl:       do j=1,maxstep
         write(6,*)'cdata buffer is full!'
         close(20)        
         call setudf('readlast ',dble(size(nwert)),ier)
+        nlast = nbuf
         return
+        call selectreads
       endif
       name(nbuf)  = infile
       yname(nbuf) = 'y-data'
@@ -3346,6 +3355,8 @@ sl:       do j=1,maxstep
                                 write(6,*)'cdata buffer is full!'
                                 close(20)        
                                 call setudf('readlast ',dble(nbuf),ier)
+                                nlast = nbuf
+                                call selectreads
                                 return
                                 endif
                                 name(nbuf) = infile
@@ -3462,11 +3473,26 @@ sl:       do j=1,maxstep
         ierrs = 0
         close(20)
         call setudf('readlast ',dble(nbuf),ier)
+        nlast = nbuf
+        call selectreads
         return
   999  continue
         close(20)
         call setudf('readlast ',dble(nbuf),ier)
+        nlast = nbuf
+        call selectreads
        return
+
+      contains
+
+        subroutine selectreads
+
+           nsel  = max(0,nlast - nfirst + 1)
+           do i=1,nsel
+             isels(i) = nfirst + i-1
+           enddo 
+           ifits = 0
+        end subroutine selectreads
       END   ! input
 
 
@@ -4547,8 +4573,10 @@ sl:       do j=1,maxstep
        character*1024 fname, pathbuf, outfile
 
        integer i, ispc, l, j, nn
+       integer :: is1, ip, np, nump, ier
 
        double precision :: xh, deltax, sumy, sumyerq
+       real             :: pval, pval2, xh1
 
        if(nsel.le.0) then
          call errsig(999,'no data selected..$')
@@ -4594,17 +4622,40 @@ sl:       do j=1,maxstep
 ! ... yet to be done properly
 ! ... for now take the parameters from center of range
 !
-      if(nsel.gt.1) then
-        j = nsel/2
-      else
-        j = 1
-      endif
-      call txfpar(isels(j),nbuf)
+!      if(nsel.gt.1) then
+!        j = nsel/2
+!      else
+!        j = 1
+!      endif
+!      call txfpar(isels(j),nbuf)
   
      
-      Write(6,*)' sum stored at position: ', nbuf
-      Write(6,*)' attention: parameters are copied from element',j,' at position ',isels(j)
+!      Write(6,*)' sum stored at position: ', nbuf
+!      Write(6,*)' attention: parameters are copied from element',j,' at position ',isels(j)
      
+!       np=nopar(ia)
+!          if(index(napar(i,ia),"!") == 0) then  ! do not copy "protected" parameters
+      is1 = isels(1) 
+      call txfpar(is1,nbuf)
+      np  = nopar(is1)
+      do ip=1,np
+         pval  = params(ip,is1)
+         pval2 = params(ip,is1)**2
+         nump  = 1
+         do j=2,nsel
+            call parget(napar(ip,1)//" ", xh1, isels(j), ier)
+            if(ier == 0) then
+              nump  = nump  + 1
+              pval  = pval  + xh1
+              pval2 = pval2 + xh1**2
+            endif
+         enddo 
+         call parset(napar(ip,1),pval/nump,nbuf)
+         call parset("V"//napar(ip,1)(1:7),sqrt(pval2/nump-(pval/nump)**2),nbuf)
+         call parset("N"//napar(ip,1)(1:7),1.0*nump,nbuf)
+      enddo
+  
+
       nsel     = 1
       isels(1) = nbuf
 
@@ -6110,7 +6161,7 @@ sl:       do j=1,maxstep
        common /thiadd/iadda
 
       character*1 nam(*)
-      real*8 val
+      real*8 val , vah
       integer ier
 
       character*8 pname
@@ -6127,7 +6178,7 @@ sl:       do j=1,maxstep
         return
       endif
       if(compare(nam,'maxx ')) then
-        ibuf = iadda
+        ibuf = isels(1)
         val = xwerte(1,ibuf)
         do i=2,nwert(ibuf)
           if(xwerte(i,ibuf).gt.val) val = xwerte(i,ibuf)
@@ -6135,7 +6186,7 @@ sl:       do j=1,maxstep
         return
       endif
       if(compare(nam,'minx ')) then
-        ibuf = iadda
+        ibuf = isels(1)
         val = xwerte(1,ibuf)
         do i=2,nwert(ibuf)
           if(xwerte(i,ibuf).lt.val) val = xwerte(i,ibuf)
@@ -6143,7 +6194,7 @@ sl:       do j=1,maxstep
         return
       endif
       if(compare(nam,'maxy ')) then
-        ibuf = iadda
+        ibuf = isels(1)
         val = ywerte(1,ibuf)
         do i=2,nwert(ibuf)
           if(ywerte(i,ibuf).gt.val) val = ywerte(i,ibuf)
@@ -6155,6 +6206,39 @@ sl:       do j=1,maxstep
         val = ywerte(1,ibuf)
         do i=2,nwert(ibuf)
           if(ywerte(i,ibuf).lt.val) val = ywerte(i,ibuf)
+        enddo
+        return
+      endif
+
+      if(compare(nam,'MAXX ')) then
+        val = -huge(val)
+        do i=1,nsel
+          vah =  maxval(xwerte(i:nwert(isels(i)),isels(i)))
+          if(vah.gt.val) val = vah
+        enddo
+        return
+      endif
+      if(compare(nam,'MINX ')) then
+        val = huge(val)
+        do i=1,nsel
+          vah =  minval(xwerte(i:nwert(isels(i)),isels(i)))
+          if(vah.lt.val) val = vah
+        enddo
+        return
+      endif
+      if(compare(nam,'MAXY ')) then
+        val = -huge(val)
+        do i=1,nsel
+          vah =  maxval(ywerte(i:nwert(isels(i)),isels(i)))
+          if(vah.gt.val) val = vah
+        enddo
+        return
+      endif
+      if(compare(nam,'MINY ')) then
+        val = huge(val)
+        do i=1,nsel
+          vah =  minval(ywerte(i:nwert(isels(i)),isels(i)))
+          if(vah.lt.val) val = vah
         enddo
         return
       endif
@@ -6230,6 +6314,20 @@ sl:       do j=1,maxstep
         return
       endif
       if(compare(nam,'X    ')) then
+        val = xxxx
+        return
+      endif
+!! simpler more intuitive names (keep the old ones above to be backward compatible allow also lower case) >>
+!! these than will NOT be replaced in the x- and y-axis names
+      if(compare(nam,'y    ')) then
+        val = yyyy
+        return
+      endif
+      if(compare(nam,'err  ')) then
+        val = yyee
+        return
+      endif
+      if(compare(nam,'x    ')) then
         val = xxxx
         return
       endif
