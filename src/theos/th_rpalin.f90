@@ -207,11 +207,11 @@
         th_param_desc( 1,idesc) = "prefactor" !//cr//parspace//&
         th_param_desc( 2,idesc) = "rouse short liner chains rate (phirous)" !//cr//parspace//&
         th_param_desc( 3,idesc) = "effective segment number in summation" !//cr//parspace//&
-        th_param_desc( 6,idesc) = "limiting diffusion (NMR value)" !//cr//parspace//&
-        th_param_desc( 7,idesc) = " reference mean squared displacement at transition point to D0 " !//cr//parspace//&
-        th_param_desc( 9,idesc) = " = nu_subdiff  exponent " !//cr//parspace//&
-        th_param_desc(10,idesc) = " transition exponent between short and long time diffusuion " !//cr//parspace//&
-        th_param_desc(11,idesc) = " heterogeneity exponent  " !//cr//parspace//&
+        th_param_desc( 4,idesc) = "limiting diffusion (NMR value)" !//cr//parspace//&
+        th_param_desc( 5,idesc) = " reference mean squared displacement at transition point to D0 " !//cr//parspace//&
+        th_param_desc( 6,idesc) = " = nu_subdiff  exponent " !//cr//parspace//&
+        th_param_desc( 7,idesc) = " transition exponent between short and long time diffusuion " !//cr//parspace//&
+        th_param_desc( 8,idesc) = " heterogeneity exponent  " !//cr//parspace//&
 
 
         th_param_desc( 7+2,idesc) = "locrep2 parameter b" !//cr//parspace//&
