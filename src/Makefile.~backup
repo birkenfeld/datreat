@@ -27,9 +27,9 @@ ADDLIBGKS=-lgks
 SRCSTHEO=  $(wildcard theos/*.f) $(wildcard theos/*.f90) $(wildcard theos/*.i90)
 
 FC=gfortran
-#FFLAGS= -O3 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -Wunused-function -Wunused-variable -fopenmp \
+FFLAGS= -O3 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -Wunused-function -Wunused-variable -fopenmp \
  -fbounds-check
-FFLAGS= -O3 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -Wunused-function -Wunused-variable -fopenmp 
+#FFLAGS= -O3 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -Wunused-function -Wunused-variable -fopenmp 
 
 #FFLAGS=-march=core2 -O2 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -msse4a -mfpmath=sse -Wunused-function -Wunused-variable 
 
@@ -38,7 +38,7 @@ FFLAGS= -O3 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -Wunused
 CC=gcc 
 
 #-fbounds-check
-LDFLAGS = -DPATH_TO_LOCAL_DATREAT=\"$(LOCAL)\"  -DPATH_TO_MAKROS=\"$(LOCAL)/makros/\" -Wl,-rpath,/usr/local/gr/lib -lGR
+LDFLAGS = -DPATH_TO_LOCAL_DATREAT=\"$(LOCAL)\"  -DPATH_TO_MAKROS=\"$(LOCAL)/makros/\" -DDEFAULT_EDIT=\"open\ -W\ -e\" -Wl,-rpath,/usr/local/gr/lib -lGR
 
 
 # OBJ_GR = datreat_grframework.o

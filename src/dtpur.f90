@@ -607,7 +607,7 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
        use sqtran
 
        integer minpts, maxpts, key,restar, ifail, neval, c
-       parameter (numfun=1, nw=5000)
+       parameter (numfun=1, nw=50000)
        integer abserr(numfun)
        real work(nw), resu(numfun)
        external f, funsub
@@ -617,7 +617,7 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
        maxpts=maxint
        key=0
        restar=0
-       write(*,*)'ONLY for echo production!!!!'
+!       write(*,*)'ONLY for echo production!!!!'
        call scuhre(c,numfun,alim,blim,minpts, maxpts, funsub,           &
      &            erraec,errrec,key,                                    &
      &            nw, restar, resu, abserr , neval , ifail ,work)

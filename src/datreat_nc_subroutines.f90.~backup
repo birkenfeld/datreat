@@ -4523,7 +4523,7 @@ sl:       do j=1,maxstep
                         else
                                 outfile = trim(fname)
                         endif
-         write(*,'(a)')'opening: '//trim(outfile)//' ....'
+         write(6,*)'opening:',trim(outfile),'....'
          open(18,file=trim(outfile),status='UNKNOWN',err=999)
          do l=1,nsel
                                 ispc = isels(l)
@@ -4551,7 +4551,7 @@ sl:       do j=1,maxstep
          call theo_out(18)
          close(18)
 ! ----------------------------------------------------------------------
-         write(*,'(a)')'data and fits have been saved to: '//trim(outfile)
+         write(6,*)'data and fits have been saved to: ',trim(outfile)
        return
 999    continue
        call errsig(999,'file open failed...$')
@@ -4573,10 +4573,8 @@ sl:       do j=1,maxstep
        character*1024 fname, pathbuf, outfile
 
        integer i, ispc, l, j, nn
-       integer :: is1, ip, np, nump, ier
 
        double precision :: xh, deltax, sumy, sumyerq
-       real             :: pval, pval2, xh1
 
        if(nsel.le.0) then
          call errsig(999,'no data selected..$')
@@ -4622,40 +4620,17 @@ sl:       do j=1,maxstep
 ! ... yet to be done properly
 ! ... for now take the parameters from center of range
 !
-!      if(nsel.gt.1) then
-!        j = nsel/2
-!      else
-!        j = 1
-!      endif
-!      call txfpar(isels(j),nbuf)
+      if(nsel.gt.1) then
+        j = nsel/2
+      else
+        j = 1
+      endif
+      call txfpar(isels(j),nbuf)
   
      
-!      Write(6,*)' sum stored at position: ', nbuf
-!      Write(6,*)' attention: parameters are copied from element',j,' at position ',isels(j)
+      Write(6,*)' sum stored at position: ', nbuf
+      Write(6,*)' attention: parameters are copied from element',j,' at position ',isels(j)
      
-!       np=nopar(ia)
-!          if(index(napar(i,ia),"!") == 0) then  ! do not copy "protected" parameters
-      is1 = isels(1) 
-      call txfpar(is1,nbuf)
-      np  = nopar(is1)
-      do ip=1,np
-         pval  = params(ip,is1)
-         pval2 = params(ip,is1)**2
-         nump  = 1
-         do j=2,nsel
-            call parget(napar(ip,1)//" ", xh1, isels(j), ier)
-            if(ier == 0) then
-              nump  = nump  + 1
-              pval  = pval  + xh1
-              pval2 = pval2 + xh1**2
-            endif
-         enddo 
-         call parset(napar(ip,1),pval/nump,nbuf)
-         call parset("V"//napar(ip,1)(1:7),sqrt(pval2/nump-(pval/nump)**2),nbuf)
-         call parset("N"//napar(ip,1)(1:7),1.0*nump,nbuf)
-      enddo
-  
-
       nsel     = 1
       isels(1) = nbuf
 

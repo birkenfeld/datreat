@@ -108,6 +108,11 @@
 !      damit koennen dann ggf. weitere parameter ueber parget gewonnen
 !      werden
 
+! Hilfsvariablen fuer echocurv
+       double precision            :: fouriertime
+       double precision, parameter :: unit_Gauss = 1d-4
+
+
 
        double precision qortho_0, qortho_1,qz_0, qz_1
        integer          nz, northo, iortho, iz, ith
@@ -136,10 +141,7 @@
 
 
 
-!
-       external fdes
-       external f
-!
+
 !
        real :: errabs=1.0,errel=1.e-2
        real :: xcopy1, xcopy2
@@ -184,6 +186,7 @@
        logical ::   range_is_y  
 
        logical ::   keep
+       logical ::   content_da, usv_da, sel_da
  
        character(len=len(thenam(1))) :: hwork(mth)
        integer                       :: iperm(mth)
@@ -191,9 +194,13 @@
 !       character(len=cmd_len)  :: mycommand
 !       integer                 :: ier
        integer                 :: istat, ixf, iyf
-
+!
+       external fdes
+       external f
+!
        external                :: usrextr
        external                :: usrfun 
+
 
 
 ! ---- initialisations ----
@@ -304,7 +311,7 @@
        cdelta  = 1.e-6
        alam0   = 8.e0
        dalam   = 0.5e0
-       tau     = 1.e-8
+       tau     = 1d0
        dj      = 0
        ddj     = 1.358237/(4*alam0)
        famp    = 20.0
@@ -367,6 +374,16 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+       inquire(file = "last_datreat_content", exist= content_da)
+       inquire(file = "lastusv", exist= usv_da)
+       inquire(file = "lastselections", exist= sel_da)
+       if(content_da .and. usv_da .and. sel_da) then
+         call push_cmd_line("inplus last_datreat_content & lastusv & sel restore & sel add fit+ & dsl ")
+! ===>                                                   ! this is the default command separator
+!                                                        ! as used in new_com
+       endif
+      
+
 !!   Anfang der Hauptschleife
  2000  continue
        call sig_Reset()
@@ -408,7 +425,27 @@
           case (-2)
             write(*,*)'..to exit datreat enter "quit" or "exit"!' 
           case (-3)
-            stop "exit datreat BYE...."
+            open(19,file="lastselections")
+              write(19,'(i8)')nsel,(isels(i),i=1,nsel)            
+              write(19,'(i8)')nfits,(ifits(i),i=1,nfits)            
+              write(19,'(i8)')nfsel,(isfits(i),i=1,nfsel)            
+            close(19)
+            open(19,file="lastusv")
+             write(19,'(a)')"makro"
+             write(19,'("set ",a,"  ",e16.8)')(usenam(i),useval(i),i=1,nousev)
+            close(19)
+     
+            isels  = 0
+            ifits  = 0
+            isfits = 0 
+            nsel = nbuf
+            isels(1:nsel) = [(i,i=1,nsel)]
+            fsname = "last_datreat_content"
+            call msavdat(fsname)
+            write(*,*) "content save to last_datreat_content "
+ 
+            write(*,*) " exit datreat BYE.... "
+            stop
           case default
              write(*,*)"PROGRAMMING ERROR (new_com): unknown istatus ", istat
           end select 
@@ -692,15 +729,15 @@
            write(6,*)'=    computation of simulated phase scan of NSE for a simple Lorenzian spect. '
            write(6,*)'=    ft by integration assuming gaussian distribution functions               '
            write(6,*)'=    parameters:                                                              '
-           write(6,*)'=      j   <val>        : field integral                                      '
-           write(6,*)'=      dj  <val>        : asymmetry (phase0)                                  '
-           write(6,*)'=      j0delta <val>    : inhomogeneity offset (external fields..)            '
-           write(6,*)'=      ddj <val>        : phase scan step (field integral)                    '
+           write(6,*)'=      j   <val>        : field integral in Gauss m                           '
+           write(6,*)'=      dj  <val>        : asymmetry (phase0) in Gauss m                       '
+           write(6,*)'=      j0delta <val>    : inhomogeneity offset (external fields..) in Gm      '
+           write(6,*)'=      ddj <val>        : phase scan step (field integral) in Gm              '
            write(6,*)'=      n <val>          : number of points in scan                            '
            write(6,*)'=      cdelta <val>     : relative inhomogeneity                              '
-           write(6,*)'=      lambda0 <val>    : wavelength                                          '
+           write(6,*)'=      lambda0 <val>    : wavelength     in Angstroem                         '
            write(6,*)'=      dlambda <val>    : wavelength width                                    '
-           write(6,*)'=      tau <val>        : relaxation time --> spectrum                        '
+           write(6,*)'=      tau <val>        : relaxation time --> spectrum  in ns                 '
            write(6,*)'=      errabs <> errel <> maxint  : integration parameters                    '
            write(6,*)'=============================================================================='
            goto 2000
@@ -722,7 +759,7 @@
          cdelta = getval('cdelta  ',dble(cdelta)    ,inew)
          alam0  = getval('lambda0 ',dble(alam0)     ,inew)
          dalam  = getval('dlambda ',dble(dalam)     ,inew)
-         tau    = getval('tau     ',dble(tau  )     ,inew)
+         tau    = getval('tau     ',dble(tau  )     ,inew) * unit_ns
          erraec = getval('errabs  ',dble(erraec)    ,inew)
          errrec = getval('errrel  ',dble(errrec)    ,inew)
          maxint = intval('maxint  ',maxint,inew)
@@ -738,6 +775,15 @@
          call     parset('errabs  ',erraec     ,ia1)
          call     parset('errrel  ',errrec     ,ia1)
 
+
+! Fouriertime
+! J \lambda^3 \, \frac{\gamma_n m_n^2}{2\pi h^2}}
+    
+ 
+         fouriertime = j1echo*unit_Gauss * (alam0 * unit_Angstroem)**3 *  Larmorkonstante * Neutronenmasse**2 / &
+                       ( Planckkonstante**2 ) /  unit_ns 
+
+
          alim(1) = alam0 - 3*dalam
          blim(1) = alam0 + 3*dalam
 
@@ -750,25 +796,29 @@
          blim(2)= getval('b2      ',dble(blim(2)),inew)
 
 
-         write(6,*)      'j       ',j1echo
-         write(6,*)      'dj      ',dj
-         write(6,*)      'ddj     ',ddj
-         write(6,*)      'j0delta ',j0delta
-         write(6,*)      'cdelta  ',cdelta
-         write(6,*)      'lambda0 ',alam0
-         write(6,*)      'dlambda ',dalam
-         write(6,*)      'tau     ',tau
-         write(6,*)      'errabs  ',erraec
-         write(6,*)      'errrel  ',errrec
-         write(6,*)      'maxint  ',maxint
-         write(6,*)      'a1      ',alim(1)
-         write(6,*)      'a2      ',alim(2)
-         write(6,*)      'b1      ',blim(1)
-         write(6,*)      'b2      ',blim(2)
+         write(6,'(a,f18.9," ns        ")')      '-> fouriertime =  ',fouriertime
+         write(6,'(a,f18.9," Gauss*m   ")')      'j                 ',j1echo
+         write(6,'(a,f18.9," Gauss*m   ")')      'dj                ',dj
+         write(6,'(a,f18.9," Gauss*m   ")')      'ddj               ',ddj
+         write(6,'(a,f18.9," Gauss*m   ")')      'j0delta           ',j0delta
+         write(6,'(a,f18.9,"           ")')      'cdelta            ',cdelta
+         write(6,'(a,f18.9," Angstroem ")')      'lambda0           ',alam0
+         write(6,'(a,f18.9," Angstroem ")')      'dlambda           ',dalam
+         write(6,'(a,f18.9," ns        ")')      'tau               ',tau / unit_ns
+         write(6,'(a,f18.9,"           ")')      'errabs            ',erraec
+         write(6,'(a,f18.9,"           ")')      'errrel            ',errrec
+         write(6,'(a,i18  ,"           ")')      'maxint            ',maxint
+         write(6,'(a,f18.9," Angstroem ")')      'a1                ',alim(1)
+         write(6,'(a,f18.9," 1/ns      ")')      'a2                ',alim(2) * unit_ns
+         write(6,'(a,f18.9," Angstroem ")')      'b1                ',blim(1)
+         write(6,'(a,f18.9," 1/ns      ")')      'b2                ',blim(2) * unit_ns
+
          j2echo = j1echo + dj
 
          call  qand(f,2,alim,blim,erraec,errrec,maxint,                 &
      &              result, errest )
+
+
          write(6,*)'-------------------------------------------'
          write(6,*)'result =',result
          write(6,*)'errest =',errest
@@ -777,6 +827,7 @@
          n0     = intval('n0      ',n0    ,inew)
                                                        !! aix.sp
          call     parset('n0      ',(real(n0)) ,ia1)
+         call     parset('fouriert',sngl(fouriertime),ia1)
 
          nwert(ia1) = nech
          do i=1,nech
@@ -785,16 +836,20 @@
 ! --- imsl mehrdimensionale integration ---
            call  qand(f,2,alim,blim,erraec,errrec,maxint,               &
      &                result, errest )
-           write(6,*)'result =',result,'     errest=',errest
+!           write(6,*)'result =',result,'     errest=',errest
            ywerte(i,ia1) = result
            yerror(i,ia1) = 0
          enddo
          xname(ia1) = 'dj/gm'
          yname(ia1) = 'counts'
          name(ia1)  = 'echo'
-         coment(ia1)= 'echo'
+         write(coment(ia1),'(a,f18.9, "ns")')"echo ft=", fouriertime
          numor(ia1) = intval('numor   ',1,inew)
          write(6,*)'ok'
+
+         nsel = 1
+         isels(1) = ia1
+
          goto 2000
        endif
 
@@ -3622,6 +3677,27 @@ write(*,'(a,a,4f12.6)')"TEST: form2=",trim(yformel),xxxx,yyyy,yyee,val8y
 
 
           
+restore:   if(found('restore  ')) then
+             open(20,file="lastselections",iostat=i)
+               if(i .ne. 0) then
+                 write(*,*)'WARNING: could not open lastselections'
+               endif
+               isels = 0
+               ifits = 0
+               read(20,*)nsel            
+               if(nsel > 0) then
+                  read(20,*)isels(1:nsel)    
+               endif        
+               read(20,*)nfits
+               if(nfits > 0 ) read(20,*)ifits(1:nfits)                  
+               read(20,*)nfsel
+               if(nfsel > 0 ) read(20,*)isfits(1:nfsel)            
+             close(20)
+ 
+             goto 2000
+          endif restore
+
+
 narrow:   if(found('narrow  ')) then
              if(nsel <= 0) goto 2000
                 selparna  = chrval('narrow  ',selparna  ,inew)
@@ -5093,9 +5169,9 @@ exclude:   if(found('exclude  ')) then
         call parset("xcatch_a ",sngl(xcatch),nbuf)
       endif
       if(logy) then
-        call parset("log_y ",1.0,nbuf)
+        call parset("log_y    ",1.0,nbuf)
       else
-        call parset("log_y ",0.0,nbuf)
+        call parset("log_y    ",0.0,nbuf)
       endif
       do i=1, nsel
         write(cbuf,'("c",i0)')i

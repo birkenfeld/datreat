@@ -233,9 +233,9 @@ MODULE new_com
 
 
 
-  double precision  ,  private      ::  useval(musevar)
-  integer, private      ::  nousev
-  character*16, private :: usenam(musevar)
+  double precision  ,  public      ::  useval(musevar)
+  integer, public      ::  nousev
+  character*16, public :: usenam(musevar)
   ! ---- outputlevel
   ! xxxx,yyyy = aktuelle addersse fuer wertextraktion xx,yy
   !

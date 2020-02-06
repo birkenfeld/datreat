@@ -218,7 +218,7 @@
         do ip=1,N2
          traf = 1d0/(1.0d0+exp((2d0*ip-pmin)/pwidth))
          cosarray(nn,ip) = cos((pi*2*ip*(nn))/dfloat(N))               &
-                          /  dble(2*ip)**(1d0+nu)                      &
+                          /  dble(2*ip)**(1d0+1.d0)                      &
                           *  (f0*(1d0-traf)+finf*(traf))
         enddo
        enddo
@@ -228,7 +228,7 @@
 !$OMP PARALLEL DO PRIVATE(rate,traf)
        do ip=1,N/2
          traf = 1d0/(1.0d0+exp((2d0*ip-pmin)/pwidth))
-         rate      = dble(2d0*ip)**(2d0*nu)/tau_R*(1d0-traf) + (2d0*ip)**pexinf/tauinf * traf
+         rate      = dble(2d0*ip)**(2d0)/tau_R*(1d0-traf) + (2d0*ip)**pexinf/tauinf * traf
 
          ewfac(ip) = 1.0d0-exp(-t * rate )
        enddo
