@@ -191,6 +191,9 @@
        character(len=len(thenam(1))) :: hwork(mth)
        integer                       :: iperm(mth)
 
+
+       CHARACTER(len=255) :: farg
+
 !       character(len=cmd_len)  :: mycommand
 !       integer                 :: ier
        integer                 :: istat, ixf, iyf
@@ -230,13 +233,15 @@
 
 
 
+     CALL get_command_argument(1,farg)
+
 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                         write(6,*)
                         write(6,*)'======================================================='
-                        write(6,*)'=   datreat12_2     Version: mm-develop 2.6           ='
-                        write(6,*)'=   -----------     --------                          ='
+                        write(6,*)'=   datreat     Version: mm-develop 3.0               ='
+                        write(6,*)'=   -------     --------                              ='
                         write(6,*)'=   Author: M.Monkenbusch  R. Biehl, O.Holderer, JCNS ='
                         write(6,*)'======================================================='
                         prompt = "#datreat => " 
@@ -286,6 +291,8 @@
                         write(6,*)'=  aligny      : determine scaling to match (e.g SANS col1,2..   =' 
                         write(6,*)'=  NEW (9/2019)                                                  =' 
                         write(6,*)'=  mexp        : automatic matching of sum(n=1..N, an*exp(-t/tn))=' 
+                        write(6,*)'=  NEW (2/2020)                                                  =' 
+                        write(6,*)'=  Feature: autosave at quit and restore at start !              =' 
                         write(6,*)'=================================================================='
                        
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -377,7 +384,7 @@
        inquire(file = "last_datreat_content", exist= content_da)
        inquire(file = "lastusv", exist= usv_da)
        inquire(file = "lastselections", exist= sel_da)
-       if(content_da .and. usv_da .and. sel_da) then
+       if(content_da .and. usv_da .and. sel_da  .and.   trim(farg) .ne. 'purge') then
          call push_cmd_line("inplus last_datreat_content & lastusv & sel restore & sel add fit+ & dsl ")
 ! ===>                                                   ! this is the default command separator
 !                                                        ! as used in new_com

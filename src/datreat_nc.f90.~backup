@@ -186,6 +186,7 @@
        logical ::   range_is_y  
 
        logical ::   keep
+       logical ::   content_da, usv_da, sel_da
  
        character(len=len(thenam(1))) :: hwork(mth)
        integer                       :: iperm(mth)
@@ -373,10 +374,14 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-       call push_cmd_line("inplus last_datreat_content & sel restore & dsl",ierrs)
-! ===>                                                 ! this is the default command separator
-!                                                      ! as used in new_com
+       inquire(file = "last_datreat_content", exist= content_da)
+       inquire(file = "lastusv", exist= usv_da)
+       inquire(file = "lastselections", exist= sel_da)
+       if(content_da .and. usv_da .and. sel_da) then
+         call push_cmd_line("inplus last_datreat_content & lastusv & sel restore & sel add fit+ & dsl ")
+! ===>                                                   ! this is the default command separator
+!                                                        ! as used in new_com
+       endif
       
 
 !!   Anfang der Hauptschleife
@@ -422,9 +427,14 @@
           case (-3)
             open(19,file="lastselections")
               write(19,'(i8)')nsel,(isels(i),i=1,nsel)            
- !             write(19,'(i8)')nfits,(ifits(i),i=1,nfits)            
- !             write(19,'(i8)')nfsel,(isfits(i),i=1,nfsel)            
+              write(19,'(i8)')nfits,(ifits(i),i=1,nfits)            
+              write(19,'(i8)')nfsel,(isfits(i),i=1,nfsel)            
             close(19)
+            open(19,file="lastusv")
+             write(19,'(a)')"makro"
+             write(19,'("set ",a,"  ",e16.8)')(usenam(i),useval(i),i=1,nousev)
+            close(19)
+     
             isels  = 0
             ifits  = 0
             isfits = 0 
@@ -3668,7 +3678,7 @@ write(*,'(a,a,4f12.6)')"TEST: form2=",trim(yformel),xxxx,yyyy,yyee,val8y
 
           
 restore:   if(found('restore  ')) then
-             open(19,file="lastselections",iostat=i)
+             open(20,file="lastselections",iostat=i)
                if(i .ne. 0) then
                  write(*,*)'WARNING: could not open lastselections'
                endif
@@ -3678,10 +3688,10 @@ restore:   if(found('restore  ')) then
                if(nsel > 0) then
                   read(20,*)isels(1:nsel)    
                endif        
-!               read(19,*,iostat=m)nfits
-!               if(nfsel > 0 .and. m.ne.0) read(19,*)(ifits(i),i=1,nfits)                  
-!               read(19,*,iostat=m)nfsel
-!               if(nfsel > 0 .and. m.ne.0) read(19,*)(isfits(i),i=1,nfsel)            
+               read(20,*)nfits
+               if(nfits > 0 ) read(20,*)ifits(1:nfits)                  
+               read(20,*)nfsel
+               if(nfsel > 0 ) read(20,*)isfits(1:nfsel)            
              close(20)
  
              goto 2000
