@@ -434,8 +434,8 @@
           case (-3)
             open(19,file="lastselections")
               write(19,'(i8)')nsel,(isels(i),i=1,nsel)            
-              write(19,'(i8)')nfits,(ifits(i),i=1,nfits)            
-              write(19,'(i8)')nfsel,(isfits(i),i=1,nfsel)            
+              write(19,'(i8)')nsel,(ifits(i),i=1,nsel)            
+              write(19,'(i8)')nsel,(isfits(i),i=1,nsel)            
             close(19)
             open(19,file="lastusv")
              write(19,'(a)')"makro"
@@ -560,6 +560,7 @@
  !?        nsel = 1
  !?        isels(1) = nbuf
  !?        ifits(1) = 0
+         ifits = 0
          mask_err = .false.
          goto 2000
        endif
@@ -586,10 +587,11 @@
 !   <------ dieser sprung ist unelegant und nicht systemkonform
 !           in der naechsten version subroutine cs verwenden !!
          nsel = 0
-         do 333 i=1,msel
-          isels(i) = 0
-          ifits(i) = 0
-  333    continue
+         nfits = 0
+         isels = 0
+         ifits = 0
+         isfits = 0
+
          write(6,*)'selections are removed ....'
          goto 2000
        endif
@@ -599,11 +601,10 @@
 !                    -                       ----
          nbuf = 0
          write(6,*)'nbuf has been resetted ....'
-         nsel = 0
-         do  i=1,msel
-          isels(i) = 0
-          ifits(i) = 0
-         enddo
+         nsel  = 0
+         isels = 0
+         ifits = 0
+         isfits = 0
          write(6,*)'selections are removed ....'
        endif
 !
@@ -3608,7 +3609,13 @@ write(*,'(a,a,4f12.6)')"TEST: form2=",trim(yformel),xxxx,yyyy,yyee,val8y
 !   --- find the first gap in the data ...
 !   --- ok here it is ...
 !     --- and shift the rest down now ---
-          if(found('all     ')) nwert = 0
+          if(found('all     ')) then 
+             nwert = 0
+             nsel  = 0
+             isels = 0
+             nfits = 0
+             ifits = 0
+          endif
           if(found('sel     ')) then
             if(nsel > 0) then
               nwert(isels(1:nsel)) = 0
@@ -3640,6 +3647,7 @@ write(*,'(a,a,4f12.6)')"TEST: form2=",trim(yformel),xxxx,yyyy,yyee,val8y
           if(found('all     ') .or. found('sel     ') ) then
             nsel  = 0
             isels = 0
+            ifits = 0
             write(6,*)'selections are removed'
           else
             nsel  = m
@@ -3789,7 +3797,8 @@ exclude:   if(found('exclude  ')) then
                   iadda = i
                   call parget(selparna, parval_x , iadda,ier)
                   if(iout().gt.0) write(6,*) i , selparna, parval_x , ier
-                  if(ier.eq.0 .and. abs(parval_x-selparval).lt.selpartol) then
+                  if(ier.eq.0 .and. abs(parval_x-selparval).lt.selpartol &
+                              .and. numor(iadda)>=0                      ) then  ! this line experimental
                     if(found('next    ')) then
                       if(nsel.le.0) nsel = 1
                       if(found('add     ')) then
@@ -3810,7 +3819,8 @@ exclude:   if(found('exclude  ')) then
 17801       continue
 
            else
-
+            ifits  = 0
+            isfits = 0
             do i=1,ipars
              iss      = Nint(rpar(i))
              if(abs(iss) <= nbuf ) then
@@ -3822,7 +3832,7 @@ exclude:   if(found('exclude  ')) then
              endif
              m = m + 1
              isels(m) = iss
-             ifits(m) = 0
+!             ifits(m) = 0
              if(iss.lt.0.and.i.gt.1) then
                m   = m - 1
                ias = isels(m)
@@ -3830,7 +3840,7 @@ exclude:   if(found('exclude  ')) then
                write(6,*)'select adresses from ',ias,' to ',ies
                do l = ias,ies
                 isels(m) = l
-                ifits(m) = 0
+!                ifits(m) = 0
                 m = m + 1
                                         enddo
                m = m - 1
@@ -3856,6 +3866,8 @@ exclude:   if(found('exclude  ')) then
            write(6,390)nsel,(isels(i),numor(isels(i)),ifits(i),i=1,nsel)
            goto 2000
          endif !   ende if(inames.eq.0 ...........&
+
+
          do 7077 i=1,inames
            j = inapa(i)
            k = inpar(i)
