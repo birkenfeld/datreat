@@ -2902,7 +2902,7 @@ sl:       do j=1,maxstep
           ntheos = 0
 ! ---- read an decode the parameter-file --------
  7777     continue
-          read(30,'(a)') reslin
+          read(30,'(a)',err=999,end=999) reslin
 !         write(6,*)reslin
           ioldc = 1
 !          call lowcase(reslin,80)

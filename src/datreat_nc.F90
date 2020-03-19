@@ -194,6 +194,10 @@
 
        CHARACTER(len=255) :: farg
 
+       integer           :: length, status
+       character(len=80) :: argval
+
+
 !       character(len=cmd_len)  :: mycommand
 !       integer                 :: ier
        integer                 :: istat, ixf, iyf
@@ -293,6 +297,11 @@
                         write(6,*)'=  mexp        : automatic matching of sum(n=1..N, an*exp(-t/tn))=' 
                         write(6,*)'=  NEW (2/2020)                                                  =' 
                         write(6,*)'=  Feature: autosave at quit and restore at start !              =' 
+                        write(*,*)'= See manual DTRman.pdf !                                        ='
+                        write(*,*)'=                                                                ='
+                        write(*,*)'=  datreat ni     OR                                             ='
+                        write(*,*)'=  datreat 0      starts without reloading previous content      ='
+                        write(*,*)'=                 (old behavior)                                 ='
                         write(6,*)'=================================================================='
                        
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -380,7 +389,19 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      call get_command_argument(1,argval,length, status)
+      if(status == 0 ) then
+        if(argval(1:2)=="-h" .or. argval(1:2)=="he") then   !! TBD nach vorne!
+          write(*,*)"Data treatment program datreat"
+          write(*,*)"See manual DTRman.pdf !"
+          write(*,*)
+          write(*,*)"datreat ni    starts without reloading previous content (old behavior)"
+          write(*,*)
+        endif
+        if(argval(1:2)=="ni" .or. argval(1:1)=="0") goto 2000
+      endif
+
        inquire(file = "last_datreat_content", exist= content_da)
        inquire(file = "lastusv", exist= usv_da)
        inquire(file = "lastselections", exist= sel_da)
@@ -439,7 +460,7 @@
             close(19)
             open(19,file="lastusv")
              write(19,'(a)')"makro"
-             write(19,'("set ",a,"  ",e16.8)')(usenam(i),useval(i),i=1,nousev)
+             if(nousev > 0) write(19,'("set ",a,"  ",e16.8)')(usenam(i),useval(i),i=1,nousev)
             close(19)
      
             isels  = 0
