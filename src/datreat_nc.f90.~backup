@@ -460,7 +460,7 @@
             close(19)
             open(19,file="lastusv")
              write(19,'(a)')"makro"
-             write(19,'("set ",a,"  ",e16.8)')(usenam(i),useval(i),i=1,nousev)
+             if(nousev > 0) write(19,'("set ",a,"  ",e16.8)')(usenam(i),useval(i),i=1,nousev)
             close(19)
      
             isels  = 0

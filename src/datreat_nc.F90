@@ -299,6 +299,7 @@
                         write(6,*)'=  Feature: autosave at quit and restore at start !              =' 
                         write(*,*)'= See manual DTRman.pdf !                                        ='
                         write(*,*)'=                                                                ='
+                        write(*,*)'=  datreat help   opens Manual                                              ='
                         write(*,*)'=  datreat ni     OR                                             ='
                         write(*,*)'=  datreat 0      starts without reloading previous content      ='
                         write(*,*)'=                 (old behavior)                                 ='
@@ -390,17 +391,20 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      call get_command_argument(1,argval,length, status)
+    do i=1,2
+      call get_command_argument(i,argval,length, status)
       if(status == 0 ) then
-        if(argval(1:2)=="-h" .or. argval(1:2)=="he") then   !! TBD nach vorne!
+        if(argval(1:2) == "he") then   !! TBD nach vorne!
           write(*,*)"Data treatment program datreat"
           write(*,*)"See manual DTRman.pdf !"
           write(*,*)
           write(*,*)"datreat ni    starts without reloading previous content (old behavior)"
           write(*,*)
+          call execute_command_line(OPEN_MANUAL)
         endif
-        if(argval(1:2)=="ni" .or. argval(1:1)=="0") goto 2000
+        if(argval(1:2) == "ni" .or. argval(1:2) == "0" ) goto 2000
       endif
+    enddo
 
        inquire(file = "last_datreat_content", exist= content_da)
        inquire(file = "lastusv", exist= usv_da)

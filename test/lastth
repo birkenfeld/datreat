@@ -2,12 +2,4 @@
       intensit    0.000000       0.00       0.0000    
       width       0.000000       0.00       0.0000    
       center      0.000000       0.00       0.0000    
- theory   gauss                                                                           
-      intensit    0.000000       0.00       0.0000    
-      width       0.000000       0.00       0.0000    
-      center      0.000000       0.00       0.0000    
- theory   gauss                                                                           
-      intensit    0.000000       0.00       0.0000    
-      width       0.000000       0.00       0.0000    
-      center      0.000000       0.00       0.0000    
  end
