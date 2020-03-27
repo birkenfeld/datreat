@@ -114,7 +114,7 @@ MODULE new_com
   integer, parameter :: nodelims      = 7
 
 
-  integer, parameter :: history_depth = 50
+  integer, parameter :: history_depth = 1000
   ! ---- communication common block containig the analysed inputline
   !      comand   = actual command keyword
   !      vname(*) = names stack
@@ -185,7 +185,7 @@ MODULE new_com
   character(len=cmd_long) :: mxx_path   = './'
   character(len=cmd_long) :: init_file_path  = ' ' ! default no auto init
 #ifdef USE_LINENOISE
-  character(cmd_long), private :: history_file = ".history"
+  character(cmd_long), private :: history_file = "last_dtr_commands"
 #else
   character(cmd_long), private :: history(0:history_depth)
 #endif

@@ -1123,7 +1123,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
        logical :: paplo=.true.
        logical :: doplo
        logical :: fitplo=.true.
-       logical :: errplo=.false.
+       logical :: errplo=.true.
        logical :: paxis=.true.
        logical :: taxis=.true.
 

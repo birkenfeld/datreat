@@ -1098,6 +1098,8 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
        use formul
        implicit none
 
+       character(len=40)   :: LAST_PPAR = "last_plotsetting"
+
        double precision    :: e(size(xwerte(:,1)))
        double precision    :: x(size(xwerte(:,1)))
        double precision    :: y(size(xwerte(:,1)))
@@ -1164,7 +1166,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
       integer       ::  ubild
       logical       ::  fileda
       
-
+      logical, save :: initial = .true.
 
 
 
@@ -1199,6 +1201,8 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
        write(6,*)'=      dfinewd  <val> :  data linewidth                                      ='
        write(6,*)'=      lin_x | log_x  :  lin or log x scale                                  ='
        write(6,*)'=      lin_y | log_y  :  lin or log y scale                                  ='
+       write(6,*)'=      def            :  at first run start with default                     ='
+!       write(6,*)'=      last           :  read parameters form last session                   ='
        write(6,*)'=      # <al>         :  auto num picture store  ON start at <val>, neg=OFF  ='
        write(6,*)'=        for further options see manual ....                                 ='
        write(6,*)'= HINTS:  (prior to plot)                                                    ='
@@ -1271,6 +1275,8 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
           if(vname(i).eq.'log_y   ') log_y  = .true.
           if(vname(i).eq.'lin_x   ') log_x  = .false.
           if(vname(i).eq.'lin_y   ') log_y  = .false.
+          if(vname(i).eq.'def     ') initial= .false.
+          if(vname(i).eq.'last    ') initial= .true.
 !
           ibild               = get_named_value("#          ",ibild,inew)
           ifont               = get_named_value("font       ",ifont,inew)
@@ -1382,6 +1388,14 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
       if (.not.doplo) then
         return
       endif
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      if(initial) then 
+        call readplotpar()
+        initial = .false.
+      endif
+      call writeplotpar()
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
 
@@ -1768,6 +1782,118 @@ scl:   if(found('scaled  ')) then
         endif
 
        end subroutine advance_text
+
+
+
+       subroutine readplotpar()
+         implicit none
+         integer :: ioppar, nl
+         logical :: lastppar_da
+         inquire(file=LAST_PPAR,EXIST=lastppar_da)
+         if(.not. lastppar_da) return
+         
+         open(newunit=ioppar, file=LAST_PPAR)
+          read(ioppar,*,end=99,err=99)  xmin                   
+          read(ioppar,*,end=99,err=99)  xmax                
+          read(ioppar,*,end=99,err=99)  ymin                
+          read(ioppar,*,end=99,err=99)  ymax                
+          read(ioppar,*,end=99,err=99)  ptex                
+          read(ioppar,*,end=99,err=99)  epscl               
+          read(ioppar,*,end=99,err=99)  txsize              
+          read(ioppar,*,end=99,err=99)  txsizt              
+          read(ioppar,*,end=99,err=99)  xtshft              
+          read(ioppar,*,end=99,err=99)  ytshft              
+          read(ioppar,*,end=99,err=99)  icol0               
+          read(ioppar,*,end=99,err=99)  sysize              
+          read(ioppar,*,end=99,err=99)  iplevel             
+          read(ioppar,*,end=99,err=99)  paplo               
+          read(ioppar,*,end=99,err=99)  errplo              
+          read(ioppar,*,end=99,err=99)  paxis               
+          read(ioppar,*,end=99,err=99)  taxis               
+          read(ioppar,*,end=99,err=99)  fitplo              
+          read(ioppar,*,end=99,err=99)  log_x               
+          read(ioppar,*,end=99,err=99)  log_y               
+          read(ioppar,*,end=99,err=99)  log_x               
+          read(ioppar,*,end=99,err=99)  log_y                  
+          read(ioppar,*,end=99,err=99)  ibild               
+          read(ioppar,*,end=99,err=99)  ifont               
+          read(ioppar,*,end=99,err=99)  ax_text_scale       
+          read(ioppar,*,end=99,err=99)  ax_tick_scale       
+          read(ioppar,*,end=99,err=99)  thcline_thickness   
+          read(ioppar,*,end=99,err=99)  datline_thickness   
+          read(ioppar,*,end=99,err=99)  XLEG_DISTANCE       
+          read(ioppar,*,end=99,err=99)  YLEG_DISTANCE       
+          read(ioppar,*,end=99,err=99)  TLEG_DISTANCE_X     
+          read(ioppar,*,end=99,err=99)  TLEG_DISTANCE_Y     
+! to be modernized
+          read(ioppar,*,end=99,err=99) nl
+          read(ioppar,*,end=99,err=99) linetype(1:min(nl,size(linetype)))
+          read(ioppar,*,end=99,err=99) nl
+          read(ioppar,*,end=99,err=99) linewidth_scaling(1:min(nl,size(linewidth_scaling)))
+          read(ioppar,*,end=99,err=99) nl
+          read(ioppar,*,end=99,err=99) isymb(1:min(nl,size(isymb)))
+          read(ioppar,*,end=99,err=99) nl
+          read(ioppar,*,end=99,err=99) sysize_scaling(1:min(nl,size(sysize_scaling)))
+          read(ioppar,*,end=99,err=99) nl
+          read(ioppar,*,end=99,err=99) icolo(1:min(nl,size(icolo)))
+
+99        continue
+         close(ioppar)
+
+       end subroutine readplotpar
+   
+       subroutine writeplotpar()
+         implicit none
+         integer :: ioppar
+         
+         open(newunit=ioppar, file=LAST_PPAR)
+          write(ioppar,*)  xmin                ,'                      xmin    '    
+          write(ioppar,*)  xmax                ,'                      xmax    ' 
+          write(ioppar,*)  ymin                ,'                      ymin    ' 
+          write(ioppar,*)  ymax                ,'                      ymax    ' 
+          write(ioppar,*)  ptex                ,'                      text    ' 
+          write(ioppar,*)  epscl               ,'                      epscl   ' 
+          write(ioppar,*)  txsize              ,'                      txsize  ' 
+          write(ioppar,*)  txsizt              ,'                      legsize ' 
+          write(ioppar,*)  xtshft              ,'                      legx    ' 
+          write(ioppar,*)  ytshft              ,'                      legy    ' 
+          write(ioppar,*)  icol0               ,'                      color   ' 
+          write(ioppar,*)  sysize              ,'                      sysize  ' 
+          write(ioppar,*)  iplevel             ,'                      parlev  ' 
+          write(ioppar,*)  paplo               ,'                      parplo  ' 
+          write(ioppar,*)  errplo              ,'                      noerrors' 
+          write(ioppar,*)  paxis               ,'                      axis    ' 
+          write(ioppar,*)  taxis               ,'                      txaxis  ' 
+          write(ioppar,*)  fitplo              ,'                      nofits  ' 
+          write(ioppar,*)  log_x               ,'                      log_x   ' 
+          write(ioppar,*)  log_y               ,'                      log_y   ' 
+          write(ioppar,*)  log_x               ,'                      lin_x   ' 
+          write(ioppar,*)  log_y               ,'                      lin_y   '    
+          write(ioppar,*)  ibild               ,'                      #        '
+          write(ioppar,*)  ifont               ,'                      font     '
+          write(ioppar,*)  ax_text_scale       ,'                      axtxsize '
+          write(ioppar,*)  ax_tick_scale       ,'                      axticlen '
+          write(ioppar,*)  thcline_thickness   ,'                      flinewd  '
+          write(ioppar,*)  datline_thickness   ,'                      dlinewd  '
+          write(ioppar,*)  XLEG_DISTANCE       ,'                      xlegdist '
+          write(ioppar,*)  YLEG_DISTANCE       ,'                      ylegdist '
+          write(ioppar,*)  TLEG_DISTANCE_X     ,'                      tit_x    '
+          write(ioppar,*)  TLEG_DISTANCE_Y     ,'                      tit_y    '
+          write(ioppar,*) size(linetype)
+          write(ioppar,'(20i5)') linetype
+          write(ioppar,*) size(linewidth_scaling)
+          write(ioppar,'(10f12.6)') linewidth_scaling
+          write(ioppar,*) size(isymb)
+          write(ioppar,'(20i5)') isymb
+          write(ioppar,*) size(sysize_scaling)
+          write(ioppar,'(10f12.6)') sysize_scaling
+          write(ioppar,*) size(icolo)
+          write(ioppar,'(20i5)') icolo
+ 
+         close(ioppar)
+
+       end subroutine writeplotpar
+     
      
       END
 !

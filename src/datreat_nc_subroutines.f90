@@ -6975,6 +6975,7 @@ val = filename
 open(newunit=inunit,file=val,iostat=status)
 if(status /= 0) then
   call errsig(999,"ERROR #### extract_th: cannot open:"//trim(val)//"$")
+  close(inunit)
   return
 else
   write(6,*)"EXTRACTING lastth from appendix of file: ",trim(val)
@@ -7005,6 +7006,7 @@ return
   return
 999 continue
   call errsig(999,"ERROR #### extract_th: theory section not found! $")
+  close(outunit)
   close(inunit)
 end subroutine extract_th
 
