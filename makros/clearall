@@ -1,0 +1,9 @@
+makro
+freeze
+purge all
+rm last_plotsetting
+rm datreat_plot_counter
+rm lastselections
+rm lastusv
+rm last_datreat_content 
+exit

@@ -1,0 +1,29 @@
+makro
+c
+c Read parameters for 4 gaussian type resolutino 
+c and store it on user defined variables
+c
+c before calling select the fitted resolution
+c
+set ga1 +ga1inten
+set gw1 +ga1width
+set gc1 +ga1cente
+c
+set ga2 +ga2inten
+set gw2 +ga2width
+set gc2 +ga2cente
+c
+set ga3 +ga3inten
+set gw3 +ga3width
+set gc3 +ga3cente
+c
+set ga4 +ga4inten
+set gw4 +ga4width
+set gc4 +ga4cente
+c
+set ga5 +ga5inten
+set gw5 +ga5width
+set gc5 +ga5cente
+c
+set qr  +q
+vars?

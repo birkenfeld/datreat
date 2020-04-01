@@ -1,0 +1,62 @@
+makro
+c
+c do the 4G resolution fitting 
+c
+cms cp lastth lastth_x
+c
+dac
+ac gauss
+ac gauss
+ac gauss
+ac gauss
+ac gauss
+
+chgthpar gauss 1 intensit  par 1        scale 1
+chgthpar gauss 1 width     par 0.7      scale 0
+chgthpar gauss 1 center    par 0        scale 0
+
+chgthpar gauss 2 intensit  par 0.2      scale 1
+chgthpar gauss 2 width     par 1.7      scale 0
+chgthpar gauss 2 center    par 1       scale 0
+
+chgthpar gauss 3 intensit  par 0.2      scale 1
+chgthpar gauss 3 width     par 1.7      scale 0
+chgthpar gauss 3 center    par -1      scale 0
+
+chgthpar gauss 4 intensit  par 0.02     scale 1
+chgthpar gauss 4 width     par 3        scale 0
+chgthpar gauss 4 center    par 4      scale 0
+
+chgthpar gauss 5 intensit  par 0.02     scale 1
+chgthpar gauss 5 width     par 3        scale 0
+chgthpar gauss 5 center    par -4     scale 0
+
+fit
+
+c plot xmin -20 xmax 20 ymin 0.001 ymax 1 errplo log_y
+
+chgthpar gauss 1 width     par 0.7      scale 1
+chgthpar gauss 2 width     par 1.7      scale 1
+chgthpar gauss 3 width     par 1.7      scale 1
+chgthpar gauss 4 width     par 3        scale 1
+chgthpar gauss 5 width     par 3        scale 1
+
+fit 
+
+c plot xmin -20 xmax 20 ymin 0.001 ymax 1 errplo log_y
+
+chgthpar gauss 1 center    par 0        scale 1
+chgthpar gauss 2 center    par 1      scale 1
+chgthpar gauss 3 center    par -1     scale 1
+chgthpar gauss 4 center    par 4      scale 1
+chgthpar gauss 5 center    par -4     scale 1
+
+fit 
+
+plot xmin -20 xmax 20 ymin 0.001 ymax 1 errplo log_y
+
+
+
+
+c label    strexpo  amplitu a1
+c couple   diffqav  amplit  a1 -1

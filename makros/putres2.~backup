@@ -1,0 +1,13 @@
+makro
+getres2
+clr q
+set i 1
+:j1
+ sel (i)
+ set qd  +q
+ if (abs(qd-qr)) > 1d-2 then goto :j2
+  putre2
+:j2
+  set i (i+1)
+if (i) <= (nbuf) then goto :j1
+

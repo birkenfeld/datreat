@@ -1,0 +1,2 @@
+makro
+plot xmin 0.01 xmax 5000 ymin 0.0 ymax 1 errplo log_x 
