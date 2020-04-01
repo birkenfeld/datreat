@@ -248,7 +248,12 @@
                         write(6,*)'=   -------     --------                              ='
                         write(6,*)'=   Author: M.Monkenbusch  R. Biehl, O.Holderer, JCNS ='
                         write(6,*)'======================================================='
-                        prompt = "#datreat => " 
+
+
+                        prompt       = "#datreat => " 
+                        history_file = ".last_dtr_commands"
+
+
                         write(6,*)
                         write(6,*)
                         write(6,*)
@@ -474,8 +479,11 @@
             isels(1:nsel) = [(i,i=1,nsel)]
             fsname = "last_datreat_content"
             call msavdat(fsname)
-            write(*,*) "content save to last_datreat_content "
- 
+            write(*,*) "QUIT: content saved to last_datreat_content ... "
+            write(*,*) " exit datreat BYE.... "
+            stop
+          case (-4)
+            write(*,*) "EXIT: content not saved, state of previous section is still valid "
             write(*,*) " exit datreat BYE.... "
             stop
           case default

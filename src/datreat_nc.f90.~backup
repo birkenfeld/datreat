@@ -248,7 +248,12 @@
                         write(6,*)'=   -------     --------                              ='
                         write(6,*)'=   Author: M.Monkenbusch  R. Biehl, O.Holderer, JCNS ='
                         write(6,*)'======================================================='
-                        prompt = "#datreat => " 
+
+
+                        prompt       = "#datreat => " 
+                        history_file = "last_dtr_commands"
+
+
                         write(6,*)
                         write(6,*)
                         write(6,*)

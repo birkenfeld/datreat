@@ -185,7 +185,7 @@ MODULE new_com
   character(len=cmd_long) :: mxx_path   = './'
   character(len=cmd_long) :: init_file_path  = ' ' ! default no auto init
 #ifdef USE_LINENOISE
-  character(cmd_long), private :: history_file = "last_dtr_commands"
+  character(cmd_long), public  :: history_file = ".history"
 #else
   character(cmd_long), private :: history(0:history_depth)
 #endif
@@ -1180,7 +1180,7 @@ CONTAINS
           enddo
           ktop = 0
        else ! if we are at the command line level quit program
-          istatus = -3
+          istatus = -4
           return
        endif
        goto 8888

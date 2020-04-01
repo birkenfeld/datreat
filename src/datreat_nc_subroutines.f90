@@ -2075,6 +2075,7 @@ sl:       do j=1,maxstep
        use selist
        use cfunc
        ! use constants
+       use theory
 
        implicit none
 
@@ -2094,6 +2095,15 @@ sl:       do j=1,maxstep
        npoint = IABS(npunkt)
        npk    = npunkt
 !
+
+       if(ntheos <= 0) then
+         call errsig(7777,"ERROR: NO THEORIES ACTIVATED (thc) ! $")
+         return
+       endif
+
+
+
+
        if(found('convolut'))           convolute = .true.
        if(folgt('off     ','convolut'))convolute = .false.
 !
