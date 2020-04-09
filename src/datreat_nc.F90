@@ -201,6 +201,7 @@
 !       character(len=cmd_len)  :: mycommand
 !       integer                 :: ier
        integer                 :: istat, ixf, iyf
+       integer                 :: iselstep
 !
        external fdes
        external f
@@ -3701,6 +3702,8 @@ write(*,'(a,a,4f12.6)')"TEST: form2=",trim(yformel),xxxx,yyyy,yyee,val8y
        write(6,*)'=            selects those with dir adresses i1, i2,.. in                    ='
        write(6,*)'=    sel  <i1>  -<i2>                                                        ='
        write(6,*)'=            selects all addresses between i1 and i2                         ='
+       write(6,*)'=    sel  <i1>  -<i2> -<is>                                                  ='
+       write(6,*)'=            selects all <is>-th addresses between i1 and i2                 ='
        write(6,*)'=    sel  all  <parname> <value>  band <value>  | <i1> ..                    ='
        write(6,*)'=            selects all records with parameter parnam value +- band         ='
        write(6,*)'=    sel  fit+                                                               ='
@@ -3854,7 +3857,7 @@ exclude:   if(found('exclude  ')) then
            else
             ifits  = 0
             isfits = 0
-            do i=1,ipars
+ipl:        do i=1,ipars
              iss      = Nint(rpar(i))
              if(abs(iss) <= nbuf ) then
                write(6,*)'select adress   ',iss
@@ -3870,15 +3873,20 @@ exclude:   if(found('exclude  ')) then
                m   = m - 1
                ias = isels(m)
                ies = -iss
-               write(6,*)'select adresses from ',ias,' to ',ies
-               do l = ias,ies
+               iselstep = 1
+               if(ipars == 3 .and. Nint(rpar(ipars)) < 0) then
+                 iselstep = abs(nint(rpar(ipars)))
+               endif
+               write(6,*)'select adresses from ',ias,' to ',ies,' step ',iselstep
+               do l = ias,ies,iselstep
                 isels(m) = l
 !                ifits(m) = 0
                 m = m + 1
-                                        enddo
+               enddo
                m = m - 1
+               if(iselstep .ne. 1) exit ipl
              endif
-                                enddo
+            enddo ipl
             nsel = m
          endif
 
