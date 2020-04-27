@@ -2075,6 +2075,7 @@ sl:       do j=1,maxstep
        use selist
        use cfunc
        ! use constants
+       use theory
 
        implicit none
 
@@ -2094,6 +2095,15 @@ sl:       do j=1,maxstep
        npoint = IABS(npunkt)
        npk    = npunkt
 !
+
+       if(ntheos <= 0) then
+         call errsig(7777,"ERROR: NO THEORIES ACTIVATED (thc) ! $")
+         return
+       endif
+
+
+
+
        if(found('convolut'))           convolute = .true.
        if(folgt('off     ','convolut'))convolute = .false.
 !
@@ -6975,6 +6985,7 @@ val = filename
 open(newunit=inunit,file=val,iostat=status)
 if(status /= 0) then
   call errsig(999,"ERROR #### extract_th: cannot open:"//trim(val)//"$")
+  close(inunit)
   return
 else
   write(6,*)"EXTRACTING lastth from appendix of file: ",trim(val)
@@ -7005,6 +7016,7 @@ return
   return
 999 continue
   call errsig(999,"ERROR #### extract_th: theory section not found! $")
+  close(outunit)
   close(inunit)
 end subroutine extract_th
 

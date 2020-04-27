@@ -16,3 +16,26 @@ ausserdem muss die 'richtige' utilux.f90 Version einkopiert werden.
 
 Das sollte ion die Makefiles eingearbeitet werden.....
 
+
+
+NEU 4/20 TBD
+
+- plot:  a: Kurven-individuelle Errors (on/off)
+       b:   "         "       Symbols
+
+- plot xymax nach Start, reread status
+
+- xaxis/yaxis name: LÄNGERE STRINGS ERLAUBEN !
+
+
+- RESTORE/SAVE Gesamtzustand: Kommandos dafür einfügen!
+
+- -ln(y) wird nicht erkannt aber -(ln(y)) >> FIX: iuprio with neg must be reduced by 1  (OK??)
+
+--- with the quit-save make numors unique (and undo after restore ??)
+--- have a numor unique function, or do it automatically upen reading ??? 
+--- numor strategy , 2 dim numor (derived and original?) 
+
+
+--- MAKE COMMANDS allsave and allrestore (with or without plotsettings?)
+

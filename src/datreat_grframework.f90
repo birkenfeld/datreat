@@ -1178,6 +1178,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
        write(6,*)'= plot                                                                       ='
        write(6,*)'=    plots selected records                                                  ='
        write(6,*)'=    parameters:                                                             ='
+       write(6,*)'=      rpp            :  read lastplotpar                                    ='
        write(6,*)'=      xmin  <val>    :  start of x-plotting range                           ='
        write(6,*)'=      xmax  <val>    :  end   of x-plotting range                           ='
        write(6,*)'=      ymin  <val>    :  start of y-plotting range                           ='
@@ -1230,6 +1231,10 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
 ! ----- parameter retrieving from stack -----
       nkurv  = 0
       nfkurv = 0
+
+      if(found('rpp     ')) call readplotpar()
+
+
       if(inames.eq.0) then
 !                     ----> assume that a list of number numors
        if(ipars.gt.0) then

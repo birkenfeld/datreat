@@ -2852,7 +2852,8 @@ CONTAINS
        anklam = (actchar.eq.0)
        if(.not.anklam) anklam = (formula(actchar-1).eq.'(')
        if(anklam) then
-          call putopstack('neg ',iuprio)
+!?          call putopstack('neg ',iuprio)
+          call putopstack('neg ',iuprio-1)    !! this is to fix -ln(x), and other fknt. TBD check with Klammerprio..
           actchar     = actchar + 1
        else
           typ = 'bin '

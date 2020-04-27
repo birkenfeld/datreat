@@ -201,6 +201,7 @@
 !       character(len=cmd_len)  :: mycommand
 !       integer                 :: ier
        integer                 :: istat, ixf, iyf
+       integer                 :: iselstep
 !
        external fdes
        external f
@@ -462,24 +463,25 @@
           case (-2)
             write(*,*)'..to exit datreat enter "quit" or "exit"!' 
           case (-3)
-            open(19,file="lastselections")
-              write(19,'(i8)')nsel,(isels(i),i=1,nsel)            
-              write(19,'(i8)')nsel,(ifits(i),i=1,nsel)            
-              write(19,'(i8)')nsel,(isfits(i),i=1,nsel)            
-            close(19)
-            open(19,file="lastusv")
-             write(19,'(a)')"makro"
-             if(nousev > 0) write(19,'("set ",a,"  ",e16.8)')(usenam(i),useval(i),i=1,nousev)
-            close(19)
-     
-            isels  = 0
-            ifits  = 0
-            isfits = 0 
-            nsel = nbuf
-            isels(1:nsel) = [(i,i=1,nsel)]
-            fsname = "last_datreat_content"
-            call msavdat(fsname)
-            write(*,*) "QUIT: content saved to last_datreat_content ... "
+            call SaveState
+!            open(19,file="lastselections")
+!              write(19,'(i8)')nsel,(isels(i),i=1,nsel)            
+!              write(19,'(i8)')nsel,(ifits(i),i=1,nsel)            
+!              write(19,'(i8)')nsel,(isfits(i),i=1,nsel)            
+!            close(19)
+!            open(19,file="lastusv")
+!             write(19,'(a)')"makro"
+!             if(nousev > 0) write(19,'("set ",a,"  ",e16.8)')(usenam(i),useval(i),i=1,nousev)
+!            close(19)
+!     
+!            isels  = 0
+!            ifits  = 0
+!            isfits = 0 
+!            nsel = nbuf
+!            isels(1:nsel) = [(i,i=1,nsel)]
+!            fsname = "last_datreat_content"
+!            call msavdat(fsname)
+!            write(*,*) "QUIT: content saved to last_datreat_content ... "
             write(*,*) " exit datreat BYE.... "
             stop
           case (-4)
@@ -502,6 +504,47 @@
          goto 2000
        endif
 !
+!
+       if(comand.eq.'prompt  ') then
+!                    ------ 
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= prompt <name>                                                               '
+           write(6,*)'=    replaeces chars 2:9 of prompt by the given <name>                        '
+           write(6,*)'=    thus a datreat session can be given an easy identifier if several are run'
+           write(6,*)'=============================================================================='
+           goto 2000
+        endif
+                   
+         if(inames .ne. 1) then
+           call errsig(999,"ERROR: prompt modification requires exactly 1 name$")
+         else
+           prompt = "# "//trim(vname(1))//":"//trim(prompt(len_trim(prompt)-7:))//" "
+         endif
+         goto 2000
+       endif
+
+!
+       if(comand.eq.'freeze  ') then
+!                    ------ 
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= freeze                                                                      '
+           write(6,*)'=    freezes current state (as quit would do, but stays active)               '
+           write(6,*)'=    if THIS state shall be kept leave datreat by exit                        '
+           write(6,*)'=============================================================================='
+           call SaveState
+           goto 2000
+        endif
+                   
+         if(inames .ne. 1) then
+           call errsig(999,"ERROR: prompt modification requires exactly 1 name$")
+         else
+           prompt = "# "//trim(vname(1))//":"//trim(prompt(len_trim(prompt)-7:))//" "
+         endif
+         goto 2000
+       endif
+
 !
        if(comand.eq.'prompt  ') then
 !                    ------ 
@@ -3701,6 +3744,8 @@ write(*,'(a,a,4f12.6)')"TEST: form2=",trim(yformel),xxxx,yyyy,yyee,val8y
        write(6,*)'=            selects those with dir adresses i1, i2,.. in                    ='
        write(6,*)'=    sel  <i1>  -<i2>                                                        ='
        write(6,*)'=            selects all addresses between i1 and i2                         ='
+       write(6,*)'=    sel  <i1>  -<i2> -<is>                                                  ='
+       write(6,*)'=            selects all <is>-th addresses between i1 and i2                 ='
        write(6,*)'=    sel  all  <parname> <value>  band <value>  | <i1> ..                    ='
        write(6,*)'=            selects all records with parameter parnam value +- band         ='
        write(6,*)'=    sel  fit+                                                               ='
@@ -3854,7 +3899,7 @@ exclude:   if(found('exclude  ')) then
            else
             ifits  = 0
             isfits = 0
-            do i=1,ipars
+ipl:        do i=1,ipars
              iss      = Nint(rpar(i))
              if(abs(iss) <= nbuf ) then
                write(6,*)'select adress   ',iss
@@ -3870,15 +3915,20 @@ exclude:   if(found('exclude  ')) then
                m   = m - 1
                ias = isels(m)
                ies = -iss
-               write(6,*)'select adresses from ',ias,' to ',ies
-               do l = ias,ies
+               iselstep = 1
+               if(ipars == 3 .and. Nint(rpar(ipars)) < 0) then
+                 iselstep = abs(nint(rpar(ipars)))
+               endif
+               write(6,*)'select adresses from ',ias,' to ',ies,' step ',iselstep
+               do l = ias,ies,iselstep
                 isels(m) = l
 !                ifits(m) = 0
                 m = m + 1
-                                        enddo
+               enddo
                m = m - 1
+               if(iselstep .ne. 1) exit ipl
              endif
-                                enddo
+            enddo ipl
             nsel = m
          endif
 
@@ -4979,6 +5029,29 @@ exclude:   if(found('exclude  ')) then
 !
 !
 !
+      CONTAINS
+      
+       subroutine SaveStatus
+            open(19,file="lastselections")
+              write(19,'(i8)')nsel,(isels(i),i=1,nsel)            
+              write(19,'(i8)')nsel,(ifits(i),i=1,nsel)            
+              write(19,'(i8)')nsel,(isfits(i),i=1,nsel)            
+            close(19)
+            open(19,file="lastusv")
+             write(19,'(a)')"makro"
+             if(nousev > 0) write(19,'("set ",a,"  ",e16.8)')(usenam(i),useval(i),i=1,nousev)
+            close(19)
+     
+            isels  = 0
+            ifits  = 0
+            isfits = 0 
+            nsel = nbuf
+            isels(1:nsel) = [(i,i=1,nsel)]
+            fsname = "last_datreat_content"
+            call msavdat(fsname)
+            write(*,*) "actual content saved to last_datreat_content etc. ... "
+       end subroutine SaveStatus
+
 
 
       END ! Ende der Hauptschleife

@@ -463,24 +463,25 @@
           case (-2)
             write(*,*)'..to exit datreat enter "quit" or "exit"!' 
           case (-3)
-            open(19,file="lastselections")
-              write(19,'(i8)')nsel,(isels(i),i=1,nsel)            
-              write(19,'(i8)')nsel,(ifits(i),i=1,nsel)            
-              write(19,'(i8)')nsel,(isfits(i),i=1,nsel)            
-            close(19)
-            open(19,file="lastusv")
-             write(19,'(a)')"makro"
-             if(nousev > 0) write(19,'("set ",a,"  ",e16.8)')(usenam(i),useval(i),i=1,nousev)
-            close(19)
-     
-            isels  = 0
-            ifits  = 0
-            isfits = 0 
-            nsel = nbuf
-            isels(1:nsel) = [(i,i=1,nsel)]
-            fsname = "last_datreat_content"
-            call msavdat(fsname)
-            write(*,*) "QUIT: content saved to last_datreat_content ... "
+            call SaveStatus
+!            open(19,file="lastselections")
+!              write(19,'(i8)')nsel,(isels(i),i=1,nsel)            
+!              write(19,'(i8)')nsel,(ifits(i),i=1,nsel)            
+!              write(19,'(i8)')nsel,(isfits(i),i=1,nsel)            
+!            close(19)
+!            open(19,file="lastusv")
+!             write(19,'(a)')"makro"
+!             if(nousev > 0) write(19,'("set ",a,"  ",e16.8)')(usenam(i),useval(i),i=1,nousev)
+!            close(19)
+!     
+!            isels  = 0
+!            ifits  = 0
+!            isfits = 0 
+!            nsel = nbuf
+!            isels(1:nsel) = [(i,i=1,nsel)]
+!            fsname = "last_datreat_content"
+!            call msavdat(fsname)
+!            write(*,*) "QUIT: content saved to last_datreat_content ... "
             write(*,*) " exit datreat BYE.... "
             stop
           case (-4)
@@ -503,6 +504,43 @@
          goto 2000
        endif
 !
+!
+       if(comand.eq.'prompt  ') then
+!                    ------ 
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= prompt <name>                                                               '
+           write(6,*)'=    replaeces chars 2:9 of prompt by the given <name>                        '
+           write(6,*)'=    thus a datreat session can be given an easy identifier if several are run'
+           write(6,*)'=============================================================================='
+           goto 2000
+        endif
+                   
+         if(inames .ne. 1) then
+           call errsig(999,"ERROR: prompt modification requires exactly 1 name$")
+         else
+           prompt = "# "//trim(vname(1))//":"//trim(prompt(len_trim(prompt)-7:))//" "
+         endif
+         goto 2000
+       endif
+
+!
+       if(comand.eq.'freeze  ') then
+!                    ------ 
+        if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= freeze                                                                      '
+           write(6,*)'=    freezes current state (as quit would do, but stays active)               '
+           write(6,*)'=    if THIS state shall be kept leave datreat by exit                        '
+           write(6,*)'=============================================================================='
+           goto 2000
+        endif
+                   
+         call SaveStatus
+
+         goto 2000
+       endif
+
 !
        if(comand.eq.'prompt  ') then
 !                    ------ 
@@ -3542,10 +3580,16 @@ write(*,'(a,a,4f12.6)')"TEST: form2=",trim(yformel),xxxx,yyyy,yyee,val8y
        write(6,*)'=    dir  <parname1> <parname2> ....                                         ='
        write(6,*)'=            displays also values of specified parameters                    ='                  
        write(6,*)'=                                                                            ='
+       write(6,*)'=    dir  unique#                                                            ='
+       write(6,*)'=            creates unique numors                                           ='                  
+       write(6,*)'=                                                                            ='
        write(6,*)'=    use dsl to check selections!                                            ='
        write(6,*)'=============================================================================='
        goto 2000
       endif
+
+
+         if(found('unique# ') .or. found('u#      ')) call UniqueNumors
 
 
          len_comm = intval('clength ',len_comm,inew)
@@ -4987,6 +5031,65 @@ ipl:        do i=1,ipars
 !
 !
 !
+      CONTAINS
+      
+       subroutine SaveStatus
+            integer :: i, j, numx
+ d1:        do i=1,nbuf-1
+              numx = numor(i)
+              do j=i+1,nbuf
+               if(numx == numor(j)) then
+                 Write(*,*)"Assigning UNIQUE NUMOR prior saving!"
+                 call UniqueNumors
+                 exit d1
+               endif
+              enddo
+            enddo d1
+  
+            open(19,file="lastselections")
+              write(19,'(i8)')nsel,(isels(i),i=1,nsel)            
+              write(19,'(i8)')nsel,(ifits(i),i=1,nsel)            
+              write(19,'(i8)')nsel,(isfits(i),i=1,nsel)            
+            close(19)
+            open(19,file="lastusv")
+             write(19,'(a)')"makro"
+             if(nousev > 0) write(19,'("set ",a,"  ",e16.8)')(usenam(i),useval(i),i=1,nousev)
+            close(19)
+     
+            isels  = 0
+            ifits  = 0
+            isfits = 0 
+            nsel = nbuf
+            isels(1:nsel) = [(i,i=1,nsel)]
+            fsname = "last_datreat_content"
+            call msavdat(fsname)
+            write(*,*) "actual content saved to last_datreat_content etc. ... "
+
+
+       end subroutine SaveStatus
+
+       subroutine UniqueNumors
+           integer :: i, j, numx, numc, numbase
+    
+           numbase =  log10(dble(maxval(abs(numor(1:nbuf))) + 1)) + 1
+           numbase = 10**numbase
+                     
+           numc    = 1
+           call parset("prevnum ",real(numor(nbuf)),nbuf)
+           do i = 1, nbuf-1
+              if(numor(i) == 0) numor(i) = i
+              call parset("prevnum ",real(numor(i)),i)
+              numx = numor(i)
+              do j = i+1,nbuf
+                if(numx == numor(j)) then
+                  call parset("prevnum ",real(numor(j)),j)
+                  numor(j) = sign((abs(numor(j))+numc*numbase),numor(j))
+                  numc = numc+1
+                endif
+              enddo                                  
+           enddo
+        end subroutine UniqueNumors
+
 
 
       END ! Ende der Hauptschleife
