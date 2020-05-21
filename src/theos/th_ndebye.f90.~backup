@@ -157,7 +157,6 @@ function nndebye(q, l, nue,n ,Rg ) result(val)
          enddo
 !$OMP END PARALLEL DO
 
-!$OMP END PARALLEL DO
          Rg = 0
 !$OMP PARALLEL DO REDUCTION(+:Rg)
          do i=1,n

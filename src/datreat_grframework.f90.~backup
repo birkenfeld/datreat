@@ -36,7 +36,7 @@ implicit none
   double precision              :: YLEG_DISTANCE                 = 0.14d0
   double precision              :: TLEG_DISTANCE_X               = 0.0d0
   double precision              :: TLEG_DISTANCE_Y               = 0.08d0
-
+  double precision              :: tex_fak                       = 1.3d0
                          
   integer, parameter :: MARKERTYPE_DOT             =  1    !    Smallest displayable dot
   integer, parameter :: MARKERTYPE_PLUS            =  2    !    Plus sign
@@ -696,23 +696,29 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
    if(present(ylabel)) then
      call gr_settextpath (  TEXT_PATH_UP    )
      call gr_setcharup   (  -1d0, 0d0       )
+     if(ylabel(1:1)=="$")  call gr_setcharheight(text_size*tex_fak) 
 !    call gr_textext(textsize+0.005d0 ,0.5d0,trim(grtex_filter(ylabel))//czero)
        call grtext(ylabel_x,ylabel_y,trim(ylabel)//czero)
+       call gr_setcharheight(text_size) 
    endif
 
    if(present(xlabel)) then
      call gr_settextpath (  TEXT_PATH_RIGHT )
      call gr_setcharup   (  0d0, 1d0        )
+     if(xlabel(1:1)=="$")  call gr_setcharheight(text_size*tex_fak) 
 !     call gr_textext(0.5d0 ,textsize+0.005d0,trim(grtex_filter(xlabel))//czero)
       call grtext(xlabel_x,xlabel_y, trim(xlabel))
+      call gr_setcharheight(text_size) 
      endif
 
    if(present(title)) then
      call gr_settextalign(  TEXT_HALIGN_LEFT , TEXT_VALIGN_HALF  ) 
      call gr_settextpath (  TEXT_PATH_RIGHT )
      call gr_setcharup   (  0d0, 1d0        )
+     if(title(1:1)=="$")  call gr_setcharheight(text_size*tex_fak) 
 !     call gr_textext(0.1d0,1-2*textsize,trim(grtex_filter(title))//czero)
      call grtext(tlabel_x, tlabel_y,trim(title)//czero)
+     call gr_setcharheight(text_size) 
    endif
 
 
@@ -808,23 +814,29 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
    if(present(ylabel)) then
      call gr_settextpath (  TEXT_PATH_DOWN    )
      call gr_setcharup   (  1d0, 0d0       )
+     if(ylabel(1:1)=="$")  call gr_setcharheight(text_size*tex_fak) 
 !     call gr_textext(1-2*textsize+0.005d0 ,0.5d0,trim(grtex_filter(ylabel))//czero)
      call grtext(ylabel_x,ylabel_y,trim(ylabel)//czero)
+     call gr_setcharheight(text_size) 
    endif
 
    if(present(xlabel)) then
      call gr_settextpath (  TEXT_PATH_RIGHT )
      call gr_setcharup   (  0d0, 1d0        )
+     if(xlabel(1:1)=="$")  call gr_setcharheight(text_size*tex_fak) 
 !     call gr_textext(0.5d0 ,1-3*textsize+0.005d0,trim(grtex_filter(xlabel))//czero)
       call grtext(xlabel_x, xlabel_y, xlabel)
+      call gr_setcharheight(text_size) 
    endif
 
    if(present(title)) then
      call gr_settextalign(  TEXT_HALIGN_RIGHT , TEXT_VALIGN_HALF  ) 
      call gr_settextpath (  TEXT_PATH_RIGHT )
      call gr_setcharup   (  0d0, 1d0        )
+     if(title(1:1)=="$")  call gr_setcharheight(text_size*tex_fak) 
 !     call gr_textext(0.9d0,1-2*textsize,trim(grtex_filter(title))//czero)
      call grtext(tlabel_x,tlabel_y,trim(title)//czero)
+     call gr_setcharheight(text_size) 
    endif
 
 
@@ -1178,6 +1190,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
        write(6,*)'= plot                                                                       ='
        write(6,*)'=    plots selected records                                                  ='
        write(6,*)'=    parameters:                                                             ='
+       write(6,*)'=      rpp            :  read lastplotpar                                    ='
        write(6,*)'=      xmin  <val>    :  start of x-plotting range                           ='
        write(6,*)'=      xmax  <val>    :  end   of x-plotting range                           ='
        write(6,*)'=      ymin  <val>    :  start of y-plotting range                           ='
@@ -1194,6 +1207,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
        write(6,*)'=      parlev         :  sets level for (more) parameter lsiting             ='
        write(6,*)'=      noparplo p1 p2.:  suppress parameter listing except for p1 p2 ...     ='
        write(6,*)'=      txsize <val>   :  set textsize (legend)                               ='
+       write(6,*)'=      texfak <val>   :  enlarge factor for tex expression (start with $     ='
        write(6,*)'=      axtxsize <val> :  scale axis script text size                         ='
        write(6,*)'=      axticlen <val> :  scale axis tick size (neg=outbound)                 ='
        write(6,*)'=      xlegdist <val> :  distance of x-axis name from axis                   ='
@@ -1230,6 +1244,10 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
 ! ----- parameter retrieving from stack -----
       nkurv  = 0
       nfkurv = 0
+
+      if(found('rpp     ')) call readplotpar()
+
+
       if(inames.eq.0) then
 !                     ----> assume that a list of number numors
        if(ipars.gt.0) then
@@ -1257,6 +1275,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
           if(vname(i).eq.'txoff   ') ptex  = .false.
           if(vname(i).eq.'epscl   ') epscl = rpar(j)
           if(vname(i).eq.'txsize  ') txsize= rpar(j)
+          if(vname(i).eq.'texfak  ') tex_fak= rpar(j)
           if(vname(i).eq.'legsize ') txsizt= rpar(j)
           if(vname(i).eq.'legx    ') xtshft= rpar(j)
           if(vname(i).eq.'legy    ') ytshft= rpar(j)

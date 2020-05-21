@@ -5,6 +5,7 @@ cp ./_pstat_/datreat_plot_counter ./
 cp ./_pstat_/lastselections       ./
 cp ./_pstat_/lastusv              ./
 cp ./_pstat_/last_datreat_content ./ 
+purge all
 inplus last_datreat_content 
 lastusv 
 sel restore 

@@ -1,4 +1,4 @@
- FUNCTION th_rpalin(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
+ FUNCTION th_rparing(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
 !============================================================================
 !  applies rpa mixture tor the scattering function for a star-linear polymer micture and extends this into the dynamic regime (i.e. S(Q) --> S(Q,t))
 ! 
@@ -12,7 +12,7 @@
 !!    ====
 
 
-      real    :: th_rpalin
+      real    :: th_rparing
       character(len=8) :: thnam, parnam (*) 
       real    :: pa (*) 
       real    :: x , xh
@@ -26,8 +26,8 @@
  
 ! the internal parameter representation 
      double precision :: ampli      ! prefactor
-     double precision :: wl4rous    ! rouse rate star 
-     integer          :: nrouseff    ! effective segment star arm 
+     double precision :: wl4ring    ! rouse rate star 
+!     integer          :: nrouseff    ! effective segment star arm 
 !     double precision :: diffrous   ! centre-of-mass diffusino star
      double precision :: diff       
      double precision :: r02   , rr     
@@ -64,7 +64,7 @@
 ! the recin parameter representation 
      double precision :: q          ! scattering wavevector
      double precision :: temp       ! temperature
-     integer          :: nrous       ! number of segments per star arm
+     integer          :: nring      ! number of segments per star arm
      double precision :: l          ! segment length
      integer          :: f          ! number of arms per star
      double precision :: phirous    ! volume fraction of star
@@ -74,7 +74,7 @@
      double precision :: betadif
 
      double precision :: alin       ! scattering contrast of linear polymer omponent 
-     double precision :: arous      ! scattering contrast of start polymer
+     double precision :: aring      ! scattering contrast of start polymer
 
      integer          :: nxpoints   ! number of points in sum(exp) modelling of S00 functions 
 
@@ -94,9 +94,10 @@
  
      double precision   :: t
 
-     double precision   :: sqt, sqt0
+     double precision   :: sqt, sqt0, sq
+     double precision   :: sqringt, sqring
      double precision   :: locrep2
-     double precision   :: prous0, prous
+     double precision   :: pring0, pring
      double precision   :: plin0, plin
      double precision   :: plin0cc, plincc
      double precision   :: dr, wx, lx
@@ -109,6 +110,27 @@
 ! exp(i*log(tmax*300d0)/nxpoints)/100d0
 ! log t table, first point at exp(log(tmax*t_table_spacing1)/nxpoints)/t_table_spacing2 
 !              last  point at exp(log(tmax*t_table_spacing1))/t_table_spacing2 = tmax*(t_table_spacing1/t_table_spacing2) 
+     double precision ::   nue     
+     double precision ::   pmin    
+     double precision ::   pwidth  
+     double precision ::   f0        = 1d0
+     double precision ::   finf      = 1d0
+!     double precision ::   tauinf  
+     double precision ::   pexinf  
+     double precision ::   r022    
+     double precision ::   nu_subdif2 
+
+
+     double precision ::   ntrans
+     double precision ::   nwidth 
+     integer          ::   n
+
+     double precision ::   Rg 
+
+     double precision ::   tauinf !! obsolete
+
+     double precision :: msd_im, tau_R, taue, Wa
+     double precision :: lring
 
 
 
@@ -150,11 +172,11 @@
 !
 ! ----- initialisation ----- 
     IF (ini.eq.0) then 
-       thnam = 'rpalin  '
-       nparx =       34
+       thnam = 'rparing  '
+       nparx =       43
        IF (npar.lt.nparx) then
            WRITE (6,*)' theory: ',thnam,' no of parametrs=',nparx,' exceeds current max. = ',npar
-          th_rpalin = 0
+          th_rparing = 0
           RETURN
        ENDIF
        npar = nparx
@@ -165,147 +187,184 @@
        th_citation(idesc)     = ""
 !       --------------> set the parameter names --->
         parnam ( 1) = 'ampli   '  ! prefactor
-        parnam ( 2) = 'wl4rous '  ! rouse rate star
-        parnam ( 3) = 'nrouseff '  ! effective segment star arm
+        parnam ( 2) = 'wl4ring '  ! rouse rate star
+        parnam ( 3) = 'nringeff'  ! effective segment star arm
         parnam ( 4) = 'd0'
         parnam ( 5) = 'r02'
         parnam ( 6) = 'alpha'
         parnam ( 7) = 'a_cross'
         parnam ( 8) = 'beta_q'
+ 
+        parnam ( 9) = 'nue     '  ! prefactor
+        parnam (10) = 'pmin    '  ! rouse rate star
+        parnam (11) = 'pwidth  '  ! effective segment star arm
+        parnam (12) = 'ntrans  '
+        parnam (13) = 'nwidth  '
+        parnam (14) = 'lring   '
+        parnam (15) = 'pexinf  '
+        parnam (16) = 'r022    '
+        parnam (17) = 'beta    '
+
 
  
-        parnam ( 7+2) = 'locr2_b '  ! locrep2 parameter b
-        parnam ( 8+2) = 'locr2_a '  ! locrep2 parameter a
-        parnam ( 9+2) = 'locr2_ta'  ! locrep2 parameter tau
-        parnam (10+2) = 'locr2_lz'  ! locrep2 parameter lz
-        parnam (11+2) = 'locr2_te'  ! locrep2 parameter teps
-        parnam (12+2) = 'nro_me  '  ! effective segments for Me-Modelling
-        parnam (13+2) = 're_me   '  ! Re of Me (entangled strand Re)
-        parnam (14+2) = 'wl4     '  ! Wl4 (local entanglement strand Re)
-        parnam (15+2) = 'difflin '  ! center of mass diffusion
-        parnam (16+2) = 'betadifl'  ! beta of linear polymer diff
+        parnam ( 7+11) = 'locr2_b '  ! locrep2 parameter b
+        parnam ( 8+11) = 'locr2_a '  ! locrep2 parameter a
+        parnam ( 9+11) = 'locr2_ta'  ! locrep2 parameter tau
+        parnam (10+11) = 'locr2_lz'  ! locrep2 parameter lz
+        parnam (11+11) = 'locr2_te'  ! locrep2 parameter teps
+        parnam (12+11) = 'nro_me  '  ! effective segments for Me-Modelling
+        parnam (13+11) = 're_me   '  ! Re of Me (entangled strand Re)
+        parnam (14+11) = 'wl4     '  ! Wl4 (local entanglement strand Re)
+        parnam (15+11) = 'difflin '  ! center of mass diffusion
+        parnam (16+11) = 'betadifl'  ! beta of linear polymer diff
 
-        parnam (17+2) = 'lr2_b_c '  ! locrep2 parameter b for matrix c
-        parnam (18+2) = 'lr2_a_c '  ! locrep2 parameter a for matrix c
-        parnam (19+2) = 'lr2_ta_c'  ! locrep2 parameter tau for matrix c 
-        parnam (20+2) = 'lr2_lz_c'  ! locrep2 parameter lz for matrix c 
-        parnam (21+2) = 'lr2_te_c'  ! locrep2 parameter teps for matrix c 
-        parnam (22+2) = 'nro_me_c'  ! effective segments for Me-Modelling for matrix c 
-        parnam (23+2) = 're_me_c '  ! Re of Me (entangled strand Re) for matrix c 
-        parnam (24+2) = 'wl4_c   '  ! Wl4 (local entanglement strand Re) for matrix c 
-        parnam (25+2) = 'diffmatc'  ! center of mass diffusion for matrix c 
-        parnam (26+2) = 'betadifc'  ! beta of linear polymer diff for matrix c 
+        parnam (17+11) = 'lr2_b_c '  ! locrep2 parameter b for matrix c
+        parnam (18+11) = 'lr2_a_c '  ! locrep2 parameter a for matrix c
+        parnam (19+11) = 'lr2_ta_c'  ! locrep2 parameter tau for matrix c 
+        parnam (20+11) = 'lr2_lz_c'  ! locrep2 parameter lz for matrix c 
+        parnam (21+11) = 'lr2_te_c'  ! locrep2 parameter teps for matrix c 
+        parnam (22+11) = 'nro_me_c'  ! effective segments for Me-Modelling for matrix c 
+        parnam (23+11) = 're_me_c '  ! Re of Me (entangled strand Re) for matrix c 
+        parnam (24+11) = 'wl4_c   '  ! Wl4 (local entanglement strand Re) for matrix c 
+        parnam (25+11) = 'diffmatc'  ! center of mass diffusion for matrix c 
+        parnam (26+11) = 'betadifc'  ! beta of linear polymer diff for matrix c 
 
-        parnam (27+2) = 'mode    '  ! what to compute
-        parnam (28+2) = 'modeex  '  ! selects way of representation in terms of nexp
-        parnam (29+2) = 'nxpoints'  ! number of points to determine representation in terms of nexp
-        parnam (30+2) = 'tzero   '  ! preliminary: effective zero time for S(Q,t=0=tzero)
-        parnam (31+2) = 'tmaxrng '  ! maximum range that shall be spanned by creating the n-exp model
-        parnam (32+2) = 'minrate '  ! minimum rate allowed in the exp models
+        parnam (27+11) = 'mode    '  ! what to compute
+        parnam (28+11) = 'modeex  '  ! selects way of representation in terms of nexp
+        parnam (29+11) = 'nxpoints'  ! number of points to determine representation in terms of nexp
+        parnam (30+11) = 'tzero   '  ! preliminary: effective zero time for S(Q,t=0=tzero)
+        parnam (31+11) = 'tmaxrng '  ! maximum range that shall be spanned by creating the n-exp model
+        parnam (32+11) = 'minrate '  ! minimum rate allowed in the exp models
 
 ! >>>>> describe parameters >>>>>>> 
         th_param_desc( 1,idesc) = "prefactor" !//cr//parspace//&
-        th_param_desc( 2,idesc) = "rouse short liner chains rate (phirous)" !//cr//parspace//&
+        th_param_desc( 2,idesc) = "ring chains rouse rate (phiring)" !//cr//parspace//&
         th_param_desc( 3,idesc) = "effective segment number in summation" !//cr//parspace//&
         th_param_desc( 4,idesc) = "limiting diffusion (NMR value)" !//cr//parspace//&
         th_param_desc( 5,idesc) = " reference mean squared displacement at transition point to D0 " !//cr//parspace//&
         th_param_desc( 6,idesc) = " = nu_subdiff  exponent " !//cr//parspace//&
         th_param_desc( 7,idesc) = " transition exponent between short and long time diffusuion " !//cr//parspace//&
         th_param_desc( 8,idesc) = " heterogeneity exponent  " !//cr//parspace//&
+ 
+        th_param_desc( 9,idesc) = 'ring chain statistic exponent (gauss=0.5)     '  
+        th_param_desc(10,idesc) = 'minimum rouse mode    '  
+        th_param_desc(11,idesc) = 'width of rouse mode switching ' 
+        th_param_desc(12,idesc) = 'ntans   '
+        th_param_desc(13,idesc) = 'nwidth    '
+        th_param_desc(14,idesc) = 'lring effective  '
+        th_param_desc(15,idesc) = 'pexinf  '
+        th_param_desc(16,idesc) = 'second diffiusion kink r**2     '
+        th_param_desc(17,idesc) = 'intermediate beta diffusion subdiff exponent   '
 
 
-        th_param_desc( 7+2,idesc) = "locrep2 parameter b" !//cr//parspace//&
-        th_param_desc( 8+2,idesc) = "locrep2 parameter a" !//cr//parspace//&
-        th_param_desc( 9+2,idesc) = "locrep2 parameter tau" !//cr//parspace//&
-        th_param_desc(10+2,idesc) = "locrep2 parameter lz" !//cr//parspace//&
-        th_param_desc(11+2,idesc) = "locrep2 parameter teps" !//cr//parspace//&
-        th_param_desc(12+2,idesc) = "effective segments for Me-Modelling" !//cr//parspace//&
-        th_param_desc(13+2,idesc) = "Re of Me (entangle strand Re)" !//cr//parspace//&
-        th_param_desc(14+2,idesc) = "Wl4 entaglement strand" !//cr//parspace//&
-        th_param_desc(15+2,idesc) = "centre-of-mass diffusion linear" !//cr//parspace//&
-        th_param_desc(16+2,idesc) = "betadiff linear" !//cr//parspace//&
 
-        th_param_desc(17+2,idesc) = "locrep2 parameter b  for matrix polymer (c)" !//cr//parspace//&
-        th_param_desc(18+2,idesc) = "locrep2 parameter a  for matrix polymer (c)" !//cr//parspace//&
-        th_param_desc(19+2,idesc) = "locrep2 parameter tau for matrix polymer (c)" !//cr//parspace//&
-        th_param_desc(20+2,idesc) = "locrep2 parameter lz  for matrix polymer (c)" !//cr//parspace//&
-        th_param_desc(21+2,idesc) = "locrep2 parameter teps  for matrix polymer (c)" !//cr//parspace//&
-        th_param_desc(22+2,idesc) = "effective segments for Me-Modelling  for matrix polymer (c)" !//cr//parspace//&
-        th_param_desc(23+2,idesc) = "Re of Me (entangle strand Re)  for matrix polymer (c)" !//cr//parspace//&
-        th_param_desc(24+2,idesc) = "Wl4 entaglement strand  for matrix polymer (c)" !//cr//parspace//&
-        th_param_desc(25+2,idesc) = "centre-of-mass diffusion linear  for matrix polymer (c)" !//cr//parspace//&
-        th_param_desc(26+2,idesc) = "betadiff linear  for matrix polymer (c)" !//cr//parspace//&
+        th_param_desc( 7+11,idesc) = "locrep2 parameter b" !//cr//parspace//&
+        th_param_desc( 8+11,idesc) = "locrep2 parameter a" !//cr//parspace//&
+        th_param_desc( 9+11,idesc) = "locrep2 parameter tau" !//cr//parspace//&
+        th_param_desc(10+11,idesc) = "locrep2 parameter lz" !//cr//parspace//&
+        th_param_desc(11+11,idesc) = "locrep2 parameter teps" !//cr//parspace//&
+        th_param_desc(12+11,idesc) = "effective segments for Me-Modelling" !//cr//parspace//&
+        th_param_desc(13+11,idesc) = "Re of Me (entangle strand Re)" !//cr//parspace//&
+        th_param_desc(14+11,idesc) = "Wl4 entaglement strand" !//cr//parspace//&
+        th_param_desc(15+11,idesc) = "centre-of-mass diffusion linear" !//cr//parspace//&
+        th_param_desc(16+11,idesc) = "betadiff linear" !//cr//parspace//&
 
-        th_param_desc(27+2,idesc) = "mode: 0 normal, >0 S(x=Q,tau) 1 lin, 2 star 3 rpa" !//cr//parspace//&
-        th_param_desc(28+2,idesc) = "modex: number of exps to represent the undistrurbed S(q,t) relaxation curves" !//cr//parspace//&
-        th_param_desc(29+2,idesc) = "number of points to determine representation in terms of nexp" !//cr//parspace//&
-        th_param_desc(30+2,idesc) = "preliminary: effective zero time for S(Q,t=0=tzero)" //cr//parspace//&
+        th_param_desc(17+11,idesc) = "locrep2 parameter b  for matrix polymer (c)" !//cr//parspace//&
+        th_param_desc(18+11,idesc) = "locrep2 parameter a  for matrix polymer (c)" !//cr//parspace//&
+        th_param_desc(19+11,idesc) = "locrep2 parameter tau for matrix polymer (c)" !//cr//parspace//&
+        th_param_desc(20+11,idesc) = "locrep2 parameter lz  for matrix polymer (c)" !//cr//parspace//&
+        th_param_desc(21+11,idesc) = "locrep2 parameter teps  for matrix polymer (c)" !//cr//parspace//&
+        th_param_desc(22+11,idesc) = "effective segments for Me-Modelling  for matrix polymer (c)" !//cr//parspace//&
+        th_param_desc(23+11,idesc) = "Re of Me (entangle strand Re)  for matrix polymer (c)" !//cr//parspace//&
+        th_param_desc(24+11,idesc) = "Wl4 entaglement strand  for matrix polymer (c)" !//cr//parspace//&
+        th_param_desc(25+11,idesc) = "centre-of-mass diffusion linear  for matrix polymer (c)" !//cr//parspace//&
+        th_param_desc(26+11,idesc) = "betadiff linear  for matrix polymer (c)" !//cr//parspace//&
+
+        th_param_desc(27+11,idesc) = "mode: 0 normal, >0 S(x=Q,tau) 1 lin, 2 star 3 rpa" !//cr//parspace//&
+        th_param_desc(28+11,idesc) = "modex: number of exps to represent the undistrurbed S(q,t) relaxation curves" !//cr//parspace//&
+        th_param_desc(29+11,idesc) = "number of points to determine representation in terms of nexp" !//cr//parspace//&
+        th_param_desc(30+11,idesc) = "preliminary: effective zero time for S(Q,t=0=tzero)" //cr//parspace//&
                                   "for the numerical integration we have a smoothing of the 0-->1 jump " //cr//parspace//&
                                   "at t=0 due to the pratically less than infinite width of the s-integration"  //cr//parspace//&
                                   "for the analytic=1 method this may be zero, for the analytic=0 method something" //cr//parspace//&
                                   "like 0.001 * tmax could be a good start to try"
-        th_param_desc(31+2,idesc) = " maximum range that shall be spanned by creating the n-exp model" !//cr//parspace//&
-        th_param_desc(32+2,idesc) = " minimum rate allowed in the exp models" !//cr//parspace//&
+        th_param_desc(31+11,idesc) = " maximum range that shall be spanned by creating the n-exp model" !//cr//parspace//&
+        th_param_desc(32+11,idesc) = " minimum rate allowed in the exp models" !//cr//parspace//&
+
+
+
 ! >>>>> describe record parameters used >>>>>>>
         th_file_param(:,idesc) = " " 
         th_file_param(  1,idesc) = "q        > scattering wavevector"
         th_file_param(  2,idesc) = "temp     > temperature"
-        th_file_param(  3,idesc) = "nrous     > number of segments per star arm"
+        th_file_param(  3,idesc) = "nring    > number of segments per ring"
         th_file_param(  4,idesc) = "l        > segment length"
         th_file_param(  5,idesc) = "f        > number of arms per star"
-        th_file_param(  6,idesc) = "phirous  > volume fraction of star"
+        th_file_param(  6,idesc) = "phiring  > volume fraction of star"
         th_file_param(  7,idesc) = "nlin     > number of segments of linear polymer"
         th_file_param(  8,idesc) = "nlin_cc  > number of segments of linear polymer matrix"
         th_file_param(  9,idesc) = "philin   > volume fraction of linera polymer"
         th_file_param( 10,idesc) = "tau      > tau val for mode > 0 calc"
         th_file_param( 11,idesc) = "alin     > scattering contrast linear"
-        th_file_param( 12,idesc) = "arous    > scattering contrast star"
+        th_file_param( 12,idesc) = "aring    > scattering contrast ring"
 ! >>>>> describe record parameters creaqted by this theory >>>>>>> 
         th_out_param(:,idesc)  = " "
+        th_out_param(1,idesc)  = "Rg of ring"
 ! 
-        th_rpalin = 0.0
+        th_rparing = 0.0
  
         RETURN
      ENDIF
 !
 ! ---- transfer parameters -----
       ampli    =      pa( 1)
-      wl4rous  = abs( pa( 2))
-      nrouseff = nint(pa( 3))
+      wl4ring  = abs( pa( 2))
+      n        = nint(pa( 3))
       diff        = abs( pa (4) )    ! in A**2/ns
       r02         = abs( pa (5) )
       nu_subdiff  = abs( pa (6) )
       a_cross     = abs( pa (7) )
       beta_q      = abs( pa (8) )
+ 
+       nue     = abs( pa( 9) )
+       pmin    = abs( pa(10) )
+       pwidth  = abs( pa(11) )
+       ntrans  = abs( pa(12) )
+       nwidth  = abs( pa(13) )
+       lring   = abs( pa(14) )
+       pexinf  = abs( pa(15) )
+       r022    = abs( pa(16) )
+    nu_subdif2 = abs( pa(17) )
 
-      locr2_b  = abs( pa( 7+2))
-      locr2_a  = abs( pa( 8+2))
-      locr2_ta = abs( pa( 9+2))
-      locr2_lz = abs( pa(10+2))
-      locr2_te = abs( pa(11+2))
-      nro_me   = nint(pa(12+2))
-      re_me    = abs( pa(13+2))
-      wl4      = abs( pa(14+2))
-      difflin  = abs( pa(15+2))
-      betadifl = abs( pa(16+2))
 
-      lr2_b_c  = abs( pa(17+2))
-      lr2_a_c  = abs( pa(18+2))
-      lr2_ta_c = abs( pa(19+2))
-      lr2_lz_c = abs( pa(20+2))
-      lr2_te_c = abs( pa(21+2))
-      nro_me_c = nint(pa(22+2))
-      re_me_c  = abs( pa(23+2))
-      wl4_c    = abs( pa(24+2))
-      diffmatc = abs( pa(25+2))
-      betadifc = abs( pa(26+2))
+      locr2_b  = abs( pa( 7+11))
+      locr2_a  = abs( pa( 8+11))
+      locr2_ta = abs( pa( 9+11))
+      locr2_lz = abs( pa(10+11))
+      locr2_te = abs( pa(11+11))
+      nro_me   = nint(pa(12+11))
+      re_me    = abs( pa(13+11))
+      wl4      = abs( pa(14+11))
+      difflin  = abs( pa(15+11))
+      betadifl = abs( pa(16+11))
 
-      mode     = nint(pa(27+2))
-      modeex   = nint(pa(28+2))
-      nxpoints = nint(pa(29+2))
-      t0       = abs( pa(30+2))
-      tmax     = abs( pa(31+2))
-      rlow     = abs( pa(32+2))  ! parameter in rpa_laplace
+      lr2_b_c  = abs( pa(17+11))
+      lr2_a_c  = abs( pa(18+11))
+      lr2_ta_c = abs( pa(19+11))
+      lr2_lz_c = abs( pa(20+11))
+      lr2_te_c = abs( pa(21+11))
+      nro_me_c = nint(pa(22+11))
+      re_me_c  = abs( pa(23+11))
+      wl4_c    = abs( pa(24+11))
+      diffmatc = abs( pa(25+11))
+      betadifc = abs( pa(26+11))
+
+      mode     = nint(pa(27+11))
+      modeex   = nint(pa(28+11))
+      nxpoints = nint(pa(29+11))
+      t0       = abs( pa(30+11))
+      tmax     = abs( pa(31+11))
+      rlow     = abs( pa(32+11))  ! parameter in rpa_laplace
 
 
       t0       = max(t0      ,tmin)
@@ -334,8 +393,8 @@
       temp     = xh
 ! >>> extract: number of segments per star arm
       xh = 1
-      call parget('nrous    ',xh,iadda,ier)
-      nrous     = xh
+      call parget('nring    ',xh,iadda,ier)
+      nring    = xh
 ! >>> extract: segment length
       xh = 3d0
       call parget('l       ',xh,iadda,ier)
@@ -346,7 +405,7 @@
       f        = nint(xh)
 ! >>> extract: volume fraction of star
       xh = 0.01d0
-      call parget('phirous ',xh,iadda,ier)
+      call parget('phiring ',xh,iadda,ier)
       phirous  = xh
 ! >>> extract: number of segments of linear polymer
       xh = 100
@@ -370,9 +429,24 @@
       alin   = xh
 !!! >>> extract: tau for mode > 0
       xh = 1.0d0
-      call parget('arous    ',xh,iadda,ier)
-      arous  = xh
-!!!!!!!! 
+      call parget('aring    ',xh,iadda,ier)
+      aring  = xh
+!
+!!! >>> tentative only testing USE OPTIMIZED log space integration as default (2)
+      xh =  0.0001d0
+      call parget('xil      ',xh,iadda,ier)
+      xil = xh
+!!! >>> tentative only testing
+      xh =  1d-9
+      call parget('epap      ',xh,iadda,ier)
+      epap = xh
+!!! >>> tentative only testing
+      xh =  1d-5
+      call parget('epsrpa    ',xh,iadda,ier)
+      epsrpa = xh
+
+
+!!!!!!! 
 ! ------------------------------------------------------------------
 ! ----------------------- implementation ---------------------------
 ! ------------------------------------------------------------------
@@ -385,14 +459,15 @@ i1:  if( mode == 0 ) then     ! normal spin-echo
      endif i1
 
 
-      allparams(1:44) = [ wl4rous, dble(nrouseff), locr2_b, locr2_a, locr2_ta, locr2_lz, locr2_te, &
-                         dble(nro_me) , re_me,   wl4     , betadif , q , dble(nrous), l, dble(f),   &
-                         phirous, dble(nlin), philin, alin, arous, &
+      allparams(1:54) = [ wl4ring, dble(n), locr2_b, locr2_a, locr2_ta, locr2_lz, locr2_te, &
+                         dble(nro_me) , re_me,   wl4     , betadif , q , dble(nring), l, dble(f),   &
+                         phirous, dble(nlin), philin, alin, aring, &
                          dble(nlin_cc),  &
                          lr2_b_c, lr2_a_c, lr2_ta_c, lr2_lz_c, lr2_te_c, &
                          dble(nro_me_c) , re_me_c,   wl4_c     , diffmatc, betadifc, difflin, betadifl, &
                          diff, r02, nu_subdiff, a_cross, beta_q , &
-                         dble(mode), dble(modeex), dble(nxpoints), t0, tmax, rlow ]  
+                         dble(mode), dble(modeex), dble(nxpoints), t0, tmax, rlow, &
+                         nue, pmin, pwidth, f0, finf, tauinf, pexinf, r022, nu_subdif2, lring  ]  
 
       newcomp_required = ( sum(abs(allparams-last_params)) .ne. 0 ) .and. (modeex > 0)
     
@@ -479,28 +554,44 @@ ilr: if( newcomp_required ) then
       endif
 
 
-
+!!!! For now we keep the internal names pring phirous nrous .... for the RING
+!!!! refactoring is then the next step
       ! (short) linear polymer componnent: here labelled (alin) part with concentration phirous
       ! modelling in terms of N-Rouse model (explicit summation of Roise modes) multiplied by
       ! a center of mass diffsuion with sublinear initial phase and simple diffusion beyond r**2 = r02
-      ! HERE: parametes nrous, arous, phirous --> s22
+      ! HERE: parametes nrous, aring, phirous --> s22
 
       do i=1,nxpoints
              ts     =  t_samples(i)
-             Re_rous = sqrt(nrous * l**2)
-
-             dr      = 1d-20
-             ifix    = 0
-             call  NrousePX(q,ts,temp,Dr,wl4rous,nrouseff,Re_rous, Wx, lx,ifix, sqt0,sqt)
-             prous0 =  nrous  * Debye_qnl(q, nrous, l) 
+!?!             Re_rous = sqrt(nrous * l**2)
+!?!
+!?!             dr      = 1d-20
+!?!             ifix    = 0
+!?!             call  NrousePX(q,ts,temp,Dr,wl4rous,nrouseff,Re_rous, Wx, lx,ifix, sqt0,sqt)
+!?!             pring0 =  nrous  * Debye_qnl(q, nrous, l) 
+!?!
+!?!             rr = ((exp(-log(r02/diff/6)*nu_subdiff)*r02*ts** nu_subdiff)** a_cross +&
+!?!                  (6*diff*ts)**a_cross)**(1d0/a_cross)
+!?!
+!?!             s_samples(i) = sqt/sqt0 * exp( -(q*q*rr/6d0)**beta_q )
+!?!             pring        = pring0 * s_samples(i)
+!?!
+             call Nrouse_ring2am7(q,ts,wl4ring,lring,N,sqring,sqringt)
 
              rr = ((exp(-log(r02/diff/6)*nu_subdiff)*r02*ts** nu_subdiff)** a_cross +&
                   (6*diff*ts)**a_cross)**(1d0/a_cross)
 
-             s_samples(i) = sqt/sqt0 * exp( -(q*q*rr/6d0)**beta_q )
-             prous        = prous0 * s_samples(i)
+             s_samples(i) = sqringt/sqring  * exp( -(q*q*rr/6d0)**beta_q )
+           
+             pring0 = (sqring/N)*nring 
+             pring  = (sqringt/N)*nring
 
        enddo
+
+!? write(*,*)"pring0=",pring0, pring, N, nring
+!? write(*,*)"S, q= ", q
+!? write(*,'(2F18.8)')(t_samples(i), s_samples(i), i=1,nxpoints)
+
        rmsdev = rmsdev_limit
        call match_exp_auto(t_samples,s_samples,nxpoints,modeex,nexp2,aexp22,rexp22,rmsdev,iout)
 
@@ -525,7 +616,7 @@ ilr: if( newcomp_required ) then
         
         Scc00             =   plin0cc  ! unperturbed structure factor S(Q) of "matrix" polymers
         S0011             =   plin0    ! unperturbed structure factor S(Q) of polymer 1
-        S0022             =   prous0   ! unperturbed structure factor S(Q) of polymer 2
+        S0022             =   pring0   ! unperturbed structure factor S(Q) of polymer 2
 !        nexpcc            =   modeexcc   ! number of exp-functions to describe background
 !        nexp1             =   modeex1   ! number of exp-functions to describe component1
 !        nexp2             =   modeex2   ! number of exp-functions to describe component2
@@ -562,41 +653,44 @@ ilr: if( newcomp_required ) then
      endif
 
 
-     sqt  = ss11  * alin*alin + 2*alin*arous * ss12  +  ss22  * arous*arous 
-     sqt0 = ss110 * alin*alin + 2*alin*arous * ss120 +  ss220 * arous*arous 
+     sqt  = ss11  * alin*alin + 2*alin*aring * ss12  +  ss22  * aring*aring 
+     sqt0 = ss110 * alin*alin + 2*alin*aring * ss120 +  ss220 * aring*aring 
 
 
  select case(mode)  ! be sure that in the beginning the assignment of t, q are properly made (if i1:)
    case (0)
-       th_rpalin = Sqt/Sqt0
+       th_rparing = Sqt/Sqt0
 
   case (1) ! linear contribution at tau as function of q
-     th_rpalin = plin
+     th_rparing = plin
 
-  case(2)  ! star contribution at tau  as function of q
-     th_rpalin = prous
+  case(2)  ! ring contribution at tau  as function of q
+     th_rparing = pring
  
   case(3)  ! rpa contribution at tau as function of q
-      th_rpalin = Sqt
+      th_rparing = Sqt
 
   case default
      write(6,*)'invalid mode !'
-      th_rpalin = 0
+      th_rparing = 0
 
  end select
 
-  th_rpalin =  th_rpalin * ampli
+  th_rparing =  th_rparing * ampli
 
-  call parset('nlin    ',(1.0*nlin),iadda) 
-  call parset('nlin_cc ',(1.0*nlin_cc),iadda) 
-  call parset('nrous   ',(1.0*nrous),iadda) 
-  call parset('f       ',(1.0*f),iadda) 
+!??!  call parset('nlin    ',(1.0*nlin),iadda) 
+!??!  call parset('nlin_cc ',(1.0*nlin_cc),iadda) 
+!??!  call parset('nrous   ',(1.0*nrous),iadda) 
+!??!  call parset('f       ',(1.0*f),iadda) 
+!??!
+!??!  call parset('l       ',sngl(l),iadda) 
+!??!  call parset('philin  ',sngl(philin),iadda) 
+!??!  call parset('phirous ',sngl(phirous),iadda) 
+!??!  call parset('alin    ',sngl(alin),iadda) 
+!??!  call parset('arous   ',sngl(arous),iadda) 
 
-  call parset('l       ',sngl(l),iadda) 
-  call parset('philin  ',sngl(philin),iadda) 
-  call parset('phirous ',sngl(phirous),iadda) 
-  call parset('alin    ',sngl(alin),iadda) 
-  call parset('arous   ',sngl(arous),iadda) 
+  call parset('Rg      ',sngl(Rg),iadda,ier)
+ 
 
 
  CONTAINS 
@@ -667,7 +761,6 @@ ilr: if( newcomp_required ) then
          write(6,*)'Error Number of chain segments is <= 0!',N
          return
        endif
-
 ! ---- determine the segment length l ----
        l = sqrt(R**2/N)       
        
@@ -766,10 +859,166 @@ ilr: if( newcomp_required ) then
        end subroutine NrousePX
  
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! subroutines and functions entered here are private to this theory and share its variables
+
+       subroutine Nrouse_ring2am7(q,t,wl4,l,N,Sq,Sqt)
+!      ================================================================
+!
+! Rouse expression for a ring polymer
+! with Nb segments each, the ideal Ree of the linear version of the polymer is given by R.
+! amod contains mode modifiers
+! Input parameters: (polymer and model descriptor are contained shared with main )
+!    q     ----> momentum transfer in A**-1
+!    t     ----> time in nano-sec
+! Output parameters:
+!    Rg    <--- radius of gyration
+!    Sq    <--- S(Q)
+!    Sqt   <--- S(Q,t)
+! ------------------------------------------------------------
+!
+       implicit none
+
+       double precision kb, pi
+       parameter(kb=1.380662d-23)
+       parameter(pi=3.141592654d0)
 
 
- end function th_rpalin
+
+       double precision, intent(in)     ::  q ,t, wl4, l
+       integer, intent(in)              ::  N
+       double precision, intent(out)    ::  Sq, Sqt
+
+       integer                          ::  nn,mm,p
+
+       double precision :: rate, traf, nun ! , tau_R, W, Ne0, taue
+
+
+       double precision :: cosarray(0:N,N/2), ewfac(N/2), ff2(N/2)
+
+       double precision :: nu(0:N)
+       double precision :: tram(0:N)
+
+       double precision :: W
+       double precision :: Ne0, nu0
+
+
+
+       integer          :: ip, N2
+
+
+       if(N.le.0) then
+         W  = 999
+         Sq = 999
+         Sqt= 999
+         write(6,*)'Error Number of chain segments is <= 0!',N
+         return
+       endif
+
+       Ne0 = 0
+       nu0 = 0.5d0
+
+
+! ---- and the Rousetime ----
+       W     = Wl4 / l**4
+       tau_R = N**2/(W * Pi**2)
+       if(Ne0 <= 0d0)  Ne0   = N/max(1d0,pmin)
+       taue  = Ne0**2 * l**4/(Wl4*pi**2)
+!!       tauinf= taue * pmin**pexinf !! taue * (N/Ne0)**pexinf 
+!!       rp=(Wl4*pi^2)*(p/pmin)**pexp/Ne0^2.
+
+!? write(*,*)"Wl4..",wl4,w,ne0,taue,nu0
+!? write(*,*)"N,nue,l,pmin,pwidth..",n,nue,l,pmin,pwidth,ntrans,nwidth
+
+! ---- init sums ----
+       N2 = N/2
+! p(even) = 2*ip in the following...a
+
+!$OMP PARALLEL DO
+  do nn=0,N
+    tram(nn) = 1d0/(1.0d0+exp((nn-ntrans)/nwidth))
+!                                 -----   ------
+  enddo
+!$OMP END PARALLEL DO
+
+
+!$OMP PARALLEL DO
+  do nn=0,N
+    nu(nn) = 2*(nu0*tram(nn) + (1-tram(nn))*nue)
+  enddo
+!$OMP END PARALLEL DO
+
+
+
+!$OMP PARALLEL DO PRIVATE(traf,nun)
+       do nn=0,N
+        do ip=1,N2
+         traf = 1d0/(1.0d0+exp((2d0*ip-pmin)/pwidth))
+         nun  = traf * (2*nue) + (1d0-traf) * (2*nu0)
+         ff2(ip) =  -2d0* dble(N)**nun *(l*q)**2/(3d0*pi**2)
+         cosarray(nn,ip) = cos((pi*2*ip*(nn))/dfloat(N))               &
+                          /  dble(2*ip)**(2d0)                         &
+                          *  (f0*(1d0-traf)+finf*(traf))
+        enddo
+       enddo
+!$OMP END PARALLEL DO
+
+
+!       ff2  = -2d0* dble(N)**nu *(l*q)**2/(3d0*pi**2)
+
+       msd_im = 0
+!$OMP PARALLEL DO PRIVATE(rate,traf) REDUCTION(+:msd_im)
+!!$OMP PARALLEL DO PRIVATE(rate,traf)
+       do ip=1,N/2
+         traf = 1d0/(1.0d0+exp((2d0*ip-pmin)/pwidth))
+
+         rate      = dble(2d0*ip)**(2d0)/tau_R*(1d0-traf) + &
+                     (W*pi**2)* (2d0*ip/pmin)**pexinf/Ne0**2 * traf
+
+         ewfac(ip) = 1.0d0-exp(-t * rate )
+
+
+         msd_im = msd_im - ff2(ip)  /  dble(2*ip)**(1d0+1.d0)                      &
+                          *  (f0*(1d0-traf)+finf*(traf))                       &
+                          *  ewfac(ip)
+       enddo
+!$OMP END PARALLEL DO
+       msd_im = 6 * msd_im / q**2
+
+
+           Sq  = 0
+           Sqt = 0
+           Rg  = 0
+
+
+! ---- Do the sums -----
+!$OMP PARALLEL DO REDUCTION(+:Sq,Sqt,Rg)
+           do nn = 1,N
+            do mm = 1,N
+
+
+              Sq  = Sq  + exp(-((q*l)**2)/6d0 * ( dble(abs(nn-mm))*dble((N-abs(nn-mm)))/dble(N))**nu(abs(nn-mm)) )
+              Sqt = Sqt + exp(-((q*l)**2)/6d0 * ( dble(abs(nn-mm))*dble((N-abs(nn-mm)))/dble(N))**nu(abs(nn-mm)) &
+                              + sum(cosarray(abs(nn-mm),1:N2)*ewfac(1:N2)*ff2(1:N2)) )
+
+              Rg  = Rg  + l**2  * ( dble(abs(nn-mm))*dble((N-abs(nn-mm)))/dble(N))**nu(abs(nn-mm)) 
+
+            enddo
+           enddo
+!$OMP END PARALLEL DO
+
+           Sq  = Sq /N
+           Sqt = Sqt/N
+
+           Rg  = sqrt(Rg/2d0/N**2)
+
+!? write(*,*)"t,q,Sq,Sqt=",t,q,Sq,Sqt
+
+
+       end subroutine Nrouse_ring2am7
+
+
+
+ end function th_rparing
 
 
