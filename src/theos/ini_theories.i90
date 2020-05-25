@@ -64,7 +64,7 @@
        nthpar(31) = mtpar 
        dummy = th_locrep2(x,par,thenam(31),thparn(:,31),nthpar(31),ini,idum ,idum,idum,idum)
        nthpar(32) = mtpar 
-       dummy = th_locrep3(x,par,thenam(32),thparn(:,32),nthpar(32),ini,idum ,idum,idum,idum)
+       dummy = th_locrepr(x,par,thenam(32),thparn(:,32),nthpar(32),ini,idum ,idum,idum,idum)
        nthpar(33) = mtpar 
        dummy = th_locrept(x,par,thenam(33),thparn(:,33),nthpar(33),ini,idum ,idum,idum,idum)
        nthpar(34) = mtpar 

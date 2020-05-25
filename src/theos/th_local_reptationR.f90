@@ -1,4 +1,4 @@
- FUNCTION th_locrep3(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
+ FUNCTION th_locrepr(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
 !================================================================================
 !  generalized local reptation expression along the lines of deGennes, 
 !  but with finite summation of integrals and lenthscale, 
@@ -6,7 +6,7 @@
 !  Journal de Physique, 1981, 42 (5), pp.735-740. <10.1051/jphys:01981004205073500>
       use theory_description 
       implicit none 
-      real    :: th_locrep3
+      real    :: th_locrepr
       character(len=8) :: thnam, parnam (*) 
       real    :: pa (*) 
       real    :: x , xh
@@ -27,21 +27,22 @@
 ! the recin parameter representation 
      double precision :: q          ! q-value                                                                         
 
-     double precision :: local_reptation3, sqt, sqt0
+     double precision :: local_reptation_lr, sqt, sqt0
      double precision :: teps = 1d-6
  
-     double precision :: tau_e
-     double precision :: alpha
+     double precision :: nu
+     integer          :: m, mode
+     
 
      double precision   :: t
 !
 ! ----- initialisation ----- 
     IF (ini.eq.0) then     
-       thnam = 'locrep3'
-       nparx =        8
+       thnam = 'locrepr'
+       nparx =        9
        IF (npar.lt.nparx) then
            WRITE (6,*)' theory: ',thnam,' no of parametrs=',nparx,' exceeds current max. = ',npar
-          th_locrep3 = 0
+          th_locrepr = 0
           RETURN
        ENDIF
        npar = nparx
@@ -59,8 +60,9 @@
         parnam ( 4) = 'tau     '  ! timescale                                                                       
         parnam ( 5) = 'lz      '  ! total length                                                                    
         parnam ( 6) = 'teps    '  ! near zero for t=0 evaluation 
-        parnam ( 7) = 'tau_e   '  ! transition (entanglement) time 
-        parnam ( 8) = 'alpha   '  ! sharpness of transition 
+        parnam ( 7) = 'nu      '  ! default 0.5
+        parnam ( 8) = 'm       '  ! sharpness of transition 
+        parnam ( 9) = 'mode    '  ! 0=std, 1=ring 
       
                                                                          
 ! >>>>> describe parameters >>>>>>> 
@@ -70,8 +72,9 @@
         th_param_desc( 4,idesc) = "timescale" !//cr//parspace//&
         th_param_desc( 5,idesc) = "total length" !//cr//parspace//&
         th_param_desc( 6,idesc) = "teps near zero for t=0 evaluation" !//cr//parspace//&
-        th_param_desc( 7,idesc) = "entanglement time (transition from Rouse to local rep." !//cr//parspace//&
-        th_param_desc( 8,idesc) = "sharpnsess of transition " !//cr//parspace//&
+        th_param_desc( 7,idesc) = "chain expansion exponent defaut=0.5" !//cr//parspace//&
+        th_param_desc( 8,idesc) = "diffusion mode summation number (only for mode=1)" !//cr//parspace//&
+        th_param_desc( 9,idesc) = "mode = 0: std locrep expr, mode=1: ring variant" !//cr//parspace//&
 ! >>>>> describe record parameters used >>>>>>>
         th_file_param(:,idesc) = " " 
         th_file_param(  1,idesc) = "q        > q-value"
@@ -79,20 +82,21 @@
         th_out_param(:,idesc)   = " "
         th_out_param(1,idesc)   = "a2sqt = a**2/sqrt(tau) "
 ! 
-        th_locrep3 = 0.0
+        th_locrepr = 0.0
  
         RETURN
      ENDIF
 !
 ! ---- transfer parameters -----
-      ampli    =      pa( 1)
-      b        =   abs( pa( 2) )
-      a        =   abs( pa( 3) )
-      tau      =   abs( pa( 4) )
-      lz       =   abs( pa( 5) )
-      teps     =        pa( 6)
-      tau_e    =      ( pa(7)  )
-      alpha    =   abs( pa(8)  )
+      ampli    =         pa( 1)
+      b        =   abs ( pa( 2) )
+      a        =   abs ( pa( 3) )
+      tau      =   abs ( pa( 4) )
+      lz       =   abs ( pa( 5) )
+      teps     =         pa( 6)
+      nu       =   abs ( pa(7)  )
+      M        =   nint( pa(8)  )
+      mode     =   nint( pa(9)  )
       if (teps <= 0d0) teps = 1d-6
 ! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
       iadda = actual_record_address()
@@ -107,84 +111,121 @@
 ! ----------------------- implementation ---------------------------
 ! ------------------------------------------------------------------
 ! 
-     sqt0 =  local_reptation3( q*a, teps,  b, lz)
-     sqt  =  local_reptation3( q*a, t/tau, b, lz)
-     th_locrep3 = ampli * sqt/sqt0
-
-! smooth transition from 1 to the local reptation decay at tau_e 
-     th_locrep3 = 1d0-1d0/(1d0 + exp(-(t-tau_e)*alpha))+1d0/(1d0+exp(-(t-tau_e)*alpha))*th_locrep3
+     sqt0 =  local_reptation_lr( q*a, teps,  b, lz, nu, M, mode)
+     sqt  =  local_reptation_lr( q*a, t/tau, b, lz, nu, M, mode)
+     th_locrepr = ampli * sqt/sqt0
 
 
 !     write(6,*) t, q, sqt, sqt0
       call parset("a2sqt   ", sngl(a*a/sqrt(tau)),iadda,ier)
                    
- end function th_locrep3
+ end function th_locrepr
 
-! subroutines and functions entered here are private to this theory and share its variables 
- 
-!!  function local_reptation3(q, t, B, L) result(val)
-!!    implicit none
-!!    double precision, intent(in)   :: q, t, B, L
-!!    double precision, parameter    :: A = 1d0
-!!    double precision               :: val
-!!    double precision, parameter    :: sqp = sqrt(4*atan(1d0))
-!!
-!!    double precision               :: ec1, ec2, dec
-!!
-!!    ec1 = erfc((q ** 2 * t + 0.3D1 * L) * t ** (-0.1D1 / 0.2D1) / 0.6D1)
-!!    ec2 = erfc(sqrt(t) * q ** 2 / 0.6D1)
-!!
-!!    if( isnan(ec1) ) ec1 = 1d0 - erf((q ** 2 * t + 0.3D1 * L) * t ** (-0.1D1 / 0.2D1) / 0.6D1)
-!!    if( isnan(ec2) ) ec2 = 1d0 - erf(sqrt(t) * q ** 2 / 0.6D1)
-!!
-!!    dec =   (-ec1 + ec2 )
-!!
-!!    if( isnan(dec) ) dec = 0
-!!
-!!      val= 0.72D2 * (sqrt(t) * q ** 4 * &
-!!           exp((-0.2D1 * L * q ** 2 * t - 0.3D1 * L ** 2) &
-!!           / t / 0.12D2) / 0.36D2 + sqrt(0.3141592653589793D1) &
-!!           * (q ** 2 * t / 0.3D1 + L) * q ** 4 * &
-!!           exp(t * q ** 4 / 0.36D2) * &
-!!          ( dec ) / 0.72D2 - sqrt(t) * q ** 4 / 0.36D2) &
-!!           * B / q ** 4 * 0.3141592653589793D1 ** (-0.1D1 / 0.2D1) / L + &
-!!           0.72D2 * (A * &
-!!           exp(-q ** 2 * L / 0.6D1)  &
-!!         * sqrt(0.3141592653589793D1) &
-!!         + (A * L * q ** 2 / 0.6D1 - A) * sqrt(0.3141592653589793D1)) * &
-!!         0.3141592653589793D1 ** (-0.1D1 / 0.2D1) / q ** 4 / L
-!!
-!!  end function local_reptation3
 
-  function local_reptation3(q, t, B, L) result(val)
+
+
+function local_reptation_lr(q, tx, B, L, nu, M, mode) result(val)
+ use  ADAPTIVE_INTEGRAL
+
+ implicit none
+ double precision, intent(in)  :: q
+ double precision, intent(in)  :: tx
+ double precision, intent(in)  :: B
+ double precision, intent(in)  :: L
+ double precision, intent(in)  :: nu
+ integer         , intent(in)  :: M
+ integer         , intent(in)  :: mode   ! 0=std, 1=ring
+
+ double precision :: val
+ double precision :: A, La, Lb, t
+ double precision, parameter :: tzero = 1d-6
+
+ double precision :: eps 
+ double precision :: erracc
+ integer          :: maxit
+
+
+ t     = max(tzero,tx)
+ A     =   1d0
+ eps   =   1d-8
+ maxit = 10000
+
+
+ La    = 10d0 * sqrt(t)
+ Lb    = L-2*La
+ if(Lb <= 0d0) then
+  La = L/2
+  Lb = 0
+ endif
+
+
+ if(mode == 0) then
+   val =       adapint (lr_kernel    , 0d0  , La,    eps, maxit, erracc) 
+   val = val + adapint (lr_kernel    , La   , L-La,  eps, maxit, erracc) 
+   val = val + adapint (lr_kernel    , L-La , L,     eps, maxit, erracc) 
+ else
+   val =       adapint (lrring_kernel    , 0d0  , La,    eps, maxit, erracc) 
+   val = val + adapint (lrring_kernel    , La   , L-La,  eps, maxit, erracc) 
+   val = val + adapint (lrring_kernel    , L-La , L,     eps, maxit, erracc) 
+ endif
+  
+
+
+CONTAINS
+
+  function lr_kernel(u) result(val)
     implicit none
-    double precision, intent(in)   :: q, t, B, L
-    double precision, parameter    :: A = 1d0
-    double precision, parameter    :: Pi = 3.141592653589793d0 
-    double precision               :: val
-    double precision, parameter    :: sqp = sqrt(4*atan(1d0))
+    double precision             :: u
+    double precision             :: val
+    double precision, parameter  :: pi = 4d0*atan(1d0)
 
-    double precision               :: ec1, ec2, dec, edec, z
+!   val = (A + B*exp(-u**2/(4d0*t))/(2d0*sqrt(Pi*t)))*exp(-q**2*abs(u)**(2*nu)/6d0)
+    val = (A + B* diff_1d(u)                        )*exp(-q**2*abs(u)**(2*nu)/6d0)
+    val = 2*val*(L-u)/L
+
+  end function lr_kernel
 
 
-    z   = sqrt(t) * q**2
 
-    ec1 = erfc((q ** 2 * t + 3 * L) * t ** (-0.5d0) / 6d0)
-    ec2 = erfc(sqrt(t) * q ** 2 / 6d0)
+  function lrring_kernel(u) result(val)
+    implicit none
+    double precision             :: u
+    double precision             :: val
+    double precision, parameter  :: pi = 4d0*atan(1d0)
 
-    if( isnan(ec1) ) ec1 = 1d0 - erf((q ** 2 * t + 3 * L) * t ** (-0.5d0) / 6d0)
-    if( isnan(ec2) ) ec2 = 1d0 - erf(sqrt(t) * q ** 2 / 6d0)
+    val = (A + B*periodic_diff(u))*exp(-q**2*(abs(u)*(1d0-abs(u)/L))**(2*nu)/6d0)
+    val = 2*val*(L-u)/L
 
-    dec  =   (-ec1 + ec2 )
-    edec = exp(t * q ** 4 / 36d0) *  ( dec ) 
+  end function lrring_kernel
 
-    if( isnan(edec) .or. z > 50d0 ) then
-          edec = - ( -6/(sqrt(Pi)*z)+108/(sqrt(Pi)*z**3)-5832/(sqrt(Pi)*z**5) )
-    endif
 
-      val= 72d0 * (sqrt(t) * q ** 4 * exp((-2d0 * L * q ** 2 * t - 3 * L ** 2) / t / 12d0) / 36d0 + &
-           sqrt(Pi) * (q ** 2 * t / 3 + L) * q ** 4 * edec / 72d0 - sqrt(t) * q ** 4 / 36d0) &
-           * B / q ** 4 * Pi ** (-0.5d0) / L +  72d0 * (A * exp(-q ** 2 * L / 6d0) * sqrt(Pi) &
-           + (A * L * q ** 2 / 6d0 - A) * sqrt(Pi)) * Pi ** (-0.5d0) / q ** 4 / L
+  function periodic_diff(u) result(val)
+    implicit none
+    double precision             :: u
+    double precision             :: val
+    double precision, parameter  :: pi = 4d0*atan(1d0)
+    integer                      :: k
 
-  end function local_reptation3
+    val = 0d0
+    do k=-M,M
+      val = val + cos(2*Pi*u*k/L) * exp(-k*k*t*2d0/5d0)
+    enddo 
+    val = val / (L)
+
+  end function periodic_diff
+
+
+  function diff_1d(u) result(val)
+    implicit none
+    double precision             :: u
+    double precision             :: val
+    double precision, parameter  :: pi = 4d0*atan(1d0)
+    integer                      :: k
+
+    val = exp(-u**2/(4d0*t))/(2d0*sqrt(Pi*t))
+
+  end function diff_1d
+
+end function local_reptation_lr
+
+

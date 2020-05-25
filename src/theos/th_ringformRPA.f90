@@ -29,7 +29,10 @@
      double precision :: nulin
 
                                          
-     double precision :: chi        ! chi parameter                                                                   
+     double precision :: chi0          ! chi parameter 
+     double precision :: chi           ! chi parameter 
+     double precision :: chi_r1        ! chi parameter      
+     double precision :: chi_r2        ! chi parameter      
 ! the recin parameter representation 
      double precision :: conc       ! monomer conc.                                                                   
 ! the reout parameter representation 
@@ -46,7 +49,7 @@
 ! ----- initialisation ----- 
     IF (ini.eq.0) then     
        thnam = 'ringfrpa'
-       nparx =        10
+       nparx =        12
        IF (npar.lt.nparx) then
            WRITE (6,*)' theory: ',thnam,' no of parametrs=',nparx,' exceeds current max. = ',npar
           th_ringfromRPA = 0
@@ -58,6 +61,7 @@
        th_identifier(idesc)   = thnam
        th_explanation(idesc)  = " ring chain structure factor P(Q) (P(Q==)=1) by direct summation over N segments with change statistics as a function of distance along the chain 	chain statistics is expressed by nu (nu=0.5 ==> Gaussian chain) 	the closure is taken Bensafi et al. in addition a chi parameter may be set: S(Q) = 1/(1/(N*P(Q) + 2*chi) or left out" //cr//parspace//&
        "melt in linear polymer with chi parameter, volfrac of ring must be a record param phiring: " //cr//parspace//&
+       " interaction:   chi0 * exp(- ( chi_r1*abs(q) + (chi_r2*q)**2) )" //cr//parspace//&
        " th = ampli*phiring / ( 1/(phiring*n*pq) + 1/((1-phiring)*nlin*pqlin) -2*chi) "
 
 
@@ -73,6 +77,8 @@
         parnam ( 8) = 'llin    '  ! effective segment length Rg = l * N**nu /sqrt(6)                            
         parnam ( 9) = 'nulin   '  ! expansion parameter (Gaussian random walk =0.5)   
         parnam (10) = 'chi     '  ! chi parameter                                                                   
+        parnam (11) = 'chi_r1  '  ! chi parameter correlation length 1 linear 
+        parnam (12) = 'chi_r2  '  ! chi parameter correlation length 1 gauss 
 ! >>>>> describe parameters >>>>>>> 
         th_param_desc( 1,idesc) = "prefactor" !//cr//parspace//&
         th_param_desc( 2,idesc) = "number of segments (do not fit, its integer)" !//cr//parspace//&
@@ -84,6 +90,8 @@
         th_param_desc( 8,idesc) = "segemnt length of linear" !//cr//parspace//&
         th_param_desc( 9,idesc) = "expansion factor of linear" !//cr//parspace//&
         th_param_desc( 10,idesc) = "chi parameter" !//cr//parspace//&
+        th_param_desc( 11,idesc) = "chi parameter correlation length 1 linear" !//cr//parspace//&
+        th_param_desc( 12,idesc) = "chi parameter correlation length 2 gauss" !//cr//parspace//&
 ! >>>>> describe record parameters used >>>>>>>
         th_file_param(:,idesc) = " " 
         th_file_param(  1,idesc) = "phiring     > ring volume fraction."
@@ -107,7 +115,9 @@
       nlin     = abs( pa( 7))
       llin     = abs( pa( 8))
       nulin    = abs( pa( 9))
-      chi      =      pa(10)
+      chi0     =      pa(10)
+      chi_r1   = abs( pa(11))
+      chi_r2   = abs( pa(12))
 ! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
       iadda = actual_record_address()
 ! >>> extract: monomer conc.
@@ -127,6 +137,7 @@
      q      = x
      pq     = nring(q, l, nu, nuwidth, n, n1)
      pqlin  = nndebye(q, llin, nulin,nint(nlin) ,Rglin )
+     chi    = chi0 * exp(- ( chi_r1*abs(q) + (chi_r2*q)**2) )
 
      sq  = phiring / ( 1d0/(phiring*n*pq) + 1d0/((1-phiring)*nlin*pqlin)- 2d0 * chi )
      th  = ampli * sq

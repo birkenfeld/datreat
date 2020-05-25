@@ -222,9 +222,9 @@
            goto 250
 32        continue
            if(imu) then
-              sum=sum*th_locrep3(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_locrepr(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_locrep3(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_locrepr(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
            endif
            goto 250
 33        continue
