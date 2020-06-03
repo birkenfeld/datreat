@@ -21,12 +21,12 @@
      double precision :: Rb         ! coil body resistance                                                            
      double precision :: L          ! coil inductance                                                                 
      double precision :: Lb         ! coil body inductance                                                            
-     double precision :: Lcb        ! mutual inductance (coil body)                                                   
+     double precision :: k          ! coupling factor                                                                 
      double precision :: C          ! effective parallel capacitance                                                  
 ! the recin parameter representation 
 ! the reout parameter representation 
-     double precision :: k          ! coupling factor                                                                 
  
+     double precision :: Lcb        ! mutual inductance (coil body)                                                   
      double precision :: th
  
      double precision :: omega
@@ -51,20 +51,20 @@
         parnam ( 2) = 'Rb      '  ! coil body resistance                                                            
         parnam ( 3) = 'L       '  ! coil inductance                                                                 
         parnam ( 4) = 'Lb      '  ! coil body inductance                                                            
-        parnam ( 5) = 'Lcb     '  ! mutual inductance (coil body)                                                   
+        parnam ( 5) = 'k       '  ! coupling factor (coil body)                                                   
         parnam ( 6) = 'C       '  ! effective parallel capacitance                                                  
 ! >>>>> describe parameters >>>>>>> 
         th_param_desc( 1,idesc) = "coil resistance" !//cr//parspace//&
         th_param_desc( 2,idesc) = "coil body resistance" !//cr//parspace//&
         th_param_desc( 3,idesc) = "coil inductance" !//cr//parspace//&
         th_param_desc( 4,idesc) = "coil body inductance" !//cr//parspace//&
-        th_param_desc( 5,idesc) = "mutual inductance (coil body)" !//cr//parspace//&
+        th_param_desc( 5,idesc) = "coupling factor (coil body)" !//cr//parspace//&
         th_param_desc( 6,idesc) = "effective parallel capacitance" !//cr//parspace//&
 ! >>>>> describe record parameters used >>>>>>>
         th_file_param(:,idesc) = " " 
 ! >>>>> describe record parameters creaqted by this theory >>>>>>> 
         th_out_param(:,idesc)  = " "
-        th_out_param(  1,idesc) = "k        > coupling factor"
+        th_out_param(  1,idesc) = "Lcb        > mutual inductance"
 ! 
         th_zcoil1 = 0.0
  
@@ -72,12 +72,12 @@
      ENDIF
 !
 ! ---- transfer parameters -----
-      R        =      pa( 1)
-      Rb       =      pa( 2)
-      L        =      pa( 3)
-      Lb       =      pa( 4)
-      Lcb      =      pa( 5)
-      C        =      pa( 6)
+      R        =    abs(  pa( 1)  )
+      Rb       =    abs(  pa( 2)  )
+      L        =    abs(  pa( 3)  )
+      Lb       =    abs(  pa( 4)  )
+      k        =    abs(  pa( 5)  )
+      C        =    abs(  pa( 6)  )
 ! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
       iadda = actual_record_address()
 ! 
@@ -86,12 +86,12 @@
 ! ------------------------------------------------------------------
 ! 
      omega   = 2*Pi*x
+     Lcb     = k * sqrt(L*Lb)
      th = Zabs(omega) 
      th_zcoil1 = th
  
 ! ---- writing computed parameters to the record >>>  
-      k = Lcb/sqrt(L*Lb)
-      call parset('k       ',sngl(k),iadda,ier)
+      call parset('Lcb     ',sngl(Lcb),iadda,ier)
  
  CONTAINS 
  
@@ -101,11 +101,14 @@
        double precision, intent(in) :: om
        double precision             :: Z
 
-       Z=((L*Lb-Lcb**2)**2*om**4+(L**2*Rb**2+2*Lcb**2*R*Rb+Lb**2*R**2)*om**2+R**2*Rb**2) /  &
-          (C**2*(L*Lb-Lcb**2)**2*om**6+((L**2*Rb**2+2*Lcb**2*R*Rb+Lb**2*R**2)*C- &
-           2*L*Lb**2+2*Lb*Lcb**2)*C*om**4+(C**2*R**2*Rb**2-2*C*L*Rb**2+Lb**2)*om**2+Rb**2)
+       complex(kind=8), parameter   :: I = (0d0,1d0)
+       complex(kind=8)              :: Z0, ZCR
 
-       Z = sqrt(Z)
+       Z0  = om*((L*Lb - Lcb**2)*Lb*om**2*I + Lcb**2*Rb*om + L*Rb**2*I)/(Lb**2*om**2 + Rb**2)
+       ZCR = 1d0/( 1d0/(Z0+R) + I*om*C ) ! composite Inductivity Z0 in series with wrie resistnace R and
+                                         ! with parallel capacitance C
+
+       Z = abs(ZCR)
 
      end function Zabs
  end function th_zcoil1

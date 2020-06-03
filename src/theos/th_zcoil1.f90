@@ -101,11 +101,14 @@
        double precision, intent(in) :: om
        double precision             :: Z
 
-       Z=((L*Lb-Lcb**2)**2*om**4+(L**2*Rb**2+2*Lcb**2*R*Rb+Lb**2*R**2)*om**2+R**2*Rb**2) /  &
-          (C**2*(L*Lb-Lcb**2)**2*om**6+((L**2*Rb**2+2*Lcb**2*R*Rb+Lb**2*R**2)*C- &
-           2*L*Lb**2+2*Lb*Lcb**2)*C*om**4+(C**2*R**2*Rb**2-2*C*L*Rb**2+Lb**2)*om**2+Rb**2)
+       complex(kind=8), parameter   :: I = (0d0,1d0)
+       complex(kind=8)              :: Z0, ZCR
 
-       Z = sqrt(Z)
+       Z0  = om*((L*Lb - Lcb**2)*Lb*om**2*I + Lcb**2*Rb*om + L*Rb**2*I)/(Lb**2*om**2 + Rb**2)
+       ZCR = 1d0/( 1d0/(Z0+R) + I*om*C ) ! composite Inductivity Z0 in series with wrie resistnace R and
+                                         ! with parallel capacitance C
+
+       Z = abs(ZCR)
 
      end function Zabs
  end function th_zcoil1
