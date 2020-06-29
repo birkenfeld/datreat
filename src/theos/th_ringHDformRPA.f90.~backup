@@ -38,8 +38,8 @@
 ! the recin parameter representation 
      double precision :: conc       ! monomer conc.                                                                   
 ! the reout parameter representation 
-     double precision :: rg         ! radius of gyration   
-     double precision :: rglin         ! radius of gyration   
+     double precision :: rgring         ! radius of gyration   
+     double precision :: rglin          ! radius of gyration   
     
      double precision :: phiH, phiD
                                                                
@@ -146,7 +146,7 @@
 ! ------------------------------------------------------------------
 ! 
      q      = x
-     pq     = nring(q, l, nu, nuwidth, n, n1)
+     pq     = nring(q, l, nu, nuwidth, n, n1, rgring )
      pqlin  = nndebye(q, llin, nulin,nint(nlin) ,Rglin )
 
      s011   = phiH            * n    * pq                !! H-ring component=1
@@ -178,7 +178,7 @@
      th_ringHDformRPA = th
  
 ! ---- writing computed parameters to the record >>>  
-      call parset('rgring  ',sngl(rg),iadda,ier)
+      call parset('rgring  ',sngl(rgring),iadda,ier)
       call parset('rgrlin  ',sngl(rglin),iadda,ier)
  
  CONTAINS 
@@ -242,7 +242,7 @@ end function nndebye
 
 
 
-function nring(q, l, nu, nuwidth, n, n1 ) result(val)
+function nring(q, l, nu, nuwidth, n, n1, Rg ) result(val)
    implicit none
    double precision ,intent(in) :: q           ! Q-value
    double precision ,intent(in) :: l           ! effective segment length
@@ -250,6 +250,7 @@ function nring(q, l, nu, nuwidth, n, n1 ) result(val)
    double precision ,intent(in) :: nuwidth
    double precision ,intent(in) :: n           ! number of segments
    double precision ,intent(in) :: n1
+   double precision ,intent(out):: Rg          ! radius of gyration
    double precision             :: val
 
    integer          :: i, j

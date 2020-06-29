@@ -36,7 +36,7 @@
 ! the recin parameter representation 
      double precision :: conc       ! monomer conc.                                                                   
 ! the reout parameter representation 
-     double precision :: rg         ! radius of gyration   
+     double precision :: rgring         ! radius of gyration   
      double precision :: rglin         ! radius of gyration   
     
      double precision :: phiring                                                           
@@ -61,7 +61,7 @@
        th_identifier(idesc)   = thnam
        th_explanation(idesc)  = " ring chain structure factor P(Q) (P(Q==)=1) by direct summation over N segments with change statistics as a function of distance along the chain 	chain statistics is expressed by nu (nu=0.5 ==> Gaussian chain) 	the closure is taken Bensafi et al. in addition a chi parameter may be set: S(Q) = 1/(1/(N*P(Q) + 2*chi) or left out" //cr//parspace//&
        "melt in linear polymer with chi parameter, volfrac of ring must be a record param phiring: " //cr//parspace//&
-       " interaction:   chi0 * exp(- ( chi_r1*abs(q) + (chi_r2*q)**2) )" //cr//parspace//&
+       " interaction:        chi    = chi0 + exp(- (chi_r1*q)**2)  *chi_r2" //cr//parspace//&
        " th = ampli*phiring / ( 1/(phiring*n*pq) + 1/((1-phiring)*nlin*pqlin) -2*chi) "
 
 
@@ -76,9 +76,9 @@
         parnam ( 7) = 'nlin    '  ! number of segments (do the linear component   
         parnam ( 8) = 'llin    '  ! effective segment length Rg = l * N**nu /sqrt(6)                            
         parnam ( 9) = 'nulin   '  ! expansion parameter (Gaussian random walk =0.5)   
-        parnam (10) = 'chi     '  ! chi parameter                                                                   
-        parnam (11) = 'chi_r1  '  ! chi parameter correlation length 1 linear 
-        parnam (12) = 'chi_r2  '  ! chi parameter correlation length 1 gauss 
+        parnam (10) = 'chi     '  ! chi0 parameter                                                                  
+        parnam (11) = 'chi_r1  '  ! chi parameter correlation length 1 Gauss 
+        parnam (12) = 'chi_r2  '  ! chi parameter correlation length 1  
 ! >>>>> describe parameters >>>>>>> 
         th_param_desc( 1,idesc) = "prefactor" !//cr//parspace//&
         th_param_desc( 2,idesc) = "number of segments (do not fit, its integer)" !//cr//parspace//&
@@ -89,9 +89,9 @@
         th_param_desc( 7,idesc) = "number of segments linear " !//cr//parspace//&
         th_param_desc( 8,idesc) = "segemnt length of linear" !//cr//parspace//&
         th_param_desc( 9,idesc) = "expansion factor of linear" !//cr//parspace//&
-        th_param_desc( 10,idesc) = "chi parameter" !//cr//parspace//&
-        th_param_desc( 11,idesc) = "chi parameter correlation length 1 linear" !//cr//parspace//&
-        th_param_desc( 12,idesc) = "chi parameter correlation length 2 gauss" !//cr//parspace//&
+        th_param_desc( 10,idesc) = "chi0 parameter" !//cr//parspace//&
+        th_param_desc( 11,idesc) = "chi parameter correlation length 1 gauss" !//cr//parspace//&
+        th_param_desc( 12,idesc) = "chi parameter strength           2 gauss" !//cr//parspace//&
 ! >>>>> describe record parameters used >>>>>>>
         th_file_param(:,idesc) = " " 
         th_file_param(  1,idesc) = "phiring     > ring volume fraction."
@@ -135,18 +135,18 @@
 ! ------------------------------------------------------------------
 ! 
      q      = x
-     pq     = nring(q, l, nu, nuwidth, n, n1)
+     pq     = nring(q, l, nu, nuwidth, n, n1, rgring)
      pqlin  = nndebye(q, llin, nulin,nint(nlin) ,Rglin )
-     chi    = chi0 * exp(- ( chi_r1*abs(q) + (chi_r2*q)**2) )
+     chi    = chi0 +  exp(- (chi_r1*q)**2)  * chi_r2
 
-     sq  = phiring / ( 1d0/(phiring*n*pq) + 1d0/((1-phiring)*nlin*pqlin)- 2d0 * chi )
+     sq  = 1d0 / ( 1d0/(phiring*n*pq) + 1d0/((1-phiring)*nlin*pqlin)- 2d0 * chi )
      th  = ampli * sq
 
 
      th_ringfromRPA = th
  
 ! ---- writing computed parameters to the record >>>  
-      call parset('rgring  ',sngl(rg),iadda,ier)
+      call parset('rgring  ',sngl(rgring),iadda,ier)
       call parset('rgrlin  ',sngl(rglin),iadda,ier)
  
  CONTAINS 
@@ -210,7 +210,7 @@ end function nndebye
 
 
 
-function nring(q, l, nu, nuwidth, n, n1 ) result(val)
+function nring(q, l, nu, nuwidth, n, n1, Rg ) result(val)
    implicit none
    double precision ,intent(in) :: q           ! Q-value
    double precision ,intent(in) :: l           ! effective segment length
@@ -218,6 +218,8 @@ function nring(q, l, nu, nuwidth, n, n1 ) result(val)
    double precision ,intent(in) :: nuwidth
    double precision ,intent(in) :: n           ! number of segments
    double precision ,intent(in) :: n1
+   double precision ,intent(out):: Rg           ! radius of gyration
+
    double precision             :: val
 
    integer          :: i, j

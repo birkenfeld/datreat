@@ -38,8 +38,8 @@
 ! the recin parameter representation 
      double precision :: conc       ! monomer conc.                                                                   
 ! the reout parameter representation 
-     double precision :: rg         ! radius of gyration   
-     double precision :: rglin         ! radius of gyration   
+     double precision :: rgring         ! radius of gyration   
+     double precision :: rglin          ! radius of gyration   
     
      double precision :: phiH, phiD
                                                                
@@ -64,7 +64,9 @@
        idesc = next_th_desc()
        th_identifier(idesc)   = thnam
        th_explanation(idesc)  = " ring chain structure factor P(Q) (P(Q==)=1) by direct summation over N segments with change statistics as a function of distance along the chain 	chain statistics is expressed by nu (nu=0.5 ==> Gaussian chain) 	the closure is taken Bensafi et al. in addition a chi parameter may be set: S(Q) = 1/(1/(N*P(Q) + 2*chi) or left out" //cr//parspace//&
-       "h,d-ring mix melt in linear polymer with chi parameter, volfrac of h/d-ring must be a record param phiringh/d: " 
+       "h,d-ring mix melt in linear polymer with chi parameter, volfrac of h/d-ring must be a record param phiringh/d: " //cr//parspace//&
+       " interaction:        chi    = chi0 + exp(- (chi_r1*q)**2)  *chi_r2" 
+
 
        th_citation(idesc)     = " Hammouda, Multicomponent RPA, chapter 34 section 5 Eq. (16)"
 !       --------------> set the parameter names --->
@@ -91,8 +93,8 @@
         th_param_desc( 8,idesc) = "segemnt length of linear" !//cr//parspace//&
         th_param_desc( 9,idesc) = "expansion factor of linear" !//cr//parspace//&
         th_param_desc( 10,idesc) = "local chi (ring-linear) parameter" !//cr//parspace//&
-        th_param_desc( 11,idesc) = "chi parameter r2 correlation length 1 linear" !//cr//parspace//&
-        th_param_desc( 12,idesc) = "chi parameter r2 prefactor: chi(q) = chi0+chi_r2*exp(-chi_r1*abs(q))" !//cr//parspace//&
+        th_param_desc( 11,idesc) = "chi parameter r2 correlation length 1 gauss" !//cr//parspace//&
+        th_param_desc( 12,idesc) = "chi parameter r2 prefactor: chi(q) = chi0+chi_r2*exp(-(chi_r1*q)**2)" !//cr//parspace//&
 ! >>>>> describe record parameters used >>>>>>>
         th_file_param(:,idesc) = " " 
         th_file_param(  1,idesc) = "phiringh     > h-ring volume fraction."
@@ -146,14 +148,14 @@
 ! ------------------------------------------------------------------
 ! 
      q      = x
-     pq     = nring(q, l, nu, nuwidth, n, n1)
+     pq     = nring(q, l, nu, nuwidth, n, n1, rgring )
      pqlin  = nndebye(q, llin, nulin,nint(nlin) ,Rglin )
 
      s011   = phiH            * n    * pq                !! H-ring component=1
      s022   = phiD            * n    * pq                !! D-ring component=2
      s033   = (1d0-phiH-phiD) * nlin * pqlin             !! linear matrix background coponent=3
 
-     chi    = chi0 + exp(- chi_r1*abs(q) ) * chi_r2
+     chi    = chi0 + exp(- (chi_r1*q)**2 ) * chi_r2
      chi12  = 0
      chi13  = chi
      chi23  = chi
@@ -178,7 +180,7 @@
      th_ringHDformRPA = th
  
 ! ---- writing computed parameters to the record >>>  
-      call parset('rgring  ',sngl(rg),iadda,ier)
+      call parset('rgring  ',sngl(rgring),iadda,ier)
       call parset('rgrlin  ',sngl(rglin),iadda,ier)
  
  CONTAINS 
@@ -242,7 +244,7 @@ end function nndebye
 
 
 
-function nring(q, l, nu, nuwidth, n, n1 ) result(val)
+function nring(q, l, nu, nuwidth, n, n1, Rg ) result(val)
    implicit none
    double precision ,intent(in) :: q           ! Q-value
    double precision ,intent(in) :: l           ! effective segment length
@@ -250,6 +252,7 @@ function nring(q, l, nu, nuwidth, n, n1 ) result(val)
    double precision ,intent(in) :: nuwidth
    double precision ,intent(in) :: n           ! number of segments
    double precision ,intent(in) :: n1
+   double precision ,intent(out):: Rg          ! radius of gyration
    double precision             :: val
 
    integer          :: i, j

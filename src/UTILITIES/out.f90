@@ -1,10 +1,10 @@
- FUNCTION th_zcoil1(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
+ FUNCTION th_fatkim(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
 !================================================================================
-!  Absolute value of the impedance of a coil coupled to a conductive support as function of the frequency
+!  Fatkullin Kimmich expression diffusion on a Gaussian Path
 ! 
       use theory_description 
       implicit none 
-      real    :: th_zcoil1
+      real    :: th_fatkim
       character(len=8) :: thnam, parnam (*) 
       real    :: pa (*) 
       real    :: x , xh
@@ -17,94 +17,104 @@
       integer                     :: actual_record_address
      
 ! the internal parameter representation 
-     double precision :: R          ! coil resistance                                                                 
-     double precision :: Rb         ! coil body resistance                                                            
-     double precision :: L          ! coil inductance                                                                 
-     double precision :: Lb         ! coil body inductance                                                            
-     double precision :: Lcb        ! mutual inductance (coil body)                                                   
-     double precision :: C          ! effective parallel capacitance                                                  
+     double precision :: ampli      ! prefactor                                                                       
+     double precision :: wl4_fk     ! Rouse rate                                                                      
+     double precision :: a_fk       ! tube step length                                                                
+     double precision :: numod      ! exponent modification factor (default=1)                                        
 ! the recin parameter representation 
+     double precision :: q          ! q-value (momentum tranbsfer)                                                    
 ! the reout parameter representation 
-     double precision :: k          ! coupling factor                                                                 
+     double precision ::            !                                                                                 
  
      double precision :: th
  
-     double precision :: omega
-     double precision :: Zabs
+     double precision, parameter :: Navogadro = 6.022140857d23
+     double precision :: t
 !
 ! ----- initialisation ----- 
     IF (ini.eq.0) then     
-       thnam = 'zcoil1'
-       nparx =        6
+       thnam = 'fatkim'
+       nparx =        4
        IF (npar.lt.nparx) then
            WRITE (6,*)' theory: ',thnam,' no of parametrs=',nparx,' exceeds current max. = ',npar
-          th_zcoil1 = 0
+          th_fatkim = 0
           RETURN
        ENDIF
        npar = nparx
 ! >>>>> describe theory with >>>>>>> 
        idesc = next_th_desc()
        th_identifier(idesc)   = thnam
-       th_explanation(idesc)  = " Absolute value of the impedance of a coil coupled to a conductive support as function of the frequency"
+       th_explanation(idesc)  = " Fatkullin Kimmich expression diffusion on a Gaussian Path"
        th_citation(idesc)     = ""
 !       --------------> set the parameter names --->
-        parnam ( 1) = 'R       '  ! coil resistance                                                                 
-        parnam ( 2) = 'Rb      '  ! coil body resistance                                                            
-        parnam ( 3) = 'L       '  ! coil inductance                                                                 
-        parnam ( 4) = 'Lb      '  ! coil body inductance                                                            
-        parnam ( 5) = 'Lcb     '  ! mutual inductance (coil body)                                                   
-        parnam ( 6) = 'C       '  ! effective parallel capacitance                                                  
+        parnam ( 1) = 'ampli   '  ! prefactor                                                                       
+        parnam ( 2) = 'wl4_fk  '  ! Rouse rate                                                                      
+        parnam ( 3) = 'a_fk    '  ! tube step length                                                                
+        parnam ( 4) = 'numod   '  ! exponent modification factor (default=1)                                        
 ! >>>>> describe parameters >>>>>>> 
-        th_param_desc( 1,idesc) = "coil resistance" !//cr//parspace//&
-        th_param_desc( 2,idesc) = "coil body resistance" !//cr//parspace//&
-        th_param_desc( 3,idesc) = "coil inductance" !//cr//parspace//&
-        th_param_desc( 4,idesc) = "coil body inductance" !//cr//parspace//&
-        th_param_desc( 5,idesc) = "mutual inductance (coil body)" !//cr//parspace//&
-        th_param_desc( 6,idesc) = "effective parallel capacitance" !//cr//parspace//&
+        th_param_desc( 1,idesc) = "prefactor" !//cr//parspace//&
+        th_param_desc( 2,idesc) = "Rouse rate" !//cr//parspace//&
+        th_param_desc( 3,idesc) = "tube step length" !//cr//parspace//&
+        th_param_desc( 4,idesc) = "exponent modification factor (default=1)" !//cr//parspace//&
 ! >>>>> describe record parameters used >>>>>>>
         th_file_param(:,idesc) = " " 
+        th_file_param(  1,idesc) = "q        > q-value (momentum tranbsfer)"
 ! >>>>> describe record parameters creaqted by this theory >>>>>>> 
         th_out_param(:,idesc)  = " "
-        th_out_param(  1,idesc) = "k        > coupling factor"
+        th_out_param(  1,idesc) = "         > "
 ! 
-        th_zcoil1 = 0.0
+        th_fatkim = 0.0
  
         RETURN
      ENDIF
 !
 ! ---- transfer parameters -----
-      R        =      pa( 1)
-      Rb       =      pa( 2)
-      L        =      pa( 3)
-      Lb       =      pa( 4)
-      Lcb      =      pa( 5)
-      C        =      pa( 6)
+      ampli    =      pa( 1)
+      wl4_fk   =      pa( 2)
+      a_fk     =      pa( 3)
+      numod    =      pa( 4)
 ! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
       iadda = actual_record_address()
+! >>> extract: q-value (momentum tranbsfer)
+      xh = 
+      call parget('q       ',xh,iadda,ier)
+      q        = xh
 ! 
 ! ------------------------------------------------------------------
 ! ----------------------- implementation ---------------------------
 ! ------------------------------------------------------------------
 ! 
-     omega   = 2*Pi*x
-     th =  ampli *  exp(-rr * q*q / 6d0) * Sqt/Sq
-     th_zcoil1 = th
+     t   = x
+
+     th = ampli * AFK(t,q,a_fk,Wl4_fk,numod)
+
+     th_fatkim = th
  
 ! ---- writing computed parameters to the record >>>  
-      call parset('k       ',sngl(k),iadda,ier)
+      call parset('        ',sngl(),iadda,ier)
  
  CONTAINS 
  
 ! subroutines and functions entered here are private to this theory and share its variables 
  
-     function Zabs(om) result(Z)
-       double precision, intent(in) :: om
+! Fatkullin-Kimmich-Form von Sinc im local Reptation Regime !
+         function AFK(t,Q,a,Wl4,addexp)
 
-       Z=((L*Lb-Lcb**2)**2*om**4+(L**2*Rb**2+2*Lcb**2*R*Rb+Lb**2*R**2)*om**2+R**2*Rb**2) /  &
-          (C**2*(L*Lb-Lcb**2)**2*om**6+((L**2*Rb**2+2*Lcb**2*R*Rb+Lb**2*R**2)*C- &
-           2*L*Lb**2+2*Lb*Lcb**2)*C*om**4+(C**2*R**2*Rb**2-2*C*L*Rb**2+Lb**2)*om**2+Rb**2)
+         implicit none
+         double precision :: AFK
+         double precision, parameter :: Pi=4d0*atan(1d0)
 
-       Z = sqrt(Z)
+         double precision, intent(in) :: Wl4,t,a,AFK,Q,addexp
+         double precision             :: arg1, arg2,PhiRouse,SS
 
-     end function Zabs
- end function th_zcoil1
+         PhiRouse = 2*sqrt(Wl4*t/Pi)
+         SS       = PhiRouse/3.0d0
+         SS       = SS**addexp
+         arg1     = Q**4*a**2*SS/72.0d0
+         arg2     = Q**2*a*sqrt(SS)/6.0d0/sqrt(2.0d0)
+         ifail    = 1
+         AFK      = exp(arg1) * erfc(arg2)
+
+         end function AFK
+
+ end function th_fatkim

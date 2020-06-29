@@ -39,7 +39,8 @@ CC=gcc
 
 #-fbounds-check
 LDFLAGS = -DPATH_TO_LOCAL_DATREAT=\"$(LOCAL)\"  -DPATH_TO_MAKROS=\"$(LOCAL)/makros/\"  -DOPEN_MANUAL=\"open\ $(LOCAL)/doc/NewManualBook/ManualDtr.pdf\"   \
--DDEFAULT_EDIT=\"open\ -W\ -e\" -Wl,-rpath,/usr/local/gr/lib -lGR
+-DDEFAULT_EDIT=\"vim\" -Wl,-rpath,/usr/local/gr/lib -lGR
+#-DDEFAULT_EDIT=\"open\ -W\ -e\" -Wl,-rpath,/usr/local/gr/lib -lGR
 
 
 # OBJ_GR = datreat_grframework.o
