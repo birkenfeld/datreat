@@ -139,7 +139,7 @@ function nring(q, l, nu, nuwidth, n, n1 ) result(val)
 !!$OMP PARALLEL DO REDUCTION(+:val,rg0)
    do i=1,nint(n)-1
       val = val + eterms(i)*(nint(n)-i) * 2
-      rg0 = rg0 + rterms(i)*(nint(n)-1) * 2
+      rg0 = rg0 + rterms(i)*(nint(n)-i) * 2
    enddo
 !!$OMP END PARALLEL DO
 

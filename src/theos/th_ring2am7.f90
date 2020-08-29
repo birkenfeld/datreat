@@ -51,6 +51,7 @@
      double precision :: rr, Sq, Sqt
      double precision :: msd, msd_im
      double precision :: tau_R, W, Ne0, taue
+     double precision :: tauring
 
      logical          :: parameter_is_q, parameter_is_t
 
@@ -225,6 +226,7 @@
       call parset('Ne0     ',sngl(Ne0)  , iadda, ier)
       call parset('tau_pmin',sngl(tau_R/pmin**2)  , iadda, ier)
       call parset('tau_px  ',sngl(1/( (W*pi**2) /Ne0**2)  )  , iadda, ier)
+      call parset('tauring ',sngl(tauring)  , iadda, ier)
  
  CONTAINS 
  
@@ -264,7 +266,7 @@
        double precision :: rate, traf, nun ! , tau_R, W, Ne0, taue
 
 
-       double precision :: cosarray(0:N,N/2), ewfac(N/2), ff2(N/2)
+       double precision :: cosarray(0:N,N/2), ewfac(N/2), ff2(N/2), taus(N/2)
 
        double precision :: nu(0:N)
        double precision :: tram(0:N)
@@ -335,6 +337,8 @@
          rate      = dble(2d0*ip)**(2d0)/tau_R*(1d0-traf) + &
                      (W*pi**2)* (2d0*ip/pmin)**pexinf/Ne0**2 * traf
 
+         taus(ip)  = 1d0/rate
+
          ewfac(ip) = 1.0d0-exp(-t * rate )
 
 
@@ -371,6 +375,8 @@
            Sqt = Sqt/N
 
            Rg  = sqrt(Rg/2d0/N**2)
+
+           tauring = taus(1)
 
        end subroutine Nrouse_ring2am7
 

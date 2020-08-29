@@ -376,7 +376,7 @@
 
 !--------------------------------------
        ! comment-length in dir (display)
-       len_comm = 20
+       len_comm = 30
 
        title='Datreat Plot'
 
@@ -3646,47 +3646,23 @@ write(*,'(a,a,4f12.6)')"TEST: form2=",trim(yformel),xxxx,yyyy,yyee,val8y
 !
        if(comand.eq.'purge   ') then
 !                    -----
-!!?!         if(ipars.eq.0 .and. inames.eq.0) then
-!!?!           write(6,*)'nothing removed use arguments no1 no2 .. or all'
-!!?!           goto 2000
-!!?!         endif
-!!?!         if(found('all     ')) then
-!!?!           nbuf = 0
-!!?!           write(6,*)'purging all ...'
-!!?!           do ia=1,size(nwert)
-!!?!            do j=1,mwert
-!!?!             xwerte(j,ia) = 0
-!!?!             ywerte(j,ia) = 0
-!!?!             yerror(j,ia) = 0
-!!?!            enddo
-!!?!            nwert(ia) = 0
-!!?!            numor(ia) = 0
-!!?!            xname(ia) = ' '
-!!?!            yname(ia) = ' '
-!!?!            coment(ia) = ' '
-!!?!            nopar(ia) = 0
-!!?!           enddo
-!!?!           goto 18051
-!!?!         endif
-!!?!         do 1801 i=1,ipars
-!!?!           ia = Nint(rpar(i))
-!!?!           write(6,*)'purging no.: ',ia,' ...'
-!!?!            do j=1,mwert
-!!?!             xwerte(j,ia) = 0
-!!?!             ywerte(j,ia) = 0
-!!?!             yerror(j,ia) = 0
-!!?!            enddo
-!!?!            nwert(ia) = 0
-!!?!            numor(ia) = 0
-!!?!            xname(ia) = ' '
-!!?!            yname(ia) = ' '
-!!?!            coment(ia) = ' '
-!!?!            nopar(ia) = 0
-!!?! 1801    continue
-! ---- compress data ----
-!   --- find the first gap in the data ...
-!   --- ok here it is ...
-!     --- and shift the rest down now ---
+       if(found('help    ')) then 
+        write(6,*)'=============================================================================='
+        write(6,*)'= purge                                                                      ='
+        write(6,*)'= remove items from the list of loaded data records                          ='
+        write(6,*)'=    purge                                                                   ='
+        write(6,*)'=            clears all records that are NOT SELECTED                        ='
+        write(6,*)'=    purge sel                                                               ='
+        write(6,*)'=            removes all SELECTED records                                    ='
+        write(6,*)'=    purge all                                                               ='
+        write(6,*)'=            clears record list completely                                   ='
+        write(6,*)'=    Hint:                                                                   ='
+        write(6,*)'=    use sel ....    to select records                                       ='
+        write(6,*)'=    use dsl  or dir to check selections!                                    ='
+        write(6,*)'=============================================================================='
+        goto 2000
+       endif
+
           if(found('all     ')) then 
              nwert = 0
              nsel  = 0
@@ -3697,6 +3673,8 @@ write(*,'(a,a,4f12.6)')"TEST: form2=",trim(yformel),xxxx,yyyy,yyee,val8y
           if(found('sel     ')) then
             if(nsel > 0) then
               nwert(isels(1:nsel)) = 0
+            else
+              call errsig(999,"NOTHING SELECTED => nothing purged! $")
             endif
           else
             do i=1,nbuf

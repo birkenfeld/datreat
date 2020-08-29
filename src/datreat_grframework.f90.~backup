@@ -1867,6 +1867,9 @@ scl:   if(found('scaled  ')) then
           read(ioppar,*,end=99,err=99) nl
           read(ioppar,*,end=99,err=99) icolo(1:min(nl,size(icolo)))
 
+          read(ioppar,*,end=99,err=99) tex_fak  ! dies nach oben
+
+
 99        continue
          close(ioppar)
 
@@ -1919,7 +1922,9 @@ scl:   if(found('scaled  ')) then
           write(ioppar,'(10f12.6)') sysize_scaling
           write(ioppar,*) size(icolo)
           write(ioppar,'(20i5)') icolo
- 
+
+          write(ioppar,*) tex_fak      ! hier nach oben !
+
          close(ioppar)
 
        end subroutine writeplotpar

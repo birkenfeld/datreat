@@ -26,8 +26,8 @@
  
 ! the internal parameter representation 
      double precision :: ampli      ! prefactor
-     double precision :: wl4rous    ! rouse rate star 
-     integer          :: nrouseff    ! effective segment star arm 
+     double precision :: wl4ring    ! rouse rate star 
+!     integer          :: nrouseff    ! effective segment star arm 
 !     double precision :: diffrous   ! centre-of-mass diffusino star
      double precision :: diff       
      double precision :: r02   , rr     
@@ -64,7 +64,7 @@
 ! the recin parameter representation 
      double precision :: q          ! scattering wavevector
      double precision :: temp       ! temperature
-     integer          :: nrous       ! number of segments per star arm
+     integer          :: nring      ! number of segments per star arm
      double precision :: l          ! segment length
      integer          :: f          ! number of arms per star
      double precision :: phirous    ! volume fraction of star
@@ -74,7 +74,7 @@
      double precision :: betadif
 
      double precision :: alin       ! scattering contrast of linear polymer omponent 
-     double precision :: arous      ! scattering contrast of start polymer
+     double precision :: aring      ! scattering contrast of start polymer
 
      integer          :: nxpoints   ! number of points in sum(exp) modelling of S00 functions 
 
@@ -94,9 +94,10 @@
  
      double precision   :: t
 
-     double precision   :: sqt, sqt0
+     double precision   :: sqt, sqt0, sq
+     double precision   :: sqringt, sqring
      double precision   :: locrep2
-     double precision   :: prous0, prous
+     double precision   :: pring0, pring
      double precision   :: plin0, plin
      double precision   :: plin0cc, plincc
      double precision   :: dr, wx, lx
@@ -112,16 +113,24 @@
      double precision ::   nue     
      double precision ::   pmin    
      double precision ::   pwidth  
-     double precision ::   f0      
-     double precision ::   finf    
-     double precision ::   tauinf  
+     double precision ::   f0        = 1d0
+     double precision ::   finf      = 1d0
+!     double precision ::   tauinf  
      double precision ::   pexinf  
      double precision ::   r022    
      double precision ::   nu_subdif2 
 
+
+     double precision ::   ntrans
+     double precision ::   nwidth 
+     integer          ::   n
+
      double precision ::   Rg 
 
+     double precision ::   tauinf !! obsolete
 
+     double precision :: msd_im, tau_R, taue, Wa
+     double precision :: lring
 
 
 
@@ -178,8 +187,8 @@
        th_citation(idesc)     = ""
 !       --------------> set the parameter names --->
         parnam ( 1) = 'ampli   '  ! prefactor
-        parnam ( 2) = 'wl4rous '  ! rouse rate star
-        parnam ( 3) = 'nrouseff '  ! effective segment star arm
+        parnam ( 2) = 'wl4ring '  ! rouse rate star
+        parnam ( 3) = 'nringeff'  ! effective segment star arm
         parnam ( 4) = 'd0'
         parnam ( 5) = 'r02'
         parnam ( 6) = 'alpha'
@@ -189,9 +198,9 @@
         parnam ( 9) = 'nue     '  ! prefactor
         parnam (10) = 'pmin    '  ! rouse rate star
         parnam (11) = 'pwidth  '  ! effective segment star arm
-        parnam (12) = 'f0      '
-        parnam (13) = 'finf    '
-        parnam (14) = 'tauinf  '
+        parnam (12) = 'ntrans  '
+        parnam (13) = 'nwidth  '
+        parnam (14) = 'lring   '
         parnam (15) = 'pexinf  '
         parnam (16) = 'r022    '
         parnam (17) = 'beta    '
@@ -229,7 +238,7 @@
 
 ! >>>>> describe parameters >>>>>>> 
         th_param_desc( 1,idesc) = "prefactor" !//cr//parspace//&
-        th_param_desc( 2,idesc) = "rouse short liner chains rate (phirous)" !//cr//parspace//&
+        th_param_desc( 2,idesc) = "ring chains rouse rate (phiring)" !//cr//parspace//&
         th_param_desc( 3,idesc) = "effective segment number in summation" !//cr//parspace//&
         th_param_desc( 4,idesc) = "limiting diffusion (NMR value)" !//cr//parspace//&
         th_param_desc( 5,idesc) = " reference mean squared displacement at transition point to D0 " !//cr//parspace//&
@@ -240,9 +249,9 @@
         th_param_desc( 9,idesc) = 'ring chain statistic exponent (gauss=0.5)     '  
         th_param_desc(10,idesc) = 'minimum rouse mode    '  
         th_param_desc(11,idesc) = 'width of rouse mode switching ' 
-        th_param_desc(12,idesc) = 'f0      '
-        th_param_desc(13,idesc) = 'finf    '
-        th_param_desc(14,idesc) = 'tauinf  '
+        th_param_desc(12,idesc) = 'ntans   '
+        th_param_desc(13,idesc) = 'nwidth    '
+        th_param_desc(14,idesc) = 'lring effective  '
         th_param_desc(15,idesc) = 'pexinf  '
         th_param_desc(16,idesc) = 'second diffiusion kink r**2     '
         th_param_desc(17,idesc) = 'intermediate beta diffusion subdiff exponent   '
@@ -309,8 +318,8 @@
 !
 ! ---- transfer parameters -----
       ampli    =      pa( 1)
-      wl4rous  = abs( pa( 2))
-      nrouseff = nint(pa( 3))
+      wl4ring  = abs( pa( 2))
+      n        = nint(pa( 3))
       diff        = abs( pa (4) )    ! in A**2/ns
       r02         = abs( pa (5) )
       nu_subdiff  = abs( pa (6) )
@@ -320,9 +329,9 @@
        nue     = abs( pa( 9) )
        pmin    = abs( pa(10) )
        pwidth  = abs( pa(11) )
-       f0      = abs( pa(12) )
-       finf    = abs( pa(13) )
-       tauinf  = abs( pa(14) )
+       ntrans  = abs( pa(12) )
+       nwidth  = abs( pa(13) )
+       lring   = abs( pa(14) )
        pexinf  = abs( pa(15) )
        r022    = abs( pa(16) )
     nu_subdif2 = abs( pa(17) )
@@ -385,7 +394,7 @@
 ! >>> extract: number of segments per star arm
       xh = 1
       call parget('nring    ',xh,iadda,ier)
-      nrous     = xh
+      nring    = xh
 ! >>> extract: segment length
       xh = 3d0
       call parget('l       ',xh,iadda,ier)
@@ -421,8 +430,23 @@
 !!! >>> extract: tau for mode > 0
       xh = 1.0d0
       call parget('aring    ',xh,iadda,ier)
-      arous  = xh
-!!!!!!!! 
+      aring  = xh
+!
+!!! >>> tentative only testing USE OPTIMIZED log space integration as default (2)
+      xh =  0.0001d0
+      call parget('xil      ',xh,iadda,ier)
+      xil = xh
+!!! >>> tentative only testing
+      xh =  1d-9
+      call parget('epap      ',xh,iadda,ier)
+      epap = xh
+!!! >>> tentative only testing
+      xh =  1d-5
+      call parget('epsrpa    ',xh,iadda,ier)
+      epsrpa = xh
+
+
+!!!!!!! 
 ! ------------------------------------------------------------------
 ! ----------------------- implementation ---------------------------
 ! ------------------------------------------------------------------
@@ -435,15 +459,15 @@ i1:  if( mode == 0 ) then     ! normal spin-echo
      endif i1
 
 
-      allparams(1:53) = [ wl4rous, dble(nrouseff), locr2_b, locr2_a, locr2_ta, locr2_lz, locr2_te, &
-                         dble(nro_me) , re_me,   wl4     , betadif , q , dble(nrous), l, dble(f),   &
-                         phirous, dble(nlin), philin, alin, arous, &
+      allparams(1:54) = [ wl4ring, dble(n), locr2_b, locr2_a, locr2_ta, locr2_lz, locr2_te, &
+                         dble(nro_me) , re_me,   wl4     , betadif , q , dble(nring), l, dble(f),   &
+                         phirous, dble(nlin), philin, alin, aring, &
                          dble(nlin_cc),  &
                          lr2_b_c, lr2_a_c, lr2_ta_c, lr2_lz_c, lr2_te_c, &
                          dble(nro_me_c) , re_me_c,   wl4_c     , diffmatc, betadifc, difflin, betadifl, &
                          diff, r02, nu_subdiff, a_cross, beta_q , &
                          dble(mode), dble(modeex), dble(nxpoints), t0, tmax, rlow, &
-                         nue, pmin, pwidth, f0, finf, tauinf, pexinf, r022, nu_subdif2  ]  
+                         nue, pmin, pwidth, f0, finf, tauinf, pexinf, r022, nu_subdif2, lring  ]  
 
       newcomp_required = ( sum(abs(allparams-last_params)) .ne. 0 ) .and. (modeex > 0)
     
@@ -530,12 +554,12 @@ ilr: if( newcomp_required ) then
       endif
 
 
-!!!! For now we keep the internal names prous phirous nrous .... for the RING
+!!!! For now we keep the internal names pring phirous nrous .... for the RING
 !!!! refactoring is then the next step
       ! (short) linear polymer componnent: here labelled (alin) part with concentration phirous
       ! modelling in terms of N-Rouse model (explicit summation of Roise modes) multiplied by
       ! a center of mass diffsuion with sublinear initial phase and simple diffusion beyond r**2 = r02
-      ! HERE: parametes nrous, arous, phirous --> s22
+      ! HERE: parametes nrous, aring, phirous --> s22
 
       do i=1,nxpoints
              ts     =  t_samples(i)
@@ -544,24 +568,30 @@ ilr: if( newcomp_required ) then
 !?!             dr      = 1d-20
 !?!             ifix    = 0
 !?!             call  NrousePX(q,ts,temp,Dr,wl4rous,nrouseff,Re_rous, Wx, lx,ifix, sqt0,sqt)
-!?!             prous0 =  nrous  * Debye_qnl(q, nrous, l) 
+!?!             pring0 =  nrous  * Debye_qnl(q, nrous, l) 
 !?!
 !?!             rr = ((exp(-log(r02/diff/6)*nu_subdiff)*r02*ts** nu_subdiff)** a_cross +&
 !?!                  (6*diff*ts)**a_cross)**(1d0/a_cross)
 !?!
 !?!             s_samples(i) = sqt/sqt0 * exp( -(q*q*rr/6d0)**beta_q )
-!?!             prous        = prous0 * s_samples(i)
+!?!             pring        = pring0 * s_samples(i)
 !?!
+             call Nrouse_ring2am7(q,ts,wl4ring,lring,N,sqring,sqringt)
 
-             call Nrouse_ring2b(q,ts,Nrous, l, nue, wl4rous, pmin, pwidth, f0, finf, tauinf, pexinf, &
-                                diff, r02, nu_subdiff, r022, nu_subdif2, a_cross, Rg, Sqt0, Sqt)
+             rr = ((exp(-log(r02/diff/6)*nu_subdiff)*r02*ts** nu_subdiff)** a_cross +&
+                  (6*diff*ts)**a_cross)**(1d0/a_cross)
 
-             s_samples(i) = sqt/sqt0
+             s_samples(i) = sqringt/sqring  * exp( -(q*q*rr/6d0)**beta_q )
            
-             prous0 = sqt0
-             prous  = sqt
+             pring0 = (sqring/N)*nring 
+             pring  = (sqringt/N)*nring
 
        enddo
+
+!? write(*,*)"pring0=",pring0, pring, N, nring
+!? write(*,*)"S, q= ", q
+!? write(*,'(2F18.8)')(t_samples(i), s_samples(i), i=1,nxpoints)
+
        rmsdev = rmsdev_limit
        call match_exp_auto(t_samples,s_samples,nxpoints,modeex,nexp2,aexp22,rexp22,rmsdev,iout)
 
@@ -586,7 +616,7 @@ ilr: if( newcomp_required ) then
         
         Scc00             =   plin0cc  ! unperturbed structure factor S(Q) of "matrix" polymers
         S0011             =   plin0    ! unperturbed structure factor S(Q) of polymer 1
-        S0022             =   prous0   ! unperturbed structure factor S(Q) of polymer 2
+        S0022             =   pring0   ! unperturbed structure factor S(Q) of polymer 2
 !        nexpcc            =   modeexcc   ! number of exp-functions to describe background
 !        nexp1             =   modeex1   ! number of exp-functions to describe component1
 !        nexp2             =   modeex2   ! number of exp-functions to describe component2
@@ -623,8 +653,8 @@ ilr: if( newcomp_required ) then
      endif
 
 
-     sqt  = ss11  * alin*alin + 2*alin*arous * ss12  +  ss22  * arous*arous 
-     sqt0 = ss110 * alin*alin + 2*alin*arous * ss120 +  ss220 * arous*arous 
+     sqt  = ss11  * alin*alin + 2*alin*aring * ss12  +  ss22  * aring*aring 
+     sqt0 = ss110 * alin*alin + 2*alin*aring * ss120 +  ss220 * aring*aring 
 
 
  select case(mode)  ! be sure that in the beginning the assignment of t, q are properly made (if i1:)
@@ -634,8 +664,8 @@ ilr: if( newcomp_required ) then
   case (1) ! linear contribution at tau as function of q
      th_rparing = plin
 
-  case(2)  ! star contribution at tau  as function of q
-     th_rparing = prous
+  case(2)  ! ring contribution at tau  as function of q
+     th_rparing = pring
  
   case(3)  ! rpa contribution at tau as function of q
       th_rparing = Sqt
@@ -731,7 +761,6 @@ ilr: if( newcomp_required ) then
          write(6,*)'Error Number of chain segments is <= 0!',N
          return
        endif
-
 ! ---- determine the segment length l ----
        l = sqrt(R**2/N)       
        
@@ -830,13 +859,11 @@ ilr: if( newcomp_required ) then
        end subroutine NrousePX
  
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
- 
-! subroutines and functions entered here are private to this theory and share its variables 
-       subroutine Nrouse_ring2b(q,t,N, l, nue, wl4, pmin, pwidth, f0, finf, tauinf, pexinf, &
-                                diff, r021, alpha, r022, beta, a_cross, Rg, Sq, Sqt)
-!      ================================================================================================
+
+! subroutines and functions entered here are private to this theory and share its variables
+
+       subroutine Nrouse_ring2am7(q,t,wl4,l,N,Sq,Sqt)
+!      ================================================================
 !
 ! Rouse expression for a ring polymer
 ! with Nb segments each, the ideal Ree of the linear version of the polymer is given by R.
@@ -844,8 +871,6 @@ ilr: if( newcomp_required ) then
 ! Input parameters: (polymer and model descriptor are contained shared with main )
 !    q     ----> momentum transfer in A**-1
 !    t     ----> time in nano-sec
-!    ... 
-!    ...   ----> see cmments below
 ! Output parameters:
 !    Rg    <--- radius of gyration
 !    Sq    <--- S(Q)
@@ -860,37 +885,22 @@ ilr: if( newcomp_required ) then
 
 
 
-       double precision, intent(in) ::  q      ! q-value
-       double precision, intent(in) ::  t      ! time
-       integer         , intent(in) ::  N      ! number of segments
-       double precision, intent(in) ::  l      ! segment length
-       double precision, intent(in) ::  nue    !  exponent
-       double precision, intent(in) ::  wl4    ! Rouse rate
-       double precision, intent(in) :: pmin    ! transition mode number between 
-                                               ! simple ring-Rouse and large p modification       
-       double precision, intent(in) :: pwidth  ! sharpness of transition  
-       double precision, intent(in) :: f0      ! prefactor f(p) limit for small p 
-       double precision, intent(in) :: finf    ! prefactor f(p) limit for large p 
-       double precision, intent(in) :: tauinf  ! large p tau(p) = tauinf/p**pexinf 
-       double precision, intent(in) :: pexinf  ! large p tau(p) = tauinf/p**pexinf                                        
-       double precision, intent(in) :: diff     ! limiting diffusion (NMR value) in [A**2/ns]
-       double precision, intent(in) :: r021     ! reference mean squared displacement at first transition point to medium timed di
-       double precision, intent(in) :: alpha    ! sub-diffusion  exponent of SHORT time diffusion                                 
-       double precision, intent(in) :: r022     ! reference mean squared displacement at second transition point to D0 in [A**2]  
-       double precision, intent(in) :: beta     ! sub-diffusion  exponent of medium time diffusion                                
-       double precision, intent(in) :: a_cross  ! transition exponent between short and long time diffusion (sharper kink for             
-       double precision, intent(out):: Rg      ! radius of gyration                                              
-       double precision, intent(out):: Sq      ! S(q)                                              
-       double precision, intent(out):: Sqt     ! S(q,t)                                              
+       double precision, intent(in)     ::  q ,t, wl4, l
+       integer, intent(in)              ::  N
+       double precision, intent(out)    ::  Sq, Sqt
 
        integer                          ::  nn,mm,p
 
-       double precision :: ff2, nu, rr
-       double precision :: rate, tau_R, traf, W
+       double precision :: rate, traf, nun ! , tau_R, W, Ne0, taue
 
 
-       double precision :: cosarray(0:N,N/2), ewfac(N/2)
+       double precision :: cosarray(0:N,N/2), ewfac(N/2), ff2(N/2)
 
+       double precision :: nu(0:N)
+       double precision :: tram(0:N)
+
+       double precision :: W
+       double precision :: Ne0, nu0
 
 
 
@@ -905,42 +915,81 @@ ilr: if( newcomp_required ) then
          return
        endif
 
+       Ne0 = 0
+       nu0 = 0.5d0
 
-       nu    = 2*nue
+
 ! ---- and the Rousetime ----
        W     = Wl4 / l**4
        tau_R = N**2/(W * Pi**2)
+       if(Ne0 <= 0d0)  Ne0   = N/max(1d0,pmin)
+       taue  = Ne0**2 * l**4/(Wl4*pi**2)
+!!       tauinf= taue * pmin**pexinf !! taue * (N/Ne0)**pexinf 
+!!       rp=(Wl4*pi^2)*(p/pmin)**pexp/Ne0^2.
+
+!? write(*,*)"Wl4..",wl4,w,ne0,taue,nu0
+!? write(*,*)"N,nue,l,pmin,pwidth..",n,nue,l,pmin,pwidth,ntrans,nwidth
 
 ! ---- init sums ----
        N2 = N/2
-! p(even) = 2*ip in the following...
+! p(even) = 2*ip in the following...a
 
-!$OMP PARALLEL DO PRIVATE(traf)
+!$OMP PARALLEL DO
+  do nn=0,N
+    tram(nn) = 1d0/(1.0d0+exp((nn-ntrans)/nwidth))
+!                                 -----   ------
+  enddo
+!$OMP END PARALLEL DO
+
+
+!$OMP PARALLEL DO
+  do nn=0,N
+    nu(nn) = 2*(nu0*tram(nn) + (1-tram(nn))*nue)
+  enddo
+!$OMP END PARALLEL DO
+
+
+
+!$OMP PARALLEL DO PRIVATE(traf,nun)
        do nn=0,N
         do ip=1,N2
          traf = 1d0/(1.0d0+exp((2d0*ip-pmin)/pwidth))
+         nun  = traf * (2*nue) + (1d0-traf) * (2*nu0)
+         ff2(ip) =  -2d0* dble(N)**nun *(l*q)**2/(3d0*pi**2)
          cosarray(nn,ip) = cos((pi*2*ip*(nn))/dfloat(N))               &
-                          /  dble(2*ip)**(1d0+nu)                      &
+                          /  dble(2*ip)**(2d0)                         &
                           *  (f0*(1d0-traf)+finf*(traf))
         enddo
        enddo
 !$OMP END PARALLEL DO
 
 
-!$OMP PARALLEL DO PRIVATE(rate,traf)
+!       ff2  = -2d0* dble(N)**nu *(l*q)**2/(3d0*pi**2)
+
+       msd_im = 0
+!$OMP PARALLEL DO PRIVATE(rate,traf) REDUCTION(+:msd_im)
+!!$OMP PARALLEL DO PRIVATE(rate,traf)
        do ip=1,N/2
          traf = 1d0/(1.0d0+exp((2d0*ip-pmin)/pwidth))
-         rate      = dble(2d0*ip)**(2d0*nu)/tau_R*(1d0-traf) + (2d0*ip)**pexinf/tauinf * traf
+
+         rate      = dble(2d0*ip)**(2d0)/tau_R*(1d0-traf) + &
+                     (W*pi**2)* (2d0*ip/pmin)**pexinf/Ne0**2 * traf
 
          ewfac(ip) = 1.0d0-exp(-t * rate )
+
+
+         msd_im = msd_im - ff2(ip)  /  dble(2*ip)**(1d0+1.d0)                      &
+                          *  (f0*(1d0-traf)+finf*(traf))                       &
+                          *  ewfac(ip)
        enddo
 !$OMP END PARALLEL DO
+       msd_im = 6 * msd_im / q**2
+
 
            Sq  = 0
            Sqt = 0
            Rg  = 0
 
-           ff2  = -2d0* dble(N)**nu *(l*q)**2/(3d0*pi**2)
 
 ! ---- Do the sums -----
 !$OMP PARALLEL DO REDUCTION(+:Sq,Sqt,Rg)
@@ -948,11 +997,11 @@ ilr: if( newcomp_required ) then
             do mm = 1,N
 
 
-              Sq  = Sq  + exp(-((q*l)**2)/6d0 * ( dble(abs(nn-mm))*dble((N-abs(nn-mm)))/dble(N))**nu )
-              Sqt = Sqt + exp(-((q*l)**2)/6d0 * ( dble(abs(nn-mm))*dble((N-abs(nn-mm)))/dble(N))**nu  &
-                              + ff2*sum(cosarray(abs(nn-mm),1:N2)*ewfac(1:N2)) )
+              Sq  = Sq  + exp(-((q*l)**2)/6d0 * ( dble(abs(nn-mm))*dble((N-abs(nn-mm)))/dble(N))**nu(abs(nn-mm)) )
+              Sqt = Sqt + exp(-((q*l)**2)/6d0 * ( dble(abs(nn-mm))*dble((N-abs(nn-mm)))/dble(N))**nu(abs(nn-mm)) &
+                              + sum(cosarray(abs(nn-mm),1:N2)*ewfac(1:N2)*ff2(1:N2)) )
 
-              Rg  = Rg  + l**2  * ( dble(abs(nn-mm))*dble((N-abs(nn-mm)))/dble(N))**nu
+              Rg  = Rg  + l**2  * ( dble(abs(nn-mm))*dble((N-abs(nn-mm)))/dble(N))**nu(abs(nn-mm)) 
 
             enddo
            enddo
@@ -961,19 +1010,14 @@ ilr: if( newcomp_required ) then
            Sq  = Sq /N
            Sqt = Sqt/N
 
-! and the com diffusion
-     
-           rr=((exp(((-alpha+beta)*log(r021/r022)+alpha*beta*(log(2d0)+log(3d0)-      &
-           log(r022/diff)))/beta)*r022*t**alpha)**a_cross+(exp((log(2d0)+log(3d0)- &
-           log(r022/diff))*beta)*r022*t**beta)**a_cross+(6d0*diff*t)**a_cross)**(1d0/a_cross)
-
-           Sqt = sqt * exp(-rr * q*q / 6d0) 
-
            Rg  = sqrt(Rg/2d0/N**2)
 
-       end subroutine Nrouse_ring2b
+!? write(*,*)"t,q,Sq,Sqt=",t,q,Sq,Sqt
 
- 
+
+       end subroutine Nrouse_ring2am7
+
+
 
  end function th_rparing
 
