@@ -55,7 +55,7 @@ write(*,*)"T:",i,tave,temp(i)
        write(*,'(a,f12.6)') "imG  ",0d0 
        write(*,*)"values"    
        do i=anfang, ende
-         write(*,'(3e15.7)') Freq(i), reG(i), 0.01*reG(i)
+         write(*,'(3e15.7)') Freq(i), reG(i), 0.02*abs(reG(i))
        enddo
 
        write(*,'(a)')"#nxt" 
@@ -68,7 +68,7 @@ write(*,*)"T:",i,tave,temp(i)
        write(*,'(a,f12.6)') "imG  ",1d0 
        write(*,*)"values"    
        do i=anfang, ende
-         write(*,'(3e15.7)') Freq(i), imG(i), 0.01*reG(i)
+         write(*,'(3e15.7)') Freq(i), imG(i), 0.02*abs(reG(i))
        enddo
 
        write(*,'(a)')"#nxt" 

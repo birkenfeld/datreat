@@ -9,11 +9,11 @@
                                                                         
       CHARACTER(8) thnam, parnam (20) 
       REAL pa (20) 
-			integer :: mbuf
-			integer, intent(inout) :: nopar                 ! Anzahl der Parameter data
+      integer :: mbuf
+      integer, intent(inout) :: nopar                 ! Anzahl der Parameter data
       character*80, intent(inout) :: napar(mbuf)      ! name des parameters n
 			real, intent(inout) :: params(mbuf)             ! value des parameters n
-			                                                                        
+                                                                        
       REAL(8) epsilon, errac, eps 
       INTEGER maxit 
       PARAMETER (epsilon = 1.0d-10, maxit = 100) 
@@ -188,7 +188,8 @@
       CALL getpar ('phi_nr  ', phi_nr, nopar ,params,napar,mbuf, ier) 
       IF (ier.eq.0) then 
          compute_phi = .true. 
-         iphi = NINT (phi_nr) 
+         iphi = NINT (phi_nr)
+!        write(*,*)"TESTETSTEST: Phi-comp: ", iphi 
       ELSE 
          compute_phi = .false. 
       ENDIF 

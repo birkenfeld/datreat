@@ -1,0 +1,5 @@
+makro 
+rename yaxis $$S(Q,t)
+rename xaxis $$t\/ns
+plot ymax 1.05 txoff flinewd 1.2 axtxsize 1.3 xlegdist 0.1
+

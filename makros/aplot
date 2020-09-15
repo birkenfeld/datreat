@@ -1,0 +1,3 @@
+makro _p1_ _p2_ _p3_ _p4_ _p5_ _p6_ _p7_ _p8_ _p9_ _p10_ 
+plot xmin (MINX) xmax (MAXX) ymin (MINY) ymax (MAXY) _p1_ _p2_ _p3_ _p4_ _p5_ _p6_ _p7_ _p8_ _p9_ _p10_ 
+

@@ -7,7 +7,7 @@ program testvilgi
 
  double precision :: q, t, sqt, sqt0, sqti
 
- integer          :: m=0
+ integer          :: m=10
  integer          :: i
  q = 0.05d0
  t = 0.1d0
@@ -86,10 +86,10 @@ CONTAINS
 !                2*cos(Pi*p*nn/dfloat(N))*cos(Pi*p*mm/dfloat(N))/p**2
       enddo
 !$OMP END PARALLEL DO 
-      rr  = rr * 4*N / (2*Pi) m/Pi 
+      rr  = rr * 4*N / (2*Pi) /Pi 
 !                              === dieser Faktor is noetig damit rr(n,m,0)=abs(n-m) 
 !                              === fehlt im Paper ?!
- write(*,*)nn,mm,rr
+! write(*,*)nn,mm,rr
       sqt = sqt + exp(-(q*l)**2/6d0 * rr)
       rrarr(mm,nn) = rr
     enddo

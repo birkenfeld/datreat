@@ -114,7 +114,7 @@ MODULE new_com
   integer, parameter :: nodelims      = 7
 
 
-  integer, parameter :: history_depth = 50
+  integer, parameter :: history_depth = 1000
   ! ---- communication common block containig the analysed inputline
   !      comand   = actual command keyword
   !      vname(*) = names stack
@@ -185,7 +185,7 @@ MODULE new_com
   character(len=cmd_long) :: mxx_path   = './'
   character(len=cmd_long) :: init_file_path  = ' ' ! default no auto init
 #ifdef USE_LINENOISE
-  character(cmd_long), private :: history_file = ".history"
+  character(cmd_long), public  :: history_file = ".history"
 #else
   character(cmd_long), private :: history(0:history_depth)
 #endif
@@ -223,7 +223,6 @@ MODULE new_com
   !data ktop /0/
 
 
-
   integer, private :: iot=0
   integer, private :: ierrr=0
 
@@ -234,9 +233,9 @@ MODULE new_com
 
 
 
-  double precision  ,  private      ::  useval(musevar)
-  integer, private      ::  nousev
-  character*16, private :: usenam(musevar)
+  double precision  ,  public      ::  useval(musevar)
+  integer, public      ::  nousev
+  character*16, public :: usenam(musevar)
   ! ---- outputlevel
   ! xxxx,yyyy = aktuelle addersse fuer wertextraktion xx,yy
   !
@@ -297,7 +296,7 @@ MODULE new_com
   public  :: set_usrextr
   public  :: set_init_file
   public  :: get_newcom
-  private :: creplace
+  public  :: creplace
   private :: re_scan
   public  :: parse
   public  :: errsig
@@ -1181,7 +1180,7 @@ CONTAINS
           enddo
           ktop = 0
        else ! if we are at the command line level quit program
-          istatus = -3
+          istatus = -4
           return
        endif
        goto 8888
@@ -2853,7 +2852,8 @@ CONTAINS
        anklam = (actchar.eq.0)
        if(.not.anklam) anklam = (formula(actchar-1).eq.'(')
        if(anklam) then
-          call putopstack('neg ',iuprio)
+!?          call putopstack('neg ',iuprio)
+          call putopstack('neg ',iuprio-1)    !! this is to fix -ln(x), and other fknt. TBD check with Klammerprio..
           actchar     = actchar + 1
        else
           typ = 'bin '

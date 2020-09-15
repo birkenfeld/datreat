@@ -8,7 +8,7 @@
    integer, parameter :: c_MWERT       = 20000  ! was 10000
    integer, parameter :: c_MPAR        = 400
    integer, parameter :: c_MTH         = 80
-   integer, parameter :: c_MTPAR       = 40
+   integer, parameter :: c_MTPAR       = 80     ! was 40
    integer, parameter :: c_MTCAL       = 40
    integer, parameter :: c_MCOUP       = 10
    integer, parameter :: c_MAXFORMLENGTH = 1024
@@ -184,6 +184,7 @@
 		integer nopar(c_MBUF)
                 integer :: params_display_level(c_MPAR,c_MBUF) = 0
 
+        character(len=80) :: editor
 
         CONTAINS
 
@@ -439,8 +440,8 @@
 	module formul
                 use dimensions
 		save
-		character*1025 :: xformel = '(xx)'
-		character*1025 :: yformel = '(yy)'
+		character*1025 :: xformel = '(X)'
+		character*1025 :: yformel = '(Y)'
 		character*1025 yfitform
 	end module formul
 

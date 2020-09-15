@@ -36,7 +36,7 @@ implicit none
   double precision              :: YLEG_DISTANCE                 = 0.14d0
   double precision              :: TLEG_DISTANCE_X               = 0.0d0
   double precision              :: TLEG_DISTANCE_Y               = 0.08d0
-
+  double precision              :: tex_fak                       = 1.3d0
                          
   integer, parameter :: MARKERTYPE_DOT             =  1    !    Smallest displayable dot
   integer, parameter :: MARKERTYPE_PLUS            =  2    !    Plus sign
@@ -443,6 +443,7 @@ CONTAINS
 !== gr_ende ================================================================================================= 
 ! tbd return filename (function?) depending on ws_id 
   subroutine grende(action)
+     use new_com
      implicit none
       character(len=*), intent(in), optional :: action
 
@@ -464,6 +465,8 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
           call execute_command_line(trim(gr_string_replace(action,"$plot",trim(gr_plotfile)) ) )
          endif
       endif
+
+      title = " " 
 
   end subroutine grende 
 
@@ -693,23 +696,29 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
    if(present(ylabel)) then
      call gr_settextpath (  TEXT_PATH_UP    )
      call gr_setcharup   (  -1d0, 0d0       )
+     if(ylabel(1:1)=="$")  call gr_setcharheight(text_size*tex_fak) 
 !    call gr_textext(textsize+0.005d0 ,0.5d0,trim(grtex_filter(ylabel))//czero)
        call grtext(ylabel_x,ylabel_y,trim(ylabel)//czero)
+       call gr_setcharheight(text_size) 
    endif
 
    if(present(xlabel)) then
      call gr_settextpath (  TEXT_PATH_RIGHT )
      call gr_setcharup   (  0d0, 1d0        )
+     if(xlabel(1:1)=="$")  call gr_setcharheight(text_size*tex_fak) 
 !     call gr_textext(0.5d0 ,textsize+0.005d0,trim(grtex_filter(xlabel))//czero)
       call grtext(xlabel_x,xlabel_y, trim(xlabel))
+      call gr_setcharheight(text_size) 
      endif
 
    if(present(title)) then
      call gr_settextalign(  TEXT_HALIGN_LEFT , TEXT_VALIGN_HALF  ) 
      call gr_settextpath (  TEXT_PATH_RIGHT )
      call gr_setcharup   (  0d0, 1d0        )
+     if(title(1:1)=="$")  call gr_setcharheight(text_size*tex_fak) 
 !     call gr_textext(0.1d0,1-2*textsize,trim(grtex_filter(title))//czero)
      call grtext(tlabel_x, tlabel_y,trim(title)//czero)
+     call gr_setcharheight(text_size) 
    endif
 
 
@@ -805,23 +814,29 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
    if(present(ylabel)) then
      call gr_settextpath (  TEXT_PATH_DOWN    )
      call gr_setcharup   (  1d0, 0d0       )
+     if(ylabel(1:1)=="$")  call gr_setcharheight(text_size*tex_fak) 
 !     call gr_textext(1-2*textsize+0.005d0 ,0.5d0,trim(grtex_filter(ylabel))//czero)
      call grtext(ylabel_x,ylabel_y,trim(ylabel)//czero)
+     call gr_setcharheight(text_size) 
    endif
 
    if(present(xlabel)) then
      call gr_settextpath (  TEXT_PATH_RIGHT )
      call gr_setcharup   (  0d0, 1d0        )
+     if(xlabel(1:1)=="$")  call gr_setcharheight(text_size*tex_fak) 
 !     call gr_textext(0.5d0 ,1-3*textsize+0.005d0,trim(grtex_filter(xlabel))//czero)
       call grtext(xlabel_x, xlabel_y, xlabel)
+      call gr_setcharheight(text_size) 
    endif
 
    if(present(title)) then
      call gr_settextalign(  TEXT_HALIGN_RIGHT , TEXT_VALIGN_HALF  ) 
      call gr_settextpath (  TEXT_PATH_RIGHT )
      call gr_setcharup   (  0d0, 1d0        )
+     if(title(1:1)=="$")  call gr_setcharheight(text_size*tex_fak) 
 !     call gr_textext(0.9d0,1-2*textsize,trim(grtex_filter(title))//czero)
      call grtext(tlabel_x,tlabel_y,trim(title)//czero)
+     call gr_setcharheight(text_size) 
    endif
 
 
@@ -1095,7 +1110,10 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
        use therrc
        use thparc
        use constants
+       use formul
        implicit none
+
+       character(len=40)   :: LAST_PPAR = "last_plotsetting"
 
        double precision    :: e(size(xwerte(:,1)))
        double precision    :: x(size(xwerte(:,1)))
@@ -1120,7 +1138,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
        logical :: paplo=.true.
        logical :: doplo
        logical :: fitplo=.true.
-       logical :: errplo=.false.
+       logical :: errplo=.true.
        logical :: paxis=.true.
        logical :: taxis=.true.
 
@@ -1163,7 +1181,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
       integer       ::  ubild
       logical       ::  fileda
       
-
+      logical, save :: initial = .true.
 
 
 
@@ -1172,6 +1190,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
        write(6,*)'= plot                                                                       ='
        write(6,*)'=    plots selected records                                                  ='
        write(6,*)'=    parameters:                                                             ='
+       write(6,*)'=      rpp            :  read lastplotpar                                    ='
        write(6,*)'=      xmin  <val>    :  start of x-plotting range                           ='
        write(6,*)'=      xmax  <val>    :  end   of x-plotting range                           ='
        write(6,*)'=      ymin  <val>    :  start of y-plotting range                           ='
@@ -1182,12 +1201,13 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
        write(6,*)'=      ltype <list>   :  linetypes                                           ='
        write(6,*)'=      lwid  <list>   :  linewidths                                          ='
        write(6,*)'=      sywid <list>   :  symbol size scalings                                ='
-       write(6,*)'=      errplo         :  adds error bars                                     ='
-       write(6,*)'=      noerrplo       :  suppress error bars                                 ='
+       write(6,*)'=      errors         :  adds error bars                                     ='
+       write(6,*)'=      noerrors       :  suppress error bars                                 ='
        write(6,*)'=      parplo         :  sets parameter value listing                        ='
        write(6,*)'=      parlev         :  sets level for (more) parameter lsiting             ='
        write(6,*)'=      noparplo p1 p2.:  suppress parameter listing except for p1 p2 ...     ='
        write(6,*)'=      txsize <val>   :  set textsize (legend)                               ='
+       write(6,*)'=      texfak <val>   :  enlarge factor for tex expression (start with $     ='
        write(6,*)'=      axtxsize <val> :  scale axis script text size                         ='
        write(6,*)'=      axticlen <val> :  scale axis tick size (neg=outbound)                 ='
        write(6,*)'=      xlegdist <val> :  distance of x-axis name from axis                   ='
@@ -1198,7 +1218,9 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
        write(6,*)'=      dfinewd  <val> :  data linewidth                                      ='
        write(6,*)'=      lin_x | log_x  :  lin or log x scale                                  ='
        write(6,*)'=      lin_y | log_y  :  lin or log y scale                                  ='
-       write(6,*)'=      # <al>         :  auto num picture storing ON start at <val>,  0=OFF  ='
+       write(6,*)'=      def            :  at first run start with default                     ='
+!       write(6,*)'=      last           :  read parameters form last session                   ='
+       write(6,*)'=      # <al>         :  auto num picture store  ON start at <val>, neg=OFF  ='
        write(6,*)'=        for further options see manual ....                                 ='
        write(6,*)'= HINTS:  (prior to plot)                                                    ='
        write(6,*)'=       use the:  title    command to set a plot title                       ='
@@ -1206,10 +1228,13 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
        write(6,*)'=                 rename   names starting with $ may contain some tex codeing='
        write(6,*)'= PRINTING/SAVING:                                                           ='
        write(6,*)'=       if there is some title (use tit abc...) then                         ='
-       write(6,*)'=       plot are stored to <title>.pdf (blanks etc. are replaced by _ etc.   ='
+       write(6,*)'=       plot are stored to dtrplot_<title>#.pdf                             ='
+       write(6,*)'=       (blanks etc. are replaced by _ etc.) # is the plotnumber shown also  ='
+       write(6,*)'=       on the lower left cormer of the plot                                 ='
        write(6,*)'=       and always copied to last_datreat_plot.pdf                           ='
        write(6,*)'=       to stop creation of auto numbered series datreat_plot##.pdf  use plot # <neg>'
-       write(6,*)'=       to restart creation of auto numbered series datreat_plot##.pdf  use plot # <n>'
+       write(6,*)'=       to restart creation of auto numbered series datreat_plot##.pdf remove='
+       write(6,*)'=       or edit file: datreat_plot_counter                                   ='
        write(6,*)'= VERSION 3.0                                                                ='
        write(6,*)'=============================================================================='
        return
@@ -1219,6 +1244,10 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
 ! ----- parameter retrieving from stack -----
       nkurv  = 0
       nfkurv = 0
+
+      if(found('rpp     ')) call readplotpar()
+
+
       if(inames.eq.0) then
 !                     ----> assume that a list of number numors
        if(ipars.gt.0) then
@@ -1246,6 +1275,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
           if(vname(i).eq.'txoff   ') ptex  = .false.
           if(vname(i).eq.'epscl   ') epscl = rpar(j)
           if(vname(i).eq.'txsize  ') txsize= rpar(j)
+          if(vname(i).eq.'texfak  ') tex_fak= rpar(j)
           if(vname(i).eq.'legsize ') txsizt= rpar(j)
           if(vname(i).eq.'legx    ') xtshft= rpar(j)
           if(vname(i).eq.'legy    ') ytshft= rpar(j)
@@ -1256,6 +1286,8 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
           if(vname(i).eq.'noparplo') paplo=.false.
           if(vname(i).eq.'errplo  ') errplo=.true.
           if(vname(i).eq.'noerrplo') errplo=.false.
+          if(vname(i).eq.'errors  ') errplo=.true.
+          if(vname(i).eq.'noerrors') errplo=.false.
           if(vname(i).eq.'axis    ') paxis =.true.
           if(vname(i).eq.'noaxis  ') paxis =.false.
           if(vname(i).eq.'txaxis  ') taxis =.true.
@@ -1266,6 +1298,8 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
           if(vname(i).eq.'log_y   ') log_y  = .true.
           if(vname(i).eq.'lin_x   ') log_x  = .false.
           if(vname(i).eq.'lin_y   ') log_y  = .false.
+          if(vname(i).eq.'def     ') initial= .false.
+          if(vname(i).eq.'last    ') initial= .true.
 !
           ibild               = get_named_value("#          ",ibild,inew)
           ifont               = get_named_value("font       ",ifont,inew)
@@ -1378,6 +1412,14 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
         return
       endif
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      if(initial) then 
+        call readplotpar()
+        initial = .false.
+      endif
+      call writeplotpar()
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 
 
 !
@@ -1439,7 +1481,12 @@ scl:   if(found('scaled  ')) then
 !       if(len_trim(title) > 0) then
 !          call grstart("dtrplot.pdf")           !>neu, TBD use frlux ....
           write(*,'(a,i0,a)')"Plot title(#",ibild-1,"): "//"dtrplot_"//trim(grtitle_filter(title))//".pdf"
-          call grstart("dtrplot_"//trim(grtitle_filter(title))//".pdf")           !>neu, TBD use frlux ....
+          write(buf,'(i0)')ibild-1
+          if(ibild < 0) then
+            call grstart("dtrplot_"//trim(grtitle_filter(title))//".pdf") !>neu, TBD use frlux ....
+          else
+            call grstart("dtrplot_"//trim(grtitle_filter(title))//trim(buf)//".pdf") !>neu, TBD use frlux ....
+          endif
 !       else
 !          call grstart 
 !       endif
@@ -1618,7 +1665,7 @@ scl:   if(found('scaled  ')) then
        tx = tag(7:8)//'-'//tag(5:6)//'-'//tag(1:4)
        sx = stunde(1:2)//':'//stunde(3:4)//':'//stunde(5:6)
 !       xtext = tx//'  '//sx
-       write(xtext,'(a,i0)') tx//'  '//sx//' #',ibild-1
+       write(xtext,'(a,i0)') tx//'  '//sx//' #',max(0,ibild-1)
        call grtext(-DEFAULT_WC_MARGIN*150*fyskip * txsizt ,ylow,trim(xtext),GR_BLACK) !> neu
 
 ! ---- plot theory parameters ----
@@ -1630,6 +1677,7 @@ scl:   if(found('scaled  ')) then
              else
                 write(xtext,'(8htheory+ ,a8)')thenam(ith)
              endif
+             if(thenam(ith)=="eval    ") write(xtext,'(a,":",a)')trim(xtext),trim(yfitform)
              call grtext(xtx,ytx,trim(xtext),GR_BLACK) !> neu
 
              call advance_text(xtx,ytx,yhigh,ylow,xskip)
@@ -1736,11 +1784,14 @@ scl:   if(found('scaled  ')) then
 
 
 !!! finalize and save pictures on disc 
-      if(ibild > 0) then
-         write(buf,'("datreat_plot",i0,".pdf")')ibild-1
-      else
-         buf = "last_datreat_plot.pdf"
-      endif
+!?      if(ibild > 0 .and. len_trim(title)==0) then
+!?         write(buf,'("datreat_plot",i0,".pdf")')ibild-1
+!?      else
+!?         buf = "last_datreat_plot.pdf"
+!?      endif
+
+      buf = "last_datreat_plot.pdf"
+
       LAST_DTR_PLOT = buf
       call grende(trim(PDF_VIEWER_COMMAND)//' $plot; cp -f $plot '//trim(buf))  
                                             ! $plot is symbolic for then name of the 
@@ -1761,6 +1812,123 @@ scl:   if(found('scaled  ')) then
         endif
 
        end subroutine advance_text
+
+
+
+       subroutine readplotpar()
+         implicit none
+         integer :: ioppar, nl
+         logical :: lastppar_da
+         inquire(file=LAST_PPAR,EXIST=lastppar_da)
+         if(.not. lastppar_da) return
+         
+         open(newunit=ioppar, file=LAST_PPAR)
+          read(ioppar,*,end=99,err=99)  xmin                   
+          read(ioppar,*,end=99,err=99)  xmax                
+          read(ioppar,*,end=99,err=99)  ymin                
+          read(ioppar,*,end=99,err=99)  ymax                
+          read(ioppar,*,end=99,err=99)  ptex                
+          read(ioppar,*,end=99,err=99)  epscl               
+          read(ioppar,*,end=99,err=99)  txsize              
+          read(ioppar,*,end=99,err=99)  txsizt              
+          read(ioppar,*,end=99,err=99)  xtshft              
+          read(ioppar,*,end=99,err=99)  ytshft              
+          read(ioppar,*,end=99,err=99)  icol0               
+          read(ioppar,*,end=99,err=99)  sysize              
+          read(ioppar,*,end=99,err=99)  iplevel             
+          read(ioppar,*,end=99,err=99)  paplo               
+          read(ioppar,*,end=99,err=99)  errplo              
+          read(ioppar,*,end=99,err=99)  paxis               
+          read(ioppar,*,end=99,err=99)  taxis               
+          read(ioppar,*,end=99,err=99)  fitplo              
+          read(ioppar,*,end=99,err=99)  log_x               
+          read(ioppar,*,end=99,err=99)  log_y               
+          read(ioppar,*,end=99,err=99)  log_x               
+          read(ioppar,*,end=99,err=99)  log_y                  
+          read(ioppar,*,end=99,err=99)  ibild               
+          read(ioppar,*,end=99,err=99)  ifont               
+          read(ioppar,*,end=99,err=99)  ax_text_scale       
+          read(ioppar,*,end=99,err=99)  ax_tick_scale       
+          read(ioppar,*,end=99,err=99)  thcline_thickness   
+          read(ioppar,*,end=99,err=99)  datline_thickness   
+          read(ioppar,*,end=99,err=99)  XLEG_DISTANCE       
+          read(ioppar,*,end=99,err=99)  YLEG_DISTANCE       
+          read(ioppar,*,end=99,err=99)  TLEG_DISTANCE_X     
+          read(ioppar,*,end=99,err=99)  TLEG_DISTANCE_Y     
+! to be modernized
+          read(ioppar,*,end=99,err=99) nl
+          read(ioppar,*,end=99,err=99) linetype(1:min(nl,size(linetype)))
+          read(ioppar,*,end=99,err=99) nl
+          read(ioppar,*,end=99,err=99) linewidth_scaling(1:min(nl,size(linewidth_scaling)))
+          read(ioppar,*,end=99,err=99) nl
+          read(ioppar,*,end=99,err=99) isymb(1:min(nl,size(isymb)))
+          read(ioppar,*,end=99,err=99) nl
+          read(ioppar,*,end=99,err=99) sysize_scaling(1:min(nl,size(sysize_scaling)))
+          read(ioppar,*,end=99,err=99) nl
+          read(ioppar,*,end=99,err=99) icolo(1:min(nl,size(icolo)))
+
+          read(ioppar,*,end=99,err=99) tex_fak  ! dies nach oben
+
+
+99        continue
+         close(ioppar)
+
+       end subroutine readplotpar
+   
+       subroutine writeplotpar()
+         implicit none
+         integer :: ioppar
+         
+         open(newunit=ioppar, file=LAST_PPAR)
+          write(ioppar,*)  xmin                ,'                      xmin    '    
+          write(ioppar,*)  xmax                ,'                      xmax    ' 
+          write(ioppar,*)  ymin                ,'                      ymin    ' 
+          write(ioppar,*)  ymax                ,'                      ymax    ' 
+          write(ioppar,*)  ptex                ,'                      text    ' 
+          write(ioppar,*)  epscl               ,'                      epscl   ' 
+          write(ioppar,*)  txsize              ,'                      txsize  ' 
+          write(ioppar,*)  txsizt              ,'                      legsize ' 
+          write(ioppar,*)  xtshft              ,'                      legx    ' 
+          write(ioppar,*)  ytshft              ,'                      legy    ' 
+          write(ioppar,*)  icol0               ,'                      color   ' 
+          write(ioppar,*)  sysize              ,'                      sysize  ' 
+          write(ioppar,*)  iplevel             ,'                      parlev  ' 
+          write(ioppar,*)  paplo               ,'                      parplo  ' 
+          write(ioppar,*)  errplo              ,'                      noerrors' 
+          write(ioppar,*)  paxis               ,'                      axis    ' 
+          write(ioppar,*)  taxis               ,'                      txaxis  ' 
+          write(ioppar,*)  fitplo              ,'                      nofits  ' 
+          write(ioppar,*)  log_x               ,'                      log_x   ' 
+          write(ioppar,*)  log_y               ,'                      log_y   ' 
+          write(ioppar,*)  log_x               ,'                      lin_x   ' 
+          write(ioppar,*)  log_y               ,'                      lin_y   '    
+          write(ioppar,*)  ibild               ,'                      #        '
+          write(ioppar,*)  ifont               ,'                      font     '
+          write(ioppar,*)  ax_text_scale       ,'                      axtxsize '
+          write(ioppar,*)  ax_tick_scale       ,'                      axticlen '
+          write(ioppar,*)  thcline_thickness   ,'                      flinewd  '
+          write(ioppar,*)  datline_thickness   ,'                      dlinewd  '
+          write(ioppar,*)  XLEG_DISTANCE       ,'                      xlegdist '
+          write(ioppar,*)  YLEG_DISTANCE       ,'                      ylegdist '
+          write(ioppar,*)  TLEG_DISTANCE_X     ,'                      tit_x    '
+          write(ioppar,*)  TLEG_DISTANCE_Y     ,'                      tit_y    '
+          write(ioppar,*) size(linetype)
+          write(ioppar,'(20i5)') linetype
+          write(ioppar,*) size(linewidth_scaling)
+          write(ioppar,'(10f12.6)') linewidth_scaling
+          write(ioppar,*) size(isymb)
+          write(ioppar,'(20i5)') isymb
+          write(ioppar,*) size(sysize_scaling)
+          write(ioppar,'(10f12.6)') sysize_scaling
+          write(ioppar,*) size(icolo)
+          write(ioppar,'(20i5)') icolo
+
+          write(ioppar,*) tex_fak      ! hier nach oben !
+
+         close(ioppar)
+
+       end subroutine writeplotpar
+     
      
       END
 !

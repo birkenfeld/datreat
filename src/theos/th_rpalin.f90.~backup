@@ -1,5 +1,5 @@
- FUNCTION th_rpalin2(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
-!================================================================================
+ FUNCTION th_rpalin(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
+!============================================================================
 !  applies rpa mixture tor the scattering function for a star-linear polymer micture and extends this into the dynamic regime (i.e. S(Q) --> S(Q,t))
 ! 
       use theory_description 
@@ -12,7 +12,7 @@
 !!    ====
 
 
-      real    :: th_rpalin2
+      real    :: th_rpalin
       character(len=8) :: thnam, parnam (*) 
       real    :: pa (*) 
       real    :: x , xh
@@ -29,12 +29,12 @@
      double precision :: wl4rous    ! rouse rate star 
      integer          :: nrouseff    ! effective segment star arm 
 !     double precision :: diffrous   ! centre-of-mass diffusino star
-     double precision ::   diff       
-     double precision ::   r02   , rr     
-     double precision ::   tc         
-     double precision ::   nu_subdiff 
-     double precision ::   a_cross    
-     double precision ::   beta_q     
+     double precision :: diff       
+     double precision :: r02   , rr     
+     double precision :: tc         
+     double precision :: nu_subdiff 
+     double precision :: a_cross    
+     double precision :: beta_q     
 
 
      double precision :: locr2_b    ! locrep2 parameter b 
@@ -72,7 +72,6 @@
      integer          :: nlin_cc    ! number of segments of linear polymer matrix 
      double precision :: philin     ! volume fraction of linera polymer
      double precision :: betadif
-!     double precision :: plimit     ! limit of star modes (internal EV value) which are frozen
 
      double precision :: alin       ! scattering contrast of linear polymer omponent 
      double precision :: arous      ! scattering contrast of start polymer
@@ -138,7 +137,6 @@
      double precision        :: ss11, ss110, ss12, ss120, ss22, ss220
 
      double precision        :: a1, a2, r1, r2, r3, b1, b2, g1, g2, g3
-     integer                 :: analytic = 0
      integer                 :: iout = 0
 
 
@@ -152,11 +150,11 @@
 !
 ! ----- initialisation ----- 
     IF (ini.eq.0) then 
-       thnam = 'rpalin2a  '
+       thnam = 'rpalin  '
        nparx =       34
        IF (npar.lt.nparx) then
            WRITE (6,*)' theory: ',thnam,' no of parametrs=',nparx,' exceeds current max. = ',npar
-          th_rpalin2 = 0
+          th_rpalin = 0
           RETURN
        ENDIF
        npar = nparx
@@ -209,11 +207,11 @@
         th_param_desc( 1,idesc) = "prefactor" !//cr//parspace//&
         th_param_desc( 2,idesc) = "rouse short liner chains rate (phirous)" !//cr//parspace//&
         th_param_desc( 3,idesc) = "effective segment number in summation" !//cr//parspace//&
-        th_param_desc( 6,idesc) = "limiting diffusion (NMR value)" !//cr//parspace//&
-        th_param_desc( 7,idesc) = " reference mean squared displacement at transition point to D0 " !//cr//parspace//&
-        th_param_desc( 9,idesc) = " = nu_subdiff  exponent " !//cr//parspace//&
-        th_param_desc(10,idesc) = " transition exponent between short and long time diffusuion " !//cr//parspace//&
-        th_param_desc(11,idesc) = " heterogeneity exponent  " !//cr//parspace//&
+        th_param_desc( 4,idesc) = "limiting diffusion (NMR value)" !//cr//parspace//&
+        th_param_desc( 5,idesc) = " reference mean squared displacement at transition point to D0 " !//cr//parspace//&
+        th_param_desc( 6,idesc) = " = nu_subdiff  exponent " !//cr//parspace//&
+        th_param_desc( 7,idesc) = " transition exponent between short and long time diffusuion " !//cr//parspace//&
+        th_param_desc( 8,idesc) = " heterogeneity exponent  " !//cr//parspace//&
 
 
         th_param_desc( 7+2,idesc) = "locrep2 parameter b" !//cr//parspace//&
@@ -262,30 +260,10 @@
         th_file_param( 10,idesc) = "tau      > tau val for mode > 0 calc"
         th_file_param( 11,idesc) = "alin     > scattering contrast linear"
         th_file_param( 12,idesc) = "arous    > scattering contrast star"
-        th_file_param( 13,idesc) = "analytic > if=1 use polynomial method if=2 use efficient num integ."
-        th_file_param( 14,idesc) = "dss      > modification factor for polynom sampling distance used for polynomial method only" //cr//parspace//&
-                                   "           this is critical for numerical accuracy/stability try other" //cr//parspace//&
-                                   "           values if the computation fails "
-        th_file_param( 15,idesc) = "sfak0    > polynom scaling factor used for polynomial method only" //cr//parspace//&
-                                   "           this is critical for numerical accuracy/stability try other" //cr//parspace//&
-                                   "           values if the computation fails "
-        th_file_param( 16,idesc) = "npp_plus > polynom sampling extra points used for polynomial method only" //cr//parspace//&
-                                   "           increasing the number npp in excess of the minimum needed" //cr//parspace//&
-                                   "           may improve accuracy, eventually decrease dss when increasing npp  "
-        th_file_param( 17,idesc) = "xil      > for analytic=0 (or not present): integration for invlaplace" //cr//parspace//&
-                                   "           xil is the displacement of the -I*inf...I*Inf integration path" //cr//parspace//&
-                                   "           along the real axis, a very small 1e-3 value shoul usually be good  "
-        th_file_param( 18,idesc) = "epap     > for analytic=0 (or not present): integration for invlaplace" //cr//parspace//&
-                                   "           epap is an optional apodisation factor" //cr//parspace//&
-                                   "           a very small 1e-9 value shoul usually be good  "
-        th_file_param( 19,idesc) = "epsrpa   > for analytic=0 (or not present): integration for invlaplace" //cr//parspace//&
-                                   "           epsrpa is an accuracy target for the numerical integratio" //cr//parspace//&
-                                   "           a 1e-5 value should usually be good  "
-        th_file_param( 19,idesc) = "ss_offs  > offset for center of polynom evaluation range " 
 ! >>>>> describe record parameters creaqted by this theory >>>>>>> 
         th_out_param(:,idesc)  = " "
 ! 
-        th_rpalin2 = 0.0
+        th_rpalin = 0.0
  
         RETURN
      ENDIF
@@ -394,50 +372,6 @@
       xh = 1.0d0
       call parget('arous    ',xh,iadda,ier)
       arous  = xh
-!!! >>> tentative only testing USE OPTIMIZED log space integration as default (2)
-      xh = 2
-      call parget('analytic ',xh,iadda,ier)
-      analytic  = nint(xh) 
-!!! >>> tentative only testing
-      xh =  0.0001d0
-      call parget('xil      ',xh,iadda,ier)
-      xil = xh
-!!! >>> tentative only testing
-      xh =  1d-9
-      call parget('epap      ',xh,iadda,ier)
-      epap = xh
-!!! >>> tentative only testing
-      xh =  1d-5
-      call parget('epsrpa    ',xh,iadda,ier)
-      epsrpa = xh
-!!!! >>> in the polynomial analytic this determines the spcing of the polynomial testpoints
-!!      this parameter is critical for the numerical accuracy 
-!!      TBD determine it automatically
-!!      just now: try it out....
-      xh =  0.01
-      call parget('dss       ',xh,iadda,ier)
-      dss = xh
-!!! >>> in the polynomial analytic this determines the scaling of the polynomial testpoints
-!!      this parameter is critical for the numerical accuracy 
-!!      TBD determine it automatically
-!!      just now: try it out....
-      xh =  0.0
-      call parget('ss_offs   ',xh,iadda,ier)
-      ss_offset = xh
-!!! >>> in the polynomial analytic this determines the scaling of the polynomial testpoints
-!!      this parameter is critical for the numerical accuracy 
-!!      TBD determine it automatically
-!!      just now: try it out....
-      xh =  0.001
-      call parget('sfak0     ',xh,iadda,ier)
-      sfak0 = xh
-!!! >>> in the polynomial analytic this determines the excess point number of tables for polyfit
-!!      this parameter is critical for the numerical accuracy 
-!!      this and the two preceeding parameters are in the global section of module polynom
-!!      just now: try it out....
-      xh =  30
-      call parget('npp_plus  ',xh,iadda,ier)
-      npp_plus = nint(xh)
 !!!!!!!! 
 ! ------------------------------------------------------------------
 ! ----------------------- implementation ---------------------------
@@ -451,10 +385,10 @@ i1:  if( mode == 0 ) then     ! normal spin-echo
      endif i1
 
 
-      allparams(1:51) = [ wl4rous, dble(nrouseff), locr2_b, locr2_a, locr2_ta, locr2_lz, locr2_te, &
+      allparams(1:44) = [ wl4rous, dble(nrouseff), locr2_b, locr2_a, locr2_ta, locr2_lz, locr2_te, &
                          dble(nro_me) , re_me,   wl4     , betadif , q , dble(nrous), l, dble(f),   &
                          phirous, dble(nlin), philin, alin, arous, &
-                         dble(nlin_cc), dble(analytic), dss, sfak0, dble(npp_plus),xil,epap,epsrpa, &
+                         dble(nlin_cc),  &
                          lr2_b_c, lr2_a_c, lr2_ta_c, lr2_lz_c, lr2_te_c, &
                          dble(nro_me_c) , re_me_c,   wl4_c     , diffmatc, betadifc, difflin, betadifl, &
                          diff, r02, nu_subdiff, a_cross, beta_q , &
@@ -477,15 +411,16 @@ i1:  if( mode == 0 ) then     ! normal spin-echo
       endif 
 
 
-
-! linear chain function according to the reptation interpolation model locrep2
+! Preparation of the n-exp representation of "pure" scattering functions
 ilr: if( newcomp_required ) then
 
       call prepare_ttable1(t0, tmax, nxpoints, t_samples)
 
-      ! linear polymer componenet: here labelled part with concentration philin
+      ! linear polymer componenet: here labelled (alin) part with concentration philin
       ! modelling of the long chain linear componente by the empirical locrep scheme  
-
+      ! linear chain function according to the reptation interpolation model locrep2
+      ! HERE: parametes nlin, alin, philin --> s11
+      ! 
       do i=1,nxpoints
              ts      =  t_samples(i)
 
@@ -500,9 +435,8 @@ ilr: if( newcomp_required ) then
              s_samples(i) = locrep2 * sqt / sqt0 *  exp( -difflin * q*q * (ts)**betadifl )  
           enddo
                
-              rmsdev = rmsdev_limit
-              call match_exp_auto(t_samples,s_samples,nxpoints,modeex,nexp1,aexp11,rexp11,rmsdev,iout)
-
+          rmsdev = rmsdev_limit
+          call match_exp_auto(t_samples,s_samples,nxpoints,modeex,nexp1,aexp11,rexp11,rmsdev,iout)
 
           if(rmsdev > rmsdev_limit) then
              write(*,'(a)')" LOW ACC WARN"
@@ -513,10 +447,9 @@ ilr: if( newcomp_required ) then
             write(*,*)
           endif
 
-
-
-      ! linear polymer componenet, here: matrix
-      ! modelling of the long chain linear componente by the empirical locrep scheme  
+      ! linear polymer componenet, here: matrix:  Scc
+      ! modelling of the long chain linear componente by the empirical locrep scheme same as component 11
+      ! implicit assumption: chain length ncc = nlin, contrast acc = 0, volumen fraction phicc = 1-philin-phirous 
 
       do i=1,nxpoints
              ts      =  t_samples(i)
@@ -532,67 +465,58 @@ ilr: if( newcomp_required ) then
              s_samples(i) = locrep2 * sqt / sqt0 *  exp( -diffmatc * q*q * (ts)**betadifc )    
       enddo
 
-          rmsdev = rmsdev_limit
-          call match_exp_auto(t_samples,s_samples,nxpoints,modeex,nexpcc,aexpcc,rexpcc,rmsdev,iout)
+      rmsdev = rmsdev_limit
+      call match_exp_auto(t_samples,s_samples,nxpoints,modeex,nexpcc,aexpcc,rexpcc,rmsdev,iout)
  
 
-          if(rmsdev > rmsdev_limit) then
-            write(*,'(a)')" LOW ACC WARN"
-!            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
-!            write(*,*)"         rpa_test exp model bad match CC", rmsdev , rmsdev_limit
-!            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
-          else
-            write(*,*)
-          endif
+      if(rmsdev > rmsdev_limit) then
+        write(*,'(a)')" LOW ACC WARN"
+!        write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
+!        write(*,*)"         rpa_test exp model bad match CC", rmsdev , rmsdev_limit
+!        write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
+      else
+        write(*,*)
+      endif
 
 
 
-
-     ! rouse chain ( primary sample component) here the component with index 2
+      ! (short) linear polymer componnent: here labelled (alin) part with concentration phirous
+      ! modelling in terms of N-Rouse model (explicit summation of Roise modes) multiplied by
+      ! a center of mass diffsuion with sublinear initial phase and simple diffusion beyond r**2 = r02
+      ! HERE: parametes nrous, arous, phirous --> s22
 
       do i=1,nxpoints
              ts     =  t_samples(i)
-
              Re_rous = sqrt(nrous * l**2)
-
 
              dr      = 1d-20
              ifix    = 0
              call  NrousePX(q,ts,temp,Dr,wl4rous,nrouseff,Re_rous, Wx, lx,ifix, sqt0,sqt)
              prous0 =  nrous  * Debye_qnl(q, nrous, l) 
 
-!             prous  =  sqt/sqt0 * prous0                                         !! osolete ?
-!             prous  =  prous * exp( -diffrous * q*q * (ts)**betadif )            !! osolete ? add diffusion expilicitly
-
-
-!             rr = ( (r02*(ts/tc)**nu_subdiff)**a_cross + (6*diff*ts)**a_cross)**(1d0/a_cross)
-! -- tref and r02 are coupled, obsolete to have both, instead interpret r02 a u**2 as kink and set
-!    tref = 1 (so parameter tref is obsolete) 
-
-            rr = ((exp(-log(r02/diff/6)*nu_subdiff)*r02*ts** nu_subdiff)** a_cross +&
-                 (6*diff*ts)**a_cross)**(1d0/a_cross)
+             rr = ((exp(-log(r02/diff/6)*nu_subdiff)*r02*ts** nu_subdiff)** a_cross +&
+                  (6*diff*ts)**a_cross)**(1d0/a_cross)
 
              s_samples(i) = sqt/sqt0 * exp( -(q*q*rr/6d0)**beta_q )
              prous        = prous0 * s_samples(i)
 
        enddo
-          rmsdev = rmsdev_limit
-           call match_exp_auto(t_samples,s_samples,nxpoints,modeex,nexp2,aexp22,rexp22,rmsdev,iout)
+       rmsdev = rmsdev_limit
+       call match_exp_auto(t_samples,s_samples,nxpoints,modeex,nexp2,aexp22,rexp22,rmsdev,iout)
+
+       if(rmsdev > rmsdev_limit) then
+         write(*,'(a)')" LOW ACC WARN"
+!         write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
+!         write(*,*)"         rpa_test exp model bad match 22", rmsdev , rmsdev_limit
+!         write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
+       else
+         write(*,*)
+       endif
 
 
-          if(rmsdev > rmsdev_limit) then
-            write(*,'(a)')" LOW ACC WARN"
-!            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
-!            write(*,*)"         rpa_test exp model bad match 22", rmsdev , rmsdev_limit
-!            write(*,*)"WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING  WARNING"
-          else
-            write(*,*)
-          endif
-
-
-
-   
-   !
+  !! communication with the rpa_laplace module 
+  !! transfer of the pure function n-exp representation parameters to global variables
+  !! of module rpa_laplace
    ! componente c    = lineraes polymer (matrix) gleiche Parameter wie comp 1
    ! componente 1    = lineares polymer (markierter Teil)
    ! componente 2    = start-polymer
@@ -611,97 +535,30 @@ ilr: if( newcomp_required ) then
         rexp_s1(1:nexp1)  =   rexp11(1:nexp1)    ! rate      coeffs for laplace-exp representation of polymer 1
         aexp_s2(1:nexp2)  =   aexp22(1:nexp2)    ! amplitude coeffs for laplace-exp representation of polymer 2
         rexp_s2(1:nexp2)  =   rexp22(1:nexp2)    ! rate      coeffs for laplace-exp representation of polymer 2
-    
-        if(analytic == 1) then
- !! AUS NUMERISCHEN GRUENDEN DARF Phi1 bzw Phi2 nicht NULL sein
- !! erstmal default Aktion    
-          if(phi1 < 1d-5) phi1 = 1d-5
-          if(phi2 < 1d-5) phi2 = 1d-5
-          call get_invlaplace_coeffs( il_coeffs11, il_coeffs12, il_coeffs22 , il_alphas, nnsum)  
-        endif
 
-        if(analytic == 2) then
-!            write(6,*)"analytic = 2: log spaced oscillating integral.."
-            if(phi1 < 1d-5) phi1 = 1d-5
-            if(phi2 < 1d-5) phi2 = 1d-5
+!        write(6,*)"numeric integration of log spaced oscillating integral.."
+        if(phi1 < 1d-5) phi1 = 1d-5
+        if(phi2 < 1d-5) phi2 = 1d-5
 
-!!            call prepare_intervals(900,1d-6,1d6)
-            call prepare_intervals(900,1d-8,1d7)  !! <<<<<< Parameter ggf. noch optimiern bzw. nach aussen reichen
+        call prepare_intervals(900,1d-8,1d7)  !! <<<<<< Parameter ggf. noch optimiern bzw. nach aussen reichen
 
-            call sel_scomp(1) 
-            call create_coefficients(1, Ssfu)
-            call sel_scomp(2)
-            call create_coefficients(2, Ssfu)
-            call sel_scomp(4)  
-            call create_coefficients(3, Ssfu)
-        endif
-
- !!! testouptput
- !!  write(6,'(a,d14.7)') "Scc00          = ", Scc00  
- !!  write(6,'(a,d14.7)') "S0011          = ", S0011  
- !!  write(6,'(a,d14.7)') "S0022          = ", S0022  
- !!  write(6,'(a,d14.7)') "phi1           = ", phi1   
- !!  write(6,'(a,d14.7)') "phi2           = ", phi2   
- !!  write(6,'(a,i8   )') "nexp1          = ", nexp1  
- !!  write(6,'(a,i8   )') "nexp2          = ", nexp2  
- !!  write(6,'(a,i8   )') "nexpcc         = ", nexpcc 
- !!  write(6,'(a,10(d14.7,","))') "aexp_s1(1:nexp1)  = [", aexp_s1(1:nexp1)  
- !!  write(6,'(a,10(d14.7,","))') "aexp_s2(1:nexp2)  = [", aexp_s2(1:nexp2)  
- !!  write(6,'(a,10(d14.7,","))') "aexp_cc(1:nexpcc) = [", aexp_cc(1:nexpcc) 
- !!  write(6,'(a,10(d14.7,","))') "rexp_s1(1:nexp1)  = [", rexp_s1(1:nexp1)  
- !!  write(6,'(a,10(d14.7,","))') "rexp_s2(1:nexp2)  = [", rexp_s2(1:nexp2)  
- !!  write(6,'(a,10(d14.7,","))') "rexp_cc(1:nexpcc) = [", rexp_cc(1:nexpcc) 
-
-
-       
-   
+        call sel_scomp(1) 
+        call create_coefficients(1, Ssfu)
+        call sel_scomp(2)
+        call create_coefficients(2, Ssfu)
+        call sel_scomp(4)  
+        call create_coefficients(3, Ssfu)
 
      endif ilr
 
-   
+     ss11 =  get_integral_value(1, max(t0,t))
+     ss12 =  get_integral_value(2, max(t0,t))
+     ss22 =  get_integral_value(3, max(t0,t))
 
-! RPA VARIABLE TRANSFER
-
-
-!!  xil         =  0.0001d0    ! distance of path for inv-laplace integration
-!!  epap        =  1d-9
-!!  epsrpa      =  1d-5
-
- 
-
-    if( analytic == 1 ) then  
-!     try the polynomial approach
-      call compute_invlaplace(  t, il_coeffs11, il_coeffs12, il_coeffs22 , il_alphas, nnsum, ss11, ss12, ss22) 
-      call compute_invlaplace(0d0, il_coeffs11, il_coeffs12, il_coeffs22 , il_alphas, nnsum, ss110, ss120, ss220) 
-
-     else if(  analytic == 2 ) then
-       ss11 =  get_integral_value(1, max(t0,t))
-       ss12 =  get_integral_value(2, max(t0,t))
-       ss22 =  get_integral_value(3, max(t0,t))
- 
-       if(newcomp_required) then
-         ss110 =  get_integral_value(1, t0)
-         ss120 =  get_integral_value(2, t0)
-         ss220 =  get_integral_value(3, t0)
-       endif
-
-      ! write(6,*)"a:", t, ss11, ss110
-     else
-
-       if(alin .ne. 0d0) then
-                                ss11  = St_rpa(t ,1,1)
-           if(newcomp_required) ss110 = St_rpa(t0,1,1)
-        endif
-        if(arous .ne. 0d0) then
-           ss22                       = St_rpa(t ,2,2)
-           if(newcomp_required) ss220 = St_rpa(t0,2,2)
-        endif
-        if( alin*arous .ne. 0d0 ) then
-           ss12                       = St_rpa(t ,1,2) 
-           if(newcomp_required) ss120 = St_rpa(t0,1,2) 
-        endif 
-
-!
+     if(newcomp_required) then
+       ss110 =  get_integral_value(1, t0)
+       ss120 =  get_integral_value(2, t0)
+       ss220 =  get_integral_value(3, t0)
      endif
 
 
@@ -711,24 +568,24 @@ ilr: if( newcomp_required ) then
 
  select case(mode)  ! be sure that in the beginning the assignment of t, q are properly made (if i1:)
    case (0)
-       th_rpalin2 = Sqt/Sqt0
+       th_rpalin = Sqt/Sqt0
 
   case (1) ! linear contribution at tau as function of q
-     th_rpalin2 = plin
+     th_rpalin = plin
 
   case(2)  ! star contribution at tau  as function of q
-     th_rpalin2 = prous
+     th_rpalin = prous
  
   case(3)  ! rpa contribution at tau as function of q
-      th_rpalin2 = Sqt
+      th_rpalin = Sqt
 
   case default
      write(6,*)'invalid mode !'
-      th_rpalin2 = 0
+      th_rpalin = 0
 
  end select
 
-  th_rpalin2 =  th_rpalin2 * ampli
+  th_rpalin =  th_rpalin * ampli
 
   call parset('nlin    ',(1.0*nlin),iadda) 
   call parset('nlin_cc ',(1.0*nlin_cc),iadda) 
@@ -740,15 +597,6 @@ ilr: if( newcomp_required ) then
   call parset('phirous ',sngl(phirous),iadda) 
   call parset('alin    ',sngl(alin),iadda) 
   call parset('arous   ',sngl(arous),iadda) 
-
-
-  call parset('dss     ',sngl(dss),iadda) 
-  call parset('npp_plus',(1.0*npp_plus),iadda) 
-  call parset('sfak0   ',sngl(sfak0),iadda) 
-
-  call parset('xil     ',sngl(xil),iadda) 
-  call parset('epap    ',sngl(epap),iadda) 
-  call parset('epsrpa  ',sngl(epsrpa),iadda) 
 
 
  CONTAINS 
@@ -922,6 +770,6 @@ ilr: if( newcomp_required ) then
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
- end function th_rpalin2
+ end function th_rpalin
 
 

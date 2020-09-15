@@ -1,0 +1,8 @@
+makro
+purge all
+inplus last_datreat_content
+lastusv 
+sel restore
+sel add fit+ 
+dsl 
+ 

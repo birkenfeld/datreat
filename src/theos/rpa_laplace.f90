@@ -145,7 +145,7 @@ CONTAINS
      
  
 
-  s     = cmplx(xil,u)
+  s     = cmplx(xil,u,kind=XPREC)
 
  
   Fc   =  Fn (s, nexpcc , aexp_cc, rexp_cc )
@@ -822,7 +822,7 @@ end function InvLaplace2d22
 
     complex(kind=XPREC)          :: s, ssval
 
-    s     = cmplx(xil,u)
+    s     = cmplx(xil,u,kind=XPREC)
 
     ssval = Ss4(s, xS00, xa1, xa2, xr1, xr2, xr3, xScc00, xb1, xb2, xg1, xg2, xg3, xphi)
     ssval = ssval * exp(t_param * s) * exp(-epap*u*u)
@@ -841,7 +841,7 @@ end function InvLaplace2d22
 
     complex(kind=XPREC)          :: s, ssval
 
-    s     = cmplx(xil,u)
+    s     = cmplx(xil,u,kind=XPREC)
 
     ssval = Ss4(s, xS00, xa1, xa2, xr1, xr2, xr3, xScc00, xb1, xb2, xg1, xg2, xg3, xphi) 
     ssval = ssval * exp(t_param * s) * exp(-epap*u*u)
