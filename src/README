@@ -37,5 +37,21 @@ NEU 4/20 TBD
 --- numor strategy , 2 dim numor (derived and original?) 
 
 
---- MAKE COMMANDS allsave and allrestore (with or without plotsettings?)
+--- MAKE COMMANDS allsave and allrestore (with or without plotsettings{?)
+
+
+
+8/20 TBD
+
+--> fix error/closing issue when inplus does not find a theory definition !
+--> suppress messages if in encounters a theory section ...
+
+
+--> with selection and parameter plotting and further use:
+    create a "generation" counter for parameters (i.e. 0 at initial read and increment by opsteps)
+    make selection "sensitive" to this generation number
+    modify the parplo show "flag" to a class discriminator, usable e.g. in parplo
+
+--> renew the sel command such that logic can be done in one cmd-line ??
+
 
