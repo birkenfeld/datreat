@@ -712,6 +712,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
      endif
 
    if(present(title)) then
+    if(len(title) > 0) then
      call gr_settextalign(  TEXT_HALIGN_LEFT , TEXT_VALIGN_HALF  ) 
      call gr_settextpath (  TEXT_PATH_RIGHT )
      call gr_setcharup   (  0d0, 1d0        )
@@ -719,6 +720,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
 !     call gr_textext(0.1d0,1-2*textsize,trim(grtex_filter(title))//czero)
      call grtext(tlabel_x, tlabel_y,trim(title)//czero)
      call gr_setcharheight(text_size) 
+    endif
    endif
 
 
@@ -830,6 +832,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
    endif
 
    if(present(title)) then
+    if(len(title) > 0) then
      call gr_settextalign(  TEXT_HALIGN_RIGHT , TEXT_VALIGN_HALF  ) 
      call gr_settextpath (  TEXT_PATH_RIGHT )
      call gr_setcharup   (  0d0, 1d0        )
@@ -837,6 +840,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
 !     call gr_textext(0.9d0,1-2*textsize,trim(grtex_filter(title))//czero)
      call grtext(tlabel_x,tlabel_y,trim(title)//czero)
      call gr_setcharheight(text_size) 
+    endif
    endif
 
 
@@ -1535,6 +1539,7 @@ scl:   if(found('scaled  ')) then
        if(fitplo) then
        do 70 i=1,nfkurv
         irfcu = isfits(i)
+        if(irfcu <= 0) cycle
         npicf = nwert(irfcu)
         icco = mod(icolo(i),7) + 1
         nnpi = 0
