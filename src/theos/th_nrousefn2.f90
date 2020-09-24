@@ -319,7 +319,7 @@
 
 ! ---- Do the sums -----
 
-!$OMP PARALLEL DO REDUCTION(+:Sq,Sqt,arg2) PRIVATE (arg1,arg10,arg20)
+!$OMP PARALLEL DO REDUCTION(+:Sq,Sqt) PRIVATE (arg1,arg2,arg10,arg20,ff2)
 
        do nn = 1,N
         do mm = 1,N
@@ -330,6 +330,7 @@
           arg2 = 0
           arg20= 0
 
+!$OMP PARALLEL DO REDUCTION(+:arg2)
           do ip=ipmin, ipmax
             
 !            ffc   = cosarray(nn,ip) * cosarray(mm,ip) 
@@ -341,6 +342,7 @@
 !            arg20 =  arg20 + ffc
 
           enddo 
+!$OMP END PARALLEL DO
           
 
 !          arg2  = arg2  * ff2
