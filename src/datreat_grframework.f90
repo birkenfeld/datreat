@@ -1186,6 +1186,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
       logical       ::  fileda
       
       logical, save :: initial = .true.
+      logical       :: clipping
 
 
 
@@ -1207,6 +1208,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
        write(6,*)'=      sywid <list>   :  symbol size scalings                                ='
        write(6,*)'=      errors         :  adds error bars                                     ='
        write(6,*)'=      noerrors       :  suppress error bars                                 ='
+       write(6,*)'=      clip           :  clipping on (volatile: must be present to be activ  ='
        write(6,*)'=      parplo         :  sets parameter value listing                        ='
        write(6,*)'=      parlev         :  sets level for (more) parameter lsiting             ='
        write(6,*)'=      noparplo p1 p2.:  suppress parameter listing except for p1 p2 ...     ='
@@ -1243,6 +1245,9 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
        write(6,*)'=============================================================================='
        return
       endif
+
+
+      clipping = .false.   !! only clip if specified in this call default always NO CLIP
 
 
 ! ----- parameter retrieving from stack -----
@@ -1292,6 +1297,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
           if(vname(i).eq.'noerrplo') errplo=.false.
           if(vname(i).eq.'errors  ') errplo=.true.
           if(vname(i).eq.'noerrors') errplo=.false.
+          if(vname(i).eq.'clip    ') clipping = .true.
           if(vname(i).eq.'axis    ') paxis =.true.
           if(vname(i).eq.'noaxis  ') paxis =.false.
           if(vname(i).eq.'txaxis  ') taxis =.true.
@@ -1497,7 +1503,11 @@ scl:   if(found('scaled  ')) then
 
        call gr_setwindow(xmin,xmax,ymin,ymax)      !>neu
        call gr_settextfontprec(3, ifont )   ! ???? 
-       call gr_setclip(0)
+       if(clipping) then
+         call gr_setclip(1)
+       else
+         call gr_setclip(0)
+       endif
 
          xtext = xname(isels(1))
          xmi_s = xmin
@@ -1547,9 +1557,11 @@ scl:   if(found('scaled  ')) then
           if(xwerte(j,irfcu).ge.xmin.and.xwerte(j,irfcu).le.xmax) then
             nnpi = nnpi + 1
             y(nnpi) = ywerte(j,irfcu) * p_scale(i)
-!!          if(y(nnpi).lt.ymin) y(nnpi) = ymin-(ymax-ymin)*0.02
-            if(y(nnpi).lt.ymin) y(nnpi) = ymin
-            if(y(nnpi).gt.ymax) y(nnpi) = ymax
+            if(.not. clipping) then
+!!            if(y(nnpi).lt.ymin) y(nnpi) = ymin-(ymax-ymin)*0.02
+              if(y(nnpi).lt.ymin) y(nnpi) = ymin
+              if(y(nnpi).gt.ymax) y(nnpi) = ymax
+            endif
             x(nnpi) = xwerte(j,irfcu)
 
           endif
@@ -1579,8 +1591,10 @@ scl:   if(found('scaled  ')) then
           if(xwerte(j,ircf).ge.xmin.and.xwerte(j,ircf).le.xmax) then
             nnpi = nnpi + 1
             y(nnpi) = ywerte(j,ircf) * p_scale(i)
-            if(y(nnpi).lt.ymin) y(nnpi) = ymin-(ymax-ymin)*0.02
-            if(y(nnpi).gt.ymax) y(nnpi) = ymax+(ymax-ymin)*0.02
+            if(.not. clipping) then
+              if(y(nnpi).lt.ymin) y(nnpi) = ymin-(ymax-ymin)*0.02
+              if(y(nnpi).gt.ymax) y(nnpi) = ymax+(ymax-ymin)*0.02
+            endif
             x(nnpi) = xwerte(j,ircf)
           endif
 20010     continue
@@ -1596,8 +1610,10 @@ scl:   if(found('scaled  ')) then
             nnpi = nnpi + 1
             y(nnpi) = ywerte(j,ircu) * p_scale(i)
             x(nnpi) = xwerte(j,ircu) 
-            if(y(nnpi).lt.ymin) y(nnpi) = ymin-(ymax-ymin)*0.02
-            if(y(nnpi).gt.ymax) y(nnpi) = ymax+(ymax-ymin)*0.02
+            if(.not. clipping) then
+              if(y(nnpi).lt.ymin) y(nnpi) = ymin-(ymax-ymin)*0.02
+              if(y(nnpi).gt.ymax) y(nnpi) = ymax+(ymax-ymin)*0.02
+            endif
             e(nnpi) = yerror(j,ircu) * p_scale(i)
 
 

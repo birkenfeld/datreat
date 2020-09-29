@@ -2306,6 +2306,7 @@ sl:       do j=1,maxstep
               sum = thval(x) 
               xwerte(i,inbuf) = x
               ywerte(i,inbuf) = sum
+              yerror(i,inbuf) = tiny(yerror(1,1)) * 100     !!!! Tentative
               if(iout().gt.5) write(6,*)'i: ',i,'  ywerte=',sum
          enddo
 !!> <
