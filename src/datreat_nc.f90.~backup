@@ -3669,6 +3669,9 @@ write(*,'(a,a,4f12.6)')"TEST: form2=",trim(yformel),xxxx,yyyy,yyee,val8y
              isels = 0
              nfits = 0
              ifits = 0
+             xwerte = 0
+             ywerte = 0
+             yerror = 0
           endif
           if(found('sel     ')) then
             if(nsel > 0) then
@@ -3881,7 +3884,7 @@ exclude:   if(found('exclude  ')) then
             isfits = 0
 ipl:        do i=1,ipars
              iss      = Nint(rpar(i))
-             if(abs(iss) <= nbuf ) then
+             if(abs(iss) <= nbuf) then
                write(6,*)'select adress   ',iss
              else
                write(6,*)"selected=",iss,"  nbuf=", nbuf
