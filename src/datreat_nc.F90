@@ -245,7 +245,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                         write(6,*)
                         write(6,*)'======================================================='
-                        write(6,*)'=   datreat     Version: mm-develop 3.0               ='
+                        write(6,*)'=   datreat     Version: mm-develop 3.1               ='
                         write(6,*)'=   -------     --------                              ='
                         write(6,*)'=   Author: M.Monkenbusch  R. Biehl, O.Holderer, JCNS ='
                         write(6,*)'======================================================='
@@ -314,6 +314,7 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
 !       pi   = 4 * atan(1.0)
+       call DataClean(1)
 
        facto1 = 1
        facto2 = 2
@@ -3650,7 +3651,7 @@ write(*,'(a,a,4f12.6)')"TEST: form2=",trim(yformel),xxxx,yyyy,yyee,val8y
         write(6,*)'=============================================================================='
         write(6,*)'= purge                                                                      ='
         write(6,*)'= remove items from the list of loaded data records                          ='
-        write(6,*)'=    purge                                                                   ='
+        write(6,*)'=    purge   rest                                                            ='
         write(6,*)'=            clears all records that are NOT SELECTED                        ='
         write(6,*)'=    purge sel                                                               ='
         write(6,*)'=            removes all SELECTED records                                    ='
@@ -3663,13 +3664,26 @@ write(*,'(a,a,4f12.6)')"TEST: form2=",trim(yformel),xxxx,yyyy,yyee,val8y
         goto 2000
        endif
 
+! 
+          if(.not.(found('all     ').or.found('sel     ').or. found('rest    ' )) &
+              .or.   (iparf() > 0 ) ) then
+              call errsig(999,"NEED all, sel OR rest AS OPTION => nothing purged! $")
+              goto 2000
+          endif
+
           if(found('all     ')) then 
-             nwert = 0
+!             nwert = 0
              nsel  = 0
              isels = 0
              nfits = 0
              ifits = 0
+!             xwerte = 0
+!             ywerte = 0
+!             yerror = 0
+              call DataClean(1)        
+              goto 2000    
           endif
+
           if(found('sel     ')) then
             if(nsel > 0) then
               nwert(isels(1:nsel)) = 0
@@ -3709,6 +3723,9 @@ write(*,'(a,a,4f12.6)')"TEST: form2=",trim(yformel),xxxx,yyyy,yyee,val8y
             nsel  = m
             isels = [(i,i=1,m)]
           endif
+
+          call DataClean(nbuf+1)   !! clean all residual data from freeded records 
+
          goto 2000
        endif
 !
@@ -3881,7 +3898,7 @@ exclude:   if(found('exclude  ')) then
             isfits = 0
 ipl:        do i=1,ipars
              iss      = Nint(rpar(i))
-             if(abs(iss) <= nbuf ) then
+             if(abs(iss) <= nbuf) then
                write(6,*)'select adress   ',iss
              else
                write(6,*)"selected=",iss,"  nbuf=", nbuf
@@ -4028,6 +4045,7 @@ ipl:        do i=1,ipars
                enddo
                do i=1,nfsel
                  iaddp = isfits(i)
+                 if(iaddp <= 0) cycle
                  if(vname(j).eq.'xaxis   ') xname(iaddp) = argvals(j+1)(1:len(xname(1)))
                  if(vname(j).eq.'yaxis   ') yname(iaddp) = argvals(j+1)(1:len(yname(1)))
                  if(vname(j).eq.'name    ')  name(iaddp) = argvals(j+1)(1:len( name(1)))

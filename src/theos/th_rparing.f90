@@ -806,49 +806,16 @@ ilr: if( newcomp_required ) then
 
 
 ! ---- Do the sums -----
-
-!$OMP PARALLEL DO REDUCTION(+:Sq,Sqt,arg2) PRIVATE(arg10,arg20,ff2)
-
+!$OMP PARALLEL DO REDUCTION(+:Sq,Sqt) 
        do nn = 1,N
         do mm = 1,N
-          arg1 = -(q**2)*(Dr*t + abs(nn-mm)*(l**2)/6.0d0)
-          arg10= -(q**2)*(       abs(nn-mm)*(l**2)/6.0d0)
-          ff2  = -2*N*(l*q)**2/(3*pi**2)
-    
-          arg2 = 0
-          arg20= 0
-
-          do ip=ipmin, ipmax
-            
-!            ffc   = cosarray(nn,ip) * cosarray(mm,ip) 
-
-!            arg2  = arg2 +  (1d0-exp(-2*W*(1-cos((pi*ip)/dfloat(N)))*t)) * ffc
-            arg2  = arg2 +  ewfac(ip) * cosarray(nn,ip) * cosarray(mm,ip) 
-
-                                
-!            arg20 =  arg20 + ffc
-
-          enddo 
-          
-
-!          arg2  = arg2  * ff2
-!          arg20 = arg20 * ff2
-
-!          aa1 = arg10
-
-!          aa2 = arg1+ff2*arg2
-
-
-          Sq  = Sq  + exp(arg10)
-          Sqt = Sqt + exp(arg1+ff2*arg2)
-
+          Sq  = Sq  + exp( -(q**2)*(       abs(nn-mm)*(l**2)/6.0d0))
+          Sqt = Sqt + exp( -(q**2)*(Dr*t + abs(nn-mm)*(l**2)/6.0d0)  &
+                          + (-2*N*(l*q)**2/(3*pi**2)* &
+                  sum(ewfac(ipmin:ipmax)*cosarray(nn,ipmin:ipmax)*cosarray(mm,ipmin:ipmax))))
         enddo
-
        enddo
-
 !$OMP END PARALLEL DO
-
-
 
        Sq  = Sq /N
        Sqt = Sqt/N

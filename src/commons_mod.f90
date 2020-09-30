@@ -44,51 +44,51 @@
   end module dimensions
 
 
-	module cincom
+    module cincom
             use dimensions
-	    save
-	    real*8 rpar(c_MINC)
-	    integer inames
-	    integer ipars
-	    integer ioldc
-	    integer inpar(c_MINC)
-	    integer iparn(c_MINC)
-	    integer inapa(c_MINC)
-	    integer iargs
-	    integer ipmls
-	    integer iolbuf !Can we delete this and put in a local var?
-	    integer lstpar
-	    integer lstnam
-	end module cincom
+        save
+        real*8 rpar(c_MINC)
+        integer inames
+        integer ipars
+        integer ioldc
+        integer inpar(c_MINC)
+        integer iparn(c_MINC)
+        integer inapa(c_MINC)
+        integer iargs
+        integer ipmls
+        integer iolbuf !Can we delete this and put in a local var?
+        integer lstpar
+        integer lstnam
+    end module cincom
 
 ! ---- the current command is stored on comand                          
 !      the names on stack vname(*)                                      
 !      the numbers on stack rpar(*)                                     
 !      in common/cincom/                                                
 !
-	module cincoc
+    module cincoc
                 use dimensions
-		save
-		character*8 comand
-		character*8 vname(c_MINC)
-		character*1024 title
-		character*1024 reslin
-		character*1024 inline
-		character*20 arglst(c_MINC)
-		character*20 pmlist(c_MINC,2)
-		character*1024 rlbuf
+        save
+        character*8 comand
+        character*8 vname(c_MINC)
+        character*1024 title
+        character*1024 reslin
+        character*1024 inline
+        character*20 arglst(c_MINC)
+        character*20 pmlist(c_MINC,2)
+        character*1024 rlbuf
                 character(len=20) :: prompt = "--> "
-	end module cincoc
+    end module cincoc
 
-	module icpathes
+    module icpathes
                 use dimensions
-		save
-		character*1024 data_path
-		character*1024 save_path
-		character*1024 makro_path
-		character*1024 datreat_path,PWD
-		character*1024 history(0:20)
-	end module icpathes
+        save
+        character*1024 data_path
+        character*1024 save_path
+        character*1024 makro_path
+        character*1024 datreat_path,PWD
+        character*1024 history(0:20)
+    end module icpathes
 
 
 ! --- variables for makro-parameter-passing ---                         
@@ -103,50 +103,50 @@
 !                                                                       
  
 
-	module cmargs
+    module cmargs
                 use dimensions
-		save
-		character*1024 argvals(c_MINC)
-		character*80 pmlst(c_MDEPTH,c_MINC,2)
+        save
+        character*1024 argvals(c_MINC)
+        character*80 pmlst(c_MDEPTH,c_MINC,2)
                 logical :: argquoted(c_MINC)
-		integer iargvs
-	end module cmargs
-	
-	module imargs
+        integer iargvs
+    end module cmargs
+    
+    module imargs
                 use dimensions
-		save
-!		integer iargvs
-		integer ipmlst(c_MDEPTH)
-		integer kanal(0:c_MDEPTH)
-		integer ktop
-		data kanal/ 5,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58, 59/
-       		data ktop /0/ 
-	end module imargs
+        save
+!       integer iargvs
+        integer ipmlst(c_MDEPTH)
+        integer kanal(0:c_MDEPTH)
+        integer ktop
+        data kanal/ 5,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58, 59/
+            data ktop /0/ 
+    end module imargs
  
   
 
-       	module xoutxx
-		save
-		integer :: iot=0
-		integer :: ierrr=0
+        module xoutxx
+        save
+        integer :: iot=0
+        integer :: ierrr=0
                 logical :: mask_err = .false.
-	end module xoutxx
+    end module xoutxx
 
-	module xroxxx
-		save
-		real*8 xyorig(3)
-		real*8 rotvec(3)
-		data xyorig/3*0.d0/, rotvec/3*0.d0/
+    module xroxxx
+        save
+        real*8 xyorig(3)
+        real*8 rotvec(3)
+        data xyorig/3*0.d0/, rotvec/3*0.d0/
         end module xroxxx 
 
 ! usenum and usevar are now combined
-	module usevar
+    module usevar
                 use dimensions
-		save
-		real*8 useval(c_MUSEVAR)
-		integer nousev 
-		character*16 usenam(c_MUSEVAR)
-	end module usevar
+        save
+        real*8 useval(c_MUSEVAR)
+        integer nousev 
+        character*16 usenam(c_MUSEVAR)
+    end module usevar
 
 ! ---- common containing all the scans ----                             
 !                                                                       
@@ -166,22 +166,22 @@
 !                                                                       
 
 
-	MODULE cdata
+    MODULE cdata
                 use dimensions
-		save
-		real xwerte(c_MWERT,c_MBUF)
-		real ywerte(c_MWERT,c_MBUF)
-		real yerror(c_MWERT,c_MBUF)
-     		character*80 xname(c_MBUF)
-		character*80 yname(c_MBUF)
-		character*80 name(c_MBUF)
-		integer nwert(c_MBUF)
-		integer numor(c_MBUF)
-		integer :: nbuf = 0
-		character*80 coment(c_MBUF)*80
-		real params(c_MPAR,c_MBUF)
-		character*80 napar(c_MPAR,c_MBUF)
-		integer nopar(c_MBUF)
+        save
+        real xwerte(c_MWERT,c_MBUF)
+        real ywerte(c_MWERT,c_MBUF)
+        real yerror(c_MWERT,c_MBUF)
+            character*80 xname(c_MBUF)
+        character*80 yname(c_MBUF)
+        character*80 name(c_MBUF)
+        integer nwert(c_MBUF)
+        integer numor(c_MBUF)
+        integer :: nbuf = 0
+        character*80 coment(c_MBUF)*80
+        real params(c_MPAR,c_MBUF)
+        character*80 napar(c_MPAR,c_MBUF)
+        integer nopar(c_MBUF)
                 integer :: params_display_level(c_MPAR,c_MBUF) = 0
 
         character(len=80) :: editor
@@ -231,6 +231,44 @@
         end subroutine DataCopy
 !       -------------------------------------------
 
+        subroutine DataClean( ifrom, ito)   
+!       --------------------------------- 
+        implicit none
+        integer, intent(in)           :: ifrom
+        integer, intent(in), optional :: ito
+        integer                       :: i1, i2
+        integer                       :: i, j, np
+
+        i1 = ifrom
+        i2 = c_MBUF
+        if(present(ito)) i2 = ito
+        i1 = max(1,i1)
+        i1 = min(i1,c_MBUF)
+        i2 = max(1,i2)
+        i2 = min(i2,c_MBUF)
+
+        write(*,*)"DataClean: Clearing Addresses:",i1," to ",i2
+        
+
+        xwerte(:,i1:i2)         =  0
+        ywerte(:,i1:i2)         =  0
+        yerror(:,i1:i2)         =  0
+        xname(i1:i2)            =  " "
+        yname(i1:i2)            =  " "
+        name(i1:i2)             =  " "
+        nwert(i1:i2)            =  0
+        numor(i1:i2)            =  0
+        coment(i1:i2)           =  " "
+
+        nopar(i1:i2)                          = 0
+        params(:,i1:i2)                       = 0
+        params_display_level(:,i1:i2)         = 0
+        napar(:,i1:i2)                        = " "
+       
+        nbuf = i1-1    !! ??? sinnvoll ???
+
+        end subroutine DataClean
+!       -------------------------------------------
 
         subroutine DataGet( isource, x, y, dy, n)
 !       -----------------------------------------
@@ -287,24 +325,24 @@
         !! call parset (vname(1),sngl(rpar(1)),iaddp)
         !! call parget('thick   ',thick,ia,ier)
 
-	END MODULE cdata
+    END MODULE cdata
 
 
 ! ---- outputlevel                                                      
 ! xxxx,yyyy = aktuelle addersse fuer wertextraktion xx,yy               
 !
-	module outlev 
-		save
-		integer :: iout  = 0 
-		integer :: ibild = -2
-		integer ierrs
-		integer :: inka = 5
-		integer iibuf
-		real xxxx
-		real yyyy
-		real ptxf(20)
-		real yyee 
-	end module outlev
+    module outlev 
+        save
+        integer :: iout  = 0 
+        integer :: ibild = -2
+        integer ierrs
+        integer :: inka = 5
+        integer iibuf
+        real xxxx
+        real yyyy
+        real ptxf(20)
+        real yyee 
+    end module outlev
 ! ----- theories common block and definitions ----                      
 !                                                                       
 !  thenam(i)  = name of i-th theory                                     
@@ -317,42 +355,42 @@
 !  multflg    = flag indicating a multiplicative theory                 
 !                                                                       
 
-	module theory
+    module theory
                 use dimensions
-		save
-		character*8 thenam(c_MTH)
-		character*8 thparn(c_MTPAR,c_MTH)
-		integer nthpar(c_MTH)
-		real thparx(c_MTPAR,c_MTCAL)
-		real thpsca(c_MTPAR,c_MTCAL)
-		integer nthtab(c_MTCAL)
-		integer ntheos
-		integer multflg(c_MTCAL)
-	        integer, parameter :: l3=c_MTH*c_MTPAR
+        save
+        character*8 thenam(c_MTH)
+        character*8 thparn(c_MTPAR,c_MTH)
+        integer nthpar(c_MTH)
+        real thparx(c_MTPAR,c_MTCAL)
+        real thpsca(c_MTPAR,c_MTCAL)
+        integer nthtab(c_MTCAL)
+        integer ntheos
+        integer multflg(c_MTCAL)
+            integer, parameter :: l3=c_MTH*c_MTPAR
                 data thparn/l3*'        '/
-	end module theory
+    end module theory
 
-	! ---- common containing a selected list of spectra ----                
-	!  isels(i)  = address (/spectr/) of selected scan                      
-	!  ifits(i)  = adress of fitted spectrum (isels(i))                     
-	!  nsel      = length of this table                                     
-	module selist
+    ! ---- common containing a selected list of spectra ----                
+    !  isels(i)  = address (/spectr/) of selected scan                      
+    !  ifits(i)  = adress of fitted spectrum (isels(i))                     
+    !  nsel      = length of this table                                     
+    module selist
                 use dimensions
-		save
-		integer isels(c_MBUF)
-		integer ifits(c_MBUF)
-		integer nsel
-		integer :: numpls = 10000
-	end module selist
+        save
+        integer isels(c_MBUF)
+        integer ifits(c_MBUF)
+        integer nsel
+        integer :: numpls = 10000
+    end module selist
  
-	!  isfits    = address (/spectr/) of selected fits                      
-	!  nfsel     = length of this table                                     
-	module fslist
+    !  isfits    = address (/spectr/) of selected fits                      
+    !  nfsel     = length of this table                                     
+    module fslist
                 use dimensions
-		save
-		integer isfits(c_MBUF)
-		integer nfsel
-	end module fslist
+        save
+        integer isfits(c_MBUF)
+        integer nfsel
+    end module fslist
 
 ! ------ coupling of theory-parameters -----------------------          
 !  --- thpala(i,j) ... label of i-th parameter , j-th theory            
@@ -366,100 +404,100 @@
 
         module theorc 
                 use dimensions
-		save
-		character*4 thpala(c_MTPAR,c_MTCAL)
-		character*4 thpalc(c_MCOUP,c_MTPAR,c_MTCAL)
-		real thpafc(c_MCOUP,c_MTPAR,c_MTCAL)
-		real thpaco(c_MTPAR,c_MTCAL)
-		integer ncoup(c_MTPAR,c_MTCAL)
+        save
+        character*4 thpala(c_MTPAR,c_MTCAL)
+        character*4 thpalc(c_MCOUP,c_MTPAR,c_MTCAL)
+        real thpafc(c_MCOUP,c_MTPAR,c_MTCAL)
+        real thpaco(c_MTPAR,c_MTCAL)
+        integer ncoup(c_MTPAR,c_MTCAL)
 
-		! ---- this blockdata is used to replace the standard filling of        
-		!      character variables with nulls ! by blanks !                     
-		!      this is importatnt for the incom parser, which is only sensitiv  
-		!      to blanks, whereas nulls are written and read if default         
-		!      character varaibles are printed!                                 
-		! ---- dervived auxiliary parameters only for block data ----
-       		integer, parameter :: l1=c_MTPAR*c_MTCAL, l2=c_MCOUP*c_MTPAR*c_MTCAL
-		data thpala/l1*'    '/,thpalc/l2*'    '/
+        ! ---- this blockdata is used to replace the standard filling of        
+        !      character variables with nulls ! by blanks !                     
+        !      this is importatnt for the incom parser, which is only sensitiv  
+        !      to blanks, whereas nulls are written and read if default         
+        !      character varaibles are printed!                                 
+        ! ---- dervived auxiliary parameters only for block data ----
+            integer, parameter :: l1=c_MTPAR*c_MTCAL, l2=c_MCOUP*c_MTPAR*c_MTCAL
+        data thpala/l1*'    '/,thpalc/l2*'    '/
         end module theorc
 
 ! ------ errors of fit --------------------------------------------     
 !      ------ estimates of 1 sigma errros -----------------------       
-	module therrc
+    module therrc
                 use dimensions
-		save
-		real therro(c_MTPAR,c_MTCAL)
-	end module therrc	
+        save
+        real therro(c_MTPAR,c_MTCAL)
+    end module therrc   
 
 ! range definition of theories (only to be evaluated if parameter thrap
 !                               given range)
-	module thparc
+    module thparc
                 use dimensions
-		save
-		character*8 thrapar(c_MTH)
-		real*4 thramin(c_MTH)
-		real*4 thramax(c_MTH)
-	end module thparc
+        save
+        character*8 thrapar(c_MTH)
+        real*4 thramin(c_MTH)
+        real*4 thramax(c_MTH)
+    end module thparc
 
-	module formnu
+    module formnu
                 use dimensions
-		save
-		real*8 numstack(c_MAXNUMSTACK)
-		real*8 :: degree=1.d0
-		real*8 valnum
-		integer priostack(0:c_MAXOPSTACK)
-		integer topnumstack
-		integer topopstack
-		integer tusrfstack
-		integer klammerprio
-		integer actchar
-		integer len
-		integer litem
-		logical ok
-		logical error
-		logical :: say=.false.
-	end module formnu
+        save
+        real*8 numstack(c_MAXNUMSTACK)
+        real*8 :: degree=1.d0
+        real*8 valnum
+        integer priostack(0:c_MAXOPSTACK)
+        integer topnumstack
+        integer topopstack
+        integer tusrfstack
+        integer klammerprio
+        integer actchar
+        integer len
+        integer litem
+        logical ok
+        logical error
+        logical :: say=.false.
+    end module formnu
 
-	module formch
+    module formch
                 use dimensions
-		save
-		character*1 formula(0:c_MAXFORMLENGTH)
-		character*1 item(0:c_MAXITEMLENGTH)
-		character*1 delims(0:c_NODELIMS)
-		character*4 typ
-		character*4 opstack(c_MAXOPSTACK) 
-		character*20 usrfstack(c_MUSRFSTACK)
+        save
+        character*1 formula(0:c_MAXFORMLENGTH)
+        character*1 item(0:c_MAXITEMLENGTH)
+        character*1 delims(0:c_NODELIMS)
+        character*4 typ
+        character*4 opstack(c_MAXOPSTACK) 
+        character*20 usrfstack(c_MUSRFSTACK)
                 !needed in subroutine getitem - dirty!
                 character*(c_MAXITEMLENGTH+1) citemx
                 character*(c_MAXFORMLENGTH+1) cformulax
                 equivalence(citemx,item(0))
                 equivalence(cformulax,formula(0))
-	end module formch
+    end module formch
 
 
-	module formul
+    module formul
                 use dimensions
-		save
-		character*1025 :: xformel = '(X)'
-		character*1025 :: yformel = '(Y)'
-		character*1025 yfitform
-	end module formul
+        save
+        character*1025 :: xformel = '(X)'
+        character*1025 :: yformel = '(Y)'
+        character*1025 yfitform
+    end module formul
 
 ! --- parameters of last spline smoothing + value qziel                 
 !     qziel is the value at witch the spline should be evaluated        
 !     numspl numor of spline fitted data                                
 !     nwspl  length of splined data vectors                             
 
-	module cfc
+    module cfc
                 use dimensions
-		save
-		real qziel
-		real cscoef(4,c_MWERT)
-		real break(c_MWERT)
-		real weight(c_MWERT)
-		integer :: numspl = 0
-		integer :: nwspl = 0
-	end module cfc
+        save
+        real qziel
+        real cscoef(4,c_MWERT)
+        real break(c_MWERT)
+        real weight(c_MWERT)
+        integer :: numspl = 0
+        integer :: nwspl = 0
+    end module cfc
 
 ! ---- communication with subr. func ---                                
 !  --- iprt     : printing during func calculation (set by fit)         
@@ -470,110 +508,110 @@
 !      ferror   : fehler des zu vergleichenden datenfeldes              
 ! ----------------------------------------------------------------------
 
-	module cfunc
+    module cfunc
                 use dimensions
-		save
-		integer iprt
+        save
+        integer iprt
                 integer :: icall
-		logical sqwght
-		real x1
-		real x2
-		logical :: autox1 = .true.
-		logical :: autox2 = .true.
-		real ferror(c_MSMPL)
+        logical sqwght
+        real x1
+        real x2
+        logical :: autox1 = .true.
+        logical :: autox2 = .true.
+        real ferror(c_MSMPL)
                 real    :: xinitial(c_MFIT)
                 double precision :: pardev_scale = 0d0
-	end module cfunc
+    end module cfunc
 
 
 ! ---  if lerrel=.true. the fiterrors are take as relative errors 
-	module cfunce
+    module cfunce
                 use dimensions
-		save
-		logical :: lerrel = .false.
-		logical :: lwrtfitdat = .false.
-		real fcssq
-	end module cfunce 
+        save
+        logical :: lerrel = .false.
+        logical :: lwrtfitdat = .false.
+        real fcssq
+    end module cfunce 
 
 ! --- echoform related parameters ( nse-programs ) ----                 
 !     j1, j2  = feldintegrale in gauss*meter                            
 !     j0delta = feldintegralvariation unabh&a.ngig von j1,j2            
 !     cdelta  = koeffizient der feldintegralabh&a.ngigkeit von j1,j2    
  
-	module partran
-		save
-		real*4 j1echo
-		real*4 j2echo
-		real*4 j0delta
-		real*4 cdelta
-	end module partran 
+    module partran
+        save
+        real*4 j1echo
+        real*4 j2echo
+        real*4 j0delta
+        real*4 cdelta
+    end module partran 
 
 !     alam0   = mittlere wellenlaenge in a                              
 !     dalam   = wellenla.ngenbreite in a                                
 
-	module wlntran
-		save
-		real alam0
-		real dalam 
-	end module wlntran
+    module wlntran
+        save
+        real alam0
+        real dalam 
+    end module wlntran
 
 !     tau in sekunden, relaxationszeit des streuers
-	module sqtran
-		save
-		real tau
-	end module sqtran 
+    module sqtran
+        save
+        real tau
+    end module sqtran 
 
 
 !             ---> this common saves storage by use of ca in fftrmx also
-	module fftwrk
+    module fftwrk
                 use dimensions
-		save
+        save
         integer, parameter :: mdim=c_MDIM 
-		complex*8 ca(c_MDIM+1,c_MDIM+1) 
-	end module fftwrk
+        complex*8 ca(c_MDIM+1,c_MDIM+1) 
+    end module fftwrk
 
-	module fftwr1
+    module fftwr1
                 use dimensions
-		save
+        save
         integer, parameter :: mdim=c_MDIM 
-		real ca(c_MDIM,c_MDIM) 
+        real ca(c_MDIM,c_MDIM) 
                 real yinter(c_MDIM)
-	end module fftwr1
+    end module fftwr1
 
-	module fftwr2
+    module fftwr2
                 use dimensions
-		save
+        save
         integer, parameter :: mdim=c_MDIM 
-		real ca(c_MDIM+1,c_MDIM+1) 
-	end module fftwr2
+        real ca(c_MDIM+1,c_MDIM+1) 
+    end module fftwr2
 
 
-	module constants
+    module constants
                 use dimensions
-		save
-		! --- minc = incom stack depth                                          
-		integer, parameter :: minc=c_MINC
-      		integer, parameter :: mdepth=c_MDEPTH
-	        integer, parameter :: mwert=c_MWERT, mbuf=c_MBUF, mpar=c_MPAR
-		! --- mwert  = max. no. of x-y-values in one buffer                     
-		!     mbuf   = max. no. of different buffers                            
-		!     mpar   = max. no. of parameters associated with one buffer        
-		! ---  maximum scan length ....                                         
-       		integer, parameter:: mth=c_MTH, mtpar=c_MTPAR,mtcal=c_MTCAL,mcoup=c_MCOUP
-		! ---  fit dimensions ---                                               
-		!  -- mfit = max no. of fitted parameters                               
-		!     msmpl= max no. of datapoints in fit                               
-       		integer, parameter :: mfit=c_MFIT,msmpl=c_MSMPL
-		integer, parameter :: musevar=c_MUSEVAR
-		integer, parameter :: maxformlength=c_MAXFORMLENGTH
-		integer, parameter :: maxitemlength=c_MAXITEMLENGTH
-		integer, parameter :: maxnumstack=c_MAXNUMSTACK 
-		integer, parameter :: maxopstack=c_MAXOPSTACK
-		integer, parameter :: musrfstack=c_MUSRFSTACK
-		integer, parameter :: nodelims=c_NODELIMS
-		integer, parameter :: mdim=c_MDIM 
-	        integer, parameter :: lda=c_MDIM+1
-	end module constants
+        save
+        ! --- minc = incom stack depth                                          
+        integer, parameter :: minc=c_MINC
+            integer, parameter :: mdepth=c_MDEPTH
+            integer, parameter :: mwert=c_MWERT, mbuf=c_MBUF, mpar=c_MPAR
+        ! --- mwert  = max. no. of x-y-values in one buffer                     
+        !     mbuf   = max. no. of different buffers                            
+        !     mpar   = max. no. of parameters associated with one buffer        
+        ! ---  maximum scan length ....                                         
+            integer, parameter:: mth=c_MTH, mtpar=c_MTPAR,mtcal=c_MTCAL,mcoup=c_MCOUP
+        ! ---  fit dimensions ---                                               
+        !  -- mfit = max no. of fitted parameters                               
+        !     msmpl= max no. of datapoints in fit                               
+            integer, parameter :: mfit=c_MFIT,msmpl=c_MSMPL
+        integer, parameter :: musevar=c_MUSEVAR
+        integer, parameter :: maxformlength=c_MAXFORMLENGTH
+        integer, parameter :: maxitemlength=c_MAXITEMLENGTH
+        integer, parameter :: maxnumstack=c_MAXNUMSTACK 
+        integer, parameter :: maxopstack=c_MAXOPSTACK
+        integer, parameter :: musrfstack=c_MUSRFSTACK
+        integer, parameter :: nodelims=c_NODELIMS
+        integer, parameter :: mdim=c_MDIM 
+            integer, parameter :: lda=c_MDIM+1
+    end module constants
 
 
 
@@ -586,13 +624,13 @@
         integer, parameter         :: M_recout_par = 100 
         character(len=1),parameter :: cr = char(10)
         character(len=16),parameter:: parspace = "                "
-	character(len=8)           :: th_identifier(c_MTH) = " "
-	character(len=1024)        :: th_explanation(c_MTH)
-	character(len=1024)        :: th_citation(c_MTH) = " "
-	character(len=1024)         :: th_param_desc(c_MTPAR,c_MTH)
-	character(len=1024)         :: th_file_param(M_recin_par,c_MTH)
-	character(len=1024)         :: th_out_param(M_recout_par,c_MTH)
-	integer, private           :: nthdesc = 0
+    character(len=8)           :: th_identifier(c_MTH) = " "
+    character(len=1024)        :: th_explanation(c_MTH)
+    character(len=1024)        :: th_citation(c_MTH) = " "
+    character(len=1024)         :: th_param_desc(c_MTPAR,c_MTH)
+    character(len=1024)         :: th_file_param(M_recin_par,c_MTH)
+    character(len=1024)         :: th_out_param(M_recout_par,c_MTH)
+    integer, private           :: nthdesc = 0
         integer                    :: idesc
    
    contains

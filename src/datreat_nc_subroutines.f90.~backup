@@ -917,6 +917,13 @@ dt22:           do  j=1,nthpar(ith)
           call errsig(999,"ERROR: fit number of active data points is 0!$")
           return
         endif
+
+        if(maxfn <=1) then
+          write(*,*)"Fit return due to maxfn <=1 ", maxfn
+          call extract('ssq0    ' ,ssq,ier)
+          write(*,*)"current ssq = ",ssq
+          return 
+        endif
 !<
 !
 ! ------ imsl version 10 :  setup of some new vectors ------------------
