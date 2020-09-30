@@ -4045,6 +4045,7 @@ ipl:        do i=1,ipars
                enddo
                do i=1,nfsel
                  iaddp = isfits(i)
+                 if(iaddp <= 0) cycle
                  if(vname(j).eq.'xaxis   ') xname(iaddp) = argvals(j+1)(1:len(xname(1)))
                  if(vname(j).eq.'yaxis   ') yname(iaddp) = argvals(j+1)(1:len(yname(1)))
                  if(vname(j).eq.'name    ')  name(iaddp) = argvals(j+1)(1:len( name(1)))
