@@ -95,7 +95,7 @@
        character*1 csel
        real*8 val8x,val8y
 
-       complex ca(mwert), cb(mwert), cmplx, conjg
+       complex ca(mwert), cb(mwert), conjg
        dimension alim(2), blim(2)
 !
        dimension nnumi(size(inpar))
@@ -973,7 +973,7 @@
          n1 = nwert(ia1)
          dt = xwerte(2,ia1)-xwerte(1,ia1)
          do i=1,n1
-          ca(i)    =  cmplx( ywerte(i,ia1)*dt, 0.0 )
+          ca(i)    =  complex( ywerte(i,ia1)*dt, 0.0 )
          enddo
          call  fftcf( n1, ca, cb )
          tt = xwerte(n1,ia1) - xwerte(1,ia1)
@@ -1162,7 +1162,7 @@
          do ira=1,nra
            do i=1,n1
              ywr = igrand(ywerte(i,ia1)*amp)*dt
-             ca(i)    =  cmplx( ywr, 0.0 )
+             ca(i)    =  complex( ywr, 0.0 )
            enddo
            call  fftcf( n1, ca, cb )
            tt = xwerte(n1,ia1) - xwerte(1,ia1)

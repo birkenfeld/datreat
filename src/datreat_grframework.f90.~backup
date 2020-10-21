@@ -1557,9 +1557,11 @@ scl:   if(found('scaled  ')) then
           if(xwerte(j,irfcu).ge.xmin.and.xwerte(j,irfcu).le.xmax) then
             nnpi = nnpi + 1
             y(nnpi) = ywerte(j,irfcu) * p_scale(i)
-!!          if(y(nnpi).lt.ymin) y(nnpi) = ymin-(ymax-ymin)*0.02
-            if(y(nnpi).lt.ymin) y(nnpi) = ymin
-            if(y(nnpi).gt.ymax) y(nnpi) = ymax
+            if(.not. clipping) then
+!!            if(y(nnpi).lt.ymin) y(nnpi) = ymin-(ymax-ymin)*0.02
+              if(y(nnpi).lt.ymin) y(nnpi) = ymin
+              if(y(nnpi).gt.ymax) y(nnpi) = ymax
+            endif
             x(nnpi) = xwerte(j,irfcu)
 
           endif
@@ -1589,8 +1591,10 @@ scl:   if(found('scaled  ')) then
           if(xwerte(j,ircf).ge.xmin.and.xwerte(j,ircf).le.xmax) then
             nnpi = nnpi + 1
             y(nnpi) = ywerte(j,ircf) * p_scale(i)
-            if(y(nnpi).lt.ymin) y(nnpi) = ymin-(ymax-ymin)*0.02
-            if(y(nnpi).gt.ymax) y(nnpi) = ymax+(ymax-ymin)*0.02
+            if(.not. clipping) then
+              if(y(nnpi).lt.ymin) y(nnpi) = ymin-(ymax-ymin)*0.02
+              if(y(nnpi).gt.ymax) y(nnpi) = ymax+(ymax-ymin)*0.02
+            endif
             x(nnpi) = xwerte(j,ircf)
           endif
 20010     continue
@@ -1606,8 +1610,10 @@ scl:   if(found('scaled  ')) then
             nnpi = nnpi + 1
             y(nnpi) = ywerte(j,ircu) * p_scale(i)
             x(nnpi) = xwerte(j,ircu) 
-            if(y(nnpi).lt.ymin) y(nnpi) = ymin-(ymax-ymin)*0.02
-            if(y(nnpi).gt.ymax) y(nnpi) = ymax+(ymax-ymin)*0.02
+            if(.not. clipping) then
+              if(y(nnpi).lt.ymin) y(nnpi) = ymin-(ymax-ymin)*0.02
+              if(y(nnpi).gt.ymax) y(nnpi) = ymax+(ymax-ymin)*0.02
+            endif
             e(nnpi) = yerror(j,ircu) * p_scale(i)
 
 
