@@ -766,7 +766,15 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
    
    if(present(option)) call gr_setscale(option)  
    if(present(tick_scale))  tick_size = tick_size0 * tick_scale
-   if(present(text_scale))  text_size = textsize0 * text_scale
+   if(present(text_scale) .and. text_scale > 1d-1)  then
+      text_size = textsize0 * text_scale
+     major_x = 1
+     major_y = 1      
+   endif
+   if(present(text_scale) .and. text_scale < 1d-1)  then
+     major_x = -1
+     major_y = -1
+   endif
 
 
    call gr_inqwindow(xmin, xmax, ymin, ymax)
