@@ -1,3 +1,5 @@
+! datreat subroutines
+!       
        include 'GAmodule.f90'
 
 
@@ -2715,8 +2717,11 @@ sl:       do j=1,maxstep
          ntheos         = ntheos + 1
          nthtab(ntheos) = ith
          if(found('multiply')) then
-           multflg(ntheos) = 1
+           multflg(ntheos) = 1        ! multiply with preceeding theos result
            inaml           = 2
+         elseif(found('insert')) then
+           multflg(ntheos) = 2        ! insert preceeding theos result as x-value   
+           inaml           = 3
          else
            multflg(ntheos) = 0
            inaml           = 1
@@ -2950,6 +2955,8 @@ sl:       do j=1,maxstep
             nthtab(ntheos) = ith
             if(found('multiply')) then
               multflg(ntheos) = 1
+            elseif(found('insert')) then
+              multflg(ntheos) = 2        ! insert preceeding theos result as x-value   
             else
               multflg(ntheos) = 0
             endif
@@ -3050,7 +3057,9 @@ sl:       do j=1,maxstep
            ith = nthtab(i)
            if(multflg(i).eq.1) then
               write(buf1,*)'theory   ',thenam(ith),'   multiply'
-           else
+           elseif(multflg(i).eq.2) then
+              write(buf1,*)'theory   ',thenam(ith),'   insert'
+           esle
               write(buf1,*)'theory   ',thenam(ith)
            endif
            if(thrapar(i).ne.'        ') then

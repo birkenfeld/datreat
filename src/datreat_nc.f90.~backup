@@ -59,7 +59,6 @@
       integer iadda
       common /thiadd/iadda
 
-
        integer isigint
        real yyy, zpar, ywr, yw2, yy, ysum, ynno, yval, ymm2, ymaxf,ymax
        real yw1, yminf, ym1, yfamp, yerr, yer, yampf, y3, yctab, y11, y1
@@ -95,7 +94,7 @@
        character*1 csel
        real*8 val8x,val8y
 
-       complex ca(mwert), cb(mwert), cmplx, conjg
+       complex ca(mwert), cb(mwert), conjg
        dimension alim(2), blim(2)
 !
        dimension nnumi(size(inpar))
@@ -309,6 +308,7 @@
                         write(*,*)'=  datreat ni     OR                                             ='
                         write(*,*)'=  datreat 0      starts without reloading previous content      ='
                         write(*,*)'=                 (old behavior)                                 ='
+                        write(*,*)'=  VERSION                                                       ='
                         write(6,*)'=================================================================='
                        
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -638,11 +638,6 @@
          goto 2000
        endif
 !
-       if(comand.eq.'out_gli '.or.comand.eq.'gli     ') then
-!                    --                      -----
-         call out_gli
-         goto 2000
-       endif
 !
        if(comand.eq.'inscn   ') then
 !                    -----
@@ -973,7 +968,7 @@
          n1 = nwert(ia1)
          dt = xwerte(2,ia1)-xwerte(1,ia1)
          do i=1,n1
-          ca(i)    =  cmplx( ywerte(i,ia1)*dt, 0.0 )
+          ca(i)    =  complex( ywerte(i,ia1)*dt, 0.0 )
          enddo
          call  fftcf( n1, ca, cb )
          tt = xwerte(n1,ia1) - xwerte(1,ia1)
@@ -1162,7 +1157,7 @@
          do ira=1,nra
            do i=1,n1
              ywr = igrand(ywerte(i,ia1)*amp)*dt
-             ca(i)    =  cmplx( ywr, 0.0 )
+             ca(i)    =  complex( ywr, 0.0 )
            enddo
            call  fftcf( n1, ca, cb )
            tt = xwerte(n1,ia1) - xwerte(1,ia1)
@@ -4633,13 +4628,6 @@ ipl:        do i=1,ipars
          goto 2000
        endif
 !
-
-       if(comand.eq.'gplot    ') then
-!                    -----> plot selected curves
-         call gplot()
-         goto 2000
-       endif
-!
  
       if(comand.eq.'plot    '.or.comand.eq.'p       '.or.comand.eq.'gp      ') then
 !                    -----> plot selected curves
@@ -4647,8 +4635,6 @@ ipl:        do i=1,ipars
 !         ibild1 = ibild
          goto 2000
        endif
-!
-!
 !
        if(comand.eq.'plot0   '.or.comand.eq.'p0      ') then
 !                    -----> set parameters for plot

@@ -59,7 +59,6 @@
       integer iadda
       common /thiadd/iadda
 
-
        integer isigint
        real yyy, zpar, ywr, yw2, yy, ysum, ynno, yval, ymm2, ymaxf,ymax
        real yw1, yminf, ym1, yfamp, yerr, yer, yampf, y3, yctab, y11, y1
@@ -309,6 +308,7 @@
                         write(*,*)'=  datreat ni     OR                                             ='
                         write(*,*)'=  datreat 0      starts without reloading previous content      ='
                         write(*,*)'=                 (old behavior)                                 ='
+                        write(*,*)'=  VERSION                                                       ='
                         write(6,*)'=================================================================='
                        
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -638,11 +638,6 @@
          goto 2000
        endif
 !
-       if(comand.eq.'out_gli '.or.comand.eq.'gli     ') then
-!                    --                      -----
-         call out_gli
-         goto 2000
-       endif
 !
        if(comand.eq.'inscn   ') then
 !                    -----
@@ -4633,13 +4628,6 @@ ipl:        do i=1,ipars
          goto 2000
        endif
 !
-
-       if(comand.eq.'gplot    ') then
-!                    -----> plot selected curves
-         call gplot()
-         goto 2000
-       endif
-!
  
       if(comand.eq.'plot    '.or.comand.eq.'p       '.or.comand.eq.'gp      ') then
 !                    -----> plot selected curves
@@ -4647,8 +4635,6 @@ ipl:        do i=1,ipars
 !         ibild1 = ibild
          goto 2000
        endif
-!
-!
 !
        if(comand.eq.'plot0   '.or.comand.eq.'p0      ') then
 !                    -----> set parameters for plot
@@ -6582,7 +6568,6 @@ end
   write(6,*) "numorchg                    " , " "
   write(6,*) "numorpls                    " , " "
   write(6,*) "fopen                       " , " "
-  write(6,*) "out_gli   (synonym) gli     " , " "
   write(6,*) "paraout                     " , " "
   write(6,*) "parextra                    " , " "
   write(6,*) "oplot    plot to ocular     " , " "

@@ -2,25 +2,6 @@
 .SUFFIXES: .f90 .f .o .F90 .c
 SHELL = /bin/sh
 LOCAL:=$(shell cd ..;/bin/pwd)
-# ##  To include GR and GKS if installed
-# ifneq "$(wildcard /usr/local/lib/libgks.*)" ""
-#       ADDLIBGKS=-lgks
-# else ifneq "$(wildcard /usr/local/gr/lib/libGKS.*)" ""
-#       ADDLIBGKS=-lgks
-# else
-#       ADDLIBGKS=
-# endif
-# ifneq "$(wildcard /usr/local/lib/libgr.*)" ""
-#       ADDLIBGR=-lgr
-# 	  OBJ_GR=datreat_nc_plot2gr.o
-# else ifneq "$(wildcard /usr/local/gr/lib/libgr*.*)" ""
-#       ADDLIBGR=-lgrsoft_gfortran
-# 	  OBJ_GR=datreat_nc_plot2gr.o	  
-# else
-#       ADDLIBGR=
-# 	  OBJ_GR=datreat_nc_plot2gr_dummy.o
-# endif
-# 
 
 ADDLIBGKS=-lgks
 
@@ -30,25 +11,15 @@ FC=gfortran
 #FFLAGS= -O3 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -Wunused-function -Wunused-variable -fopenmp 
 FFLAGS= -O3 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -fopenmp -fcheck=bounds 
 
-#FFLAGS=-march=core2 -O2 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -msse4a -mfpmath=sse -Wunused-function -Wunused-variable 
-
-#FC=ifort
-#FFLAGS=-march=core2 -O2  -save -fPIC  -mfpmath=sse -I$LOCAL -heap_arrays 100
 CC=gcc 
 
-#-fbounds-check
 LDFLAGS = -DPATH_TO_LOCAL_DATREAT=\"$(LOCAL)\"  -DPATH_TO_MAKROS=\"$(LOCAL)/makros/\"  -DOPEN_MANUAL=\"open\ $(LOCAL)/doc/NewManualBook/ManualDtr.pdf\"   \
 -DDEFAULT_EDIT=\"vim\" -Wl,-rpath,/usr/local/gr/lib -lGR
-#-DDEFAULT_EDIT=\"open\ -W\ -e\" -Wl,-rpath,/usr/local/gr/lib -lGR
 
-
-# OBJ_GR = datreat_grframework.o
 OBJS = datreat_nc.o dataconvolution4.o dtpur.o util_get_y_value.o \
- new_com.o os_utils.o utilux.o datreat2xmgrace.o  \
+ new_com.o os_utils.o utilux.o  \
 datreat_nc_subroutines.o PhysicalConstantsPlus.o commons_mod.o unift.o \
  linenoise.o linenoise_f90.o datreat_grframework.o 
-
-
 
 LIBS = theos/libtheos.a \
 lib/dtpurcollection/libdtpurcollection.a lib/fftpack5/libfftpack.a \
@@ -71,27 +42,13 @@ CCS = linenoise.c linenoise_f90.c
 	$(CC) -c $(CCS) $< 
 
 
-
 datreat: $(OBJS) $(LIBS) $(OBJ_GR)
 	$(FC) -o datreat $(FFLAGS) $(OBJS) $(LIBS) $(LDFLAGS) $(OBJ_GR)  -L/usr/local/gr/lib $(ADDLIBGR) $(ADDLIBGKS)  
 	@/bin/mv datreat ../bin
 	@/bin/ln -sf $(LOCAL)/bin/datreat ~/bin
 	@echo "___________________________________________________________________"
-	@echo " If ~/bin exists and is in your PATH start it from anywhere        "
-	@echo "      clean local directory by >   make clean                      "
-	@echo "___________________________________________________________________"
-	@echo "Start with > datreat       "
-	@echo "___________________________________________________________________"
-	@echo "START 'example' to test everything_________________________________"
-	@echo "___________________________________________________________________"
-	@echo "************** CHECK **********************************************"
-	@echo "*   is this version compiled with OPENMP active ? (-fponemp)      *"
-	@echo "*   if not check whether acceleration is possible and             *"
-	@echo "*   results are consistent when using (new) theories with         *"
-	@echo "*   !$OMP statements !!!!!!                                       *"
-	@echo "*******************************************************************"
-	@echo "___________________________________________________________________"
-	@head CHANGES.log
+	@echo " making datreat was SUCCESSFUL                                     "
+#	@head CHANGES.log
 	@echo "___________________________________________________________________"
 
 # CPP:	
@@ -147,21 +104,5 @@ cleanall:
 	rm -f unused_theos/*.o
 
 
-# 
-# distribution:	
-# 	cd ../..; tar --exclude=*.o --exclude=*.a --exclude=*.so --exclude=*~ --exclude=bin/datreat --exclude=.git* -z -cf ndatreat_$(shell date +%F).tar.gz ndatreat ;
-# 	cd ../..; ln -s ndatreat_$(shell date +%F).tar.gz ndatreat_latest.tar.gz
-# 	touch ./datreat05_2.f90
-# 	@if [ $$USERNAME = biehl  ]; then  mkdir -p /temp/biehl; cp ../../ndatreat_$(shell date +%F).tar.gz /temp/biehl/;chmod ugo+r /temp/biehl/ndatreat_$(shell date +%F).tar.gz;fi
-# 	#chmod ugo+r /temp/biehl/ndatreat_$(shell date +%F).tar.gz
-# help: 
-# 	@echo "make <Options>"
-# 	@echo "Options:"
-# 	@echo "            : builds datreat "
-# 	@echo "clean       : delets objekt files executables were not touched"
-# 	@echo "cleanall    : deletes evrything exept source"
-# 	@echo "help        : shows this "
-# 	@echo "distribution   : make a tar.gz to distribute to others with pure sourcefiles "
-# 	@echo "------------ datreat by M. Monkenbusch O. Holderer R. Biehl"
-# 
+ 
 ?:help

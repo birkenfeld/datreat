@@ -1703,6 +1703,8 @@ scl:   if(found('scaled  ')) then
              ith = nthtab(it)
              if(multflg(it).eq.1) then
                 write(xtext,'(8htheory* ,a8)')thenam(ith)
+             elseif(multflg(it).eq.2) then
+                write(xtext,'("theory(th)" ,a8)')thenam(ith)
              else
                 write(xtext,'(8htheory+ ,a8)')thenam(ith)
              endif
@@ -1959,63 +1961,4 @@ scl:   if(found('scaled  ')) then
        end subroutine writeplotpar
      
      
-      END
-!
-!
-       subroutine out_gli
-!      ==================
-!
-       use new_com
-       ! use cincoc
-       use cdata
-!       use outlev
-       use selist
-       implicit none
-
-       character*12 infile
-       logical*4    fileda
-       integer i,j
-       real xxx
-
-! -- open the file -----------------------------------------------------
-       if(inames.eq.0) then
-         ierrs = 1
-         write(6,*)'input(e1): filename is lacking!'
-         return
-       endif
-!
-       infile = vname(1)
-       do i=1,8
-         if(infile(i:i).eq.' ') infile(i:i)='_'
-       enddo
-       infile(9:12)='.dat'
-       inquire(file=infile,exist=fileda)
-!!     if(.not.fileda) then
-!!       write(6,*)'input(e2): file ',infile,' does not exist!'
-!!       ierrs = 3
-!!       return
-!!     endif
-
-       if(nsel.gt.18 ) then
-         write(6,*)'gli_out: too many selected items!'
-         ierrs = 3
-         return
-       endif
-
-       open(20,file=infile,status='UNKNOWN')
-       write(20,'(A)')(name(isels(i)),i=1,nsel)
-       do j=1,nwert(isels(1))
-         write(20,'(18(1x,E13.6))')xwerte(j,isels(1)),                  &
-     &        (ywerte(j,isels(i)),i=1,nsel)
-         xxx = xwerte(j,isels(1))
-         do i=1,nsel
-           if( xxx-xwerte(j,isels(i)) .ne. 0.0 ) then
-             write(6,*) 'Warning: x-value of ',isels(i),' differs!'
-           endif
-         enddo
-       enddo
-
-       close(20)
-       write(6,*)'File: ',infile,' written!'
-       return
       END
