@@ -1,3 +1,5 @@
+! datreat subroutines
+!       
        include 'GAmodule.f90'
 
 
@@ -4833,7 +4835,7 @@ sl:       do j=1,maxstep
          xx = sqrt(x1**2 + x2**2)
          if(xx.gt.xmax) goto 200
          yy = fsplin(xx) * dx * dx
-         ca(       i,       j) = cmplx(yy,0.)
+         ca(       i,       j) = complex(yy,0.)
          ca(nfft+2-i,       j) = ca(i,j)
          ca(nfft+2-i,nfft+2-j) = ca(i,j)
          ca(       i,nfft+2-j) = ca(i,j)

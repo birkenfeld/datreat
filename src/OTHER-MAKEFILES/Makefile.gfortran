@@ -57,7 +57,7 @@ FFLAGS=-march=core2 -O2 -ffree-line-length-none -fno-automatic -fPIC -fno-backsl
 #FFLAGS=-march=core2 -O2  -save -fPIC  -mfpmath=sse -I$LOCAL -heap_arrays 100 
 
 #-fbounds-check
-LDFLAGS = -DPATH_TO_LOCAL_DATREAT=\"$(LOCAL)\"
+LDFLAGS = -DPATH_TO_LOCAL_DATREAT=\"$(LOCAL)\" -Wl,-rpath,/usr/local/gr/lib
 
 
 OBJS = datreat05_2.o dataconvolution4.o dtpur.o util_get_y_value.o \
@@ -81,7 +81,7 @@ MODS = PhysicalConstantsPlus.f90 commons_mod.f90 unift.f90
 
 
 datreat: $(OBJS) $(LIBS) $(OBJ_GR)
-	$(FC) -o datreat $(FFLAGS) $(OBJS) $(LIBS) $(LDFLAGS) -L$(GRACE) $(OBJ_GR) -l$(GRACENP)  -L/usr/local/gr/lib $(ADDLIBGR) $(ADDLIBGKS) -Wl,-rpath,/usr/local/intel/lib/intel64 -lifcore -limf -lintlc -llapack_ifort -lblas_ifort  
+	$(FC) -o datreat $(FFLAGS) $(OBJS) $(LIBS) $(LDFLAGS) -L$(GRACE) $(OBJ_GR) -l$(GRACENP)  -L/usr/local/gr/lib $(ADDLIBGR) $(ADDLIBGKS)  -lifcore -limf -lintlc -llapack_gfortran -lblas_gfortran  
 	@/bin/mv datreat ../bin
 	@/bin/ln -sf $(LOCAL)/bin/datreat ~/bin
 	@echo "___________________________________________________________________"

@@ -1,10 +1,10 @@
- FUNCTION th_nrousep(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
+ FUNCTION th_nrouseab(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
 !================================================================================
 !  Rouse by discrete summation with mode restriction
 !  Rouse, Doi_Edwards
       use theory_description 
       implicit none 
-      real    :: th_nrousep
+      real    :: th_nrouseab
       character(len=8) :: thnam, parnam (*) 
       real    :: pa (*) 
       real    :: x , xh
@@ -25,6 +25,8 @@
      double precision :: com_diff   ! center of mass diffusion (if 0, use Rouse default)                              
      double precision :: pmin       ! minimum mode to be included                                                     
      double precision :: pmax       ! maximum mode to be included                                                     
+     double precision :: ascale     ! mode scale factor                                                    
+     double precision :: betamode   ! mode beta                                                    
 ! the recin parameter representation 
      double precision :: q          ! momentum transfer                                                               
                                                               
@@ -37,18 +39,20 @@
 !
 ! ----- initialisation ----- 
     IF (ini.eq.0) then     
-       thnam = 'nrousep'
-       nparx =        8
+       thnam = 'nrouseab'
+       nparx =        10
        IF (npar.lt.nparx) then
            WRITE (6,*)' theory: ',thnam,' no of parametrs=',nparx,' exceeds current max. = ',npar
-          th_nrousep = 0
+          th_nrouseab = 0
           RETURN
        ENDIF
        npar = nparx
 ! >>>>> describe theory with >>>>>>> 
        idesc = next_th_desc()
        th_identifier(idesc)   = thnam
-       th_explanation(idesc)  = " Rouse by discrete summation with mode restriction"
+       th_explanation(idesc)  = " Rouse by discrete summation with mode restriction"//cr//parspace//&
+                                " ACCELERATED (OMP+IMPOVED ALG.) VERSION!"
+
        th_citation(idesc)     = " Rouse, Doi_Edwards"
 !       --------------> set the parameter names --->
         parnam ( 1) = 'amplitu '  ! prefactor                                                                       
@@ -59,6 +63,8 @@
         parnam ( 6) = 'com_diff'  ! center of mass diffusion (if 0, use Rouse default)                              
         parnam ( 7) = 'pmin    '  ! minimum mode to be included                                                     
         parnam ( 8) = 'pmax    '  ! maximum mode to be included                                                     
+        parnam ( 9) = 'ascale  '  ! amplitude factor                                                    
+        parnam (10) = 'betamode'  ! beta for modes                                                    
 ! >>>>> describe parameters >>>>>>> 
         th_param_desc( 1,idesc) = "prefactor" !//cr//parspace//&
         th_param_desc( 2,idesc) = "rouse rate" !//cr//parspace//&
@@ -68,6 +74,8 @@
         th_param_desc( 6,idesc) = "center of mass diffusion (if 0, use Rouse default)" !//cr//parspace//&
         th_param_desc( 7,idesc) = "minimum mode to be included" !//cr//parspace//&
         th_param_desc( 8,idesc) = "maximum mode to be included" !//cr//parspace//&
+        th_param_desc( 9,idesc) = "scale factor for amplitudes" !//cr//parspace//&
+        th_param_desc(10,idesc) = "beta for mode sterched exp" !//cr//parspace//&
 ! >>>>> describe record parameters used >>>>>>>
         th_file_param(:,idesc) = " " 
         th_file_param(  1,idesc) = "q        > momentum transfer"
@@ -79,7 +87,7 @@
         th_out_param(  3,idesc) = "w        > rouse rate: W"
         th_out_param(  4,idesc) = "wl4      > inferred value of Wl4"
 ! 
-        th_nrousep = 0.0
+        th_nrouseab = 0.0
  
         RETURN
      ENDIF
@@ -93,6 +101,9 @@
       com_diff =  abs(pa( 6))
       pmin     =      pa( 7)
       pmax     =      pa( 8)
+      ascale   =  abs(pa( 9))
+      betamode =  abs(pa(10))
+      if(ascale == 0d0) ascale = 1d0 
 ! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
       iadda = actual_record_address()
 ! >>> extract: momentum transfer
@@ -108,14 +119,14 @@
 ! ----------------------- implementation ---------------------------
 ! ------------------------------------------------------------------
 ! 
-     t   = x
+     t   = x 
 
      Dr  = com_diff * 1d-9 / 1d-16  ! in A**2/ns
 
-     call NrouseP(q,t,temp,Dr,wl4,n_segmen,Re, W, l,pmin,pmax, Sq,Sqt)
+     call nrouseab(q,t,temp,Dr,wl4,n_segmen,Re, W, l,pmin,pmax, Sq,Sqt)
 
 
-     th_nrousep = amplitu * sqt/sq
+     th_nrouseab = amplitu * sqt/sq
 
  
 ! ---- writing computed parameters to the record >>>
@@ -129,7 +140,7 @@
  CONTAINS 
  
 
-       subroutine NrouseP(q,t,temp,Dr,wl4,N,R, W, l,pmin,pmax, Sq,Sqt)
+       subroutine nrouseab(q,t,temp,Dr,wl4,N,R, W, l,pmin,pmax, Sq,Sqt)
 !      ========================================================
 !
 ! Rouse expression for a chain of finite length:
@@ -196,14 +207,14 @@
 !$OMP PARALLEL DO     
        do nn=1,N
         do ip=1,N
-         cosarray(nn,ip) = cos((pi*ip*nn)/dfloat(N)) 
+         cosarray(nn,ip) = cos((pi*ip*nn)/dfloat(N)) / ip 
         enddo
        enddo
 !$OMP END PARALLEL DO   
 
 !$OMP PARALLEL DO    
        do i=1,N
-         ewfac(i) = (1d0-exp(-2*W*(1-cos((pi*i)/dfloat(N)))*t)) 
+         ewfac(i) = (1d0 - exp(-(2*W*(1-cos((pi*i)/dfloat(N)))*t)**betamode) ) 
        enddo
 !$OMP END PARALLEL DO    
 
@@ -214,51 +225,21 @@
        Sq0 = 0
        Sq  = 0
        Sqt = 0
-
+       ff2  = -2*N*(l*q)**2/(3*pi**2)   * ascale
 
 ! ---- Do the sums -----
 
-!$OMP PARALLEL DO REDUCTION(+:Sq,Sqt,arg2,arg20)
-
+!$OMP PARALLEL DO REDUCTION(+:Sq,Sqt)
        do nn = 1,N
         do mm = 1,N
-          arg1 = -(q**2)*(Dr*t + abs(nn-mm)*(l**2)/6.0d0)
-          arg10= -(q**2)*(       abs(nn-mm)*(l**2)/6.0d0)
-          ff2  = -2*N*(l*q)**2/(3*pi**2)
-    
-          arg2 = 0
-          arg20= 0
 
-          do ip=ipmin, ipmax
-            
-            ffc   = cosarray(nn,ip) * cosarray(mm,ip) / (ip**2)
-
-!            arg2  = arg2 +  (1d0-exp(-2*W*(1-cos((pi*ip)/dfloat(N)))*t)) * ffc
-            arg2  = arg2 +  ewfac(ip) * ffc
-                                
-!            arg20 =  arg20 + ffc
-
-          enddo 
-          
-
-!          arg2  = arg2  * ff2
-!          arg20 = arg20 * ff2
-
-          aa1 = arg10
-
-          aa2 = arg1+ff2*arg2
-
-
-          Sq  = Sq  + exp(aa1)
-          Sqt = Sqt + exp(aa2)
+          Sq  = Sq  + exp(-(q**2)*(       abs(nn-mm)*(l**2)/6.0d0))
+          Sqt = Sqt + exp(-(q**2)*(Dr*t + abs(nn-mm)*(l**2)/6.0d0) + &
+                ff2* sum(cosarray(nn,ipmin:ipmax) * cosarray(mm,ipmin:ipmax) *  ewfac(ipmin:ipmax) ))
 
         enddo
-
        enddo
-
 !$OMP END PARALLEL DO
-
-
 
        Sq  = Sq /N
        Sqt = Sqt/N
@@ -269,4 +250,4 @@
        end
  
 
- end function th_nrousep
+ end function th_nrouseab
