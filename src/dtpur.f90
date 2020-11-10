@@ -872,72 +872,72 @@ subroutine unlsf(func,m,n,xguess,xscale,fscale,iparam,rparam,    &
 !       return
 !       end
 
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-      subroutine csscv(nn,x,y,iequal,brk,cscoef)
-      integer ier, k, cn
-      real wk(nn*13+6), c0(nn), c(nn-1,3)
-      dimension weight(nn),x(nn),y(nn), brk(nn), cscoef(4,nn)
-
-      cn=nn-1
-      write(*,*)'cubic spline smoothing,'
-      write(*,*)'estimated smoothing parameters...'
-      write(*,*)'not properly tested without nag or IMSL...'
-      write(*,*)'equivalent nag routine: G10ACF'
-      job=0
-      var=-1
-!      call GCVSPL (x,y,nn,weight,wy,m,nn,k,md,val,c, nc, wk, ier)
-      call CUBGCV (dble(x),dble(y),dble(weight),nn,dble(c0),dble(c),    &
-     &cn,dble(var),job,dble(se),dble(wk),ier)
-		 do i=1,nn
-           brk(i)=x(i)
-           cscoef(1,i)=c0(i)
-       enddo
-       k=0
-       do i=1,3
-           do j=1,nn-1
-               k=k+1
-               cscoef(i+1,j)=c(j,i)
-           enddo
-       enddo
-
-      return
-      END
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-
-      subroutine cssmh(nn,x,y,weight,smpar,brk,cscoef)
-      integer ier, k, cn
-      real wk(nn*13+6), c0(nn), c(nn-1,3)
-      dimension weight(nn), x(nn),y(nn), brk(nn), cscoef(4,nn)
-
-      cn=nn-1
-      write(*,*)'cubic spline smoothing,'
-      write(*,*)'ATTENTION: is weight parameter used correctly'
-      write(*,*)'in current routine (smoothing seems to work  '
-      write(*,*)'properly...)'
-      write(*,*)'equivalent nag routine: G10ABF'
-      job=0
-      var=-1
-!      call GCVSPL (x,y,nn,weight,wy,m,nn,k,md,val,c, nc, wk, ier)
-      call CUBGCV (x,y,weight,nn,c0,c,cn,var,job,se,wk,ier)
-       do i=1,nn
-           brk(i)=x(i)
-           cscoef(1,i)=c0(i)
-       enddo
-       k=0
-       do i=1,3
-           do j=1,nn-1
-               k=k+1
-               cscoef(i+1,j)=c(j,i)
-           enddo
-       enddo
-
-      return
-      END
-
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!!?? !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!!?? !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!!??       subroutine csscv(nn,x,y,iequal,brk,cscoef)
+!!??       integer ier, k, cn
+!!??       real wk(nn*13+6), c0(nn), c(nn-1,3)
+!!??       dimension weight(nn),x(nn),y(nn), brk(nn), cscoef(4,nn)
+!!?? 
+!!??       cn=nn-1
+!!??       write(*,*)'cubic spline smoothing,'
+!!??       write(*,*)'estimated smoothing parameters...'
+!!??       write(*,*)'not properly tested without nag or IMSL...'
+!!??       write(*,*)'equivalent nag routine: G10ACF'
+!!??       job=0
+!!??       var=-1
+!!?? !      call GCVSPL (x,y,nn,weight,wy,m,nn,k,md,val,c, nc, wk, ier)
+!!??       call CUBGCV (dble(x),dble(y),dble(weight),nn,dble(c0),dble(c),    &
+!!??      &cn,dble(var),job,dble(se),dble(wk),ier)
+!!?? 		 do i=1,nn
+!!??            brk(i)=x(i)
+!!??            cscoef(1,i)=c0(i)
+!!??        enddo
+!!??        k=0
+!!??        do i=1,3
+!!??            do j=1,nn-1
+!!??                k=k+1
+!!??                cscoef(i+1,j)=c(j,i)
+!!??            enddo
+!!??        enddo
+!!?? 
+!!??       return
+!!??       END
+!!?? !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!!?? !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!!?? 
+!!??       subroutine cssmh(nn,x,y,weight,smpar,brk,cscoef)
+!!??       integer ier, k, cn
+!!??       real wk(nn*13+6), c0(nn), c(nn-1,3)
+!!??       dimension weight(nn), x(nn),y(nn), brk(nn), cscoef(4,nn)
+!!?? 
+!!??       cn=nn-1
+!!??       write(*,*)'cubic spline smoothing,'
+!!??       write(*,*)'ATTENTION: is weight parameter used correctly'
+!!??       write(*,*)'in current routine (smoothing seems to work  '
+!!??       write(*,*)'properly...)'
+!!??       write(*,*)'equivalent nag routine: G10ABF'
+!!??       job=0
+!!??       var=-1
+!!?? !      call GCVSPL (x,y,nn,weight,wy,m,nn,k,md,val,c, nc, wk, ier)
+!!??       call CUBGCV (x,y,weight,nn,c0,c,cn,var,job,se,wk,ier)
+!!??        do i=1,nn
+!!??            brk(i)=x(i)
+!!??            cscoef(1,i)=c0(i)
+!!??        enddo
+!!??        k=0
+!!??        do i=1,3
+!!??            do j=1,nn-1
+!!??                k=k+1
+!!??                cscoef(i+1,j)=c(j,i)
+!!??            enddo
+!!??        enddo
+!!?? 
+!!??       return
+!!??       END
+!!?? 
+!!?? !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+!!?? !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
       function BSI0E(x)
 

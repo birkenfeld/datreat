@@ -27,11 +27,11 @@ do
 	i=` expr $i + 1`
 	echo "$i        continue"
 	echo "           if(imu) then"
-	echo "              sum=sum*$theo(x ,thparx(:,it),dum,dum,idum,mbuf,1)"
+	echo "              sum=sum*$theo(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)"
 	echo "           elseif(iins) then"
-	echo "               sum=$theo(sum ,thparx(:,it),dum,dum,idum,mbuf,1)"
+	echo "               sum=$theo(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)"
 	echo "           else"
-	echo "               sum=sum+$theo(x ,thparx(:,it),dum,dum,idum,mbuf,1)"
+	echo "               sum=sum+$theo(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)"
 	echo "           endif"
 	echo "           goto 250"
 done;
@@ -40,11 +40,11 @@ do
 	i=` expr $i + 1`
 	echo "$i        continue"
 	echo "           if(imu) then"
-	echo "              sum=sum*$theo(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)"
+	echo "              sum=sum*$theo(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)"
 	echo "           elseif(iins) then"
-	echo "              sum=$theo(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)"
+	echo "              sum=$theo(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)"
 	echo "           else"
-	echo "               sum=sum+$theo(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)"
+	echo "               sum=sum+$theo(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)"
 	echo "           endif"
 	echo "           goto 250"
 done;

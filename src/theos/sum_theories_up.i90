@@ -5,794 +5,794 @@
         &65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88) , ith
 1        continue
            if(imu) then
-              sum=sum*th_nzimm_pna(x ,thparx(:,it),dum,dum,idum,mbuf,1)
+              sum=sum*th_nzimm_pna(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
            elseif(iins) then
-               sum=th_nzimm_pna(sum ,thparx(:,it),dum,dum,idum,mbuf,1)
+               sum=th_nzimm_pna(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
            else
-               sum=sum+th_nzimm_pna(x ,thparx(:,it),dum,dum,idum,mbuf,1)
+               sum=sum+th_nzimm_pna(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
            endif
            goto 250
 2        continue
            if(imu) then
-              sum=sum*th_ddiavo(x ,thparx(:,it),dum,dum,idum,mbuf,1)
+              sum=sum*th_ddiavo(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
            elseif(iins) then
-               sum=th_ddiavo(sum ,thparx(:,it),dum,dum,idum,mbuf,1)
+               sum=th_ddiavo(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
            else
-               sum=sum+th_ddiavo(x ,thparx(:,it),dum,dum,idum,mbuf,1)
+               sum=sum+th_ddiavo(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
            endif
            goto 250
 3        continue
            if(imu) then
-              sum=sum*th_kohlfast(x ,thparx(:,it),dum,dum,idum,mbuf,1)
+              sum=sum*th_kohlfast(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
            elseif(iins) then
-               sum=th_kohlfast(sum ,thparx(:,it),dum,dum,idum,mbuf,1)
+               sum=th_kohlfast(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
            else
-               sum=sum+th_kohlfast(x ,thparx(:,it),dum,dum,idum,mbuf,1)
+               sum=sum+th_kohlfast(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
            endif
            goto 250
 4        continue
            if(imu) then
-              sum=sum*th_kohl_q(x ,thparx(:,it),dum,dum,idum,mbuf,1)
+              sum=sum*th_kohl_q(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
            elseif(iins) then
-               sum=th_kohl_q(sum ,thparx(:,it),dum,dum,idum,mbuf,1)
+               sum=th_kohl_q(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
            else
-               sum=sum+th_kohl_q(x ,thparx(:,it),dum,dum,idum,mbuf,1)
+               sum=sum+th_kohl_q(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
            endif
            goto 250
 5        continue
            if(imu) then
-              sum=sum*th_likhtman(x ,thparx(:,it),dum,dum,idum,mbuf,1)
+              sum=sum*th_likhtman(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
            elseif(iins) then
-               sum=th_likhtman(sum ,thparx(:,it),dum,dum,idum,mbuf,1)
+               sum=th_likhtman(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
            else
-               sum=sum+th_likhtman(x ,thparx(:,it),dum,dum,idum,mbuf,1)
+               sum=sum+th_likhtman(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
            endif
            goto 250
 6        continue
            if(imu) then
-              sum=sum*th_ln_bss(x ,thparx(:,it),dum,dum,idum,mbuf,1)
+              sum=sum*th_ln_bss(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
            elseif(iins) then
-               sum=th_ln_bss(sum ,thparx(:,it),dum,dum,idum,mbuf,1)
+               sum=th_ln_bss(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
            else
-               sum=sum+th_ln_bss(x ,thparx(:,it),dum,dum,idum,mbuf,1)
+               sum=sum+th_ln_bss(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
            endif
            goto 250
 7        continue
            if(imu) then
-              sum=sum*th_nrouse3(x ,thparx(:,it),dum,dum,idum,mbuf,1)
+              sum=sum*th_nrouse3(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
            elseif(iins) then
-               sum=th_nrouse3(sum ,thparx(:,it),dum,dum,idum,mbuf,1)
+               sum=th_nrouse3(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
            else
-               sum=sum+th_nrouse3(x ,thparx(:,it),dum,dum,idum,mbuf,1)
+               sum=sum+th_nrouse3(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
            endif
            goto 250
 8        continue
            if(imu) then
-              sum=sum*th_eval(x ,thparx(:,it),dum,dum,idum,mbuf,1)
+              sum=sum*th_eval(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
            elseif(iins) then
-               sum=th_eval(sum ,thparx(:,it),dum,dum,idum,mbuf,1)
+               sum=th_eval(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
            else
-               sum=sum+th_eval(x ,thparx(:,it),dum,dum,idum,mbuf,1)
+               sum=sum+th_eval(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
            endif
            goto 250
 9        continue
            if(imu) then
-              sum=sum*th_anisodiff(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_anisodiff(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_anisodiff(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_anisodiff(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_anisodiff(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_anisodiff(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 10        continue
            if(imu) then
-              sum=sum*bkgr(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*bkgr(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=bkgr(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=bkgr(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+bkgr(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+bkgr(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 11        continue
            if(imu) then
-              sum=sum*th_beaucage(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_beaucage(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_beaucage(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_beaucage(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_beaucage(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_beaucage(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 12        continue
            if(imu) then
-              sum=sum*core_shell3(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*core_shell3(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=core_shell3(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=core_shell3(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+core_shell3(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+core_shell3(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 13        continue
            if(imu) then
-              sum=sum*th_debstar(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_debstar(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_debstar(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_debstar(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_debstar(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_debstar(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 14        continue
            if(imu) then
-              sum=sum*debye2(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*debye2(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=debye2(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=debye2(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+debye2(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+debye2(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 15        continue
            if(imu) then
-              sum=sum*th_degennes2(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_degennes2(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_degennes2(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_degennes2(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_degennes2(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_degennes2(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 16        continue
            if(imu) then
-              sum=sum*th38(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th38(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th38(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th38(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th38(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th38(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 17        continue
            if(imu) then
-              sum=sum*th_degennesA(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_degennesA(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_degennesA(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_degennesA(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_degennesA(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_degennesA(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 18        continue
            if(imu) then
-              sum=sum*th_diffonsphere(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_diffonsphere(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_diffonsphere(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_diffonsphere(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_diffonsphere(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_diffonsphere(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 19        continue
            if(imu) then
-              sum=sum*th_diffusion(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_diffusion(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_diffusion(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_diffusion(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_diffusion(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_diffusion(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 20        continue
            if(imu) then
-              sum=sum*th_dolgushev(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_dolgushev(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_dolgushev(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_dolgushev(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_dolgushev(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_dolgushev(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 21        continue
            if(imu) then
-              sum=sum*echotrig2(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*echotrig2(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=echotrig2(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=echotrig2(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+echotrig2(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+echotrig2(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 22        continue
            if(imu) then
-              sum=sum*th_fatkim(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_fatkim(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_fatkim(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_fatkim(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_fatkim(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_fatkim(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 23        continue
            if(imu) then
-              sum=sum*thgauss(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*thgauss(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=thgauss(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=thgauss(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+thgauss(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+thgauss(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 24        continue
            if(imu) then
-              sum=sum*thgauss2(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*thgauss2(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=thgauss2(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=thgauss2(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+thgauss2(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+thgauss2(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 25        continue
            if(imu) then
-              sum=sum*thgaussft(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*thgaussft(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=thgaussft(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=thgaussft(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+thgaussft(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+thgaussft(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 26        continue
            if(imu) then
-              sum=sum*th_hetdif(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_hetdif(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_hetdif(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_hetdif(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_hetdif(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_hetdif(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 27        continue
            if(imu) then
-              sum=sum*th_hyperbra(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_hyperbra(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_hyperbra(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_hyperbra(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_hyperbra(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_hyperbra(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 28        continue
            if(imu) then
-              sum=sum*th_likhtm0(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_likhtm0(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_likhtm0(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_likhtm0(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_likhtm0(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_likhtm0(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 29        continue
            if(imu) then
-              sum=sum*th_locrep(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_locrep(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_locrep(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_locrep(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_locrep(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_locrep(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 30        continue
            if(imu) then
-              sum=sum*th_locrep2(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_locrep2(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_locrep2(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_locrep2(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_locrep2(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_locrep2(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 31        continue
            if(imu) then
-              sum=sum*th_locrepr(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_locrepr(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_locrepr(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_locrepr(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_locrepr(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_locrepr(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 32        continue
            if(imu) then
-              sum=sum*th_locrepw2(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_locrepw2(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_locrepw2(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_locrepw2(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_locrepw2(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_locrepw2(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 33        continue
            if(imu) then
-              sum=sum*th_locrept(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_locrept(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_locrept(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_locrept(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_locrept(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_locrept(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 34        continue
            if(imu) then
-              sum=sum*th_locrep2nr(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_locrep2nr(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_locrep2nr(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_locrep2nr(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_locrep2nr(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_locrep2nr(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 35        continue
            if(imu) then
-              sum=sum*th_locrep2nrt(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_locrep2nrt(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_locrep2nrt(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_locrep2nrt(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_locrep2nrt(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_locrep2nrt(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 36        continue
            if(imu) then
-              sum=sum*th_moderators(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_moderators(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_moderators(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_moderators(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_moderators(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_moderators(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 37        continue
            if(imu) then
-              sum=sum*th_ndebye(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_ndebye(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_ndebye(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_ndebye(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_ndebye(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_ndebye(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 38        continue
            if(imu) then
-              sum=sum*th_ndendri(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_ndendri(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_ndendri(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_ndendri(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_ndendri(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_ndendri(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 39        continue
            if(imu) then
-              sum=sum*th_ndendri_py(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_ndendri_py(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_ndendri_py(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_ndendri_py(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_ndendri_py(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_ndendri_py(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 40        continue
            if(imu) then
-              sum=sum*th_nnvilgis(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_nnvilgis(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_nnvilgis(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_nnvilgis(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_nnvilgis(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_nnvilgis(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 41        continue
            if(imu) then
-              sum=sum*th_nrouring_mp(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_nrouring_mp(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_nrouring_mp(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_nrouring_mp(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_nrouring_mp(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_nrouring_mp(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 42        continue
            if(imu) then
-              sum=sum*th_nrousefn2(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_nrousefn2(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_nrousefn2(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_nrousefn2(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_nrousefn2(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_nrousefn2(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 43        continue
            if(imu) then
-              sum=sum*th_nrousep(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_nrousep(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_nrousep(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_nrousep(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_nrousep(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_nrousep(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 44        continue
            if(imu) then
-              sum=sum*th_nrouseab(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_nrouseab(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_nrouseab(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_nrouseab(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_nrouseab(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_nrouseab(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 45        continue
            if(imu) then
-              sum=sum*th_nrousept(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_nrousept(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_nrousept(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_nrousept(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_nrousept(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_nrousept(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 46        continue
            if(imu) then
-              sum=sum*echo(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*echo(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=echo(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=echo(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+echo(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+echo(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 47        continue
            if(imu) then
-              sum=sum*th_nvilgis(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_nvilgis(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_nvilgis(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_nvilgis(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_nvilgis(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_nvilgis(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 48        continue
            if(imu) then
-              sum=sum*th_nzimm_sh(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_nzimm_sh(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_nzimm_sh(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_nzimm_sh(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_nzimm_sh(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_nzimm_sh(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 49        continue
            if(imu) then
-              sum=sum*th_nzimmaz(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_nzimmaz(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_nzimmaz(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_nzimmaz(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_nzimmaz(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_nzimmaz(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 50        continue
            if(imu) then
-              sum=sum*th7(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th7(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th7(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th7(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th7(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th7(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 51        continue
            if(imu) then
-              sum=sum*th10(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th10(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th10(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th10(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th10(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th10(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 52        continue
            if(imu) then
-              sum=sum*th_qttempx(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_qttempx(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_qttempx(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_qttempx(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_qttempx(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_qttempx(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 53        continue
            if(imu) then
-              sum=sum*th_repmode_mp(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_repmode_mp(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_repmode_mp(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_repmode_mp(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_repmode_mp(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_repmode_mp(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 54        continue
            if(imu) then
-              sum=sum*riggch(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*riggch(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=riggch(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=riggch(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+riggch(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+riggch(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 55        continue
            if(imu) then
-              sum=sum*th_ring2(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_ring2(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_ring2(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_ring2(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_ring2(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_ring2(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 56        continue
            if(imu) then
-              sum=sum*th_ring2am7(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_ring2am7(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_ring2am7(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_ring2am7(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_ring2am7(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_ring2am7(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 57        continue
            if(imu) then
-              sum=sum*th_ring2am8(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_ring2am8(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_ring2am8(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_ring2am8(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_ring2am8(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_ring2am8(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 58        continue
            if(imu) then
-              sum=sum*th_ring2c(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_ring2c(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_ring2c(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_ring2c(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_ring2c(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_ring2c(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 59        continue
            if(imu) then
-              sum=sum*th_ring2d(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_ring2d(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_ring2d(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_ring2d(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_ring2d(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_ring2d(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 60        continue
            if(imu) then
-              sum=sum*th_ring2dm4(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_ring2dm4(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_ring2dm4(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_ring2dm4(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_ring2dm4(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_ring2dm4(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 61        continue
            if(imu) then
-              sum=sum*th_ring2dm6(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_ring2dm6(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_ring2dm6(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_ring2dm6(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_ring2dm6(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_ring2dm6(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 62        continue
            if(imu) then
-              sum=sum*th_ringHDformRPA(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_ringHDformRPA(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_ringHDformRPA(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_ringHDformRPA(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_ringHDformRPA(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_ringHDformRPA(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 63        continue
            if(imu) then
-              sum=sum*th_ringform(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_ringform(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_ringform(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_ringform(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_ringform(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_ringform(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 64        continue
            if(imu) then
-              sum=sum*th_ringform2(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_ringform2(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_ringform2(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_ringform2(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_ringform2(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_ringform2(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 65        continue
            if(imu) then
-              sum=sum*th_ringfromRPA(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_ringfromRPA(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_ringfromRPA(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_ringfromRPA(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_ringfromRPA(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_ringfromRPA(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 66        continue
            if(imu) then
-              sum=sum*th_roufbead(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_roufbead(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_roufbead(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_roufbead(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_roufbead(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_roufbead(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 67        continue
            if(imu) then
-              sum=sum*rouse(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*rouse(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=rouse(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=rouse(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+rouse(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+rouse(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 68        continue
            if(imu) then
-              sum=sum*srouse(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*srouse(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=srouse(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=srouse(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+srouse(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+srouse(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 69        continue
            if(imu) then
-              sum=sum*th_rpalin(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_rpalin(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_rpalin(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_rpalin(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_rpalin(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_rpalin(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 70        continue
            if(imu) then
-              sum=sum*th_rpalin2(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_rpalin2(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_rpalin2(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_rpalin2(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_rpalin2(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_rpalin2(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 71        continue
            if(imu) then
-              sum=sum*th_rparing(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_rparing(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_rparing(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_rparing(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_rparing(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_rparing(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 72        continue
            if(imu) then
-              sum=sum*th_rpastar2(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_rpastar2(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_rpastar2(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_rpastar2(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_rpastar2(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_rpastar2(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 73        continue
            if(imu) then
-              sum=sum*th_rpastar3(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_rpastar3(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_rpastar3(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_rpastar3(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_rpastar3(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_rpastar3(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 74        continue
            if(imu) then
-              sum=sum*th_rpastr3t(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_rpastr3t(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_rpastr3t(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_rpastr3t(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_rpastr3t(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_rpastr3t(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 75        continue
            if(imu) then
-              sum=sum*th_rpastr4t(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_rpastr4t(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_rpastr4t(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_rpastr4t(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_rpastr4t(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_rpastr4t(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 76        continue
            if(imu) then
-              sum=sum*th_sansfac(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_sansfac(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_sansfac(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_sansfac(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_sansfac(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_sansfac(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 77        continue
            if(imu) then
-              sum=sum*th_sinhafra(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_sinhafra(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_sinhafra(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_sinhafra(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_sinhafra(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_sinhafra(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 78        continue
            if(imu) then
-              sum=sum*sofqq(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*sofqq(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=sofqq(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sofqq(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+sofqq(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+sofqq(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 79        continue
            if(imu) then
-              sum=sum*th_star(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_star(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_star(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_star(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_star(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_star(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 80        continue
            if(imu) then
-              sum=sum*strexpo(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*strexpo(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=strexpo(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=strexpo(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+strexpo(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+strexpo(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 81        continue
            if(imu) then
-              sum=sum*strexpsq(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*strexpsq(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=strexpsq(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=strexpsq(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+strexpsq(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+strexpsq(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 82        continue
            if(imu) then
-              sum=sum*strexpsqq(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*strexpsqq(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=strexpsqq(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=strexpsqq(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+strexpsqq(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+strexpsqq(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 83        continue
            if(imu) then
-              sum=sum*thick_co2(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*thick_co2(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=thick_co2(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=thick_co2(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+thick_co2(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+thick_co2(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 84        continue
            if(imu) then
-              sum=sum*thick_co4(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*thick_co4(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=thick_co4(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=thick_co4(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+thick_co4(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+thick_co4(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 85        continue
            if(imu) then
-              sum=sum*th_zcoil1(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_zcoil1(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_zcoil1(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_zcoil1(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_zcoil1(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_zcoil1(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 86        continue
            if(imu) then
-              sum=sum*th_zgbic2(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_zgbic2(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_zgbic2(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_zgbic2(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_zgbic2(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_zgbic2(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 87        continue
            if(imu) then
-              sum=sum*zimm(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*zimm(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=zimm(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=zimm(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+zimm(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+zimm(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 88        continue
            if(imu) then
-              sum=sum*th_zxratio(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=sum*th_zxratio(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_zxratio(sum ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+              sum=th_zxratio(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_zxratio(x ,thparx(:,it),dum,dum,idum,1,nopar ,params,napar,mbuf)
+               sum=sum+th_zxratio(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 250          continue

@@ -3059,7 +3059,7 @@ sl:       do j=1,maxstep
               write(buf1,*)'theory   ',thenam(ith),'   multiply'
            elseif(multflg(i).eq.2) then
               write(buf1,*)'theory   ',thenam(ith),'   insert'
-           esle
+           else
               write(buf1,*)'theory   ',thenam(ith)
            endif
            if(thrapar(i).ne.'        ') then

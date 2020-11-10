@@ -44,7 +44,12 @@ real function theory_x(x,ntheos,nthtab,multflg,thparx,thrapar,thramin,thramax,no
 !      ----------------------                              from datreat nopar(iadda),params(:,iadda),napar(:,iadda)
 ! ---- compute the value of the active set of theories at value x       
 !                                                                       
-       character*8 thenam,thparn 
+!!??       character*8 thenam,thparn 
+           integer nthpar(mth)
+           character*8 :: thenam(mth)
+           character*8 :: thparn(mtpar,mth) 
+           character*8 :: thrapar(mth)
+
         integer nthtab(mtcal),multflg(mtcal),ntheos
         real thparx(mtpar,mtcal)
             !  thenam(i)  = name of i-th theory                                     
@@ -55,7 +60,7 @@ real function theory_x(x,ntheos,nthtab,multflg,thparx,thrapar,thramin,thramax,no
             !  ntheos     = total no. of activated theories                         
             !  multflg    = flag indicating a multiplicative theory      
              
-            character*8 thrapar(mth) 
+ !!??           character*8 thrapar(mth) 
             real*4     thramin(mth), thramax(mth)
         !                            here only the params naparnopar of the current dataset is known 
         !                            (1 dim array like params(:,iadda)  in call of this function) 

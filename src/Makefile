@@ -3,7 +3,7 @@
 SHELL = /bin/sh
 LOCAL:=$(shell cd ..;/bin/pwd)
 
-ADDLIBGKS=-lgks
+ADDLIBGKS=-lGKS
 
 SRCSTHEO=  $(wildcard theos/*.f) $(wildcard theos/*.f90) $(wildcard theos/*.i90)
 
