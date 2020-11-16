@@ -693,7 +693,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
    endif
 
 
-   if(present(ylabel)) then
+   if(present(ylabel) .and. len(ylabel) > 0) then
      call gr_settextpath (  TEXT_PATH_UP    )
      call gr_setcharup   (  -1d0, 0d0       )
      if(ylabel(1:1)=="$")  call gr_setcharheight(text_size*tex_fak) 
@@ -702,7 +702,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
        call gr_setcharheight(text_size) 
    endif
 
-   if(present(xlabel)) then
+   if(present(xlabel) .and. len(xlabel) > 0 ) then
      call gr_settextpath (  TEXT_PATH_RIGHT )
      call gr_setcharup   (  0d0, 1d0        )
      if(xlabel(1:1)=="$")  call gr_setcharheight(text_size*tex_fak) 
@@ -821,7 +821,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
 
 
 
-   if(present(ylabel)) then
+   if(present(ylabel) .and. len(ylabel) > 0) then
      call gr_settextpath (  TEXT_PATH_DOWN    )
      call gr_setcharup   (  1d0, 0d0       )
      if(ylabel(1:1)=="$")  call gr_setcharheight(text_size*tex_fak) 
@@ -830,7 +830,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
      call gr_setcharheight(text_size) 
    endif
 
-   if(present(xlabel)) then
+   if(present(xlabel) .and. len(xlabel) > 0) then
      call gr_settextpath (  TEXT_PATH_RIGHT )
      call gr_setcharup   (  0d0, 1d0        )
      if(xlabel(1:1)=="$")  call gr_setcharheight(text_size*tex_fak) 
@@ -901,6 +901,8 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
 
    if(present(colorindex))  call gr_settextcolorind( colorindex )
 
+   if(len(txt) < 1) return
+
    xt = xwc
    yt = ywc
 
@@ -935,6 +937,8 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
     character(len=*), intent(in)   :: sinitial
     character(len=2*len(sinitial)) :: sfinal
 
+    if(len(sinitial) < 1) return
+
     sfinal = gr_string_replace(sinitial,"_","\_")
     sfinal = gr_string_replace(sfinal  ,"$","\$x")
 !    sfinal = gr_string_replace(sfinal  ,"%","\%")
@@ -951,8 +955,10 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
     implicit none
     character(len=*), intent(in)   :: sinitial
     character(len=2*len(sinitial)) :: sfinal
-
     integer :: i
+
+    if(len(sinitial) < 1) return
+
     sfinal = " "
     do i=1,len_trim(sinitial)
      sfinal(i:i) = sinitial(i:i)

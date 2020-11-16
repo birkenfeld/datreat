@@ -1702,11 +1702,11 @@ scl:   if(found('scaled  ')) then
            do 115 it = 1,ntheos
              ith = nthtab(it)
              if(multflg(it).eq.1) then
-                write(xtext,'(8htheory* ,a8)')thenam(ith)
+                write(xtext,'("theory*    " ,a8)')thenam(ith)
              elseif(multflg(it).eq.2) then
-                write(xtext,'("theory(th)" ,a8)')thenam(ith)
+                write(xtext,'("theory(th) " ,a8)')thenam(ith)
              else
-                write(xtext,'(8htheory+ ,a8)')thenam(ith)
+                write(xtext,'("theory+    " ,a8)')thenam(ith)
              endif
              if(thenam(ith)=="eval    ") write(xtext,'(a,":",a)')trim(xtext),trim(yfitform)
              call grtext(xtx,ytx,trim(xtext),GR_BLACK) !> neu
