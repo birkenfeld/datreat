@@ -693,7 +693,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
    endif
 
 
-   if(present(ylabel)) then
+   if(present(ylabel) .and. len(ylabel) > 0) then
      call gr_settextpath (  TEXT_PATH_UP    )
      call gr_setcharup   (  -1d0, 0d0       )
      if(ylabel(1:1)=="$")  call gr_setcharheight(text_size*tex_fak) 
@@ -702,7 +702,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
        call gr_setcharheight(text_size) 
    endif
 
-   if(present(xlabel)) then
+   if(present(xlabel) .and. len(xlabel) > 0 ) then
      call gr_settextpath (  TEXT_PATH_RIGHT )
      call gr_setcharup   (  0d0, 1d0        )
      if(xlabel(1:1)=="$")  call gr_setcharheight(text_size*tex_fak) 
@@ -821,7 +821,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
 
 
 
-   if(present(ylabel)) then
+   if(present(ylabel) .and. len(ylabel) > 0) then
      call gr_settextpath (  TEXT_PATH_DOWN    )
      call gr_setcharup   (  1d0, 0d0       )
      if(ylabel(1:1)=="$")  call gr_setcharheight(text_size*tex_fak) 
@@ -830,7 +830,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
      call gr_setcharheight(text_size) 
    endif
 
-   if(present(xlabel)) then
+   if(present(xlabel) .and. len(xlabel) > 0) then
      call gr_settextpath (  TEXT_PATH_RIGHT )
      call gr_setcharup   (  0d0, 1d0        )
      if(xlabel(1:1)=="$")  call gr_setcharheight(text_size*tex_fak) 
@@ -901,6 +901,8 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
 
    if(present(colorindex))  call gr_settextcolorind( colorindex )
 
+   if(len(txt) < 1) return
+
    xt = xwc
    yt = ywc
 
@@ -935,6 +937,8 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
     character(len=*), intent(in)   :: sinitial
     character(len=2*len(sinitial)) :: sfinal
 
+    if(len(sinitial) < 1) return
+
     sfinal = gr_string_replace(sinitial,"_","\_")
     sfinal = gr_string_replace(sfinal  ,"$","\$x")
 !    sfinal = gr_string_replace(sfinal  ,"%","\%")
@@ -951,8 +955,10 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
     implicit none
     character(len=*), intent(in)   :: sinitial
     character(len=2*len(sinitial)) :: sfinal
-
     integer :: i
+
+    if(len(sinitial) < 1) return
+
     sfinal = " "
     do i=1,len_trim(sinitial)
      sfinal(i:i) = sinitial(i:i)
@@ -1702,9 +1708,11 @@ scl:   if(found('scaled  ')) then
            do 115 it = 1,ntheos
              ith = nthtab(it)
              if(multflg(it).eq.1) then
-                write(xtext,'(8htheory* ,a8)')thenam(ith)
+                write(xtext,'("theory*    " ,a8)')thenam(ith)
+             elseif(multflg(it).eq.2) then
+                write(xtext,'("theory(th) " ,a8)')thenam(ith)
              else
-                write(xtext,'(8htheory+ ,a8)')thenam(ith)
+                write(xtext,'("theory+    " ,a8)')thenam(ith)
              endif
              if(thenam(ith)=="eval    ") write(xtext,'(a,":",a)')trim(xtext),trim(yfitform)
              call grtext(xtx,ytx,trim(xtext),GR_BLACK) !> neu
@@ -1959,63 +1967,4 @@ scl:   if(found('scaled  ')) then
        end subroutine writeplotpar
      
      
-      END
-!
-!
-       subroutine out_gli
-!      ==================
-!
-       use new_com
-       ! use cincoc
-       use cdata
-!       use outlev
-       use selist
-       implicit none
-
-       character*12 infile
-       logical*4    fileda
-       integer i,j
-       real xxx
-
-! -- open the file -----------------------------------------------------
-       if(inames.eq.0) then
-         ierrs = 1
-         write(6,*)'input(e1): filename is lacking!'
-         return
-       endif
-!
-       infile = vname(1)
-       do i=1,8
-         if(infile(i:i).eq.' ') infile(i:i)='_'
-       enddo
-       infile(9:12)='.dat'
-       inquire(file=infile,exist=fileda)
-!!     if(.not.fileda) then
-!!       write(6,*)'input(e2): file ',infile,' does not exist!'
-!!       ierrs = 3
-!!       return
-!!     endif
-
-       if(nsel.gt.18 ) then
-         write(6,*)'gli_out: too many selected items!'
-         ierrs = 3
-         return
-       endif
-
-       open(20,file=infile,status='UNKNOWN')
-       write(20,'(A)')(name(isels(i)),i=1,nsel)
-       do j=1,nwert(isels(1))
-         write(20,'(18(1x,E13.6))')xwerte(j,isels(1)),                  &
-     &        (ywerte(j,isels(i)),i=1,nsel)
-         xxx = xwerte(j,isels(1))
-         do i=1,nsel
-           if( xxx-xwerte(j,isels(i)) .ne. 0.0 ) then
-             write(6,*) 'Warning: x-value of ',isels(i),' differs!'
-           endif
-         enddo
-       enddo
-
-       close(20)
-       write(6,*)'File: ',infile,' written!'
-       return
       END

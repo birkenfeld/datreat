@@ -59,7 +59,6 @@
       integer iadda
       common /thiadd/iadda
 
-
        integer isigint
        real yyy, zpar, ywr, yw2, yy, ysum, ynno, yval, ymm2, ymaxf,ymax
        real yw1, yminf, ym1, yfamp, yerr, yer, yampf, y3, yctab, y11, y1
@@ -309,6 +308,7 @@
                         write(*,*)'=  datreat ni     OR                                             ='
                         write(*,*)'=  datreat 0      starts without reloading previous content      ='
                         write(*,*)'=                 (old behavior)                                 ='
+                        write(*,*)'=  VERSION                                                       ='
                         write(6,*)'=================================================================='
                        
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -638,11 +638,6 @@
          goto 2000
        endif
 !
-       if(comand.eq.'out_gli '.or.comand.eq.'gli     ') then
-!                    --                      -----
-         call out_gli
-         goto 2000
-       endif
 !
        if(comand.eq.'inscn   ') then
 !                    -----
@@ -2672,66 +2667,66 @@ drer1:    do ik=1,n
          goto 2000
         endif
 !
-       if(comand.eq.'sp      '.or.comand.eq.'spline  ') then
-!                    ---> spline smoothing
-          do 2799 i=1,inames
-            j = inapa(i)
-            if(vname(i).eq.'iequal  ') iequal = rpar(j) + 0.1
-            if(vname(i).eq.'nneu    ') nneu   = rpar(j) + 0.1
-            if(vname(i).eq.'auto    ') iauto  = 1
-            if(vname(i).eq.'noauto  ') iauto  = 0
-            if(vname(i).eq.'smpar   ') smpar  = rpar(j)
- 2799     continue
-         if(nsel.eq.0) then
-           write(6,*)'no curve selected'
-           goto 2000
-         endif
-        ia     = isels(1)
-        nn     = nwert(ia)
-        numspl = numor(ia)
-        nwspl  = nwert(ia)
-        if(nneu.le.0.or.nneu.gt.mwert) nneu = nn
-        if(iequal.le.0) iequal = 1
-        write(6,*)'nneu  = ',nneu
-        if(nbuf.lt.size(nwert))then
-           nbuf=nbuf+1
-           ib=nbuf
-        endif
-!
-        if(iauto.eq.1) then
-           write(6,*)'iequal= ',iequal
-           call csscv(nn,xwerte(1,ia),ywerte(1,ia),iequal,break,cscoef)
-        else
-           write(6,*)'smpar = ',smpar
-           do 3777 i=1,nn
-             weight(i) = sqrt(abs(ywerte(i,ia)))
- 3777      continue
-           call cssmh(nn,xwerte(1,ia),ywerte(1,ia),weight,smpar,break,  &
-     &                cscoef)
-        endif
-         if(iout().gt.1) then
-            write(6,*)'break         cscoeff'
-            do 2776 i=1,nn
-              write(6,2777)i,break(i),(cscoef(j,i),j=1,4)
- 2777         format(1x,i3,':',5e14.6)
- 2776       continue
-         endif
-         x01 = break(1)
-         x02 = break(nn)
-         dx  = (x02-x01)/(nneu-1)
-         do 2702 i=1,nneu
-            xn = x01 + (i-1)*dx
-            xwerte(i,ib) = xn
-            ywerte(i,ib) = fsplin(xn)
- 2702    continue
-         call txfpar(ia,ib)
-         numor(ib)= - numor(ia)
-         nwert(ib)= nneu
-         isels(1) = ia
-         ifits(1) = ib
-         nsel     = 1
-         goto 2000
-        endif
+!!??        if(comand.eq.'sp      '.or.comand.eq.'spline  ') then
+!!?? !                    ---> spline smoothing
+!!??           do 2799 i=1,inames
+!!??             j = inapa(i)
+!!??             if(vname(i).eq.'iequal  ') iequal = rpar(j) + 0.1
+!!??             if(vname(i).eq.'nneu    ') nneu   = rpar(j) + 0.1
+!!??             if(vname(i).eq.'auto    ') iauto  = 1
+!!??             if(vname(i).eq.'noauto  ') iauto  = 0
+!!??             if(vname(i).eq.'smpar   ') smpar  = rpar(j)
+!!??  2799     continue
+!!??          if(nsel.eq.0) then
+!!??            write(6,*)'no curve selected'
+!!??            goto 2000
+!!??          endif
+!!??         ia     = isels(1)
+!!??         nn     = nwert(ia)
+!!??         numspl = numor(ia)
+!!??         nwspl  = nwert(ia)
+!!??         if(nneu.le.0.or.nneu.gt.mwert) nneu = nn
+!!??         if(iequal.le.0) iequal = 1
+!!??         write(6,*)'nneu  = ',nneu
+!!??         if(nbuf.lt.size(nwert))then
+!!??            nbuf=nbuf+1
+!!??            ib=nbuf
+!!??         endif
+!!?? !
+!!??         if(iauto.eq.1) then
+!!??            write(6,*)'iequal= ',iequal
+!!??            call csscv(nn,xwerte(1,ia),ywerte(1,ia),iequal,break,cscoef)
+!!??         else
+!!??            write(6,*)'smpar = ',smpar
+!!??            do 3777 i=1,nn
+!!??              weight(i) = sqrt(abs(ywerte(i,ia)))
+!!??  3777      continue
+!!??            call cssmh(nn,xwerte(1,ia),ywerte(1,ia),weight,smpar,break,  &
+!!??      &                cscoef)
+!!??         endif
+!!??          if(iout().gt.1) then
+!!??             write(6,*)'break         cscoeff'
+!!??             do 2776 i=1,nn
+!!??               write(6,2777)i,break(i),(cscoef(j,i),j=1,4)
+!!??  2777         format(1x,i3,':',5e14.6)
+!!??  2776       continue
+!!??          endif
+!!??          x01 = break(1)
+!!??          x02 = break(nn)
+!!??          dx  = (x02-x01)/(nneu-1)
+!!??          do 2702 i=1,nneu
+!!??             xn = x01 + (i-1)*dx
+!!??             xwerte(i,ib) = xn
+!!??             ywerte(i,ib) = fsplin(xn)
+!!??  2702    continue
+!!??          call txfpar(ia,ib)
+!!??          numor(ib)= - numor(ia)
+!!??          nwert(ib)= nneu
+!!??          isels(1) = ia
+!!??          ifits(1) = ib
+!!??          nsel     = 1
+!!??          goto 2000
+!!??         endif
 !
        if(comand.eq.'fftmx   '.or.comand.eq.'fft-ms  ') then
 !                    ---> multiple scattering by fft
@@ -4633,13 +4628,6 @@ ipl:        do i=1,ipars
          goto 2000
        endif
 !
-
-       if(comand.eq.'gplot    ') then
-!                    -----> plot selected curves
-         call gplot()
-         goto 2000
-       endif
-!
  
       if(comand.eq.'plot    '.or.comand.eq.'p       '.or.comand.eq.'gp      ') then
 !                    -----> plot selected curves
@@ -4647,8 +4635,6 @@ ipl:        do i=1,ipars
 !         ibild1 = ibild
          goto 2000
        endif
-!
-!
 !
        if(comand.eq.'plot0   '.or.comand.eq.'p0      ') then
 !                    -----> set parameters for plot
@@ -6582,7 +6568,6 @@ end
   write(6,*) "numorchg                    " , " "
   write(6,*) "numorpls                    " , " "
   write(6,*) "fopen                       " , " "
-  write(6,*) "out_gli   (synonym) gli     " , " "
   write(6,*) "paraout                     " , " "
   write(6,*) "parextra                    " , " "
   write(6,*) "oplot    plot to ocular     " , " "

@@ -115,7 +115,7 @@
       q        = xh
       if(wfac <=0d0) wfac = 1d0
 
-      tau      = (wfac * W) 
+      tau      = 1d0 / (wfac * W) 
 
       t        = x
 ! 
