@@ -107,6 +107,7 @@
     double precision, intent(in)   :: W        ! (Rouse?) rate
     double precision, intent(in)   :: n        ! No Segments
     double precision, intent(in)   :: ne       ! No Segments/entanglement
+    double precision, intent(in)   :: b        ! b-fluctuation intensity
     double precision               :: val
     double precision, parameter    :: Pi = 4*atan(1d0)
 
@@ -121,5 +122,5 @@
     val = (T1+T2)/T3
 
 
-  end function local_reptation
+  end function local_reptationdr
  end function th_locrepd
