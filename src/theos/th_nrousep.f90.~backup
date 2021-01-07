@@ -1,10 +1,10 @@
- FUNCTION th_nrouseac(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
+ FUNCTION th_nrousep(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
 !================================================================================
 !  Rouse by discrete summation with mode restriction
 !  Rouse, Doi_Edwards
       use theory_description 
       implicit none 
-      real    :: th_nrouseac
+      real    :: th_nrousep
       character(len=8) :: thnam, parnam (*) 
       real    :: pa (*) 
       real    :: x , xh
@@ -25,9 +25,6 @@
      double precision :: com_diff   ! center of mass diffusion (if 0, use Rouse default)                              
      double precision :: pmin       ! minimum mode to be included                                                     
      double precision :: pmax       ! maximum mode to be included                                                     
-     double precision :: ascale     ! mode scale factor                                                    
-     double precision :: betamode   ! mode beta                                                    
-     double precision :: casqrtne   !                                                     
 ! the recin parameter representation 
      double precision :: q          ! momentum transfer                                                               
                                                               
@@ -40,11 +37,11 @@
 !
 ! ----- initialisation ----- 
     IF (ini.eq.0) then     
-       thnam = 'nrouseac'
-       nparx =        11
+       thnam = 'nrousep'
+       nparx =        8
        IF (npar.lt.nparx) then
            WRITE (6,*)' theory: ',thnam,' no of parametrs=',nparx,' exceeds current max. = ',npar
-          th_nrouseac = 0
+          th_nrousep = 0
           RETURN
        ENDIF
        npar = nparx
@@ -64,9 +61,6 @@
         parnam ( 6) = 'com_diff'  ! center of mass diffusion (if 0, use Rouse default)                              
         parnam ( 7) = 'pmin    '  ! minimum mode to be included                                                     
         parnam ( 8) = 'pmax    '  ! maximum mode to be included                                                     
-        parnam ( 9) = 'ascale  '  ! amplitude factor                                                    
-        parnam (10) = 'betamode'  ! beta for modes                                                    
-        parnam (11) = 'casqrtne'  ! beta for modes                                                    
 ! >>>>> describe parameters >>>>>>> 
         th_param_desc( 1,idesc) = "prefactor" !//cr//parspace//&
         th_param_desc( 2,idesc) = "rouse rate" !//cr//parspace//&
@@ -76,14 +70,10 @@
         th_param_desc( 6,idesc) = "center of mass diffusion (if 0, use Rouse default)" !//cr//parspace//&
         th_param_desc( 7,idesc) = "minimum mode to be included" !//cr//parspace//&
         th_param_desc( 8,idesc) = "maximum mode to be included" !//cr//parspace//&
-        th_param_desc( 9,idesc) = "scale factor for amplitudes" !//cr//parspace//&
-        th_param_desc(10,idesc) = "beta for mode sterched exp" !//cr//parspace//&
-        th_param_desc(11,idesc) = "c-scale for re=c*a*sqrt(ne)" !//cr//parspace//&
 ! >>>>> describe record parameters used >>>>>>>
         th_file_param(:,idesc) = " " 
         th_file_param(  1,idesc) = "q        > momentum transfer"
         th_file_param(  2,idesc) = "temp     > temperature"
-        th_file_param(  3,idesc) = "asqrtne  > parameter supplied by locrepd"
 ! >>>>> describe record parameters creaqted by this theory >>>>>>> 
         th_out_param(:,idesc)  = " "
         th_out_param(  1,idesc) = "diff     > diffusion in cm**2/s"
@@ -91,7 +81,7 @@
         th_out_param(  3,idesc) = "w        > rouse rate: W"
         th_out_param(  4,idesc) = "wl4      > inferred value of Wl4"
 ! 
-        th_nrouseac = 0.0
+        th_nrousep = 0.0
  
         RETURN
      ENDIF
@@ -105,10 +95,6 @@
       com_diff =  abs(pa( 6))
       pmin     =      pa( 7)
       pmax     =      pa( 8)
-      ascale   =  abs(pa( 9))
-      betamode =  abs(pa(10))
-      casqrtne =  abs(pa(11))
-      if(ascale == 0d0) ascale = 1d0 
 ! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
       iadda = actual_record_address()
 ! >>> extract: momentum transfer
@@ -119,36 +105,25 @@
       xh =    300d0 
       call parget('temp    ',xh,iadda,ier)
       if( xh > 0d0) temp     = xh
-
-!!! experimental !!!
-      if( casqrtne  >  0d0) then
-        xh = 1d0
-        call parget('asqrtne  ',xh,iadda,ier)
-        if(ier.ne.0)Write(*,*)"WARNING: with casqrtne > we need the parameter asqrtne !!" 
-        re =  casqrtne * xh    
-      endif
-
-
 ! 
 ! ------------------------------------------------------------------
 ! ----------------------- implementation ---------------------------
 ! ------------------------------------------------------------------
 ! 
-     t   = x 
+     t   = x
 
      Dr  = com_diff * 1d-9 / 1d-16  ! in A**2/ns
 
-     call nrouseac(q,t,temp,Dr,wl4,n_segmen,Re, W, l,pmin,pmax, Sq,Sqt)
+     call NrouseP(q,t,temp,Dr,wl4,n_segmen,Re, W, l,pmin,pmax, Sq,Sqt)
 
 
-     th_nrouseac = amplitu * sqt/sq
+     th_nrousep = amplitu * sqt/sq
 
  
 ! ---- writing computed parameters to the record >>>
       call        parset('l       ',sngl(l),iadda,ier)      ! in ns A units
       call        parset('w       ',sngl(W),iadda,ier)      !     "
       call        parset('wl4     ',sngl(W*l**4),iadda,ier) !     "
-      call        parset('Re      ',sngl(re),iadda,ier)      !     "
   
       Dr        = Dr /( 1d-9 / 1d-16 ) ! in cm**2/s
       call parset('diff    ',sngl(Dr),iadda,ier)
@@ -156,7 +131,7 @@
  CONTAINS 
  
 
-       subroutine nrouseac(q,t,temp,Dr,wl4,N,R, W, l,pmin,pmax, Sq,Sqt)
+       subroutine NrouseP(q,t,temp,Dr,wl4,N,R, W, l,pmin,pmax, Sq,Sqt)
 !      ========================================================
 !
 ! Rouse expression for a chain of finite length:
@@ -230,7 +205,7 @@
 
 !$OMP PARALLEL DO    
        do i=1,N
-         ewfac(i) = (1d0 - exp(-(2*W*(1-cos((pi*i)/dfloat(N)))*t)**betamode) ) 
+         ewfac(i) = (1d0-exp(-2*W*(1-cos((pi*i)/dfloat(N)))*t)) 
        enddo
 !$OMP END PARALLEL DO    
 
@@ -241,7 +216,7 @@
        Sq0 = 0
        Sq  = 0
        Sqt = 0
-       ff2  = -2*N*(l*q)**2/(3*pi**2)   * ascale
+       ff2  = -2*N*(l*q)**2/(3*pi**2)
 
 ! ---- Do the sums -----
 
@@ -266,4 +241,4 @@
        end
  
 
- end function th_nrouseac
+ end function th_nrousep

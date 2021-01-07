@@ -3008,8 +3008,13 @@ sl:       do j=1,maxstep
                     write(6,*)'too many couplings max is ',size(thpafc(:,1,1))
                     goto 999
                  endif
-                 thpalc(ncoup(i,ntheos),i,ntheos) = vname(j)
-                 thpafc(ncoup(i,ntheos),i,ntheos) = rpar(inapa(j))
+                 if(inapa(j) > 0) then
+                   thpalc(ncoup(i,ntheos),i,ntheos) = vname(j)
+                   thpafc(ncoup(i,ntheos),i,ntheos) = rpar(inapa(j))
+                 else
+                  ncoup(i,ntheos) = ncoup(i,ntheos) - 1
+                  write(*,'(/a,a,a/)')"WARNING: coupling coeff for ", trim(vname(j)), "  NOT FOUND!"
+                 endif
  7807         continue
             endif
           endif
