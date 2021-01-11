@@ -113,7 +113,8 @@
      nz  = nint(z)
      nr  = nint(ne)
      call NrousePb(q,t, nr, W*fw2, l,1,nr, sqtrous0,sqtrous)
-     call Nlocrep (q,t, nz, W*fw1, l, B,   Sqtloc0,  Sqtloc)
+     call Nlocrep (q,t, nz, W*fw1/ne, l*fa*sqrt(ne), B,   Sqtloc0,  Sqtloc)
+!!--------------------------------^ ==> check ob hier ne oder ne**2 ??!!
 
      select case(mode)
      case(0)
@@ -270,20 +271,20 @@
        integer :: ipmin, ipmax, i
 
 
-       aq  = ne*l * q*q
-       sig = 4*w*l**2
+       aq  = l*l * q*q 
+!!??       sig = 4*w*l**2
 !!TBD: hier l oder a=l*sqrt(ne) ????
-       distar(0)  =  2*Delta + B*erf(Delta/(2*l*sqrt(Pi*W)*sqrt(t)))
+       distar(0)  =  2*Delta + B*erf(Delta/(2*sqrt(W*t)))
        distar0(0) =  2*Delta + B
 
 !$OMP PARALLEL DO PRIVATE(ss)
        do nn=1,N
-         ss = l*nn
+!         ss = nn
 !        distar(nn)  = (1d0 + B*exp(-ss**2/(sig*t))/(sqrt(Pi*sig*t))) * exp(-aq*ss/l)
-         distar(nn)  = (2*Delta+(1d0/2)*B*erf((Delta+nn)/(2*sqrt(W)*l*sqrt(t))) &
-                              +(1/2d0)*B*erf((Delta-nn)/(2*sqrt(W)*l*sqrt(t)))) * exp(-aq*ss/l)
+         distar(nn)  = (2*Delta+(1d0/2)*B*erf((Delta+nn)/(2*sqrt(W*t))) &
+                              +(1/2d0)*B*erf((Delta-nn)/(2*sqrt(W*t)))) * exp(-aq*nn/(6d0))
 
-         distar0(nn) = exp(-aq*ss/l)
+         distar0(nn) = exp(-aq*nn/(6d0))
 
 
 
