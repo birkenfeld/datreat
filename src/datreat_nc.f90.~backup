@@ -234,6 +234,16 @@
   istat = add_tab_expansion('quit')
   !
 
+!!!<< inits
+  isels = 0
+  ifits = 0
+  nsel  = 0
+  isfits = 0
+  nfsel  = 0
+  nbuf  = 0
+  numor = 0
+!!!>> 
+
 
 
 
@@ -1941,7 +1951,7 @@ da1:     do i=1,nbuf
            rrv(i) = r0 *sqrt( xi )
          enddo
          rrv(0) = ri
-         do i=0,n
+         do i=1,n
            xr = x1 + i*dx
            j  = 0
            y  = 0.0
@@ -3630,7 +3640,7 @@ write(*,'(a,a,4f12.6)')"TEST: form2=",trim(yformel),xxxx,yyyy,yyee,val8y
 !!           if(iy.ne.0) then
            write(6,171) csel,i,numor(i),name(i),yname(i),xname(i)       &
      &    ,'"'//coment(i)(1:len_comm)//'"',pastring(1:ip*21)
-  171    format(1x,a1,i4,':#',i10,' : ',a8,' :',a8,' vs ',a8,'>',a,' ',a)
+  171    format(1x,a1,i4,':#',i15,' : ',a8,' :',a8,' vs ',a8,'>',a,' ',a)
 !!           endif
   170    continue
 
@@ -4054,8 +4064,8 @@ ipl:        do i=1,ipars
 !                    --------                ---
 !          write(6,390)nsel,(isels(i),numor(isels(i)),ifits(i),i=1,nsel)
    390     format(' selected items: ',i5/                                &
-      &           ' scan-address:  numor:      fit-address:'/            &
-      &           (1x,i8,5x,i12,5x,i12))
+      &           ' scan-address:     numor:         fit-address:'/            &
+      &           (1x,i15,5x,i15,5x,i15))
 
 
 !

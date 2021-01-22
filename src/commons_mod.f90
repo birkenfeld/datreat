@@ -377,9 +377,9 @@
     module selist
                 use dimensions
         save
-        integer isels(c_MBUF)
-        integer ifits(c_MBUF)
-        integer nsel
+        integer isels(c_MBUF) 
+        integer ifits(c_MBUF) 
+        integer nsel 
         integer :: numpls = 10000
     end module selist
  
@@ -388,8 +388,8 @@
     module fslist
                 use dimensions
         save
-        integer isfits(c_MBUF)
-        integer nfsel
+        integer isfits(c_MBUF) 
+        integer nfsel          
     end module fslist
 
 ! ------ coupling of theory-parameters -----------------------          

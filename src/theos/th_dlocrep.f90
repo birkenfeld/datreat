@@ -113,7 +113,8 @@
      nz  = nint(z)
      nr  = nint(ne)
      call NrousePb(q,t, nr, W*fw2, l,1,nr, sqtrous0,sqtrous)
-     call Nlocrep (q,t, nz, W*fw1/ne, l*fa*sqrt(ne), B,   Sqtloc0,  Sqtloc)
+!     call Nlocrep (q,t, nz, W*fw1/ne, l*fa*sqrt(ne), B,   Sqtloc0,  Sqtloc)
+     call Nlocrep (q,t, nz, W*fw1/ne, l*fa*sqrt(ne), B*(2d0/3d0)*sqrt(ne),   Sqtloc0,  Sqtloc)
 !!--------------------------------^ ==> check ob hier ne oder ne**2 ??!!
 
      select case(mode)
