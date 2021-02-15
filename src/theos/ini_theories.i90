@@ -156,11 +156,11 @@
        nthpar(77) = mtpar 
        dummy = th_rpalin2(x,par,thenam(77),thparn(:,77),nthpar(77),ini,idum ,idum,idum,idum)
        nthpar(78) = mtpar 
-       dummy = th_rparing(x,par,thenam(78),thparn(:,78),nthpar(78),ini,idum ,idum,idum,idum)
+       dummy = th_rpalin2b(x,par,thenam(78),thparn(:,78),nthpar(78),ini,idum ,idum,idum,idum)
        nthpar(79) = mtpar 
-       dummy = th_rpastar2(x,par,thenam(79),thparn(:,79),nthpar(79),ini,idum ,idum,idum,idum)
+       dummy = th_rpalina(x,par,thenam(79),thparn(:,79),nthpar(79),ini,idum ,idum,idum,idum)
        nthpar(80) = mtpar 
-       dummy = th_rpastar3(x,par,thenam(80),thparn(:,80),nthpar(80),ini,idum ,idum,idum,idum)
+       dummy = th_rparing(x,par,thenam(80),thparn(:,80),nthpar(80),ini,idum ,idum,idum,idum)
         write(6,*) "Warning to many theories in directory theos"
         write(6,*) "Warning to many theories in directory theos"
         write(6,*) "Warning to many theories in directory theos"
