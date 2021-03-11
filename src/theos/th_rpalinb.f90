@@ -1,4 +1,4 @@
- FUNCTION th_rpalina(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
+ FUNCTION th_rpalinb(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
 !============================================================================
 !  applies rpa mixture tor the scattering function for a star-linear polymer micture and extends this into the dynamic regime (i.e. S(Q) --> S(Q,t))
 ! 
@@ -12,7 +12,7 @@
 !!    ====
 
 
-      real    :: th_rpalina
+      real    :: th_rpalinb
       character(len=8) :: thnam, parnam (*) 
       real    :: pa (*) 
       real    :: x , xh
@@ -65,6 +65,7 @@
      double precision :: talphamax  ! max tau in log
      double precision :: talphawd   ! width in taulog
      double precision :: aoffset    ! offset
+     double precision :: alphaq4    ! q**6 non Gaussian prefactor
 
 
 ! the recin parameter representation 
@@ -156,11 +157,11 @@
 !
 ! ----- initialisation ----- 
     IF (ini.eq.0) then 
-       thnam = 'rpalina '
-       nparx =       38
+       thnam = 'rpalinb '
+       nparx =       39
        IF (npar.lt.nparx) then
            WRITE (6,*)' theory: ',thnam,' no of parametrs=',nparx,' exceeds current max. = ',npar
-          th_rpalina = 0
+          th_rpalinb = 0
           RETURN
        ENDIF
        npar = nparx
@@ -216,6 +217,7 @@
         parnam (34+2) = 'talpmax '  !                                                     
         parnam (35+2) = 'talpwd  '  !                                                    
         parnam (36+2) = 'alpoffs '  !    
+        parnam (36+3) = 'alphaq4 '  !    
 ! >>>>> describe parameters >>>>>>> 
         th_param_desc( 1,idesc) = "prefactor" !//cr//parspace//&
         th_param_desc( 2,idesc) = "rouse short liner chains rate (phirous)" !//cr//parspace//&
@@ -263,6 +265,7 @@
         th_param_desc(34+2,idesc) = " tau of maximum of non-Gaussiabity alpha(t) "  !   
         th_param_desc(35+2,idesc) = " width of maximum of non Gaussianity "  !
         th_param_desc(36+2,idesc) = " offset for non-Gaussianity alpha "  !    
+        th_param_desc(36+3,idesc) = " q**6 non-Gaussian prefcator "  !    
 ! >>>>> describe record parameters used >>>>>>>
         th_file_param(:,idesc) = " " 
         th_file_param(  1,idesc) = "q        > scattering wavevector"
@@ -280,7 +283,7 @@
 ! >>>>> describe record parameters creaqted by this theory >>>>>>> 
         th_out_param(:,idesc)  = " "
 ! 
-        th_rpalina = 0.0
+        th_rpalinb = 0.0
  
         RETURN
      ENDIF
@@ -327,6 +330,7 @@
       talphamax=  abs(pa(34+2))
       talphawd =  abs(pa(35+2))
       aoffset  =      pa(36+2)
+      alphaq4  =      pa(36+3)
 
       t0       = max(t0      ,tmin)
       nxpoints = max(nxpoints  ,16)
@@ -405,7 +409,7 @@ i1:  if( mode == 0 ) then     ! normal spin-echo
      endif i1
 
 
-      allparams(1:48) = [ wl4rous, dble(nrouseff), locr2_b, locr2_a, locr2_ta, locr2_lz, locr2_te, &
+      allparams(1:49) = [ wl4rous, dble(nrouseff), locr2_b, locr2_a, locr2_ta, locr2_lz, locr2_te, &
                          dble(nro_me) , re_me,   wl4     , betadif , q , dble(nrous), l, dble(f),   &
                          phirous, dble(nlin), philin, alin, arous, &
                          dble(nlin_cc),  &
@@ -413,8 +417,7 @@ i1:  if( mode == 0 ) then     ! normal spin-echo
                          dble(nro_me_c) , re_me_c,   wl4_c     , diffmatc, betadifc, difflin, betadifl, &
                          diff, r02, nu_subdiff, a_cross, beta_q , &
                          dble(mode), dble(modeex), dble(nxpoints), t0, tmax, rlow, &
-                         alpha0, talphamax, talphawd, aoffset ]  
-
+                         alpha0, talphamax, talphawd, aoffset, alphaq4 ]  
 
       newcomp_required = ( sum(abs(allparams-last_params)) .ne. 0 ) .and. (modeex > 0)
     
@@ -596,24 +599,24 @@ ilr: if( newcomp_required ) then
 
  select case(mode)  ! be sure that in the beginning the assignment of t, q are properly made (if i1:)
    case (0)
-       th_rpalina = Sqt/Sqt0
+       th_rpalinb = Sqt/Sqt0
 
   case (1) ! linear contribution at tau as function of q
-     th_rpalina = plin
+     th_rpalinb = plin
 
   case(2)  ! star contribution at tau  as function of q
-     th_rpalina = prous
+     th_rpalinb = prous
  
   case(3)  ! rpa contribution at tau as function of q
-      th_rpalina = Sqt
+      th_rpalinb = Sqt
 
   case default
      write(6,*)'invalid mode !'
-      th_rpalina = 0
+      th_rpalinb = 0
 
  end select
 
-  th_rpalina =  th_rpalina * ampli
+  th_rpalinb =  th_rpalinb * ampli
 
   call parset('nlin    ',(1.0*nlin),iadda) 
   call parset('nlin_cc ',(1.0*nlin_cc),iadda) 
@@ -804,7 +807,7 @@ ilr: if( newcomp_required ) then
        double precision p, p0fix, pfac
 
        double precision :: cosarray(N,N), ewfac(N)
-       double precision :: rmm, fqq, fqq0
+       double precision :: rmm, fqq, fqq0, q2rmm
 
        integer :: ipmin, ipmax, i
 
@@ -869,8 +872,12 @@ ilr: if( newcomp_required ) then
 !$OMP END PARALLEL DO
        rmm = rmm/N
 
-       fqq  = 1d0 -q**2 * rmm/12d0 * alpha(t)       !! see Guenza PHYSICAL REVIEW E 89, 052603 (2014) Eq(4)
-       fqq0 = 1d0 -q**2 * rmm/12d0 * alpha(0d0)     !! see Guenza PHYSICAL REVIEW E 89, 052603 (2014) Eq(4)
+!       fqq  = 1d0 -q**2 * rmm/12d0 * alpha(t)       !! see Guenza PHYSICAL REVIEW E 89, 052603 (2014) Eq(4)
+!       fqq0 = 1d0 -q**2 * rmm/12d0 * alpha(0d0)     !! see Guenza PHYSICAL REVIEW E 89, 052603 (2014) Eq(4)
+       q2rmm = rmm * q**2
+       fqq  = 1d0 -(q2rmm-alphaq4*q2rmm**2)/12d0 * alpha(t)   !! see Guenza PHYSICAL REVIEW E 89, 052603 (2014) Eq(4)
+       fqq0 = 1d0 -(q2rmm-alphaq4*q2rmm**2)/12d0 * alpha(0d0)  !! see Guenza PHYSICAL REVIEW E 89, 052603 (2014) Eq(4)
+! with a heuristic q**6 contribution with factor alphaq4 included
 
 
 !$OMP PARALLEL DO REDUCTION(+:Sq,Sqt)
@@ -912,6 +919,6 @@ end function alpha
 
 
 
- end function th_rpalina
+ end function th_rpalinb
 
 

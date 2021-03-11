@@ -24,7 +24,6 @@
      double precision :: fx2        ! quadratic part x factor                                                         
      double precision :: dx2        ! quadratic part x-offset                                                         
 ! the recin parameter representation 
-     double precision ::            !                                                                                 
 ! the reout parameter representation 
  
      double precision :: th
@@ -80,9 +79,6 @@
 ! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
       iadda = actual_record_address()
 ! >>> extract: 
-      xh = 
-      call parget('        ',xh,iadda,ier)
-               = xh
 ! 
 ! ------------------------------------------------------------------
 ! ----------------------- implementation ---------------------------
@@ -93,10 +89,6 @@
      th_trigfun = th
  
 ! ---- writing computed parameters to the record >>>  
- 
- CONTAINS 
- 
-! subroutines and functions entered here are private to this theory and share its variables 
  
 
  end function th_trigfun

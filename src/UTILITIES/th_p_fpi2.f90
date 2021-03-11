@@ -23,9 +23,7 @@
      double precision :: bz         ! vertical field in Gauss                                                         
      double precision :: turnpm     ! winding density in turns per m                                                  
      double precision :: d          ! thickness in m                                                                  
-     double precision :: lambda     ! wavelength in Angstroem                                                         
-! the recin parameter representation 
-     double precision ::            !                                                                                 
+     double precision :: lambda     ! wavelength in Angstroem                                                        
 ! the reout parameter representation 
  
      double precision :: th
@@ -84,15 +82,12 @@
 ! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
       iadda = actual_record_address()
 ! >>> extract: 
-      xh = 
-      call parget('        ',xh,iadda,ier)
-               = xh
 ! 
 ! ------------------------------------------------------------------
 ! ----------------------- implementation ---------------------------
 ! ------------------------------------------------------------------
 ! 
-     th =  a * pol_of_fpi2(x)
+     th =  a * pol_of_fpi2(dble(x))
 
      th_p_fpi2 = th
  

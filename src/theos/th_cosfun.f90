@@ -1,10 +1,10 @@
- FUNCTION th_trigfun(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
+ FUNCTION th_cosfun(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
 !================================================================================
 !  a * cos(fx*(x-dx) + a2*cos(fx2*(x-dx2))**2
 ! 
       use theory_description 
       implicit none 
-      real    :: th_trigfun
+      real    :: th_cosfun
       character(len=8) :: thnam, parnam (*) 
       real    :: pa (*) 
       real    :: x , xh
@@ -24,7 +24,6 @@
      double precision :: fx2        ! quadratic part x factor                                                         
      double precision :: dx2        ! quadratic part x-offset                                                         
 ! the recin parameter representation 
-     double precision ::            !                                                                                 
 ! the reout parameter representation 
  
      double precision :: th
@@ -32,11 +31,11 @@
 !
 ! ----- initialisation ----- 
     IF (ini.eq.0) then     
-       thnam = 'trigfun'
+       thnam = 'cosfun'
        nparx =        6
        IF (npar.lt.nparx) then
            WRITE (6,*)' theory: ',thnam,' no of parametrs=',nparx,' exceeds current max. = ',npar
-          th_trigfun = 0
+          th_cosfun = 0
           RETURN
        ENDIF
        npar = nparx
@@ -65,7 +64,7 @@
 ! >>>>> describe record parameters creaqted by this theory >>>>>>> 
         th_out_param(:,idesc)  = " "
 ! 
-        th_trigfun = 0.0
+        th_cosfun = 0.0
  
         RETURN
      ENDIF
@@ -80,23 +79,16 @@
 ! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
       iadda = actual_record_address()
 ! >>> extract: 
-      xh = 
-      call parget('        ',xh,iadda,ier)
-               = xh
 ! 
 ! ------------------------------------------------------------------
 ! ----------------------- implementation ---------------------------
 ! ------------------------------------------------------------------
 ! 
-     th =  a * cos(fx*(x-dx) + a2*cos(fx2*(x-dx2))**2
+     th =  a * cos(fx*(x-dx)) + a2*cos(fx2*(x-dx2))**2
 
-     th_trigfun = th
+     th_cosfun = th
  
 ! ---- writing computed parameters to the record >>>  
  
- CONTAINS 
- 
-! subroutines and functions entered here are private to this theory and share its variables 
- 
 
- end function th_trigfun
+ end function th_cosfun
