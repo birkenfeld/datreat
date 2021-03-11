@@ -1,6 +1,11 @@
       function th_likhtman(x,pa,thnam,parnam,npar,idum,ini)
-!     degennes 
-!     geaendert nach likhtman - mz !!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!     ========================================
+!
+!         -------> degennes+likhtmann <--------
+!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!       geaendert nach likhtman - mz !!!
 
 
          implicit none
@@ -15,7 +20,7 @@
          DIMENSION       pa(20),qq(3)
          DATA            zpi/6.283185/
 
-         double precision w,d,q,n,ne,likhtman,t,a,l,taud,tau0,td2
+         double precision w,d,q,n,ne,likhtman,t,a,l,taud,tau0,td2,alpha
 
 
  
@@ -26,7 +31,7 @@ c
 c ----- initialisation -----
        if(ini.eq.0) then
          thnam = 'likhtman '
-         nparx =  6
+         nparx =  7
          if(npar.lt.nparx) then
            write(6,1)thnam,nparx,npar
 1          format(' theory: ',a8,' no of parametrs=',i8,
@@ -42,6 +47,7 @@ c        --------------> set the number of parameters
          parnam(4) = 'n       '
          parnam(5) = 'l       '
          parnam(6) = 'td2     '
+         parnam(7) = 'alpha   '
 c
          th_likhtman = 0
          return
@@ -54,6 +60,7 @@ c ---- calculate theory here -----
         n       = pa(4)   ! no of segments of polymer
         l       = pa(5)   ! segment length 
         td2     = pa(6)
+        alpha   = abs(pa(7))
 
         call parget('q       ',xh ,iadda,ier)
         if(ier.eq.0) then
@@ -64,7 +71,7 @@ c ---- calculate theory here -----
  
         t = x 
  
-        th_likhtman = likhtman(t,q,d,W,n,l,ne,taud,tau0,td2)
+        th_likhtman = likhtman(t,q,d,W,n,l,ne,taud,tau0,td2,alpha)
 
         th_likhtman = th_likhtman * a
 
@@ -76,7 +83,8 @@ c ---- calculate theory here -----
         end 
 
 
-       double precision function likhtman(t,q,d,W,n,l,ne,taud,tau0,td2)
+      double precision function likhtman(t,q,d,W,n,l,ne, 
+     *                                   taud,tau0,td2,alpha)
 !      -------------------------------------------------------------
 !
 ! siehe P.Schleger et. al. PRL 81, p.124 (1998)
@@ -88,7 +96,7 @@ c ---- calculate theory here -----
        double precision tau0, taud, t0, td,td2
        double precision n, ne, l, y, sum, eqd,deb,argd,npl
 
-       double precision mue,alphap,sumt0,alp
+       double precision mue,alphap,sumt0,alp,alpha
        double precision diffe
 c mz
        double precision taue, num, st, sumlik, sumlik0
@@ -132,7 +140,8 @@ C *******
         mue=q**2*npl*l**2/12.d0
 c mz
         num = n/ne
-        st = 0.5d0*((1.5d0/num)*(t/taue)**0.25)
+!        st = 0.5d0*((1.5d0/num)*(t/taue)**0.25)
+        st = 0.5d0*((alpha/num)*(t/taue)**0.25)
 
         sumlik = (n/(2*mue**2))*(2*mue+dexp(-2*mue)+2.d0-4*mue*st-4*
      +       dexp(-2*mue*st)+dexp(-4*mue*st))
@@ -143,47 +152,47 @@ c mz
 
 c mz
         
-c        do i=1,m
-
-cC Loese Gleichung alphap*tan(alphap)-mue=0 mit Newton'schen Naeherungsverfahren
-cC setze Startwert fuer alphap nahe (i-0.5)*pi
-c          alphap=(i-0.5d0)*pi-0.1d-3
-
-c          do j=1,150
-          
-c          diffe=alphap*dtan(alphap)-mue
-
-
-c          if(abs(diffe).lt.0.1d-1) goto 122
-
-c          alphap=alphap-(alphap*dtan(alphap)-mue)/
-c     _       (dtan(alphap)+alphap*(1.d0+(dtan(alphap))**2))
-         
-c          enddo
-
-c 122    CONTINUE
-c        alp=alphap
-
-c         arg1=-td*4.d0*alp**2/pi**2
-c         if(arg1.lt.-300.d0) arg1=-300.d0
-c         if(arg1.gt.300.d0) arg1=300.d0
-
-c         sum = sum + 1.d0/(alp**2*(mue**2+alp**2+mue))*
-c     _               (dsin(alp))**2*
-c     _               dexp(arg1)
-
-
-c         sumt0 = sumt0 + 1.d0/(alp**2*(mue**2+alp**2+mue))*
-c     _                   (dsin(alp))**2
-
-
-c        enddo
-
-
-cC       sum = sum/sumt0 *eqd
-
-c       sum = sum/sumt0
-
+!        do i=1,m
+!
+!C Loese Gleichung alphap*tan(alphap)-mue=0 mit Newton'schen Naeherungsverfahren
+!C setze Startwert fuer alphap nahe (i-0.5)*pi
+!          alphap=(i-0.5d0)*pi-0.1d-3
+!
+!          do j=1,150
+!         
+!          diffe=alphap*dtan(alphap)-mue
+!
+!
+!          if(abs(diffe).lt.0.1d-1) goto 122
+!
+!          alphap=alphap-(alphap*dtan(alphap)-mue)/
+!     _       (dtan(alphap)+alphap*(1.d0+(dtan(alphap))**2))
+!        
+!          enddo
+!
+! 122    CONTINUE
+!        alp=alphap
+!
+!         arg1=-td*4.d0*alp**2/pi**2
+!         if(arg1.lt.-300.d0) arg1=-300.d0
+!         if(arg1.gt.300.d0) arg1=300.d0
+!
+!         sum = sum + 1.d0/(alp**2*(mue**2+alp**2+mue))*
+!     _               (dsin(alp))**2*
+!     _               dexp(arg1)
+!
+!
+!         sumt0 = sumt0 + 1.d0/(alp**2*(mue**2+alp**2+mue))*
+!     _                   (dsin(alp))**2
+!
+!
+!        enddo
+!
+!
+!       sum = sum/sumt0 *eqd
+!
+!       sum = sum/sumt0
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  
 C alternative Berechnung des Roehrenformfaktors   
 C       argd=q**2*n*13.05/6.d0
@@ -202,7 +211,7 @@ C       eqd=dexp(-(n*d**2/3.d0/13.05/deb))
 
 
 c mz
-       likhtman = (1.d0-eqd)*tx + eqd*sumlik
+       likhtman = (1.d0-eqd)*tx + eqd*sumlik 
 c mz
 
        return

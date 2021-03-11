@@ -178,6 +178,8 @@
         integer nwert(c_MBUF)
         integer numor(c_MBUF)
         integer :: nbuf = 0
+        integer :: iw_perm(c_MWERT)
+ 
         character*80 coment(c_MBUF)*80
         real params(c_MPAR,c_MBUF)
         character*80 napar(c_MPAR,c_MBUF)

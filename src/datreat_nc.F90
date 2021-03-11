@@ -80,11 +80,13 @@
        integer nbuff, newnum, nb, n1, n2, n3, n0, nfft, n, msel, mpk, modeqc
        integer maxint, m, lyy, lxx, ll, kk, mcut, k1, k2, kz, k, jpar, jl, l
        integer j, j2, ival, kan1, ithc, iy, j1, iss, ispc, isl, ira, iseed, ir
-       integer ito, isel, ip, imx, imaxf, iminf, ikz, ilas, inew, ii
+       integer ito, isel, ip, imx, imaxf, iminf, ikz, ilas, inew, ii, i2
        integer ifunx, ifuny, ik, iery, ies, idimux, ier, iprs, ifrom, ierr
        integer ierx, iequal, ides, icut, id, ib, ileng, ic, iauto, iaddp 
        integer iaddf, iad2, iadd, iad1, ia1, ia2, ia3, ia4, ia5, ia6, i, ia
        integer itcal, ias, igrand
+
+       real :: sumacc
 
        real :: xh  
 
@@ -1666,21 +1668,48 @@ da1:     do i=1,nbuf
             iad1 = isels(j)         
             i1int = 1
             i2int = nwert(iad1)
+
+            iw_perm = [(i,i=1,nwert(iad1))]
+            call  SPSORT (xwerte(:,iad1), nwert(iad1), iw_perm,  1 , ier)
+!C      KFLAG - input -- control parameter:---------------^
+!C            =  2  means return the permutation vector resulting from
+!C                  sorting DX in increasing order and sort DX also.
+!C            =  1  means return the permutation vector resulting from
+!C                  sorting DX in increasing order and do not sort DX.
+!C            = -1  means return the permutation vector resulting from
+!C                  sorting DX in decreasing order and do not sort DX.
+!C            = -2  means return the permutation vector resulting from
+!C                  sorting DX in decreasing order and sort DX also.
+
             
-            do i=1,nwert(iad1)-1
-             if(xwerte(i,iad1).le.x1int .and.xwerte(i+1,iad1).gt.x1int) i1int=i
-             if(xwerte(i,iad1).le.x2int .and.xwerte(i+1,iad1).gt.x2int) i2int=i
+            do ii=1,nwert(iad1)-1
+               i  = iw_perm(ii)
+               i2 = iw_perm(ii+1)
+               if(xwerte(i,iad1).le.x1int .and.xwerte(i2,iad1).gt.x1int) i1int=ii
+               if(xwerte(i,iad1).le.x2int .and.xwerte(i2,iad1).gt.x2int) i2int=ii
             enddo
+     
+            i  = iw_perm(i1int)
+            i2 = iw_perm(i2int)
+
+            sumacc   = (xwerte(i,iad1)-x1int)*(ywerte(i,iad1)+ywerte(iw_perm(i1int+1),iad1))/2
+            sumer = ((xwerte(i,iad1)-x1int)*(yerror(i,iad1))**2+yerror(iw_perm(i1int+1),iad1))/2      
        
-            
-            sum   = (xwerte(i1int,iad1)-x1int)*ywerte(i1int,iad1)
-            sumer = ((xwerte(i1int,iad1)-x1int)*yerror(i1int,iad1))**2       
-       
-            sum   = sum + (x2int-xwerte(i2int,iad1))*ywerte(i2int,iad1)
-            sumer = sumer + ((x2int-xwerte(i2int,iad1))*yerror(i2int,iad1))**2
-            do i=i1int+1,i2int-1
-              sum   = sum   + (xwerte(i+1,iad1)-xwerte(i,iad1))*ywerte(i+1,iad1)
-              sumer = sumer + ((xwerte(i+1,iad1)-xwerte(i,iad1))*yerror(i+1,iad1))**2
+            sumacc   = sumacc + (x2int-xwerte(i2,iad1))*(ywerte(i2,iad1)+ywerte(iw_perm(i2int+1),iad1))/2
+            sumer = sumer + ((x2int-xwerte(i2,iad1))*(yerror(i2,iad1))**2+yerror(iw_perm(i2int+1),iad1)**2)/2
+
+
+ 
+!            do i=i1int+1,i2int-1
+!              sumacc   = sumacc   + (xwerte(i+1,iad1)-xwerte(i,iad1))*ywerte(i+1,iad1)
+!              sumer = sumer + ((xwerte(i+1,iad1)-xwerte(i,iad1))*yerror(i+1,iad1))**2
+!            enddo
+
+            do ii=i1int+1,i2int-1
+              i  = iw_perm(ii)
+              i2 = iw_perm(ii+1)
+              sumacc = sumacc+(xwerte(i2,iad1)-xwerte(i,iad1))*(ywerte(i,iad1)+ywerte(i2,iad1))/2
+              sumer  = sumer + ((xwerte(i2,iad1)-xwerte(i,iad1))*(yerror(i,iad1))**2+yerror(i2,iad1)**2)/2
             enddo
            
             sumer = sqrt(sumer)
@@ -1689,12 +1718,12 @@ da1:     do i=1,nbuf
             write(6,'(a,i9,1x,e13.6,a,e13.6,a)')'integral from: ',i1int,x1int,' (',xwerte(i1int,iad1),' )'
             write(6,'(a,i9,1x,e13.6,a,e13.6,a)')'           to: ',i2int,x2int,' (',xwerte(i2int,iad1),' )'
           
-            write(6,*                  )'         ===>: ',sum, '+-', sumer
+            write(6,*                  )'         ===>: ',sumacc, '+-', sumer
 !            xwerte( nwert(iad1), iad1 ) = rpar(1)
 !            ywerte( nwert(iad1), iad1 ) = rpar(2)
 !            yerror( nwert(iad1), iad1 ) = rpar(2)
        
-            call parset ('integral',sum        ,iad1 ) 
+            call parset ('integral',sumacc     ,iad1 ) 
             call parset ('x1integ ',x1int      ,iad1 ) 
             call parset ('x2integ ',x2int      ,iad1 ) 
          enddo 
