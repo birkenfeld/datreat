@@ -5785,6 +5785,8 @@ sl:       do j=1,maxstep
 
       double precision :: tof_omega
 
+      logical :: is_sorted
+
       ier = 0
       if(compare(nam,'myfun3 ')) then
         if(nx.lt.3) then
@@ -6032,6 +6034,13 @@ sl:       do j=1,maxstep
         xh    = x(nx  )
         iwert = 1
         call index_check(iwert,ibuf)
+        if(.not. is_sorted(xwerte(1:nwert(ibuf),ibuf),nwert(ibuf))) then
+          call errsig(9999,"Data vector is not sorted !$")
+          x(nx-1) = 0
+          nx = nx-1
+          return
+        endif 
+
 
         if(xh.lt.xwerte(1,ibuf) .or. xh.gt.xwerte(nwert(ibuf),ibuf))then
           x(nx-1) = 0
@@ -6061,6 +6070,12 @@ sl:       do j=1,maxstep
 
         iwert = 1
         call index_check(iwert,ibuf)
+        if(.not. is_sorted(xwerte(1:nwert(ibuf),ibuf),nwert(ibuf))) then
+          call errsig(9999,"Data vector is not sorted !$")
+          x(nx-1) = 0
+          nx = nx-1
+          return
+        endif 
 
         if(xh.lt.xwerte(1,ibuf) .or. xh.gt.xwerte(nwert(ibuf),ibuf))then
           x(nx-1) = 0
@@ -7086,5 +7101,27 @@ end subroutine random_ndimensional_direction
     
  
   end function gauss_rand 
+
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!  more utilities !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    function is_sorted(x,n) result(sorted)
+    implicit none
+    real,    intent(in)  :: x(1:n)
+    integer, intent(in)  :: n
+
+    logical :: sorted
+    integer :: i
+
+    sorted = .true.
+    do i = 1,n-1
+     if(x(i) > x(i+1)) sorted = .false.
+    enddo
+
+  end function is_sorted
 
 

@@ -1371,6 +1371,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
              nsy   = nsy   + 1
              if(nsy.gt.size(inpar)) goto 29
              isymb(nsy) = nint(abs( rpar(j) ))
+! write(*,*)"TP1 symbol set:",nsy, isymb(nsy), j, i, inpar(i)
              j = j + 1
    49       continue
           endif
@@ -1639,6 +1640,7 @@ scl:   if(found('scaled  ')) then
 ! --- plot ---
 !       if (numor(ircu).gt.0) then
 !           icco=mod(icolo(i),7) + 1
+! write(*,*)"TP2: plot curve with par:",i, icco, isymb(i), MARKERTYPE(max(1,isymb(i))),  sysize_scaling(i)
 
 !          ----------- plot a dataline -------
            if(isymb(i).eq.0) then

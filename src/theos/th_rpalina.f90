@@ -804,7 +804,7 @@ ilr: if( newcomp_required ) then
        double precision p, p0fix, pfac
 
        double precision :: cosarray(N,N), ewfac(N)
-       double precision :: rmm, fqq, fqq0
+       double precision :: rmm, rmm0=0, fqq, fqq0
 
        integer :: ipmin, ipmax, i
 
@@ -860,7 +860,7 @@ ilr: if( newcomp_required ) then
 
 ! ---- Do the sums -----
 
-       rmm = 0
+       rmm  = 0
 !$OMP PARALLEL DO REDUCTION(+:rmm)
        do mm = 1,N
              rmm = rmm + 4d0*N*l**2/(pi**2) * &
@@ -869,16 +869,21 @@ ilr: if( newcomp_required ) then
 !$OMP END PARALLEL DO
        rmm = rmm/N
 
-       fqq  = 1d0 -q**2 * rmm/12d0 * alpha(t)       !! see Guenza PHYSICAL REVIEW E 89, 052603 (2014) Eq(4)
-       fqq0 = 1d0 -q**2 * rmm/12d0 * alpha(0d0)     !! see Guenza PHYSICAL REVIEW E 89, 052603 (2014) Eq(4)
+       fqq  = 1d0 -q**2 * rmm/12d0  * alpha(t)       !! see Guenza PHYSICAL REVIEW E 89, 052603 (2014) Eq(4)
+!       fqq0 = 1d0 -q**2 * rmm0/12d0 * alpha(0d0)     !! see Guenza PHYSICAL REVIEW E 89, 052603 (2014) Eq(4)
 
 
 !$OMP PARALLEL DO REDUCTION(+:Sq,Sqt)
        do nn = 1,N
         do mm = 1,N
 
-          Sq  = Sq  + exp(- fqq0*(q**2)*(       abs(nn-mm)*(l**2)/6.0d0))
-          Sqt = Sqt + exp(- fqq* (q**2)*(Dr*t + abs(nn-mm)*(l**2)/6.0d0) + &
+!          Sq  = Sq  + exp(- fqq0*(q**2)*(       abs(nn-mm)*(l**2)/6.0d0))
+!          Sqt = Sqt + exp(- fqq* (q**2)*(Dr*t + abs(nn-mm)*(l**2)/6.0d0) + &
+!                fqq*ff2* sum(cosarray(nn,ipmin:ipmax) * cosarray(mm,ipmin:ipmax) *  ewfac(ipmin:ipmax) ))
+
+
+          Sq  = Sq  + exp(- (q**2)*(       abs(nn-mm)*(l**2)/6.0d0))
+          Sqt = Sqt + exp(- (q**2)*(Dr*t + abs(nn-mm)*(l**2)/6.0d0) + &
                 fqq*ff2* sum(cosarray(nn,ipmin:ipmax) * cosarray(mm,ipmin:ipmax) *  ewfac(ipmin:ipmax) ))
 
         enddo
@@ -901,7 +906,7 @@ function alpha(t) result(a) !! see Guenza PHYSICAL REVIEW E 89, 052603 (2014) Eq
 ! since "contained!  in th_nrosueaplha, the decribing parameters if not declared explictitly here
 !                                        are shared (common) with those of the th-function
 ! the model
-   a = alpha0 * exp(-(((log(t+1d-3)-log(talphamax))/talphawd)**2) / 2d0) + aoffset
+   a = alpha0 * exp(-(((log(t+1d-8)-log(talphamax))/talphawd)**2) / 2d0) + aoffset
    
 end function alpha
 
