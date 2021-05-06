@@ -188,6 +188,10 @@
 
         character(len=80) :: editor
 
+        integer ::  actual_point_nr   = 0
+        integer ::  actual_record_nr  = 0 
+
+
         CONTAINS
 
         subroutine DataCopy( isource, idestination)   

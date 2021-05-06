@@ -1,10 +1,10 @@
- FUNCTION th_schyster(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
+ FUNCTION th_scempiri(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
 !================================================================================
-!  phenomenological approach to sc-hysteresis-curves, with history and B reversal
+!  phenomenological approach to sc-hysteresis-curves
 !  mm
       use theory_description 
       implicit none 
-      real    :: th_schyster
+      real    :: th_scempiri
       character(len=8) :: thnam, parnam (*) 
       real    :: pa (*) 
       real    :: x , xh
@@ -17,11 +17,11 @@
       integer                     :: actual_record_address
      
 ! the internal parameter representation 
-     double precision :: ampli      ! prefactor                                                                       
-     double precision :: h_slope    ! slope of reversal approach (=field expulsion)                                   
-     double precision :: h_sense    ! sense of running through hysteresis loops                                       
-! the recin parameter representation 
-     double precision ::            !                                                                                 
+     double precision :: mmax       ! prefactor       
+     double precision :: hoffset    ! offset (peakpos)
+     double precision :: hsharp     ! sharpmess1   
+     double precision :: hsharp4     ! sharpmess1
+     double precision :: hbeta      ! asymptotics                                                                     
 ! the reout parameter representation 
  
      double precision :: th
@@ -29,64 +29,63 @@
 !
 ! ----- initialisation ----- 
     IF (ini.eq.0) then     
-       thnam = 'schyster'
-       nparx =        3
+       thnam = 'scempiri'
+       nparx =        5
        IF (npar.lt.nparx) then
            WRITE (6,*)' theory: ',thnam,' no of parametrs=',nparx,' exceeds current max. = ',npar
-          th_schyster = 0
+          th_scempiri = 0
           RETURN
        ENDIF
        npar = nparx
 ! >>>>> describe theory with >>>>>>> 
        idesc = next_th_desc()
        th_identifier(idesc)   = thnam
-       th_explanation(idesc)  = " phenomenological approach to sc-hysteresis-curves, with history and B reversal"
+       th_explanation(idesc)  = " phenomenological approach to sc-hysteresis-curves"
        th_citation(idesc)     = " mm"
 !       --------------> set the parameter names --->
-        parnam ( 1) = 'ampli   '  ! prefactor                                                                       
-        parnam ( 2) = 'h_slope '  ! slope of reversal approach (=field expulsion)                                   
-        parnam ( 3) = 'h_sense '  ! sense of running through hysteresis loops                                       
+        parnam ( 1) = 'mmax    '  ! prefactor                                                                       
+        parnam ( 2) = 'hoffset '  ! offset (peakpos)                                                                
+        parnam ( 3) = 'hsharp  '  ! sharpmess1                                                                      
+        parnam ( 4) = 'hbeta   '  ! asymptotics                                                                     
+        parnam ( 5) = 'hsharp4 '  ! sharpness4                                                                     
 ! >>>>> describe parameters >>>>>>> 
         th_param_desc( 1,idesc) = "prefactor" !//cr//parspace//&
-        th_param_desc( 2,idesc) = "slope of reversal approach (=field expulsion)" !//cr//parspace//&
-        th_param_desc( 3,idesc) = "sense of running through hysteresis loops" !//cr//parspace//&
+        th_param_desc( 2,idesc) = "offset (peakpos)" !//cr//parspace//&
+        th_param_desc( 3,idesc) = "sharpmess1" !//cr//parspace//&
+        th_param_desc( 4,idesc) = "asymptotics" !//cr//parspace//&
+        th_param_desc( 5,idesc) = "sharpness4" !//cr//parspace//&
 ! >>>>> describe record parameters used >>>>>>>
         th_file_param(:,idesc) = " " 
         th_file_param(  1,idesc) = "         > "
 ! >>>>> describe record parameters creaqted by this theory >>>>>>> 
         th_out_param(:,idesc)  = " "
 ! 
-        th_schyster = 0.0
+        th_scempiri = 0.0
  
         RETURN
      ENDIF
 !
 ! ---- transfer parameters -----
-      ampli    =      pa( 1)
-      h_slope  =      pa( 2)
-      h_sense  =      pa( 3)
+      mmax     =      pa( 1)
+      hoffset  =      pa( 2)
+      hsharp   =      pa( 3)
+      hbeta    =      pa( 4)
+      hsharp4  =      pa( 5)
 ! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
       iadda = actual_record_address()
 ! >>> extract: 
-      xh = 
-      call parget('        ',xh,iadda,ier)
-               = xh
+!      xh = 
+!      call parget('        ',xh,iadda,ier)
+!               = xh
 ! 
 ! ------------------------------------------------------------------
 ! ----------------------- implementation ---------------------------
 ! ------------------------------------------------------------------
 ! 
-     th  = ampli * mhyster(x)
+     th  = mmax * (1d0+hsharp*((x-hoffset))**2+hsharp4*(x-hoffset)**4)**(-hbeta)
 
-
-
-
-     th_schyster = th
+     th_scempiri = th
  
 ! ---- writing computed parameters to the record >>>  
- 
- CONTAINS 
- 
-! subroutines and functions entered here are private to this theory and share its variables 
- 
- end function th_schyster
+
+ end function th_scempiri

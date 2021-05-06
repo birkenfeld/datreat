@@ -1,6 +1,8 @@
  MODULE hysteresis_empirical
 implicit none
 
+SAVE 
+
 integer,parameter :: max_comp = 6
 integer           :: n_comp   = 4
 double precision  :: h_comp(max_comp) =   [ &
@@ -31,6 +33,9 @@ double precision :: h_const =  0.5495992d-02
 double precision :: h_slope =  -0.3783910d-01
 
 double precision :: mb_slope0 = 100d0/2     !! may be required to make slopüe h-dependent
+double precision :: mb_slope1 = 100d0/2     !! may be required to make slopüe h-dependent
+double precision :: mb_slope2 = 1d0         !! slope of slope with h
+double precision :: mb_slope3 = 1d0         !! slope of slope with h
 
 double precision :: h_last = 0
 double precision :: h_turn = 1
@@ -134,6 +139,11 @@ contains
            
        h_last = h
        increasing_last = increasing
+
+!! tentative:
+       mb_slope0 = mb_slope1 + h**2 * mb_slope2 + h**4 * mb_slope3
+
+
   
        if(h_sense==1) then                        !! depending on the sense with which the
                                                   !! hysteresiscurves are probed
@@ -174,6 +184,7 @@ FUNCTION th_schyster(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
      
       double precision, parameter :: Pi = 4*atan(1d0)
       integer                     :: actual_record_address
+      integer                     :: actual_point
      
 ! the internal parameter representation 
      double precision :: ampli      ! prefactor                                                                       
@@ -186,7 +197,7 @@ FUNCTION th_schyster(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
 ! ----- initialisation ----- 
     IF (ini.eq.0) then     
        thnam = 'schyster'
-       nparx =        3
+       nparx =        5
        IF (npar.lt.nparx) then
            WRITE (6,*)' theory: ',thnam,' no of parametrs=',nparx,' exceeds current max. = ',npar
           th_schyster = 0
@@ -200,12 +211,16 @@ FUNCTION th_schyster(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
        th_citation(idesc)     = " mm"
 !       --------------> set the parameter names --->
         parnam ( 1) = 'ampli   '  ! prefactor                                                                       
-        parnam ( 2) = 'h_slope '  ! slope of reversal approach (=field expulsion)                                   
-        parnam ( 3) = 'h_sense '  ! sense of running through hysteresis loops                                       
+        parnam ( 2) = 'h_slope0 '  ! slope of reversal approach (=field expulsion)   
+        parnam ( 3) = 'h_slope1 '  ! slope of reversal approach (=field expulsion) 
+        parnam ( 4) = 'h_slope2 '  ! slope of reversal approach (=field expulsion) 
+        parnam ( 5) = 'h_sense '  ! sense of running through hysteresis loops                                       
 ! >>>>> describe parameters >>>>>>> 
         th_param_desc( 1,idesc) = "prefactor" !//cr//parspace//&
         th_param_desc( 2,idesc) = "slope of reversal approach (=field expulsion)" !//cr//parspace//&
-        th_param_desc( 3,idesc) = "sense of running through hysteresis loops" !//cr//parspace//&
+        th_param_desc( 3,idesc) = "slope1" !//cr//parspace//&
+        th_param_desc( 4,idesc) = "slope2" !//cr//parspace//&
+        th_param_desc( 5,idesc) = "sense of running through hysteresis loops" !//cr//parspace//&
 ! >>>>> describe record parameters used >>>>>>>
         th_file_param(:,idesc) = " " 
         th_file_param(  1,idesc) = "         > "
@@ -219,16 +234,20 @@ FUNCTION th_schyster(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
 !
 ! ---- transfer parameters -----
       ampli     =      pa( 1)
-      mb_slope  =      pa( 2)
-      h_sense   = nint(pa( 3))
+      mb_slope1 =      pa( 2)
+      mb_slope2 =      pa( 3)
+      mb_slope3 =      pa( 4)
+      h_sense   = nint(pa( 5))
 ! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
       iadda = actual_record_address()
+     
+      if(actual_point() == 1)  h_pristine = .true. 
 ! 
 ! ------------------------------------------------------------------
 ! ----------------------- implementation ---------------------------
 ! ------------------------------------------------------------------
 ! 
-     th  = ampli * mhyster(x)
+     th  = ampli * mhyster(dble(x))
      th_schyster = th
  
 ! ---- writing computed parameters to the record >>>  

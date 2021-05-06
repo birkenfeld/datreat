@@ -6034,6 +6034,13 @@ sl:       do j=1,maxstep
         xh    = x(nx  )
         iwert = 1
         call index_check(iwert,ibuf)
+        if(.not. is_sorted(xwerte(1:nwert(ibuf),ibuf),nwert(ibuf))) then
+          call errsig(9999,"Data vector is not sorted !$")
+          x(nx-1) = 0
+          nx = nx-1
+          return
+        endif 
+
 
         if(xh.lt.xwerte(1,ibuf) .or. xh.gt.xwerte(nwert(ibuf),ibuf))then
           x(nx-1) = 0

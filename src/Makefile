@@ -14,7 +14,8 @@ FFLAGS= -O3 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -fopenmp
 CC=gcc 
 
 LDFLAGS = -DPATH_TO_LOCAL_DATREAT=\"$(LOCAL)\"  -DPATH_TO_MAKROS=\"$(LOCAL)/makros/\"  -DOPEN_MANUAL=\"open\ $(LOCAL)/doc/NewManualBook/ManualDtr.pdf\"   \
--DDEFAULT_EDIT=\"vim\" -Wl,-rpath,/usr/local/gr/lib -lGR
+-DDEFAULT_EDIT=\"vim\" -Wl,-rpath,/usr/local/gr/lib -lGR 
+#-static-libgfortran
 
 OBJS = datreat_nc.o dataconvolution4.o dtpur.o util_get_y_value.o \
  new_com.o os_utils.o utilux.o  \
