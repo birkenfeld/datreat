@@ -224,7 +224,7 @@ MODULE new_com
 
 
   integer, private :: iot=0
-  integer, private :: ierrr=0
+  integer, public :: ierrr=0
 
 
   double precision  , private :: xyorig(3)

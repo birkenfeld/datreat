@@ -890,7 +890,7 @@ ilr: if( newcomp_required ) then
 
           Sq  = Sq  + exp(- (q**2)*(       abs(nn-mm)*(l**2)/6.0d0))
           Sqt = Sqt + exp(- (q**2)*(Dr*t + abs(nn-mm)*(l**2)/6.0d0) + &
-                fqq*ff2* sum(cosarray(nn,ipmin:ipmax) * cosarray(mm,ipmin:ipmax) *  ewfac(ipmin:ipmax) ))
+                fqq*ff2 * sum(cosarray(nn,ipmin:ipmax) * cosarray(mm,ipmin:ipmax) *  ewfac(ipmin:ipmax) ))
 
         enddo
        enddo
@@ -900,6 +900,16 @@ ilr: if( newcomp_required ) then
        Sqt = Sqt/N
 
 !!       write(6,'(1x,a,6E14.6)')'q,t,Sq,Sqt, Sqt/Sq, w=', q,t,Sq,Sqt, Sqt/Sq, w 
+
+!       write(*,'("NGqtrmmalsu:",5f18.9)') q, t, rmm, alpha(t),  & 
+!              -ff2*sum(cosarray(N/2,ipmin:ipmax) * cosarray(N/2,ipmin:ipmax) *  ewfac(ipmin:ipmax) )
+
+
+       write(*,'("NGqtrmmalsu:",7f18.9)') q, t, rmm, alpha(t),  & 
+              -(ff2/q**2)*sum(cosarray(N/2,ipmin:ipmax) * cosarray(N/2,ipmin:ipmax) *  ewfac(ipmin:ipmax) ), &
+              -(ff2/q**2)*sum(cosarray(1,ipmin:ipmax) * cosarray(1,ipmin:ipmax) *  ewfac(ipmin:ipmax) ), &
+              -(ff2/q**2)*sum(cosarray(N,ipmin:ipmax) * cosarray(N,ipmin:ipmax) *  ewfac(ipmin:ipmax) )
+
 
        return
        end

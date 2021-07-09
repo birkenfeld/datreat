@@ -4040,7 +4040,7 @@ sl:       do j=1,maxstep
 !! TOF routines                                                                   !!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-       subroutine tof_dos(isource,idest,OMmax,Nom,ierrr)
+       subroutine tof_dos(isource,idest,OMmax,Nom,ierrt)
 !      =================================================
 !
        use new_com
@@ -4058,7 +4058,7 @@ sl:       do j=1,maxstep
        integer                :: idest         ! record number of destination data (must be different)
        double precision       :: OMmax         ! maximum Frequency of linear scale in result
        integer                :: Nom           ! number of bins in result
-       integer                :: ierrr         ! error return value
+       integer                :: ierrt         ! error return value
 
 
        integer       :: ierr, inew, i, ier
@@ -4088,29 +4088,29 @@ sl:       do j=1,maxstep
 
 
 
-      ierrr = 0
+      ierrt = 0
 !!    first check   !!
       if(idest.eq.isource) then
         write(6,*)'source = destination is not possible', idest
-        ierrr = 10
+        ierrt = 10
         return
       endif    
 
       if(idest.lt.1 .or. idest.gt.size(nwert)) then
         write(6,*)'destination is out of range', idest
-        ierrr = 1
+        ierrt = 1
         return
       endif    
 
       if(isource.lt.1 .or. isource.gt.size(nwert)) then
         write(6,*)'source data address is out of range', isource
-        ierrr = 2
+        ierrt = 2
         return
       endif    
 
       if(xname(isource).ne.'lambda  ') then
         write(6,*)'x-values are not lambda but',xname(isource)
-        ierrr = 3
+        ierrt = 3
         return
       endif    
 
@@ -4118,7 +4118,7 @@ sl:       do j=1,maxstep
       call parget('lambda  ', xh ,isource ,ier)
       if(ier.ne.0) then
        write(6,*)'Parameter lambda (incident lambda) not found'
-       ierrr =4
+       ierrt =4
        return 
       endif
       lambda0_angstroem = xh   ! assuming value is in Angstroem
@@ -4126,7 +4126,7 @@ sl:       do j=1,maxstep
       call parget('temp    ', xh ,isource ,ier)
       if(ier.ne.0) then
        write(6,*)'Parameter temp not found'
-       ierrr =5
+       ierrt =5
        return 
       endif
       temperature = xh   
@@ -4134,7 +4134,7 @@ sl:       do j=1,maxstep
       call parget('q       ', xh ,isource ,ier)
       if(ier.ne.0) then
        write(6,*)'Parameter q    not found'
-       ierrr =6
+       ierrt =6
        return
       endif
       Q_Elastic   = xh   
@@ -7015,7 +7015,7 @@ implicit none
 character(len=*), intent(in) :: filename
 
 character(len=256) :: line
-integer            :: inunit, outunit
+integer            :: inunit, outunit=0
 integer            :: i, length, status
 character(len=256) :: val
 
@@ -7050,12 +7050,14 @@ return
 
 998 continue
   call errsig(999,"ERROR #### extract_th: theory end not found! $")
-  close(outunit)
+write(*,*)"iouints:",inunit,outunit
+  if(outunit .ne. 0) close(outunit)
   close(inunit)
   return
 999 continue
   call errsig(999,"ERROR #### extract_th: theory section not found! $")
-  close(outunit)
+write(*,*)"iouints:",inunit,outunit
+  if(outunit .ne. 0) close(outunit)
   close(inunit)
 end subroutine extract_th
 

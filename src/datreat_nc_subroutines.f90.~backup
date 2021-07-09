@@ -1984,6 +1984,8 @@ sl:       do j=1,maxstep
         mn   = 0
 !       --------> counts valid values in the thc-computed data
         do 103 ipt=1,n
+          actual_point_nr   = ipt
+          actual_record_nr  = iad1 
           xx=xwerte(ipt,iad1)
           if(((xx.ge.x1).or.autox1).and.((xx.le.x2).or.autox2)) then
 ! ---------> this if stmnt must correspond to the equival. in thc ! --
@@ -7053,7 +7055,6 @@ return
   return
 999 continue
   call errsig(999,"ERROR #### extract_th: theory section not found! $")
-  close(outunit)
   close(inunit)
 end subroutine extract_th
 
@@ -7125,3 +7126,17 @@ end subroutine random_ndimensional_direction
   end function is_sorted
 
 
+  function actual_point() result(ip)
+    use cdata
+    implicit none
+    integer :: ip    
+    ip = actual_point_nr
+  end function actual_point
+
+
+  function actual_record() result(ir)
+    use cdata
+    implicit none
+    integer :: ir    
+    ir = actual_record_nr
+  end function actual_record
