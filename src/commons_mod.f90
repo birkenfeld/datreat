@@ -128,7 +128,7 @@
         module xoutxx
         save
         integer :: iot=0
-        integer :: ierrr=0
+!        integer :: ierrr=0
                 logical :: mask_err = .false.
     end module xoutxx
 
@@ -178,6 +178,8 @@
         integer nwert(c_MBUF)
         integer numor(c_MBUF)
         integer :: nbuf = 0
+        integer :: iw_perm(c_MWERT)
+ 
         character*80 coment(c_MBUF)*80
         real params(c_MPAR,c_MBUF)
         character*80 napar(c_MPAR,c_MBUF)
@@ -185,6 +187,10 @@
                 integer :: params_display_level(c_MPAR,c_MBUF) = 0
 
         character(len=80) :: editor
+
+        integer ::  actual_point_nr   = 0
+        integer ::  actual_record_nr  = 0 
+
 
         CONTAINS
 
@@ -377,9 +383,9 @@
     module selist
                 use dimensions
         save
-        integer isels(c_MBUF)
-        integer ifits(c_MBUF)
-        integer nsel
+        integer isels(c_MBUF) 
+        integer ifits(c_MBUF) 
+        integer nsel 
         integer :: numpls = 10000
     end module selist
  
@@ -388,8 +394,8 @@
     module fslist
                 use dimensions
         save
-        integer isfits(c_MBUF)
-        integer nfsel
+        integer isfits(c_MBUF) 
+        integer nfsel          
     end module fslist
 
 ! ------ coupling of theory-parameters -----------------------          

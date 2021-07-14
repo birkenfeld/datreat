@@ -55,3 +55,14 @@ NEU 4/20 TBD
 --> renew the sel command such that logic can be done in one cmd-line ??
 
 
+
+
+/21
+
+--> first call of plot after datreat start ignores specified limits (overridden by restore of plotsettings?)
+
+--> make command to sort data in a record, sort records?
+--> option to do sort as part of the input procedure??
+
+
+

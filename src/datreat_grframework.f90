@@ -698,7 +698,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
      call gr_setcharup   (  -1d0, 0d0       )
      if(ylabel(1:1)=="$")  call gr_setcharheight(text_size*tex_fak) 
 !    call gr_textext(textsize+0.005d0 ,0.5d0,trim(grtex_filter(ylabel))//czero)
-       call grtext(ylabel_x,ylabel_y,trim(ylabel)//czero)
+       call grtext(ylabel_x,ylabel_y,(ylabel)//czero)
        call gr_setcharheight(text_size) 
    endif
 
@@ -707,7 +707,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
      call gr_setcharup   (  0d0, 1d0        )
      if(xlabel(1:1)=="$")  call gr_setcharheight(text_size*tex_fak) 
 !     call gr_textext(0.5d0 ,textsize+0.005d0,trim(grtex_filter(xlabel))//czero)
-      call grtext(xlabel_x,xlabel_y, trim(xlabel))
+      call grtext(xlabel_x,xlabel_y, (xlabel))
       call gr_setcharheight(text_size) 
      endif
 
@@ -718,7 +718,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
      call gr_setcharup   (  0d0, 1d0        )
      if(title(1:1)=="$")  call gr_setcharheight(text_size*tex_fak) 
 !     call gr_textext(0.1d0,1-2*textsize,trim(grtex_filter(title))//czero)
-     call grtext(tlabel_x, tlabel_y,trim(title)//czero)
+     call grtext(tlabel_x, tlabel_y,(title)//czero)
      call gr_setcharheight(text_size) 
     endif
    endif
@@ -826,7 +826,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
      call gr_setcharup   (  1d0, 0d0       )
      if(ylabel(1:1)=="$")  call gr_setcharheight(text_size*tex_fak) 
 !     call gr_textext(1-2*textsize+0.005d0 ,0.5d0,trim(grtex_filter(ylabel))//czero)
-     call grtext(ylabel_x,ylabel_y,trim(ylabel)//czero)
+     call grtext(ylabel_x,ylabel_y,(ylabel)//czero)
      call gr_setcharheight(text_size) 
    endif
 
@@ -846,7 +846,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
      call gr_setcharup   (  0d0, 1d0        )
      if(title(1:1)=="$")  call gr_setcharheight(text_size*tex_fak) 
 !     call gr_textext(0.9d0,1-2*textsize,trim(grtex_filter(title))//czero)
-     call grtext(tlabel_x,tlabel_y,trim(title)//czero)
+     call grtext(tlabel_x,tlabel_y,(title)//czero)
      call gr_setcharheight(text_size) 
     endif
    endif
@@ -1371,6 +1371,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
              nsy   = nsy   + 1
              if(nsy.gt.size(inpar)) goto 29
              isymb(nsy) = nint(abs( rpar(j) ))
+! write(*,*)"TP1 symbol set:",nsy, isymb(nsy), j, i, inpar(i)
              j = j + 1
    49       continue
           endif
@@ -1639,6 +1640,7 @@ scl:   if(found('scaled  ')) then
 ! --- plot ---
 !       if (numor(ircu).gt.0) then
 !           icco=mod(icolo(i),7) + 1
+! write(*,*)"TP2: plot curve with par:",i, icco, isymb(i), MARKERTYPE(max(1,isymb(i))),  sysize_scaling(i)
 
 !          ----------- plot a dataline -------
            if(isymb(i).eq.0) then
@@ -1701,7 +1703,7 @@ scl:   if(found('scaled  ')) then
        sx = stunde(1:2)//':'//stunde(3:4)//':'//stunde(5:6)
 !       xtext = tx//'  '//sx
        write(xtext,'(a,i0)') tx//'  '//sx//' #',max(0,ibild-1)
-       call grtext(-DEFAULT_WC_MARGIN*150*fyskip * txsizt ,ylow,trim(xtext),GR_BLACK) !> neu
+       call grtext(-DEFAULT_WC_MARGIN*150*fyskip * txsizt ,ylow,(xtext),GR_BLACK) !> neu
 
 ! ---- plot theory parameters ----
          if(ntheos.ne.0) then
@@ -1715,13 +1717,13 @@ scl:   if(found('scaled  ')) then
                 write(xtext,'("theory+    " ,a8)')thenam(ith)
              endif
              if(thenam(ith)=="eval    ") write(xtext,'(a,":",a)')trim(xtext),trim(yfitform)
-             call grtext(xtx,ytx,trim(xtext),GR_BLACK) !> neu
+             call grtext(xtx,ytx,(xtext),GR_BLACK) !> neu
 
              call advance_text(xtx,ytx,yhigh,ylow,xskip)
 
              if(thrapar(it).ne.'        ') then
                write(xtext,'(4hfor ,a8,2f12.6)')thrapar(it),thramin(it),thramax(it)
-               call grtext(xtx,ytx,trim(xtext),GR_BLACK,8*txsize) !> neu
+               call grtext(xtx,ytx,(xtext),GR_BLACK,8*txsize) !> neu
               call advance_text(xtx,ytx,yhigh,ylow,xskip)
 
              endif
@@ -1729,7 +1731,7 @@ scl:   if(found('scaled  ')) then
              if(npar.ne.0) then
                do 117 ip = 1,npar
                write(xtext,'(a8,1h=,1es12.5,2h+-,es9.2,es8.1)')thparn(ip,ith),thparx(ip,it),therro(ip,it),thpsca(ip,it)
-               call grtext(xtx,ytx,trim(xtext),GR_BLACK,8*txsize) !> neu
+               call grtext(xtx,ytx,(xtext),GR_BLACK,8*txsize) !> neu
                call advance_text(xtx,ytx,yhigh,ylow,xskip)
 
   117          continue
@@ -1749,11 +1751,11 @@ scl:   if(found('scaled  ')) then
            else
              call grtext(xtxs,ytxs,"-",icco) !> neu
            endif
-           call grtext(xtx,ytx,trim(xtext),icco) !> neu
+           call grtext(xtx,ytx,(xtext),icco) !> neu
 
            call advance_text(xtx,ytx,yhigh,ylow,xskip)
 
-           call grtext(xtx,ytx,trim(coment(ircu)),icco) !> neu
+           call grtext(xtx,ytx,(coment(ircu)),icco) !> neu
 
            call advance_text(xtx,ytx,yhigh,ylow,xskip)
            if(paplo) then
@@ -1761,7 +1763,7 @@ scl:   if(found('scaled  ')) then
             if(params_display_level(l,ircu) > iplevel) cycle
            xtext = " "
            write(xtext,'(a8,1h=,1es14.6)')napar(l,ircu),params(l,ircu)
-           call grtext(xtx,ytx,trim(xtext),icco,10*txsizt) !> neu
+           call grtext(xtx,ytx,(xtext),icco,10*txsizt) !> neu
            call advance_text(xtx,ytx,yhigh,ylow,xskip)
  1012      continue
            else
@@ -1771,7 +1773,7 @@ scl:   if(found('scaled  ')) then
               xtext = " "
               write(xtext,'(a8,1h=,1es14.6)')napar(l,ircu),                   &
      &                                  params(l,ircu)
-              call grtext(xtx,ytx,trim(xtext),icco,10*txsizt) !> neu
+              call grtext(xtx,ytx,(xtext),icco,10*txsizt) !> neu
               call advance_text(xtx,ytx,yhigh,ylow,xskip)
             endif
            enddo dap01
@@ -1792,15 +1794,15 @@ scl:   if(found('scaled  ')) then
                call grtext(xtxs,ytxs,"-",icco) !> neu
              endif
 
-             call grtext(xtx,ytx,trim(xtext),icco) !> neu
+             call grtext(xtx,ytx,(xtext),icco) !> neu
              call advance_text(xtx,ytx,yhigh,ylow,xskip)
-             call grtext(xtx,ytx,trim(coment(ircu)),icco,10*txsizt) !> neu
+             call grtext(xtx,ytx,(coment(ircu)),icco,10*txsizt) !> neu
              ytx = ytx - fyskip  * txsizt
              if(paplo) then
  dap1:      do  l=1,nopar(ircu)
                if(params_display_level(l,ircu) > iplevel) cycle dap1
                write(xtext,'(a8,1h=,1es14.6)')napar(l,ircu),params(l,ircu)
-               call grtext(xtx,ytx,trim(xtext),icco,10*txsizt) !> neu
+               call grtext(xtx,ytx,(xtext),icco,10*txsizt) !> neu
                call advance_text(xtx,ytx,yhigh,ylow,xskip)
              enddo dap1
              else
@@ -1810,7 +1812,7 @@ scl:   if(found('scaled  ')) then
                 write(xtext,'(a8,1h=,1es14.6)')napar(l,ircu),                 &
      &                                   params(l,ircu)
 
-                call grtext(xtx,ytx,trim(xtext),icco,10*txsizt) !> neu
+                call grtext(xtx,ytx,(xtext),icco,10*txsizt) !> neu
                 call advance_text(xtx,ytx,yhigh,ylow,xskip)
               endif
              enddo dap2
