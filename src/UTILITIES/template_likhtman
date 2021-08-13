@@ -1,0 +1,23 @@
+#THEORY likhtm0
+        just the (nrmalized) likhtman factor
+#CITE
+
+#PARAMETERS
+        ampli            ! prefactor 
+        N                ! N
+        Ne               ! Ne
+        l                ! l segment
+        alpha            ! prefactor of the t**-1/4 CLF progression
+        taue             ! time scale (tau_e) of the CLF progression
+#RECIN-PARAMETERS    (allow 8 chars for name, start only beyond 8 with default)
+        q        0.1     ! q
+#RECOUT-PARAMETERS
+#VARIABLES
+     double precision   :: t, mu, st
+#IMPLEMENTATION
+     t   = x
+     mu  =  N/12d0 * (q*l)**2 
+     st  =  0.5d0 * alpha*(Ne/N) *(t/taue)**0.25d0
+     th  =  (2*mu+exp(-2*mu)+2-4*mu*st-4*exp(-2*mu*st)+exp(-4*mu*st))/(2*mu+exp(-2*mu)-1)
+#SUBROUTINES
+#END

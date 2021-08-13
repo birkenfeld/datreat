@@ -1,0 +1,41 @@
+#THEORY rpastar
+        applies rpa mixture tor the scattering function for a star-linear polymer
+        micture and extends this into the dynamic regime (i.e. S(Q) --> S(Q,t))
+#CITE
+#PARAMETERS
+        ampli            ! prefactor
+        wl4              ! rouse rate
+        narmeff          ! effective segment star arm
+        diffstar         ! centre-of-mass diffusino star 
+        locr2_b          ! locrep2 parameter b
+        locr2_a          ! locrep2 parameter a
+        locr2_tau        ! locrep2 parameter tau
+        locr2_lz         ! locrep2 parameter lz
+        locr2_teps       ! locrep2 parameter teps
+        nro_me           ! effective segments for Me-Modelling
+        re_me            ! Re of Me (entangle strand Re)
+#RECIN-PARAMETERS    (allow 8 chars for name, start only beyond 8 with default)
+        q                ! scattering wavevector
+        temp             ! temperature
+        narm             ! number of segments per star arm
+        l                ! segment length
+        f                ! number of arms per star
+        phistar          ! volume fraction of star
+        nlin             ! number of segments of linear polymer
+        philin           ! volume fraction of linera polymer
+#RECOUT-PARAMETERS
+        intens0          ! intensity factor (cm**-1)
+#VARIABLES
+     double precision   :: Navogadro = 6.022045d23
+     double precision   :: q
+     double precision   :: t
+#IMPLEMENTATION
+     t   = x
+     
+     rpastar  =   
+     
+
+
+#SUBROUTINES
+
+#END

@@ -14,10 +14,10 @@
         CHARACTER(8) thnam,parnam (20) 
         DIMENSION pa (20), qq (3) 
         integer :: mbuf
-		integer, intent(inout) :: nopar                 ! Anzahl der Parameter data
+        integer, intent(inout) :: nopar                 ! Anzahl der Parameter data
         character*80, intent(inout) :: napar(mbuf)      ! name des parameters n
-		real, intent(inout) :: params(mbuf)             ! value des parameters n
-		INTEGER i, ifail, lim, npts, nxi, na
+        real, intent(inout) :: params(mbuf)             ! value des parameters n
+        INTEGER i, ifail, lim, npts, nxi, na
         REAL(8) ti, ws 
         REAL(8) a_miu, a_ro, miu, ro, qu, sum_u, sum_ro 
         REAL(8) akappa, eta, omega, aa, qh, axi, amp 
@@ -198,7 +198,7 @@
                                                                         
         sum_u = uadapin1(f_u1, umin, umax, epsu, maxitu, erracu) 
                                                                         
-        f_ro1 =a_ro*s17aef(qh*a_ro*sqrt(1-miu**2),ifail)*               &
+        f_ro1 =a_ro*Bessel_JN(0,qh*a_ro*sqrt(1-miu**2))*               &
      &        exp(-1./(2.*pi*akappa)*miu**2*qh**2*sum_u                 &
      &        -a_ro**2/(2.*sigma**2))                                   
                                                                         
@@ -226,7 +226,7 @@
         omega = akappa/(4.0d0*eta) 
 !        write(*,*) 'omega=', omega                                     
                                                                         
-        f_u1 = (1.d0-exp(-omega*ti*u**3)*s17aef(u*ro, ifail))*          &
+        f_u1 = (1.d0-exp(-omega*ti*u**3)*Bessel_JN(0,u*ro, ifail))*          &
      &        1.d0/u**3                                                 
                                                                         
                                                                         

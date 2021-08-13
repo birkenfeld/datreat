@@ -1,0 +1,90 @@
+#THEORY debstar 
+        fromfactor of an f-arm star with arms with Gaussian chain statistics 
+#CITE
+        H. Benoit, J. Polym. Sci. (1953), 11, 507-510
+#PARAMETERS
+        ampli            ! prefactor 
+        f                ! number of arms
+        rgstar           ! star radius of gyration
+        nulin            ! exponent of linear
+        rglin            ! radius of gyration linear polymer
+        chipar           ! potential chi-parameter
+#RECIN-PARAMETERS    (allow 8 chars for name, start only beyond 8 with default)
+        phistar          ! volume fraction of start
+        mwstar           ! molecular weight star polymer  (g/mol)
+        mwlin            ! molecular weight linear polymer(g/mol)
+        mwseg            ! molecular weight of a segment  (g/mol)
+        rhostar          ! density star polymer
+        rholin           ! linear polymer (g/cm**2)
+        astar            ! scattering length density star (cm**-2)
+        alin             ! scattering length density lin  (cm**-2)
+#RECOUT-PARAMETERS
+ 
+#VARIABLES
+     double precision, parameter :: Navogadro = 6.022140857d23
+     double precision   :: q
+     double precision   :: df
+     double precision   :: sqstar, sqlin, sq
+     double precision   :: vseg
+     double precision   :: nse_star, nseg_lin
+#IMPLEMENTATION
+     q   = x
+
+     nseg_star = mwstar/mwseg
+     nseg_lin  = mwlin/mwseg
+     vseg      = mwseg / (rholin * Navogadro)
+     sqstar  =  debyestar(q, rgstar, f)
+     sqlin   =  benoitmf( q, rglin, nulin ) 
+
+     sqstar  = sqstar * nseg_star * phistar
+     sqslin  = sqlin  * nseg_lin  * (phistar-1)
+
+     sq = 1d0/ ( 1d0/sqstar + 1d0/sqlin - 2*chipar ) 
+
+     th = ampli * ((astar-alin))**2 * vseg * sq
+
+
+#SUBROUTINES
+     function debyestar( qs, rgs, fs ) result(sq)
+       implicit none
+       double precision, intent(in) :: qs
+       double precision, intent(in) :: rgs
+       double precision, intent(in) :: fs
+
+       double precision             :: sq
+       double precision             :: gam
+
+       gam = rgs**2 * q**2 * fs / (3*fs-2d0)
+
+       sq = 2/(f*gam**2) * ( gam - (1-exp(-gam)) + (f-1)/2d0 * (1-exp(-gam))**2 )
+
+     end function debyestar
+   
+
+     function benoitmf( q, rg, nu ) result(bmf)
+       implicit none
+       double precision, intent(in) :: q
+       double precision, intent(in) :: rg
+       double precision, intent(in) :: nu
+       double precision             :: bmf
+
+       double precision             :: eps, erracc
+       integer                      :: maxit
+  
+       df = 1d0/nu
+
+       maxit = 1000
+       eps   = 1d-8
+       bmf = df/(q*rg)**df *  adapint(benmf_kernel,0d0, (q*rg)**2, eps, maxit, erracc)
+     end function benoitmf 
+
+    function benmf_kernel(y) result(val)
+      implicit none
+      double precision, intent(in) :: y
+      double precision             :: val
+
+      val = (1d0-y**(df/2) / (q*rg)**df) * exp(-y) * y**(df/2-1d0)
+
+     end function benmf_kernel
+
+#END

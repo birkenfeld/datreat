@@ -234,7 +234,7 @@
 ! 
 
      xpos     = x
-     bcomp    =  nint(bcomponen)
+     bcomp    =  nint(bcompon)
      rauf     =  [xsense, ysense, zsense]
      Bfeld    = 0
      Bfeld    = bdipol( rauf,[ x, ypos+xx1, zpos] ,[ mx1, my1, mz1 ]) &

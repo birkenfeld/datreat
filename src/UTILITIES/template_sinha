@@ -1,0 +1,36 @@
+#THEORY sinhafra
+        fractal scattering assuming a massfractal with dimension df and correlation length xi
+        direct integration for r0 .ne.0 
+#CITE
+        J.K. Kjems, T. Freloft, D. Richter and S.K. Sinha, Physica 136B (1986) 285-290
+#PARAMETERS
+        ampli            ! prefactor 
+        df               ! fractal dimension
+        xi               ! correlation length
+        r0               ! correlation hole
+#RECIN-PARAMETERS    (allow 8 chars for name, start only beyond 8 with default)
+  
+#RECOUT-PARAMETERS
+        rg               ! radius of gyration
+#VARIABLES
+     integer            :: maxfn = 1000
+     integer            :: nsteps 
+     double precision   :: q, r
+     double precision   :: acc = 1d-9
+     double precision   :: g1, g2
+#IMPLEMENTATION
+     q   = x
+
+     
+
+
+#SUBROUTINES
+  function gr_kernel(r) result(y)
+    implicit none
+    double precision, intent(in) :: q    
+    double precision             :: y
+
+    y = sin(q*r)*r**(-2+df)*exp(-r/xi)/q
+
+  end function gr_kernel
+#END

@@ -29,21 +29,17 @@
      double precision :: ysense     ! sensor coordinate y                                                             
      double precision :: zsense     ! sensor coordinate z                                                             
 ! the reout parameter representation 
-     double precision :: mx         ! moment_x                                                                        
-     double precision :: my         ! moment_y                                                                        
-     double precision :: mz         ! moment_z                                                                        
-     double precision :: ypos       ! y-position                                                                      
-     double precision :: zpos       ! z-position                                                                      
+                                                                  
  
      double precision :: th
  
-   double precision :: xpos, rdipole(3), rauf(3), Bfeld(3), momemt(3)
+   double precision :: xpos, xpos0, rdipole(3), rdipole0(3), rauf(3), Bfeld(3), moment(3)
    integer          :: bcomp
 !
 ! ----- initialisation ----- 
     IF (ini.eq.0) then     
        thnam = 'dipole'
-       nparx =        6
+       nparx =        7
        IF (npar.lt.nparx) then
            WRITE (6,*)' theory: ',thnam,' no of parametrs=',nparx,' exceeds current max. = ',npar
           th_dipole = 0
@@ -57,18 +53,20 @@
        th_citation(idesc)     = " dipole"
 !       --------------> set the parameter names --->
         parnam ( 1) = 'ampli   '  ! prefactor                                                                       
-        parnam ( 2) = 'ypos    '  ! y-position                                                                      
-        parnam ( 3) = 'zpos    '  ! z-position                                                                      
-        parnam ( 4) = 'mx      '  ! moment_x                                                                        
-        parnam ( 5) = 'my      '  ! moment_y                                                                        
-        parnam ( 6) = 'mz      '  ! moment_z                                                                        
+        parnam ( 2) = 'xpos    '  ! y-position                                                                      
+        parnam ( 3) = 'ypos    '  ! y-position                                                                      
+        parnam ( 4) = 'zpos    '  ! z-position                                                                      
+        parnam ( 5) = 'mx      '  ! moment_x                                                                        
+        parnam ( 6) = 'my      '  ! moment_y                                                                        
+        parnam ( 7) = 'mz      '  ! moment_z                                                                        
 ! >>>>> describe parameters >>>>>>> 
         th_param_desc( 1,idesc) = "prefactor" !//cr//parspace//&
-        th_param_desc( 2,idesc) = "y-position" !//cr//parspace//&
-        th_param_desc( 3,idesc) = "z-position" !//cr//parspace//&
-        th_param_desc( 4,idesc) = "moment_x" !//cr//parspace//&
-        th_param_desc( 5,idesc) = "moment_y" !//cr//parspace//&
-        th_param_desc( 6,idesc) = "moment_z" !//cr//parspace//&
+        th_param_desc( 2,idesc) = "x-position offset" !//cr//parspace//&
+        th_param_desc( 3,idesc) = "y-position" !//cr//parspace//&
+        th_param_desc( 4,idesc) = "z-position" !//cr//parspace//&
+        th_param_desc( 5,idesc) = "moment_x" !//cr//parspace//&
+        th_param_desc( 6,idesc) = "moment_y" !//cr//parspace//&
+        th_param_desc( 7,idesc) = "moment_z" !//cr//parspace//&
 ! >>>>> describe record parameters used >>>>>>>
         th_file_param(:,idesc) = " " 
         th_file_param(  1,idesc) = "bcompone > component of field"
@@ -90,15 +88,16 @@
 !
 ! ---- transfer parameters -----
       ampli    =      pa( 1)
-      ypos     =      pa( 2)
-      zpos     =      pa( 3)
-      mx       =      pa( 4)
-      my       =      pa( 5)
-      mz       =      pa( 6)
+      xpos0    =      pa( 2)
+      ypos     =      pa( 3)
+      zpos     =      pa( 4)
+      mx       =      pa( 5)
+      my       =      pa( 6)
+      mz       =      pa( 7)
 ! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
       iadda = actual_record_address()
 ! >>> extract: component of field
-      xh = n    1
+      xh =     1
       call parget('bcompone',xh,iadda,ier)
       bcompone = xh
 ! >>> extract: sensor coordinate x
@@ -118,12 +117,13 @@
 ! ----------------------- implementation ---------------------------
 ! ------------------------------------------------------------------
 ! 
-     xpos     = x
-     bcomp    =  nint(bcomponen)
+     xpos     = x + xpos0
+     bcomp    =  nint(bcompone)
      rauf     =  [xsense, ysense, zsense]
-     rdipole  =  [ x, ypos, zpos]
+     rdipole  =  [ xpos, ypos, zpos]
+     rdipole0 =  [ 50d0, ypos, zpos]
      moment   =  [ mx, my, mz ]
-     Bfeld    =  bdipol( rauf, rdipole, moment )
+     Bfeld    =  bdipol( rauf, rdipole, moment ) -  bdipol( rauf, rdipole0, moment )
      th  = ampli * Bfeld(bcomp)
 
 
@@ -133,6 +133,7 @@
       call parset('mx      ',sngl(mx),iadda,ier)
       call parset('my      ',sngl(my),iadda,ier)
       call parset('mz      ',sngl(mz),iadda,ier)
+      call parset('xpos0   ',sngl(xpos0),iadda,ier)
       call parset('ypos    ',sngl(ypos),iadda,ier)
       call parset('zpos    ',sngl(zpos),iadda,ier)
  

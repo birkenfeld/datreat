@@ -1,0 +1,68 @@
+#THEORY ndebye
+        random chain structure factor P(Q) (P(Q==)=1) by direct summation over N segments                    
+        chain statistics is expressed ny nu (nu=0.5 ==> Gaussian chain)
+        in addition a chi parameter my be set:
+        S(Q) = 1/(1/(N*P(Q) + 2*chi)
+#CITE
+        J.K. Kjems, T. Freloft, D. Richter and S.K. Sinha, Physica 136B (1986) 285-290
+#PARAMETERS
+        ampli            ! prefactor 
+        n                ! number of segments (do not fit, its integer)
+        l                ! effective segment length Rg = l * N**nu /sqrt(6)
+        nu               ! expansion parameter (Gaussian random walk =0.5)
+        chi              ! chi parameter
+#RECIN-PARAMETERS    (allow 8 chars for name, start only beyond 8 with default)
+  
+#RECOUT-PARAMETERS
+        rg               ! radius of gyration
+#VARIABLES
+   double precision :: pq, rg, sq
+   integer          :: ni
+#IMPLEMENTATION
+     q   = x
+     ni  = nint(n)
+     rg  =  l * dble(ni)**nu / sqrt(6d0)
+     pq  = nndebye(q, l, nu, ni )
+     sq  = 1d0 / ( 1d0/(ni*pq) + 2d0 * chi )
+     th  = ampli * sq
+
+
+#SUBROUTINES
+
+
+function nndebye(q, l, nue,n ) result(val) 
+   implicit none
+   double precision ,intent(in) :: q           ! Q-value
+   double precision ,intent(in) :: l           ! effective segment length
+   double precision ,intent(in) :: nue         ! exponent
+   integer          ,intent(in) :: n           ! number of segments
+   double precision             :: val
+   
+   integer          :: i, j
+   double precision :: eterms(0:n-1)
+   double precision :: ql2, mu, Rg
+
+   ql2 = (1d0/6d0) * (q*l)**2
+   mu  = 2d0 * nue
+!  Rg  = sqrt((l*l*dble(n)**mu) / 6d0) )
+!$OMP PARALLEL DO    
+   do i=0,n-1
+     eterms(i) = exp(-ql2*dble(i)**mu)
+   enddo
+!$OMP END PARALLEL DO 
+   val = 0
+!$OMP PARALLEL DO REDUCTION(+:val)
+   do i=1,n
+    do j=1,n
+      val = val + eterms(abs(i-j))
+    enddo
+   enddo
+!$OMP END PARALLEL DO 
+
+   val = val / (n*n)
+ 
+end function nndebye
+
+
+
+#END

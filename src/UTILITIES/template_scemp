@@ -1,0 +1,20 @@
+#THEORY schyster
+        phenomenological approach to sc-hysteresis-curves, with history and B reversal 
+#CITE
+        mm
+#PARAMETERS
+        ampli            ! prefactor 
+        h_slope          ! slope of reversal approach (=field expulsion)
+        h_sense          ! sense of running through hysteresis loops
+#RECIN-PARAMETERS    (allow 8 chars for name, start only beyond 8 with default)
+  
+#RECOUT-PARAMETERS
+#VARIABLES
+#IMPLEMENTATION
+     th  = ampli * mhyster(x)
+
+     
+
+
+#SUBROUTINES
+#END

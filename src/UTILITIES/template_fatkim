@@ -1,0 +1,43 @@
+#THEORY fatkim 
+        Fatkullin Kimmich expression diffusion on a Gaussian Path 
+#CITE
+        
+#PARAMETERS
+        ampli            ! prefactor 
+        wl4_fk           ! Rouse rate
+        a_fk             ! tube step length
+        numod            ! exponent modification factor (default=1)
+#RECIN-PARAMETERS    (allow 8 chars for name, start only beyond 8 with default)
+        q                ! q-value (momentum tranbsfer)
+#RECOUT-PARAMETERS
+ 
+#VARIABLES
+     double precision, parameter :: Navogadro = 6.022140857d23
+     double precision :: t 
+#IMPLEMENTATION
+     t   = x
+
+     th = ampli * AFK(t,q,a_fk,Wl4_fk,numod)
+
+#SUBROUTINES
+! Fatkullin-Kimmich-Form von Sinc im local Reptation Regime !
+         function AFK(t,Q,a,Wl4,addexp)
+
+         implicit none
+         double precision :: AFK
+         double precision, parameter :: Pi=4d0*atan(1d0)
+
+         double precision, intent(in) :: Wl4,t,a,AFK,Q,addexp
+         double precision             :: arg1, arg2,PhiRouse,SS
+
+         PhiRouse = 2*sqrt(Wl4*t/Pi)
+         SS       = PhiRouse/3.0d0
+         SS       = SS**addexp
+         arg1     = Q**4*a**2*SS/72.0d0
+         arg2     = Q**2*a*sqrt(SS)/6.0d0/sqrt(2.0d0)
+         ifail    = 1
+         AFK      = exp(arg1) * erfc(arg2)
+
+         end function AFK
+
+#END

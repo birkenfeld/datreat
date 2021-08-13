@@ -1,10 +1,10 @@
- FUNCTION th_dipolep(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
+ FUNCTION th_dipole3(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
 !================================================================================
 !  dipole field if dipole position is x +pol
 !  dipole
       use theory_description 
       implicit none 
-      real    :: th_dipolep
+      real    :: th_dipole3
       character(len=8) :: thnam, parnam (*) 
       real    :: pa (*) 
       real    :: x , xh
@@ -52,28 +52,39 @@
      double precision :: p23        !                                                                                 
      double precision :: p31        !                                                                                 
      double precision :: p32        !                                                                                 
-     double precision :: p33        !                                                                                 
+     double precision :: p33        !                                                                                
+     double precision :: p2x1        ! polarizable dipole1 pos x                                                       
+     double precision :: p2x2        ! polarizable dipole2 pos x                                                       
+     double precision :: p2x3        ! polarizable dipole3 pos x                                                       
+     double precision :: p211        ! polmatrix                                                                       
+     double precision :: p212        !                                                                                 
+     double precision :: p213        !                                                                                 
+     double precision :: p221        !                                                                                 
+     double precision :: p222        !                                                                                 
+     double precision :: p223        !                                                                                 
+     double precision :: p231        !                                                                                 
+     double precision :: p232        !                                                                                 
+     double precision :: p233        !                                                                                 
 ! the recin parameter representation 
      double precision :: bcompone   ! component of field                                                              
      double precision :: xsense     ! sensor coordinate x                                                             
      double precision :: ysense     ! sensor coordinate y                                                             
      double precision :: zsense     ! sensor coordinate z                                                             
 ! the reout parameter representation 
-     double precision :: ypos       ! y-position                                                                      
-     double precision :: zpos       ! z-position                                                                      
+ 
  
      double precision :: th
  
-   double precision :: xpos, rdipole(3), rauf(3), Bfeld(3), momemt(3), P(3,3), BfeldP(3)
+   double precision :: xpos, rdipole(3), rauf(3), Bfeld(3), moment(3), P(3,3), BfeldP(3)
    integer          :: bcomp
 !
 ! ----- initialisation ----- 
     IF (ini.eq.0) then     
-       thnam = 'dipolep'
-       nparx =       36
+       thnam = 'dipole3'
+       nparx =       48
        IF (npar.lt.nparx) then
            WRITE (6,*)' theory: ',thnam,' no of parametrs=',nparx,' exceeds current max. = ',npar
-          th_dipolep = 0
+          th_dipole3 = 0
           RETURN
        ENDIF
        npar = nparx
@@ -119,7 +130,18 @@
         parnam (34) = 'p31     '  !                                                                                 
         parnam (35) = 'p32     '  !                                                                                 
         parnam (36) = 'p33     '  !                                                                                 
-! >>>>> describe parameters >>>>>>> 
+        parnam (37) = 'p2x1    '  ! polarizable dipole1 pos x                                                       
+        parnam (38) = 'p2x2    '  ! polarizable dipole2 pos x                                                       
+        parnam (39) = 'p2x3    '  ! polarizable dipole3 pos x                                                       
+        parnam (40) = 'p211    '  ! polmatrix                                                                       
+        parnam (41) = 'p212    '  !                                                                                 
+        parnam (42) = 'p213    '  !                                                                                 
+        parnam (43) = 'p221    '  !                                                                                 
+        parnam (44) = 'p222    '  !                                                                                 
+        parnam (45) = 'p223    '  !                                                                                 
+        parnam (46) = 'p231    '  !                                                                                 
+        parnam (47) = 'p232    '  !                                                                                 
+        parnam (48) = 'p233    '  !      ! >>>>> describe parameters >>>>>>> 
         th_param_desc( 1,idesc) = "prefactor" !//cr//parspace//&
         th_param_desc( 2,idesc) = "y-position" !//cr//parspace//&
         th_param_desc( 3,idesc) = "z-position" !//cr//parspace//&
@@ -167,7 +189,7 @@
         th_out_param(  1,idesc) = "ypos     > y-position"
         th_out_param(  2,idesc) = "zpos     > z-position"
 ! 
-        th_dipolep = 0.0
+        th_dipole3 = 0.0
  
         RETURN
      ENDIF
@@ -209,10 +231,22 @@
       p31      =      pa(34)
       p32      =      pa(35)
       p33      =      pa(36)
+      p2x1      =      pa(37)
+      p2x2      =      pa(38)
+      p2x3      =      pa(39)
+      p211      =      pa(40)
+      p212      =      pa(41)
+      p213      =      pa(42)
+      p221      =      pa(43)
+      p222      =      pa(44)
+      p223      =      pa(45)
+      p231      =      pa(46)
+      p232      =      pa(47)
+      p233      =      pa(48)
 ! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
       iadda = actual_record_address()
 ! >>> extract: component of field
-      xh = n    1
+      xh =    1
       call parget('bcompone',xh,iadda,ier)
       bcompone = xh
 ! >>> extract: sensor coordinate x
@@ -234,22 +268,22 @@
 ! 
 
      xpos     = x
-     bcomp    =  nint(bcomponen)
+     bcomp    =  nint(bcompone)
      rauf     =  [xsense, ysense, zsense]
      Bfeld    = 0
-     Bfeld    = bdipol( rauf,[ x, ypos+xx1, zpos] ,[ mx1, my1, mz1 ]) &
-              + bdipol( rauf,[ x, ypos+xx2, zpos] ,[ mx2, my2, mz2 ]) &
-              + bdipol( rauf,[ x, ypos+xx3, zpos] ,[ mx3, my3, mz3 ]) &
-              + bdipol( rauf,[ x, ypos+xx4, zpos] ,[ mx4, my4, mz4 ]) &
-              + bdipol( rauf,[ x, ypos+xx5, zpos] ,[ mx5, my5, mz5 ])
+     Bfeld    = bdipol( rauf,[ xpos, ypos+xx1, zpos] ,[ mx1, my1, mz1 ]) &
+              + bdipol( rauf,[ xpos, ypos+xx2, zpos] ,[ mx2, my2, mz2 ]) &
+              + bdipol( rauf,[ xpos, ypos+xx3, zpos] ,[ mx3, my3, mz3 ]) &
+              + bdipol( rauf,[ xpos, ypos+xx4, zpos] ,[ mx4, my4, mz4 ]) &
+              + bdipol( rauf,[ xpos, ypos+xx5, zpos] ,[ mx5, my5, mz5 ])
 
      Bfeld    = ampli * Bfeld
 
-     BfeldP   = bdipol([ px1, px2, px3],[ x, ypos+xx1, zpos] ,[ mx1, my1, mz1 ]) &
-              + bdipol([ px1, px2, px3],[ x, ypos+xx2, zpos] ,[ mx2, my2, mz2 ]) &
-              + bdipol([ px1, px2, px3],[ x, ypos+xx3, zpos] ,[ mx3, my3, mz3 ]) &
-              + bdipol([ px1, px2, px3],[ x, ypos+xx4, zpos] ,[ mx4, my4, mz4 ]) &
-              + bdipol([ px1, px2, px3],[ x, ypos+xx5, zpos] ,[ mx5, my5, mz5 ])
+     BfeldP   = bdipol([ px1, px2, px3],[ xpos, ypos+xx1, zpos] ,[ mx1, my1, mz1 ]) &
+              + bdipol([ px1, px2, px3],[ xpos, ypos+xx2, zpos] ,[ mx2, my2, mz2 ]) &
+              + bdipol([ px1, px2, px3],[ xpos, ypos+xx3, zpos] ,[ mx3, my3, mz3 ]) &
+              + bdipol([ px1, px2, px3],[ xpos, ypos+xx4, zpos] ,[ mx4, my4, mz4 ]) &
+              + bdipol([ px1, px2, px3],[ xpos, ypos+xx5, zpos] ,[ mx5, my5, mz5 ])
 
      BfeldP    = ampli * BfeldP
 
@@ -264,10 +298,85 @@
 
      Bfeld  =  Bfeld + bdipol( rauf,[ px1, px2, px3] , moment)
 
-     th = Bfeld(comp)
+
+! add another iduced dipole (only by crane) TBD consistent polaris
+     BfeldP   = bdipol([ p2x1, p2x2, p2x3],[ xpos, ypos+xx1, zpos] ,[ mx1, my1, mz1 ]) &
+              + bdipol([ p2x1, p2x2, p2x3],[ xpos, ypos+xx2, zpos] ,[ mx2, my2, mz2 ]) &
+              + bdipol([ p2x1, p2x2, p2x3],[ xpos, ypos+xx3, zpos] ,[ mx3, my3, mz3 ]) &
+              + bdipol([ p2x1, p2x2, p2x3],[ xpos, ypos+xx4, zpos] ,[ mx4, my4, mz4 ]) &
+              + bdipol([ p2x1, p2x2, p2x3],[ xpos, ypos+xx5, zpos] ,[ mx5, my5, mz5 ])
+
+     BfeldP    = ampli * BfeldP
 
 
-     th_dipolep = th
+
+     P(1,1:3) = [p211,p212,p213]
+     P(2,1:3) = [p221,p222,p223]
+     P(3,1:3) = [p231,p232,p233]
+
+     P        = P * pp
+     moment   = matmul(P,BfeldP )
+
+     Bfeld  =  Bfeld + bdipol( rauf,[ px1, px2, px3] , moment)
+
+     th = Bfeld(bcomp)
+
+
+
+     xpos     = 50d0
+     bcomp    =  nint(bcompone)
+     rauf     =  [xsense, ysense, zsense]
+     Bfeld    = 0
+     Bfeld    = bdipol( rauf,[ xpos, ypos+xx1, zpos] ,[ mx1, my1, mz1 ]) &
+              + bdipol( rauf,[ xpos, ypos+xx2, zpos] ,[ mx2, my2, mz2 ]) &
+              + bdipol( rauf,[ xpos, ypos+xx3, zpos] ,[ mx3, my3, mz3 ]) &
+              + bdipol( rauf,[ xpos, ypos+xx4, zpos] ,[ mx4, my4, mz4 ]) &
+              + bdipol( rauf,[ xpos, ypos+xx5, zpos] ,[ mx5, my5, mz5 ])
+
+     Bfeld    = ampli * Bfeld
+
+     BfeldP   = bdipol([ px1, px2, px3],[ xpos, ypos+xx1, zpos] ,[ mx1, my1, mz1 ]) &
+              + bdipol([ px1, px2, px3],[ xpos, ypos+xx2, zpos] ,[ mx2, my2, mz2 ]) &
+              + bdipol([ px1, px2, px3],[ xpos, ypos+xx3, zpos] ,[ mx3, my3, mz3 ]) &
+              + bdipol([ px1, px2, px3],[ xpos, ypos+xx4, zpos] ,[ mx4, my4, mz4 ]) &
+              + bdipol([ px1, px2, px3],[ xpos, ypos+xx5, zpos] ,[ mx5, my5, mz5 ])
+
+     BfeldP    = ampli * BfeldP
+
+
+
+     P(1,1:3) = [p11,p12,p13]
+     P(2,1:3) = [p21,p22,p23]
+     P(3,1:3) = [p31,p32,p33]
+
+     P        = P * pp
+     moment   = matmul(P,BfeldP )
+
+     Bfeld  =  Bfeld + bdipol( rauf,[ px1, px2, px3] , moment)
+
+! add another iduced dipole (only by crane) TBD consistent polaris
+     BfeldP   = bdipol([ p2x1, p2x2, p2x3],[ xpos, ypos+xx1, zpos] ,[ mx1, my1, mz1 ]) &
+              + bdipol([ p2x1, p2x2, p2x3],[ xpos, ypos+xx2, zpos] ,[ mx2, my2, mz2 ]) &
+              + bdipol([ p2x1, p2x2, p2x3],[ xpos, ypos+xx3, zpos] ,[ mx3, my3, mz3 ]) &
+              + bdipol([ p2x1, p2x2, p2x3],[ xpos, ypos+xx4, zpos] ,[ mx4, my4, mz4 ]) &
+              + bdipol([ p2x1, p2x2, p2x3],[ xpos, ypos+xx5, zpos] ,[ mx5, my5, mz5 ])
+
+     BfeldP    = ampli * BfeldP
+
+
+
+     P(1,1:3) = [p211,p212,p213]
+     P(2,1:3) = [p221,p222,p223]
+     P(3,1:3) = [p231,p232,p233]
+
+     P        = P * pp
+     moment   = matmul(P,BfeldP )
+
+     Bfeld  =  Bfeld + bdipol( rauf,[ px1, px2, px3] , moment)
+
+
+
+     th_dipole3 = th -Bfeld(bcomp)
  
 ! ---- writing computed parameters to the record >>>  
       call parset('ypos    ',sngl(ypos),iadda,ier)
@@ -311,4 +420,4 @@ end function bdipol
 
 
 
- end function th_dipolep
+ end function th_dipole3

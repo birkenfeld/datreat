@@ -59,12 +59,11 @@
      double precision :: ysense     ! sensor coordinate y                                                             
      double precision :: zsense     ! sensor coordinate z                                                             
 ! the reout parameter representation 
-     double precision :: ypos       ! y-position                                                                      
-     double precision :: zpos       ! z-position                                                                      
+ 
  
      double precision :: th
  
-   double precision :: xpos, rdipole(3), rauf(3), Bfeld(3), momemt(3), P(3,3), BfeldP(3)
+   double precision :: xpos, rdipole(3), rauf(3), Bfeld(3), moment(3), P(3,3), BfeldP(3)
    integer          :: bcomp
 !
 ! ----- initialisation ----- 
@@ -212,7 +211,7 @@
 ! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
       iadda = actual_record_address()
 ! >>> extract: component of field
-      xh = n    1
+      xh =    1
       call parget('bcompone',xh,iadda,ier)
       bcompone = xh
 ! >>> extract: sensor coordinate x
@@ -234,22 +233,22 @@
 ! 
 
      xpos     = x
-     bcomp    =  nint(bcomponen)
+     bcomp    =  nint(bcompone)
      rauf     =  [xsense, ysense, zsense]
      Bfeld    = 0
-     Bfeld    = bdipol( rauf,[ x, ypos+xx1, zpos] ,[ mx1, my1, mz1 ]) &
-              + bdipol( rauf,[ x, ypos+xx2, zpos] ,[ mx2, my2, mz2 ]) &
-              + bdipol( rauf,[ x, ypos+xx3, zpos] ,[ mx3, my3, mz3 ]) &
-              + bdipol( rauf,[ x, ypos+xx4, zpos] ,[ mx4, my4, mz4 ]) &
-              + bdipol( rauf,[ x, ypos+xx5, zpos] ,[ mx5, my5, mz5 ])
+     Bfeld    = bdipol( rauf,[ xpos, ypos+xx1, zpos] ,[ mx1, my1, mz1 ]) &
+              + bdipol( rauf,[ xpos, ypos+xx2, zpos] ,[ mx2, my2, mz2 ]) &
+              + bdipol( rauf,[ xpos, ypos+xx3, zpos] ,[ mx3, my3, mz3 ]) &
+              + bdipol( rauf,[ xpos, ypos+xx4, zpos] ,[ mx4, my4, mz4 ]) &
+              + bdipol( rauf,[ xpos, ypos+xx5, zpos] ,[ mx5, my5, mz5 ])
 
      Bfeld    = ampli * Bfeld
 
-     BfeldP   = bdipol([ px1, px2, px3],[ x, ypos+xx1, zpos] ,[ mx1, my1, mz1 ]) &
-              + bdipol([ px1, px2, px3],[ x, ypos+xx2, zpos] ,[ mx2, my2, mz2 ]) &
-              + bdipol([ px1, px2, px3],[ x, ypos+xx3, zpos] ,[ mx3, my3, mz3 ]) &
-              + bdipol([ px1, px2, px3],[ x, ypos+xx4, zpos] ,[ mx4, my4, mz4 ]) &
-              + bdipol([ px1, px2, px3],[ x, ypos+xx5, zpos] ,[ mx5, my5, mz5 ])
+     BfeldP   = bdipol([ px1, px2, px3],[ xpos, ypos+xx1, zpos] ,[ mx1, my1, mz1 ]) &
+              + bdipol([ px1, px2, px3],[ xpos, ypos+xx2, zpos] ,[ mx2, my2, mz2 ]) &
+              + bdipol([ px1, px2, px3],[ xpos, ypos+xx3, zpos] ,[ mx3, my3, mz3 ]) &
+              + bdipol([ px1, px2, px3],[ xpos, ypos+xx4, zpos] ,[ mx4, my4, mz4 ]) &
+              + bdipol([ px1, px2, px3],[ xpos, ypos+xx5, zpos] ,[ mx5, my5, mz5 ])
 
      BfeldP    = ampli * BfeldP
 
@@ -264,10 +263,43 @@
 
      Bfeld  =  Bfeld + bdipol( rauf,[ px1, px2, px3] , moment)
 
-     th = Bfeld(comp)
+     th = Bfeld(bcomp)
 
 
-     th_dipolep = th
+
+     xpos     = 50d0
+     bcomp    =  nint(bcompone)
+     rauf     =  [xsense, ysense, zsense]
+     Bfeld    = 0
+     Bfeld    = bdipol( rauf,[ xpos, ypos+xx1, zpos] ,[ mx1, my1, mz1 ]) &
+              + bdipol( rauf,[ xpos, ypos+xx2, zpos] ,[ mx2, my2, mz2 ]) &
+              + bdipol( rauf,[ xpos, ypos+xx3, zpos] ,[ mx3, my3, mz3 ]) &
+              + bdipol( rauf,[ xpos, ypos+xx4, zpos] ,[ mx4, my4, mz4 ]) &
+              + bdipol( rauf,[ xpos, ypos+xx5, zpos] ,[ mx5, my5, mz5 ])
+
+     Bfeld    = ampli * Bfeld
+
+     BfeldP   = bdipol([ px1, px2, px3],[ xpos, ypos+xx1, zpos] ,[ mx1, my1, mz1 ]) &
+              + bdipol([ px1, px2, px3],[ xpos, ypos+xx2, zpos] ,[ mx2, my2, mz2 ]) &
+              + bdipol([ px1, px2, px3],[ xpos, ypos+xx3, zpos] ,[ mx3, my3, mz3 ]) &
+              + bdipol([ px1, px2, px3],[ xpos, ypos+xx4, zpos] ,[ mx4, my4, mz4 ]) &
+              + bdipol([ px1, px2, px3],[ xpos, ypos+xx5, zpos] ,[ mx5, my5, mz5 ])
+
+     BfeldP    = ampli * BfeldP
+
+
+
+     P(1,1:3) = [p11,p12,p13]
+     P(2,1:3) = [p21,p22,p23]
+     P(3,1:3) = [p31,p32,p33]
+
+     P        = P * pp
+     moment   = matmul(P,BfeldP )
+
+     Bfeld  =  Bfeld + bdipol( rauf,[ px1, px2, px3] , moment)
+
+
+     th_dipolep = th -Bfeld(bcomp)
  
 ! ---- writing computed parameters to the record >>>  
       call parset('ypos    ',sngl(ypos),iadda,ier)

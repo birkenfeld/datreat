@@ -98,7 +98,7 @@
 ! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
       iadda = actual_record_address()
 ! >>> extract: component of field
-      xh = n    1
+      xh =     1
       call parget('bcompone',xh,iadda,ier)
       bcompone = xh
 ! >>> extract: sensor coordinate x

@@ -1,0 +1,46 @@
+#THEORY locrepd
+        generalized local reptation expression
+        along the lines of deGennes, but with finite summation of integrals
+        and lenthscale, timescale and fluctuation ratio as parameters DR Version Nov2020
+#CITE   P.G. De Gennes. Coherent scattering by one reptating chain. 
+        Journal de Physique, 1981, 42 (5), pp.735-740. <10.1051/jphys:01981004205073500>     
+#PARAMETERS
+        ampli            ! prefactor 
+        b                ! fluctuation intensity (relative)
+        a                ! length scale
+        W                ! (Rouse)rate
+        n                ! No-segments
+        ne               ! No-segments/entanglement
+#RECIN-PARAMETERS    (allow 8 chars for name, start only beyond 8 with default)
+        q            0   ! q-value    default value
+#RECOUT-PARAMETERS
+#VARIABLES
+     double precision   :: t
+#IMPLEMENTATION
+     t  = x              ! since we prefer to call the independent variable t, x must be copied to t
+     th = ampli * local_reptationdr(q, t, a, W, n, ne, b)
+
+#SUBROUTINES
+  function local_reptationdr(q, t, a, W, n, ne, b) result(val)
+    implicit none
+    double precision, intent(in)   :: q, t
+    double precision, intent(in)   :: a        ! step (entanglement?) length
+    double precision, intent(in)   :: W        ! (Rouse?) rate 
+    integer         , intent(in)   :: n        ! No Segments 
+    integer         , intent(in)   :: ne       ! No Segments/entanglement 
+    double precision               :: val
+    double precision, parameter    :: Pi = 4*atan(1d0)
+
+    double precision :: T1, T2, T3
+
+    T1 = 72d0 * (exp(-q**2 * n * a**2 / 6d0) + q**2 * n * a**2 / 6d0 - 1d0) / n / q**4 / a**4
+    T2 = 2d0/3d0*ne**2/((n*sqrt(Pi)))*b*((exp(-1/6*a**2*n*Q**2-n**2/(4*w*t))-1)* & 
+         sqrt(w*t/ne**2)+sqrt(Pi)*(n/((2*ne))+a**2*Q**2*w*t/((6*ne)))*exp(a**4*Q**4*w*t/36)*  &
+         (erfc(a**2*Q**2*sqrt(w*t)/6)-erfc(n/((2*sqrt(w*t)))+a**2*Q**2*sqrt(w*t)/6)))
+    T3 = 72d0*n/((Q**4*n**2*a**4))*(exp(-(Q**2*n*a**2)/6d0)+(Q**2*n*a**2)/6d0-1d0)+b*ne/3d0
+
+    val = (T1+T2)/T3
+
+
+  end function local_reptation
+#END
