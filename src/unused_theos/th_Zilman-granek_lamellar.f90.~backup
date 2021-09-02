@@ -1,0 +1,479 @@
+        function th_zglam(x,pa,thnam,parnam,npar,ini, nopar ,params,napar,mbuf) 
+!       ===================================================             
+!                                                                       
+! -------> zilman-granek for lammelar phase  <--------                  
+!                                                                       
+!                                                                       
+        implicit none                                                  
+
+
+        real, intent(in)       :: x, pa(20)
+        character*8            :: thnam
+        character*8            :: parnam(20)
+        integer                :: npar
+        integer, intent(in)    :: ini
+        integer                :: mbuf
+        integer, intent(inout) :: nopar                 ! Anzahl der Parameter data
+        character*80, intent(inout) :: napar(mbuf)      ! name des parameters n
+        real, intent(inout)    :: params(mbuf)          ! value des parameters n
+
+        real                   :: q, q_para, q_perp
+        double precision       :: Pi
+        parameter(Pi=3.1415952d0)
+
+
+        integer                :: ier, nparx
+        real                   :: th_zglam, th_zglam_0
+
+
+        integer i, ifail, maxitro 
+        integer na 
+        real*8 epsro, erracro, romin, romax 
+        real*8 a_miu, a_ro, miu, ro, qu, sum_u, sum_ro 
+        real*8 qh, akappa, eta, xi, aa, ti, axi, sint2   
+        real*8 sigma, amp 
+        real*8 f_ro, s17aef, zadapint 
+        real*8 o_q, o_xi, o_axi, o_aa, o_na, o_akappa, o_eta, o_amp 
+        common/com_pa/qh, akappa, eta, xi, aa, ti, sint2, axi, na 
+        real*8 lbar, sigtx
+        common/com_pa2/ lbar, sigtx
+        common/miuro/ro 
+                                                                        
+        save o_q, o_xi, o_axi, o_aa, o_na, o_akappa, o_eta, o_amp 
+        logical changed 
+                                                                        
+
+                                                                        
+        external f_ro 
+!                                                                       
+! ----- initialisation -----                                            
+       if(ini.eq.0) then 
+         thnam = 'zglam1' 
+         nparx = 9 
+         if(npar.lt.nparx) then 
+           write(6,1)thnam,nparx,npar 
+    1      format(' theory: ',a8,' no of parametrs=',i8,                &
+     &      ' exceeds current max. = ',i8)                              
+           th_zglam  = 0 
+           return 
+         endif 
+         npar = nparx 
+!        --------------> set the number of parameters                   
+         parnam(1) = 'xi' 
+         parnam(2) = 'axi' 
+         parnam(3) = 'aa' 
+         parnam(4) = 'na' 
+         parnam(5) = 'akappa' 
+         parnam(6) = 'eta' 
+         parnam(7) = 'amp' 
+         parnam(8) = 'lbar'   !! distance from surface
+         parnam(9) = 'sigtx'  !! tension in kT/A**2
+                                                                        
+         th_zglam = 0 
+         return 
+       endif 
+!                                                                       
+! ---- calculate theory here -----                                      
+                             !!--> correlation length                  
+       xi  = abs(pa(1)) 
+                             !!--> scaling factor of the limit over the
+       axi = pa(2) 
+                             !! vector (k) spectrum k_min=pi/(
+       aa  = abs(pa(3)) 
+                             !!--> short wavelength limit k_max=pi/(na 
+       na = pa(4) 
+                             !!--> bending modulus (k_BT)              
+       akappa = abs(pa(5)) 
+                             !!--> solvent viscosity [k_BT A^3/ns]     
+       eta = abs(pa(6)) 
+                             !!--> should be ~ 1                         
+       amp = abs(pa(7)) 
+
+       lbar = abs(pa(8))     !! distance from surface   see Ref. Seifert PRE49,3124,(1994) [Eq 10]
+       sigtx= abs(pa(9))     !! tension in kT/A**2,     see Ref. Seifert PRE49,3124,(1994) [Eq 16]   
+       
+                                                                        
+       q = 0.0d0 
+                                                                        
+       call  getpar('q       ',q,nopar ,params,napar,mbuf, ier) 
+       q = abs(q) 
+       q_para = 0.001
+       q_perp = 0.0
+       call  getpar('q_para  ',q_para,nopar ,params,napar,mbuf, ier) 
+       call  getpar('q_perp  ',q_perp,nopar ,params,napar,mbuf, ier)
+
+       if(q .eq. 0.0) then
+          q = sqrt(q_para**2+q_perp**2)
+       endif       
+       sint2 = q_para / q
+
+       call  setpar('q       ',q,nopar ,params,napar,mbuf, ier) 
+       call  setpar('q_para  ',q_para,nopar ,params,napar,mbuf, ier) 
+       call  setpar('q_perp  ',q_perp,nopar ,params,napar,mbuf, ier)
+                                                                        
+                                                                        
+!       if (o_q.NE.q.OR.o_xi.NE.xi.OR.o_axi.NE.axi.OR.o_aa.NE.aa.OR.     &
+!     &    o_na.NE.na.OR.o_akappa.NE.akappa.OR.o_eta.NE.eta.OR.          &
+!     &    o_amp.NE.amp) then                                            
+!                                                                        
+!         changed = .true. 
+!         o_q = q 
+!         o_xi = xi 
+!         o_axi = axi 
+!         o_aa = aa 
+!         o_na = na 
+!         o_akappa = akappa 
+!         o_eta = eta 
+!         o_amp = amp 
+!       else 
+!          changed = .false. 
+!       endif 
+!                                                                        
+        qh = q 
+                                                                        
+
+        epsro = 1.d-6 
+        maxitro = 1.d8 
+        erracro = 0.0d0 
+                                                                        
+        romin = na*aa 
+        romax = axi*xi 
+                                                                        
+                                                                        
+        ti = 0.0 
+        th_zglam_0 = zadapint(f_ro, romin, romax, epsro, maxitro, erracro) 
+                                                      
+        ti = x 
+        th_zglam   = zadapint(f_ro, romin, romax, epsro, maxitro, erracro) 
+
+        
+        th_zglam = amp*th_zglam/th_zglam_0 
+
+!                                                                       
+       return 
+      END                                           
+                                                                        
+                                                                        
+        real*8 function f_ro(a_ro) 
+!====================================================================   
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
+        implicit none 
+        integer i, ifail, maxitu 
+        integer  na 
+        real*8 a_ro, miu, ro 
+        real*8 qh, akappa, eta, xi, aa, ti, axi, sint2 
+        real*8 umin, umax, sigma 
+        real*8 epsu, erracu 
+        real*8 f_u, uadapint, DBESJ0, sum_u 
+        common/com_pa/qh, akappa, eta, xi, aa, ti, sint2, axi, na 
+        real*8 lbar, sigtx
+        common/com_pa2/ lbar, sigtx
+        common/miuro/ro 
+        double precision       :: Pi
+        parameter(Pi=3.1415952d0)
+                                                                        
+        external f_u 
+        ro = a_ro 
+!        pi = 4.*atan(1.) 
+                                                                        
+        epsu = 1.d-8 
+        maxitu = 1.d8 
+        erracu = 0.0d0 
+                                                                        
+!        sigma = axi*xi                                                 
+                           !! set the limits of integration k_min and k_
+        umin = pi/(axi*xi) 
+                           !! over the undulation mode spectrum         
+        umax = pi/aa 
+                                                                        
+        ifail=-1 
+                                                                        
+!       write(*,*)'cost2=', dsqrt(1.d0-sint2**2)                        
+                                                                        
+        sum_u = uadapint(f_u, umin, umax, epsu, maxitu, erracu) 
+                                                                        
+        f_ro = a_ro*DBESJ0(qh*a_ro*sint2)*                        &
+     &         exp(-(1.d0-sint2**2)*qh**2*sum_u/(2d0*Pi))    
+
+
+
+
+
+
+  
+!     *         -a_ro**2/(2.*sigma**2)) !! the smooth cutoff using a gau
+                                        !! no more necessary!           
+                                                                        
+        return 
+      END                                           
+                                                                        
+                                                                        
+        real*8 function f_u(u) 
+!====================================================================   
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
+        implicit none 
+        integer i, ifail 
+        integer  na 
+        real*8 ro, u, umin, umax, sigma, miu 
+        real*8 qh, akappa, eta, xi, aa, ti, axi, sint2 
+        real*8 sigmau, omega 
+!        real*8 s17aef 
+        common/com_pa/qh, akappa, eta, xi, aa, ti, sint2, axi, na 
+        real*8 lbar, sigtx
+        common/com_pa2/ lbar, sigtx
+        common/miuro/ro 
+
+        double precision       :: kl,gam,eqx,gnom, DBESJ0
+        double precision       :: Pi
+        parameter(Pi=3.1415952d0)
+                                                                        
+!        pi = 4.*atan(1.) 
+                                                                        
+!!! expresion for the rate dispersion of a membrane adjacent to a wall in distance lbar
+!!! from Ref. Seifert, PRE 49, 3124 (1994) Eq.(10)
+
+        kl    = u*lbar
+        gnom  = 2*eta*u*(sinh(kl)**2-(kl**2)+sinh(kl)*cosh(kl)+kl)
+        gam   = (sinh(kl)**2-(kl**2))/gnom  
+        eqx   = akappa*(u**4+xi**(-4))+sigtx*u**2          !! Ref. Seifert, Eq (16)
+
+
+                                                    
+!!        omega = akappa*u**3/(4.0d0*eta)
+        omega = gam*eqx
+                                                                        
+        f_u = (1.d0-exp(-omega*ti)* DBESJ0(u*ro)) * u/eqx                                                 
+
+
+
+
+!     *(1.-exp(-u**2/(2.*sigmau**2)))                                   
+                                                                        
+                                                                        
+        return 
+      END                                           
+                                                                        
+                                                                        
+       function zgaus8a (f,xu,xo) 
+!-----------------------------------------------------------------------
+!      8-punkte gauss-integration  : int(f,xu..xo)  2te kopie wg. rekur.
+!-----------------------------------------------------------------------
+       parameter ( ndim = 8 ) 
+       parameter ( ndim2=ndim/2) 
+       implicit real*8 (a-h,o-z) 
+       dimension a(ndim2),x(ndim2) 
+       data a / 0.362683783378362d0,                                    &
+     &          0.313706645877887d0,                                    &
+     &          0.222381034453374d0,                                    &
+     &          0.101228536290376d0/                                    
+       data x / 0.183434642495650d0,                                    &
+     &          0.525532409916329d0,                                    &
+     &          0.796666477413627d0,                                    &
+     &          0.960289856497536d0/                                    
+                                                                        
+       xave = (xo+xu)*0.5d0 
+       range= (xo-xu)*0.5d0 
+       sum = 0.d0 
+       do i=1,ndim2 
+         sum = sum + a(i)*( f(xave+range*x(i))+ f(xave-range*x(i)) ) 
+       enddo 
+       zgaus8a = sum * range 
+                                                                        
+       return 
+      END                                           
+!*ds                                                                    
+!*ed                                                                    
+       function zadapint(f,a,b,epsilon,maxiter,erroraccu) 
+!      =================================================                
+!                                                                       
+!      lokal adaptives integrationsverfahren 2te ver. wg. rekur.        
+!                                                                       
+       implicit real*8 (a-h,o-z) 
+!                                                                       
+       parameter( maxstack = 200 ) 
+!                 --------------->  stacktiefe                          
+       dimension s(0:maxstack), xa(0:maxstack), xb(0:maxstack) 
+!                                                                       
+       logical cray 
+!!     common/outlev/iot,ibild,ierrs,inka, cray                         
+                                                                     !! 
+       real*4 xxxx,yyyy,ptxf 
+                                                                     !! 
+       common/outlev/iot ,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20) 
+!                                                                       
+       external f 
+!                                                                       
+!      -----------------------------------------------------------------
+                                                                        
+                                                                        
+         iterationcounter = 0 
+         erg              = 0.0d0 
+         itop      = 0 
+         xa(itop)  = a 
+         xb(itop)  = b 
+         s(itop)   = zgaus8a( f, a, b ) 
+                                                                        
+         do i=1,maxiter 
+           if (itop.ge.(maxstack-2)) then 
+              erg = erg + s(itop) 
+              xbb = xb(itop) 
+              itm = itop-1 
+              do itop=itm,0,-1 
+                 if(xa(itop).eq.xbb) goto 1 
+              enddo 
+    1         continue 
+              write(6,*)'warning! adaptint stack overflow!' 
+           else 
+              iterationcounter = iterationcounter + 1 
+              itop             = itop +1 
+              xa(itop) = (xa(itop-1)+xb(itop-1))*0.5d0 
+              xb(itop) =  xb(itop-1) 
+              s(itop)  = zgaus8a( f, xa(itop), xb(itop) ) 
+              itop             = itop +1 
+              xa(itop) =  xa(itop-2) 
+              xb(itop) =  xa(itop-1) 
+              s(itop)  = zgaus8a( f, xa(itop), xb(itop) ) 
+              error   =  dabs((s(itop)+s(itop-1))-s(itop-2)) 
+                                                                        
+              if (iot.gt.2) then 
+                 write(6,'(1x,i3,i5,4e13.6)')itop,iterationcounter,     &
+     &                 xa(itop),xb(itop),(s(itop)+s(itop-1)),error      
+              endif 
+                                                                        
+              if (error.lt.epsilon) then 
+                 erg = erg + s(itop)+s(itop-1) 
+                 erroraccu = erroraccu + error 
+                 itop = itop-1 
+                 xbb = xb(itop) 
+                 itop = itop-1 
+                 itm = itop-1 
+                 do itop=itm,0,-1 
+                    if(xa(itop).eq.xbb) goto 2 
+                 enddo 
+    2            continue 
+              endif 
+            endif 
+            if (itop.le.0) goto 3 
+         enddo 
+         write(6,*)                                                     &
+     &   'zadapint fatal error iterationnumber exceeded!'               
+    3    continue 
+                                                                        
+                                                                        
+         zadapint = erg 
+                                                                        
+         return 
+                                                                        
+      END                                           
+                                                                        
+       function ugaus8a (f,xu,xo) 
+!-----------------------------------------------------------------------
+!      8-punkte gauss-integration  : int(f,xu..xo)  2te kopie wg. rekur.
+!-----------------------------------------------------------------------
+       parameter ( ndim = 8 ) 
+       parameter ( ndim2=ndim/2) 
+       implicit real*8 (a-h,o-z) 
+       dimension a(ndim2),x(ndim2) 
+       data a / 0.362683783378362d0,                                    &
+     &          0.313706645877887d0,                                    &
+     &          0.222381034453374d0,                                    &
+     &          0.101228536290376d0/                                    
+       data x / 0.183434642495650d0,                                    &
+     &          0.525532409916329d0,                                    &
+     &          0.796666477413627d0,                                    &
+     &          0.960289856497536d0/                                    
+                                                                        
+       xave = (xo+xu)*0.5d0 
+       range= (xo-xu)*0.5d0 
+       sum = 0.d0 
+       do i=1,ndim2 
+         sum = sum + a(i)*( f(xave+range*x(i))+ f(xave-range*x(i)) ) 
+       enddo 
+       ugaus8a = sum * range 
+                                                                        
+       return 
+      END                                           
+!*ds                                                                    
+!*ed                                                                    
+       function uadapint(f,a,b,epsilon,maxiter,erroraccu) 
+!      =================================================                
+!                                                                       
+!      lokal adaptives integrationsverfahren 2te ver. wg. rekur.        
+!                                                                       
+       implicit real*8 (a-h,o-z) 
+!                                                                       
+       parameter( maxstack = 200 ) 
+!                 --------------->  stacktiefe                          
+       dimension s(0:maxstack), xa(0:maxstack), xb(0:maxstack) 
+!                                                                       
+       logical cray 
+!!     common/outlev/iot,ibild,ierrs,inka, cray                         
+                                                                     !! 
+       real*4 xxxx,yyyy,ptxf 
+                                                                     !! 
+       common/outlev/iot ,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20) 
+!                                                                       
+       external f 
+!                                                                       
+!      -----------------------------------------------------------------
+                                                                        
+                                                                        
+         iterationcounter = 0 
+         erg              = 0.0d0 
+         itop      = 0 
+         xa(itop)  = a 
+         xb(itop)  = b 
+         s(itop)   = ugaus8a( f, a, b ) 
+                                                                        
+         do i=1,maxiter 
+           if (itop.ge.(maxstack-2)) then 
+              erg = erg + s(itop) 
+              xbb = xb(itop) 
+              itm = itop-1 
+              do itop=itm,0,-1 
+                 if(xa(itop).eq.xbb) goto 1 
+              enddo 
+    1         continue 
+              write(6,*)'warning! adaptint stack overflow!' 
+           else 
+              iterationcounter = iterationcounter + 1 
+              itop             = itop +1 
+              xa(itop) = (xa(itop-1)+xb(itop-1))*0.5d0 
+              xb(itop) =  xb(itop-1) 
+              s(itop)  = ugaus8a( f, xa(itop), xb(itop) ) 
+              itop             = itop +1 
+              xa(itop) =  xa(itop-2) 
+              xb(itop) =  xa(itop-1) 
+              s(itop)  = ugaus8a( f, xa(itop), xb(itop) ) 
+              error   =  dabs((s(itop)+s(itop-1))-s(itop-2)) 
+                                                                        
+              if (iot.gt.2) then 
+                 write(6,'(1x,i3,i5,4e13.6)')itop,iterationcounter,     &
+     &                 xa(itop),xb(itop),(s(itop)+s(itop-1)),error      
+              endif 
+                                                                        
+              if (error.lt.epsilon) then 
+                 erg = erg + s(itop)+s(itop-1) 
+                 erroraccu = erroraccu + error 
+                 itop = itop-1 
+                 xbb = xb(itop) 
+                 itop = itop-1 
+                 itm = itop-1 
+                 do itop=itm,0,-1 
+                    if(xa(itop).eq.xbb) goto 2 
+                 enddo 
+    2            continue 
+              endif 
+            endif 
+            if (itop.le.0) goto 3 
+         enddo 
+         write(6,*)                                                     &
+     &  'uadapint fatal error iterationnumber exceeded!'                
+    3    continue 
+                                                                        
+                                                                        
+         uadapint = erg 
+                                                                        
+         return 
+                                                                        
+      END                                           
