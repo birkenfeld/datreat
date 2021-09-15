@@ -154,13 +154,13 @@
        nthpar(76) = mtpar 
        dummy = sofqq(x,par,thenam(76),thparn(:,76),nthpar(76),ini,idum ,idum,idum,idum)
        nthpar(77) = mtpar 
-       dummy = th_star(x,par,thenam(77),thparn(:,77),nthpar(77),ini,idum ,idum,idum,idum)
+       dummy = th_spatcorr(x,par,thenam(77),thparn(:,77),nthpar(77),ini,idum ,idum,idum,idum)
        nthpar(78) = mtpar 
-       dummy = strexpo(x,par,thenam(78),thparn(:,78),nthpar(78),ini,idum ,idum,idum,idum)
+       dummy = th_star(x,par,thenam(78),thparn(:,78),nthpar(78),ini,idum ,idum,idum,idum)
        nthpar(79) = mtpar 
-       dummy = strexpsq(x,par,thenam(79),thparn(:,79),nthpar(79),ini,idum ,idum,idum,idum)
+       dummy = strexpo(x,par,thenam(79),thparn(:,79),nthpar(79),ini,idum ,idum,idum,idum)
        nthpar(80) = mtpar 
-       dummy = strexpsqq(x,par,thenam(80),thparn(:,80),nthpar(80),ini,idum ,idum,idum,idum)
+       dummy = strexpsq(x,par,thenam(80),thparn(:,80),nthpar(80),ini,idum ,idum,idum,idum)
         write(6,*) "Warning to many theories in directory theos"
         write(6,*) "Warning to many theories in directory theos"
         write(6,*) "Warning to many theories in directory theos"

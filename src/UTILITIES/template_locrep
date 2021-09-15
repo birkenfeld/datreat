@@ -1,15 +1,13 @@
-#THEORY locrep
-        generalized local reptation expression
-        along the lines of deGennes, but with finite summation of integrals
-        and lenthscale, timescale and fluctuation ratio as parameters
-#CITE   P.G. De Gennes. Coherent scattering by one reptating chain. 
-        Journal de Physique, 1981, 42 (5), pp.735-740. <10.1051/jphys:01981004205073500>     
+#THEORY spatcorr
+        reptation approach , Spatial correlations of entangled polymer dynamics, Jihong Ma
+#CITE   PHYSICAL REVIEW E 104, 024503 (2021)    
+        PHYSICAL REVIEW E 104, 024503 (2021)    
 #PARAMETERS
         ampli            ! prefactor 
-        b                ! fluctuation intensity (relative)
-        a                ! length scale
+        r2               ! msd-scale, prefactor to Kt2
         tau              ! timescale
-        lz               ! total length
+        beta             ! spatial streching exponent
+        a                ! transition exponent in K(t)
 #RECIN-PARAMETERS    (allow 8 chars for name, start only beyond 8 with default)
         q            0   ! q-value    default value
 #RECOUT-PARAMETERS
@@ -17,25 +15,17 @@
      double precision   :: t
 #IMPLEMENTATION
      t  = x              ! since we prefer to call the independent variable t, x must be copied to t
-     th = ampli * local_reptation(q*a, t/tau, lz)
+     th = ampli * exp(-(1d0/6d0)*(q*q*Kt2)**beta)
 
 #SUBROUTINES
-  function local_reptation(q, t, L) result(val)
+  function Kt2(t,a) result(val)
     implicit none
-    double precision, intent(in)   :: q, t, L
+    double precision, intent(in)   :: t, a
     double precision               :: val
-    double precision, parameter    :: sqp = sqrt(4*atan(1d0))
-
-    val = 0.72D2 * (sqrt(t) * q ** 4 * exp((-0.2D1 * L * q ** 2 * t - 
-     #0.3D1 * L ** 2) / t / 0.12D2) / 0.36D2 + sqrt(0.3141592653589793D1
-     #) * (q ** 2 * t / 0.3D1 + L) * q ** 4 * exp(t * q ** 4 / 0.36D2) *
-     # (-erfc((q ** 2 * t + 0.3D1 * L) * t ** (-0.1D1 / 0.2D1) / 0.6D1) 
-     #+ erfc(sqrt(t) * q ** 2 / 0.6D1)) / 0.72D2 - sqrt(t) * q ** 4 / 0.
-     #36D2) * B / q ** 4 * 0.3141592653589793D1 ** (-0.1D1 / 0.2D1) / L 
-     #+ 0.72D2 * (A * exp(-q ** 2 * L / 0.6D1) * sqrt(0.3141592653589793
-     #D1) + (A * L * q ** 2 / 0.6D1 - A) * sqrt(0.3141592653589793D1)) *
-     # 0.3141592653589793D1 ** (-0.1D1 / 0.2D1) / q ** 4 / L
 
 
-  end function local_reptation
+    val = r2/((1/(t/tau)**(1/4))**a+(1/sqrt(t/tau))**a)**(1/a)
+
+
+  end function Kt2
 #END
