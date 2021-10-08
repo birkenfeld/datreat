@@ -1,0 +1,31 @@
+#THEORY sansfac
+        yields the intensity prefactor for polymer sans spectra. 
+        Polymer data: from the parameter section of data rec.
+        Use as multiply theory in combination with an S(q) type form factor...
+#CITE
+#PARAMETERS
+        ampli            ! prefactor 
+#RECIN-PARAMETERS    (allow 8 chars for name, start only beyond 8 with default)
+        Mw               ! molecular weight of objects  (g/mol)
+        rho              ! scattering length density polymer (cm**-1)
+        rhosolv          ! scattering length density background(solvent) (cm**-1)
+        volfrac          ! volume fraction of polymer
+        density          ! density of polymer (g/cm*+3)
+#RECOUT-PARAMETERS
+        intens0          ! intensity factor (cm**-1)
+#VARIABLES
+     double precision   :: Navogadro = 6.022045d23
+     double precision   :: intens0
+     double precision   :: q
+#IMPLEMENTATION
+     q   = x
+     
+     intens0  =   (rho-rhosolv)**2           &
+                * volfrac*(1do-volfrac)      &
+                * Mw / ( density * Navogadro )
+     
+
+
+#SUBROUTINES
+
+#END

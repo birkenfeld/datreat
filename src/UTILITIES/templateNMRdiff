@@ -1,0 +1,34 @@
+#THEORY nmrdiff
+        for for pfg nmr diffsuion curves Zeitbereichdiffusion (Kärger), two-state model
+#CITE  
+J. Kaerger, Annalen der Physik 7 Band 27(1971) 107-109
+#PARAMETERS
+        ampli            ! prefactor 
+        diff1            ! diffusion constant 1
+        diff2            ! diffusion constant 2
+        tau1             ! lifetime 1
+        tau2             ! lifetime 2
+#RECIN-PARAMETERS    (allow 8 chars for name, start only beyond 8 with default)
+        delta       0    ! delta time of signal detection
+#RECOUT-PARAMETERS
+#VARIABLES
+     double precision   :: qq
+     double precision   :: a1, a2, p1p, p2p, p1, p2
+#IMPLEMENTATION
+     qq  = x
+
+     a1  = 0.5d0*(qq*(diff1+diff2) + 1d0/tau1 + 1d0/tau2)    &
+         -  sqrt( (qq*(diff2-diff1) + 1d0/tau2 - 1d0/tau1)**2 + 4d0/(tau1*tau2) )
+
+     a2  = 0.5d0*(qq*(diff1+diff2) + 1d0/tau1 + 1d0/tau2)    &
+         +  sqrt( (qq*(diff2-diff1) + 1d0/tau2 - 1d0/tau1)**2 + 4d0/(tau1*tau2) )
+
+     p1  = tau1/(tau1+tau2)
+     p2  = tau2/(tau1+tau2)
+     p2p = 1d0/(a1-a2) *(p1 * qq * diff1 + p2 * qq * diff2 - a1)
+     p1p = 1-p2p
+
+     th_nmrdiff = ampli * ( p1p*exp(-a1*delta) + p2p*exp(-a2*delta) )
+
+#SUBROUTINES
+#END

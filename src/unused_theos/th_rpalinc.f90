@@ -1,4 +1,4 @@
- FUNCTION th_rpalin(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
+ FUNCTION th_rpalinc(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
 !============================================================================
 !  applies rpa mixture tor the scattering function for a star-linear polymer micture and extends this into the dynamic regime (i.e. S(Q) --> S(Q,t))
 ! 
@@ -12,7 +12,7 @@
 !!    ====
 
 
-      real    :: th_rpalin
+      real    :: th_rpalinc
       character(len=8) :: thnam, parnam (*) 
       real    :: pa (*) 
       real    :: x , xh
@@ -60,6 +60,13 @@
 
      double precision :: diffmatc   ! diffusion linear matrix
      double precision :: betadifc   ! beta for that
+  
+     double precision :: alpha0     ! prefactor f alpha function
+     double precision :: talphamax  ! max tau in log
+     double precision :: talphawd   ! width in taulog
+     double precision :: aoffset    ! offset
+     double precision :: alphaq4    ! q**6 non Gaussian prefactor
+
 
 ! the recin parameter representation 
      double precision :: q          ! scattering wavevector
@@ -104,6 +111,8 @@
      double precision   :: Sinv0, Sinv
      double precision   :: local_reptation2
 
+     double precision   :: fqalpha
+
      double precision, parameter  :: t_table_spacing1 = 300d0 
      double precision, parameter  :: t_table_spacing2 = 100d0 
 ! exp(i*log(tmax*300d0)/nxpoints)/100d0
@@ -132,7 +141,7 @@
      double precision        :: tmax = 1000d0
      logical                 :: newcomp_required
      integer                 :: i
-     double precision        :: ts, rmsdev, rmsdev_limit = 2.5d-3
+     double precision        :: ts, rmsdev, rmsdev_limit = 9.9d-3
 
      double precision        :: ss11, ss110, ss12, ss120, ss22, ss220
 
@@ -150,18 +159,22 @@
 !
 ! ----- initialisation ----- 
     IF (ini.eq.0) then 
-       thnam = 'rpalin  '
-       nparx =       34
+       thnam = 'rpalinc '
+       nparx =       39
        IF (npar.lt.nparx) then
            WRITE (6,*)' theory: ',thnam,' no of parametrs=',nparx,' exceeds current max. = ',npar
-          th_rpalin = 0
+          th_rpalinc = 0
           RETURN
        ENDIF
        npar = nparx
 ! >>>>> describe theory with >>>>>>> 
        idesc = next_th_desc()
        th_identifier(idesc)   = thnam
-       th_explanation(idesc)  = " applies rpa mixture tor the scattering function for a star-linear polymer micture and extends this into the dynamic regime (i.e. S(Q) --> S(Q,t))"
+       th_explanation(idesc)  = " applies danamic rpa to the scattering function for a "//cr//parspace//&
+                                " lin-lin(long)  polymer mixture and extends this into  "//cr//parspace//&
+                                " with non-Gauss alpha (Guenza2014) on internal modes AND com diffusion "//cr//parspace//&
+                                " alpha(1) =alpha0*exp(-(((log(t+eps)-log(talpmax))/talpwd)**2)/2)+alpoff" !//cr//parspace//&
+
        th_citation(idesc)     = ""
 !       --------------> set the parameter names --->
         parnam ( 1) = 'ampli   '  ! prefactor
@@ -202,7 +215,11 @@
         parnam (30+2) = 'tzero   '  ! preliminary: effective zero time for S(Q,t=0=tzero)
         parnam (31+2) = 'tmaxrng '  ! maximum range that shall be spanned by creating the n-exp model
         parnam (32+2) = 'minrate '  ! minimum rate allowed in the exp models
-
+        parnam (33+2) = 'alpha0  '  !                                                     
+        parnam (34+2) = 'talpmax '  !                                                     
+        parnam (35+2) = 'talpwd  '  !                                                    
+        parnam (36+2) = 'alpoffs '  !    
+        parnam (36+3) = 'alphaq4 '  !    
 ! >>>>> describe parameters >>>>>>> 
         th_param_desc( 1,idesc) = "prefactor" !//cr//parspace//&
         th_param_desc( 2,idesc) = "rouse short liner chains rate (phirous)" !//cr//parspace//&
@@ -246,6 +263,11 @@
                                   "like 0.001 * tmax could be a good start to try"
         th_param_desc(31+2,idesc) = " maximum range that shall be spanned by creating the n-exp model" !//cr//parspace//&
         th_param_desc(32+2,idesc) = " minimum rate allowed in the exp models" !//cr//parspace//&
+        th_param_desc(33+2,idesc) = " amlitude of non-Gaussian term in Rouse  "  !  
+        th_param_desc(34+2,idesc) = " tau of maximum of non-Gaussiabity alpha(t) "  !   
+        th_param_desc(35+2,idesc) = " width of maximum of non Gaussianity "  !
+        th_param_desc(36+2,idesc) = " offset for non-Gaussianity alpha "  !    
+        th_param_desc(36+3,idesc) = " q**6 non-Gaussian prefcator "  !    
 ! >>>>> describe record parameters used >>>>>>>
         th_file_param(:,idesc) = " " 
         th_file_param(  1,idesc) = "q        > scattering wavevector"
@@ -263,7 +285,7 @@
 ! >>>>> describe record parameters creaqted by this theory >>>>>>> 
         th_out_param(:,idesc)  = " "
 ! 
-        th_rpalin = 0.0
+        th_rpalinc = 0.0
  
         RETURN
      ENDIF
@@ -306,7 +328,11 @@
       t0       = abs( pa(30+2))
       tmax     = abs( pa(31+2))
       rlow     = abs( pa(32+2))  ! parameter in rpa_laplace
-
+      alpha0   =      pa(33+2)
+      talphamax=  abs(pa(34+2))
+      talphawd =  abs(pa(35+2))
+      aoffset  =      pa(36+2)
+      alphaq4  =      pa(36+3)
 
       t0       = max(t0      ,tmin)
       nxpoints = max(nxpoints  ,16)
@@ -385,14 +411,15 @@ i1:  if( mode == 0 ) then     ! normal spin-echo
      endif i1
 
 
-      allparams(1:44) = [ wl4rous, dble(nrouseff), locr2_b, locr2_a, locr2_ta, locr2_lz, locr2_te, &
+      allparams(1:49) = [ wl4rous, dble(nrouseff), locr2_b, locr2_a, locr2_ta, locr2_lz, locr2_te, &
                          dble(nro_me) , re_me,   wl4     , betadif , q , dble(nrous), l, dble(f),   &
                          phirous, dble(nlin), philin, alin, arous, &
                          dble(nlin_cc),  &
                          lr2_b_c, lr2_a_c, lr2_ta_c, lr2_lz_c, lr2_te_c, &
                          dble(nro_me_c) , re_me_c,   wl4_c     , diffmatc, betadifc, difflin, betadifl, &
                          diff, r02, nu_subdiff, a_cross, beta_q , &
-                         dble(mode), dble(modeex), dble(nxpoints), t0, tmax, rlow ]  
+                         dble(mode), dble(modeex), dble(nxpoints), t0, tmax, rlow, &
+                         alpha0, talphamax, talphawd, aoffset, alphaq4 ]  
 
       newcomp_required = ( sum(abs(allparams-last_params)) .ne. 0 ) .and. (modeex > 0)
     
@@ -490,12 +517,20 @@ ilr: if( newcomp_required ) then
              Re_rous = sqrt(nrous * l**2)
 
              dr      = 1d-20
-             ifix    = 0
-             call  NrousePX(q,ts,temp,Dr,wl4rous,nrouseff,Re_rous, Wx, lx,ifix, sqt0,sqt)
+             if(alpha0 == 0d0) then
+               ifix    = 0
+               call  NrousePX(q,ts,temp,Dr,wl4rous,nrouseff,Re_rous, Wx, lx,ifix, sqt0,sqt)
+             else
+!               call nrousalpha(q,t ,temp,Dr,wl4    ,N,       R,       W,  l, pmin,pmax, Sq,Sqt)
+               call nrousalpha(q,ts,temp,Dr,wl4rous,nrouseff,Re_rous, Wx, lx, 1d0,dble(nrouseff), sqt0,sqt, fqalpha)
+             endif
+
              prous0 =  nrous  * Debye_qnl(q, nrous, l) 
 
              rr = ((exp(-log(r02/diff/6)*nu_subdiff)*r02*ts** nu_subdiff)** a_cross +&
                   (6*diff*ts)**a_cross)**(1d0/a_cross)
+
+             rr = fqalpha * rr
 
              s_samples(i) = sqt/sqt0 * exp( -(q*q*rr/6d0)**beta_q )
              prous        = prous0 * s_samples(i)
@@ -568,24 +603,24 @@ ilr: if( newcomp_required ) then
 
  select case(mode)  ! be sure that in the beginning the assignment of t, q are properly made (if i1:)
    case (0)
-       th_rpalin = Sqt/Sqt0
+       th_rpalinc = Sqt/Sqt0
 
   case (1) ! linear contribution at tau as function of q
-     th_rpalin = plin
+     th_rpalinc = plin
 
   case(2)  ! star contribution at tau  as function of q
-     th_rpalin = prous
+     th_rpalinc = prous
  
   case(3)  ! rpa contribution at tau as function of q
-      th_rpalin = Sqt
+      th_rpalinc = Sqt
 
   case default
      write(6,*)'invalid mode !'
-      th_rpalin = 0
+      th_rpalinc = 0
 
  end select
 
-  th_rpalin =  th_rpalin * ampli
+  th_rpalinc =  th_rpalinc * ampli
 
   call parset('nlin    ',(1.0*nlin),iadda) 
   call parset('nlin_cc ',(1.0*nlin_cc),iadda) 
@@ -618,7 +653,8 @@ ilr: if( newcomp_required ) then
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
- 
+!        subroutine nrousalpha(q,t,temp,Dr,wl4,N,R, W, l,pmin,pmax, Sq,Sqt)
+
 
        subroutine NrousePX(q,t,temp,Dr,wl4,N,R, W, l,ifx , Sq,Sqt)
 !      ========================================================
@@ -738,6 +774,159 @@ ilr: if( newcomp_required ) then
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
- end function th_rpalin
+
+       subroutine nrousalpha(q,t,temp,Dr,wl4,N,R, W, l,pmin,pmax, Sq,Sqt, fqq)
+!      ========================================================
+!
+! Rouse expression for a chain of finite length:
+! Input parameters:
+!    q     ----> momentum transfer in A**-1
+!    t     ----> time in nano-sec
+!    temp  ----> temperature in K
+!    Dr    ----> center of mass diffusion constant in A**2/ns, if 0 <-- Rouse-expectation
+!    wl4   ----> friction coefficient in A**4/ns
+!    N     ----> number of chain segments
+!    R     ----> end-to-end distance of the polymer molecule
+!    pmin  ----> minimum p
+!    pmax  ----> maximum p
+! Output parameters:
+!    W     <--- "Rouse factor" 3kT/(xi*l**2); R**2=N*l**2
+!    l     <--- "Segment length l"
+!    Sq    <--- S(Q)
+!    Sqt   <--- S(Q,t)
+! ------------------------------------------------------------
+!
+       implicit none
+
+       double precision kb, pi
+       parameter(kb=1.380662d-23)
+       parameter(pi=3.141592654d0)
+
+       double precision q,t,temp,Dr,xi,R, W,Sq,Sqt, wl4, pmin, pmax
+       integer N, nn,mm,ifix,ip
+
+       double precision l, tau_p, kbt, Sq0, arg1, arg2
+       double precision a0,e0, ff2, ffc,    arg10,arg20
+       double precision aa1 , aa2
+       double precision p, p0fix, pfac
+
+       double precision :: cosarray(N,N), ewfac(N)
+       double precision :: rmm, fqq, fqq0, q2rmm
+
+       integer :: ipmin, ipmax, i
+
+!       integer iout
+       
+       if(N.le.0) then
+         W  = 999
+         Sq = 999
+         Sqt= 999
+         write(6,*)'Error Number of chain segments is <= 0!',N
+         return
+       endif
+
+! write(*,*)"Talpha:",t,alpha(t),alpha0,talphamax,talphawd
+
+! ---- determine the segment length l ----
+       l = sqrt(R**2/N)       
+       
+! ---- and the Rousefactor ----
+       kbt = temp*kb            ! in Joule = kg*m**2/s**2
+       kbt = kbt * 100          ! in         kg*A**2/ns**2
+       xi  = 3*kbt*l**2 / wl4
+       W   = 3*kbt/(xi*(l**2))  ! in 1/ns
+
+
+! ---- set the diffusion constant if input is zero --- !
+       if(Dr.eq.0.0d0) then
+         Dr = kbt/(N*xi)
+       endif
+
+!$OMP PARALLEL DO     
+       do nn=1,N
+        do ip=1,N
+         cosarray(nn,ip) = cos((pi*ip*nn)/dfloat(N)) / ip 
+        enddo
+       enddo
+!$OMP END PARALLEL DO   
+
+!$OMP PARALLEL DO    
+       do i=1,N
+         ewfac(i) = (1d0-exp(-2*W*(1-cos((pi*i)/dfloat(N)))*t)) 
+       enddo
+!$OMP END PARALLEL DO    
+
+       ipmin = max(1,nint(pmin))
+       ipmax = min(N,nint(pmax))
+
+! ---- init sums ----
+       Sq0 = 0
+       Sq  = 0
+       Sqt = 0
+       ff2  = -2*N*(l*q)**2/(3*pi**2)
+
+! ---- Do the sums -----
+
+       rmm = 0
+!$OMP PARALLEL DO REDUCTION(+:rmm)
+       do mm = 1,N
+             rmm = rmm + 4d0*N*l**2/(pi**2) * &
+                   sum(cosarray(mm,ipmin:ipmax) * cosarray(mm,ipmin:ipmax) *  ewfac(ipmin:ipmax) )
+       enddo
+!$OMP END PARALLEL DO
+       rmm = rmm/N
+
+!       fqq  = 1d0 -q**2 * rmm/12d0 * alpha(t)       !! see Guenza PHYSICAL REVIEW E 89, 052603 (2014) Eq(4)
+!       fqq0 = 1d0 -q**2 * rmm/12d0 * alpha(0d0)     !! see Guenza PHYSICAL REVIEW E 89, 052603 (2014) Eq(4)
+       q2rmm = rmm * q**2
+       fqq  = 1d0 -(q2rmm-alphaq4*q2rmm**2)/12d0 * alpha(t)   !! see Guenza PHYSICAL REVIEW E 89, 052603 (2014) Eq(4)
+!       fqq0 = 1d0 -(q2rmm-alphaq4*q2rmm**2)/12d0 * alpha(0d0)  !! see Guenza PHYSICAL REVIEW E 89, 052603 (2014) Eq(4)
+! with a heuristic q**6 contribution with factor alphaq4 included
+
+
+!$OMP PARALLEL DO REDUCTION(+:Sq,Sqt)
+       do nn = 1,N
+        do mm = 1,N
+
+!          Sq  = Sq  + exp(- fqq0*(q**2)*(       abs(nn-mm)*(l**2)/6.0d0))
+!          Sqt = Sqt + exp(- fqq* (q**2)*(Dr*t + abs(nn-mm)*(l**2)/6.0d0) + &
+!                fqq*ff2* sum(cosarray(nn,ipmin:ipmax) * cosarray(mm,ipmin:ipmax) *  ewfac(ipmin:ipmax) ))
+
+          Sq  = Sq  + exp(- (q**2)*(       abs(nn-mm)*(l**2)/6.0d0))
+          Sqt = Sqt + exp(- (q**2)*(Dr*t + abs(nn-mm)*(l**2)/6.0d0) + &
+                fqq*ff2* sum(cosarray(nn,ipmin:ipmax) * cosarray(mm,ipmin:ipmax) *  ewfac(ipmin:ipmax) ))
+
+        enddo
+       enddo
+!$OMP END PARALLEL DO
+
+       Sq  = Sq /N
+       Sqt = Sqt/N
+
+!!       write(6,'(1x,a,6E14.6)')'q,t,Sq,Sqt, Sqt/Sq, w=', q,t,Sq,Sqt, Sqt/Sq, w 
+
+       return
+       end
+ 
+
+function alpha(t) result(a) !! see Guenza PHYSICAL REVIEW E 89, 052603 (2014) Eq(4)
+   double precision, intent(in) :: t
+   double precision             :: a
+
+! since "contained!  in th_nrosueaplha, the decribing parameters if not declared explictitly here
+!                                        are shared (common) with those of the th-function
+! the model
+   a = alpha0 * exp(-(((log(t+1d-3)-log(talphamax))/talphawd)**2) / 2d0) + aoffset
+   
+end function alpha
+
+
+
+
+
+
+
+
+ end function th_rpalinc
 
 

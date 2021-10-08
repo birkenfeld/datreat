@@ -1,0 +1,103 @@
+#THEORY zxratio 
+        impedance or RC bridge ratio for Quench detection
+#CITE
+        QC
+#PARAMETERS
+        R10              ! base resistor branch 1 
+        R20              ! base resistor branch 2
+        R11              ! series resistor for C1 in branch 1
+        R11p             ! parallel resistor for C1 in branch 1
+        C11              ! capacitance C1 in branch 2
+        R21              ! series resistor for C1 in branch 2
+        R21p             ! parallel resistor for C1 in branch 2
+        C21              ! capacitance C2 in branch 2
+        R12              ! series resistor for C2 in branch 1
+        R12p             ! parallel resistor for C2 in branch 1
+        C12              ! capacitance C2 in branch 2
+        R22              ! series resistor for C2 in branch 2
+        R22p             ! parallel resistor for C2 in branch 2
+        C22              ! capacitance C2 in branch 2
+        R13              ! series resistor for C3 in branch 1
+        R13p             ! parallel resistor for C3 in branch 1
+        C13              ! capacitance C3 in branch 2
+        R23              ! series resistor for C3 in branch 2
+        R23p             ! parallel resistor for C1 in branch 2
+        C23              ! capacitance C3 in branch 2
+#RECIN-PARAMETERS    (allow 8 chars for name, start only beyond 8 with default)
+        re_im             ! real imag selectopr
+#RECOUT-PARAMETERS
+        dummy             ! dummy
+#VARIABLES
+     double precision   :: freq
+     integer, parameter :: n = 3
+     integer            :: reim
+     double precision   :: R1(0:n), C1(1:n), R1p(1:n), R2(0:n), C2(1:n), R2p(1:n)
+#IMPLEMENTATION
+     freq   = x
+     reim   = nint(re_im)
+     R1     = [R10,R11,R12,R13]
+     R2     = [R20,R21,R22,R23]
+     C1     = [C11,C12,C13]
+     C2     = [C21,C22,C23]
+     R1p    = [R11p, R12p, R13p]
+     R2p    = [R21p, R22p, R23p]
+
+     th = zxratio(freq,reim , R1, C1, R1p, R2, C2, R2p, n ) 
+
+#SUBROUTINES
+ 
+function zxratio(freq, re_im, R1, C1, R1p, R2, C2, R2p, n ) result(zr)
+  implicit none
+  double precision, intent(in)  :: freq
+  integer         , intent(in)  :: re_im      ! select 1=Real part , 2=Imaginary, 0=abs
+  double precision, intent(in)  :: R1(0:)     ! Array with resistivity values of lower branch
+  double precision, intent(in)  :: C1(1:)     ! Array with capacitance values of lower branch
+  double precision, intent(in)  :: R1p(1:)    ! Array with R parallel capacitance values of lower branch
+  double precision, intent(in)  :: R2(0:)     ! Array with resistivity values of upper branch
+  double precision, intent(in)  :: C2(1:)     ! Array with capacitance values of upper branch
+  double precision, intent(in)  :: R2p(1:)    ! Array with R parallel capacitance values of upper branch
+  integer         , intent(in)  :: n          ! active parallel elements 1
+
+  double precision :: zr
+  double precision :: omega
+  double precision, parameter :: Pi=4d0*atan(1d0)
+  complex(kind=8) , parameter :: CI=(0d0,1d0)
+  complex(kind=8)  :: X1, X2, X12r
+  complex(kind=8)  :: Ya, Yb, YCa, YCb
+  integer          :: i
+
+  
+
+  omega = 2*Pi*freq
+
+  X1 = R1(0)
+  X2 = R2(0)
+
+  do i=1,n
+    YCa = 1d0/(CI*omega*C1(i) + 1d0/R1p(i))    
+    Ya = R1(i) + Yca 
+    YCb = 1d0/(CI*omega*C2(i) + 1d0/R2p(i))    
+    Yb = R2(i) + YCb 
+    X1 = 1d0/(1d0/X1+1d0/Ya)
+    X2 = 1d0/(1d0/X2+1d0/Yb)
+  enddo
+
+  X12r = X1/(X1+X2)
+  
+  select case(re_im)
+  case(0)
+    zr = abs(X12r)
+  case(1)
+    zr = Real(X12r)
+  case(2)
+    zr = Imag(X12r)
+  case default
+    write(*,*)"Error in zxratio: re_im = ",re_im," is not valid, return abs value as default"
+    zr = abs(X12r)
+  end select
+
+
+end function zxratio
+
+
+#END

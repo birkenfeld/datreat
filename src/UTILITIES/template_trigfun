@@ -1,0 +1,51 @@
+#THEORY p_fpi2
+        a * P(Ipi=x,Bx,By,Bz,lambda) Pi/2 flipper polarisation function 
+#CITE
+        
+#PARAMETERS
+        a                ! prefactor 
+        bx               ! longitudinal field in Gauss
+        by               ! transversal  field in Gauss
+        bz               ! vertical field in Gauss
+        turnpm           ! winding density in turns per m
+        d                ! thickness in m
+        lambda           ! wavelength in Angstroem
+#RECIN-PARAMETERS    (allow 8 chars for name, start only beyond 8 with default)
+  
+#RECOUT-PARAMETERS
+#VARIABLES
+#IMPLEMENTATION
+     th =  a * pol_of_fpi2(x)
+
+#SUBROUTINES 
+   function pol_of_fpi2(Ipi) result(P)
+     implicit none
+     double precision, intent(in) :: Ipi
+     double precision             :: P
+
+     double precision, parameter :: Pi                  =     3.141592653589793238462643d0
+     double precision, parameter :: Larmorkonstante     =     2916.469323d+4! (older: 2916.46943d+4) -> nist new   
+     double precision, parameter :: Mue0                =     1.25663706d-6
+     double precision, parameter :: Neutronenmasse      =     1.674927351d-27 
+     double precision, parameter :: Planckkonstante     =     6.62606957d-34
+     double precision, parameter :: Gauss_Tesla         =     1d-4
+     double precision, parameter :: mu0                 =     4*Pi*1d-7
+
+     double precision :: sigma, gam, lam, pref, Bpi2, arg, b2
+
+     gam   = 2*Pi* Larmorkonstante
+     sigma = d * gam * Neutronenmasse / Planckkonstante  
+     lam   = lambda * 1d-10
+     pref  = lam * sigma * Gauss_Tesla
+     Bpi2  = Ipi*turnpm*mu0 / Gauss_Tesla
+     b2    = bx**2+by**2+bz**2
+     arg   = (b2+2*bz*Bpi2+Bpi2**2)
+     P     = (cos(pref*sqrt(arg))*(Bpi2**2)*(b2-bz**2) +(b2+bz*Bpi2)**2)/(b2*arg)
+
+   end function pol_of_fpi2
+
+     
+      
+     
+
+#END

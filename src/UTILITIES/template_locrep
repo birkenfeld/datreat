@@ -1,0 +1,31 @@
+#THEORY spatcorr
+        reptation approach , Spatial correlations of entangled polymer dynamics, Jihong Ma
+#CITE   PHYSICAL REVIEW E 104, 024503 (2021)    
+        PHYSICAL REVIEW E 104, 024503 (2021)    
+#PARAMETERS
+        ampli            ! prefactor 
+        r2               ! msd-scale, prefactor to Kt2
+        tau              ! timescale
+        beta             ! spatial streching exponent
+        a                ! transition exponent in K(t)
+#RECIN-PARAMETERS    (allow 8 chars for name, start only beyond 8 with default)
+        q            0   ! q-value    default value
+#RECOUT-PARAMETERS
+#VARIABLES
+     double precision   :: t
+#IMPLEMENTATION
+     t  = x              ! since we prefer to call the independent variable t, x must be copied to t
+     th = ampli * exp(-(1d0/6d0)*(q*q*Kt2)**beta)
+
+#SUBROUTINES
+  function Kt2(t,a) result(val)
+    implicit none
+    double precision, intent(in)   :: t, a
+    double precision               :: val
+
+
+    val = r2/((1/(t/tau)**(1/4))**a+(1/sqrt(t/tau))**a)**(1/a)
+
+
+  end function Kt2
+#END

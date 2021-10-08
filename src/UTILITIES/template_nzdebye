@@ -1,0 +1,63 @@
+#THEORY nzdebye
+        two-setp approximation with Gaussian walks bolb(N,l) * coil of blobs(Z,sqrt(N)*l) 
+#CITE
+        
+#PARAMETERS
+        ampli            ! prefactor 
+        n                ! number of segments in blob
+        z                ! number of blobs in chain
+        l                ! effective segment length 
+        nu               ! exponent
+#RECIN-PARAMETERS    (allow 8 chars for name, start only beyond 8 with default)
+  
+#RECOUT-PARAMETERS
+        rg               ! radius of gyration
+#VARIABLES
+   double precision :: pq, rg, sq
+   integer          :: ni, nz
+#IMPLEMENTATION
+     q   = x
+     ni  = nint(n)
+     nz  = nint(z)
+     rg  =  l * dble(ni*nz)**nu / sqrt(6d0)
+     pq  = nndebye(q, l, nu, ni ) * nndebye(q, l*sqrt(n), nu, nz ) 
+
+#SUBROUTINES 
+
+
+function nndebye(q, l, nue,n ) result(val) 
+   implicit none
+   double precision ,intent(in) :: q           ! Q-value
+   double precision ,intent(in) :: l           ! effective segment length
+   double precision ,intent(in) :: nue         ! exponent
+   integer          ,intent(in) :: n           ! number of segments
+   double precision             :: val
+   
+   integer          :: i, j
+   double precision :: eterms(0:n-1)
+   double precision :: ql2, mu, Rg
+
+   ql2 = (1d0/6d0) * (q*l)**2
+   mu  = 2d0 * nue
+!  Rg  = sqrt((l*l*dble(n)**mu) / 6d0) )
+!$OMP PARALLEL DO    
+   do i=0,n-1
+     eterms(i) = exp(-ql2*dble(i)**mu)
+   enddo
+!$OMP END PARALLEL DO 
+   val = 0
+!$OMP PARALLEL DO REDUCTION(+:val)
+   do i=1,n
+    do j=1,n
+      val = val + eterms(abs(i-j))
+    enddo
+   enddo
+!$OMP END PARALLEL DO 
+
+   val = val / (n*n)
+ 
+end function nndebye
+
+
+
+#END

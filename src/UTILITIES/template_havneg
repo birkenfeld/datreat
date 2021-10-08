@@ -1,0 +1,50 @@
+#THEORY havneg 
+        Havriliak Negami function with tau following Vogel-Fulcher-Tamman tau=tau0 * exp(B/(T-Tvft))
+#CITE
+        Havriliak and Negami
+#PARAMETERS
+        amplitud         ! prefactor 
+        tau0             ! characteristic time 
+        B                ! Vogel-Fulcher B-Parameter
+        Tvft             ! Vogel-Fulcher Temperature
+        alpha            ! Havriliak Negami alpha
+        beta             ! Havriliak Negami beta
+#RECIN-PARAMETERS    (allow 8 chars for name, start only beyond 8 with default)
+        temp             300       ! temperature
+        re_im            2         ! 1=real (epsilon) else =-imag (epsilon)
+#RECOUT-PARAMETERS
+     dummy               0
+#VARIABLES
+     double precision   :: om
+     double precision   :: tau
+#IMPLEMENTATION
+     tau  = tau0 * exp(B/(temp-Tvft))
+     om   = x
+
+     th = amplitud * havneg(om,tau,alpha,beta,re_im)
+
+
+#SUBROUTINES
+     function  havneg(om,tau,alpha,beta,re_im) result(hn)
+       implicit none
+       double precision, intent(in) :: om
+       double precision, intent(in) :: tau
+       double precision, intent(in) :: alpha
+       double precision, intent(in) :: beta
+       double precision, intent(in) :: re_im
+
+       double precision             :: hn
+
+       complex(kind=8) :: y
+  
+       y = (1d0,0d0) / ( (1d0,0d0) + ((0d0,1d0)*om*tau)**alpha)**beta
+
+       if( nint(re_im) == 1) then
+        hn =  RealPart(y)
+       else
+        hn = -ImagPart(y)
+       endif
+
+     end function havneg
+
+#END

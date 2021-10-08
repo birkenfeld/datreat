@@ -1,0 +1,151 @@
+#THEORY ring
+        Dynamic scattering function for a polymer ring melt
+        as developed in the PRL of S. Goossen
+#CITE
+        S. Goossen et al., PRL 2014, 113, 168302
+#PARAMETERS
+        ampli            ! prefactor 
+        diff             ! limiting diffusion (NMR value) in [A**2/ns]
+        r021             ! reference mean squared displacement at first transition point to medium timed diff.
+        alpha            ! sub-diffusion  exponent of SHORT time diffusion 
+        r022             ! reference mean squared displacement at second transition point to D0 in [A**2]
+        beta             ! sub-diffusion  exponent of medium time diffusion
+        a_cross          ! transition exponent between short and long time diffusion (sharper kink for larger a)
+        n                ! number of segments in one ring 
+        lseg             ! effective segment length 
+        nue              ! chain statistics exponent (nu=0.5 => random walk, Gaussian)
+        wl4              ! Rouse rate in [A**4/ns]
+        pmin             ! transition mode number between simple ring-Rouse and large p modification
+        pwidth           ! sharpness of transition 
+        f0               ! prefactor f(p) limit for small p values (default 1)
+        finf             ! prefactor f(p) limit for large p values (default F=0.9??) transitin width is pwidth
+        tauinf           ! large p tau(p) = tauinf/p**pexinf
+        pexinf           ! large p tau(p) = tauinf/p**pexinf
+#RECIN-PARAMETERS    (allow 8 chars for name, start only beyond 8 with default)
+        q         0.1    ! q
+#RECOUT-PARAMETERS
+        Rg               ! predicted ring radius of gyration
+#VARIABLES
+     double precision :: t
+     double precision :: rr, nu
+#IMPLEMENTATION
+     t   = x
+     rr=((exp(((-alpha+beta)*log(r021/r022)+alpha*beta*(log(2d0)+log(3d0)-      &
+         log(r022/diff)))/beta)*r022*t**alpha)**a_corr+(exp((log(2d0)+log(3d0)- &
+         log(r022/diff))*beta)*r022*t**beta)**a_corr+(6d0*diff*t)**a_corr)**(1d0/a_corr)
+
+     nu  = 2*nue
+
+     call Nrouse_ring2(q,t,n)
+     th =  ampli *  exp(-rr * q*q / 6d0) * Sqt/Sq
+#SUBROUTINES
+ 
+! subroutines and functions entered here are private to this theory and share its variables 
+ 
+       subroutine Nrouse_ring2(q,t,N)
+!      ================================================================
+!
+! Rouse expression for a ring polymer
+! with Nb segments each, the ideal Ree of the linear version of the polymer is given by R.
+! amod contains mode modifiers
+! Input parameters: (polymer and model descriptor are contained shared with main )
+!    q     ----> momentum transfer in A**-1
+!    t     ----> time in nano-sec
+! Output parameters:
+!    Rg    <--- radius of gyration
+!    Sq    <--- S(Q)
+!    Sqt   <--- S(Q,t)
+! ------------------------------------------------------------
+!
+       implicit none
+
+       double precision kb, pi
+       parameter(kb=1.380662d-23)
+       parameter(pi=3.141592654d0)
+
+      
+
+       double precision, intent(in)     ::  q,t
+       integer, intent(in)              ::  N
+
+       integer                          ::  nn,mm,p
+
+       double precision :: ff2
+       double precision :: rate, tau_R, traf, W
+
+
+       double precision :: cosarray(0:N,N/2), ewfac(N/2)
+
+
+
+
+       integer          :: ip, N2
+
+
+       if(N.le.0) then
+         W  = 999
+         Sq = 999
+         Sqt= 999
+         write(6,*)'Error Number of chain segments is <= 0!',N
+         return
+       endif
+
+! ---- and the Rousetime ----
+       W     = Wl4 / l**4
+       tau_R = N**2/(W * Pi**2)
+
+! ---- init sums ----
+       N2 = N/2
+! p(even) = 2*ip in the following...
+
+!$OMP PARALLEL DO PRIVATE(traf)
+       do nn=0,N
+        do ip=1,N2
+         traf = 1d0/(1.0d0+exp((2d0*ip-pmin)/pwidth))
+         cosarray(nn,ip) = cos((pi*2*ip*(nn))/dfloat(N))               &
+                          /  (2*ip)**2                                 &
+                          *  (f0*(1d0-traf)+finf*(traf))
+        enddo
+       enddo
+!$OMP END PARALLEL DO
+
+
+!$OMP PARALLEL DO PRIVATE(rate,traf)
+       do ip=1,N/2
+         traf = 1d0/(1.0d0+exp((2d0*ip-pmin)/pwidth))
+         rate      = (2d0*ip)**2/tau_R*(1d0-traf) + (2d0*ip)**pexinf/tauinf * traf
+
+         ewfac(ip) = 1.0d0-exp(-t * rate )
+       enddo
+!$OMP END PARALLEL DO
+
+           Sq  = 0
+           Sqt = 0
+           Rg  = 0
+
+           ff2  = -2d0* dble(N)**nu *(l*q)**2/(3d0*pi**2)
+
+! ---- Do the sums -----
+!$OMP PARALLEL DO REDUCTION(+:Sq,Sqt,Rg)
+           do nn = 1,N
+            do mm = 1,N
+
+
+              Sq  = Sq  + exp(-((q*l)**2)/6d0 * ( dble(abs(nn-mm))*dble((N-abs(nn-mm)))/dble(N))**nu )
+              Sqt = Sqt + exp(-((q*l)**2)/6d0 * ( dble(abs(nn-mm))*dble((N-abs(nn-mm)))/dble(N))**nu  &
+                              + ff2*sum(cosarray(abs(nn-mm),1:N2)*ewfac(1:N2)) )
+
+              Rg  = Rg  + l**2  * ( dble(abs(nn-mm))*dble((N-abs(nn-mm)))/dble(N))**nu 
+
+            enddo
+           enddo
+!$OMP END PARALLEL DO
+
+           Sq  = Sq /N
+           Sqt = Sqt/N
+   
+           Rg  = sqrt(Rg/2d0/N**2)
+
+       end subroutine Nrouse_ring2
+
+#END

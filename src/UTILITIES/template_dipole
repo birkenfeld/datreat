@@ -1,0 +1,124 @@
+#THEORY dipolep
+        dipole field if dipole position is x +pol
+#CITE
+        dipole
+#PARAMETERS
+        ampli            ! prefactor 
+        ypos             ! y-position
+        zpos             ! z-position
+        xx1
+        mx1              ! moment_x
+        my1              ! moment_y
+        mz1              ! moment_z
+        xx2
+        mx2              ! moment_x
+        my2              ! moment_y
+        mz2              ! moment_z
+        xx3
+        mx3              ! moment_x
+        my3              ! moment_y
+        mz3              ! moment_z
+        xx4
+        mx4              ! moment_x
+        my4              ! moment_y
+        mz4              ! moment_z
+        xx5
+        mx5              ! moment_x
+        my5              ! moment_y
+        mz5              ! moment_z
+        px1              ! polarizable dipole1 pos x
+        px2              ! polarizable dipole2 pos x
+        px3              ! polarizable dipole3 pos x
+        pp               ! polarizability factor
+        p11              ! polmatrix
+        p12              !
+        p13              !
+        p21              !
+        p22              !
+        p23              !
+        p31              !
+        p32              !
+        p33              !
+#RECIN-PARAMETERS    (allow 8 chars for name, start only beyond 8 with default)
+        bcomponen    1   ! component of field
+        xsense   19.0    ! sensor coordinate x
+        ysense    7.     ! sensor coordinate y
+        zsense    0.     ! sensor coordinate z
+#RECOUT-PARAMETERS
+        ypos             ! y-position
+        zpos             ! z-position
+#VARIABLES
+   double precision :: xpos, rdipole(3), rauf(3), Bfeld(3), momemt(3), P(3,3), BfeldP(3)
+   integer          :: bcomp
+#IMPLEMENTATION
+     
+     xpos     = x
+     bcomp    =  nint(bcomponen)
+     rauf     =  [xsense, ysense, zsense] 
+     Bfeld    = 0
+     Bfeld    = bdipol( rauf,[ x, ypos+xx1, zpos] ,[ mx1, my1, mz1 ]) &
+              + bdipol( rauf,[ x, ypos+xx2, zpos] ,[ mx2, my2, mz2 ]) &
+              + bdipol( rauf,[ x, ypos+xx3, zpos] ,[ mx3, my3, mz3 ]) &
+              + bdipol( rauf,[ x, ypos+xx4, zpos] ,[ mx4, my4, mz4 ]) &
+              + bdipol( rauf,[ x, ypos+xx5, zpos] ,[ mx5, my5, mz5 ]) 
+
+     Bfeld    = ampli * Bfeld
+
+     BfeldP   = bdipol([ px1, px2, px3],[ x, ypos+xx1, zpos] ,[ mx1, my1, mz1 ]) &
+              + bdipol([ px1, px2, px3],[ x, ypos+xx2, zpos] ,[ mx2, my2, mz2 ]) &
+              + bdipol([ px1, px2, px3],[ x, ypos+xx3, zpos] ,[ mx3, my3, mz3 ]) &
+              + bdipol([ px1, px2, px3],[ x, ypos+xx4, zpos] ,[ mx4, my4, mz4 ]) &
+              + bdipol([ px1, px2, px3],[ x, ypos+xx5, zpos] ,[ mx5, my5, mz5 ]) 
+
+     BfeldP    = ampli * BfeldP
+
+
+
+     P(1,1:3) = [p11,p12,p13]
+     P(2,1:3) = [p21,p22,p23]
+     P(3,1:3) = [p31,p32,p33]
+
+     P        = P * pp
+     moment   = matmul(P,BfeldP )
+
+     Bfeld  =  Bfeld + bdipol( rauf,[ px1, px2, px3] , moment) 
+
+     th = Bfeld(comp)
+
+
+#SUBROUTINES
+
+!***********************************************************************
+!* bdipol  Magnetfeld eines Dipols m am Ort  x               
+!***********************************************************************
+
+function bdipol( r, x, m ) result (B)
+  implicit none
+  double precision, intent(in)    :: r(3)       ! Aufpunkt
+  double precision, intent(in)    :: x(3)       ! Dipolzentrum
+  double precision, intent(in)    :: m(3)       ! Richtung des Einheitsdipols
+  double precision                :: B(3)
+
+  double precision, dimension(3)  :: rs, mm
+  double precision                :: rr, m0
+  
+  double precision, parameter     :: mu_4pi = 1d-7
+
+  rs  = r - x
+  rr  = sqrt(dot_product(rs,rs))
+!  m0  = sqrt(dot_product(m,m))       ! to normalize m , this may or may not be desired ..
+!  if(m0 == 0d0) then
+!     B = 0
+!     return
+!  endif
+
+  mm = m
+
+  B = (mu_4pi/rr**5) * (3*rs*dot_product(mm,rs)-mm*rr**2)
+   
+end function bdipol
+ 
+
+
+
+#END

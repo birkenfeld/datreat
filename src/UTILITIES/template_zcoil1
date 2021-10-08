@@ -1,0 +1,33 @@
+#THEORY zcoil1
+        Absolute value of the impedance of a coil coupled to a conductive support
+        as function of the frequency
+#CITE
+#PARAMETERS
+        R                ! coil resistance
+        Rb               ! coil body resistance
+        L                ! coil inductance
+        Lb               ! coil body inductance
+        Lcb              ! mutual inductance (coil body)
+        C                ! effective parallel capacitance
+#RECIN-PARAMETERS    (allow 8 chars for name, start only beyond 8 with default)
+#RECOUT-PARAMETERS
+        k                ! coupling factor
+#VARIABLES
+     double precision :: omega
+#IMPLEMENTATION
+     omega   = 2*Pi*x
+     k       = Lcb/sqrt(L*Lb)
+     th = Zabs(omega)  
+#SUBROUTINES
+     function Zabs(om) result(Z)
+       double precision, intent(in) :: om
+       double precision             :: Z
+
+       Z=((L*Lb-Lcb**2)**2*om**4+(L**2*Rb**2+2*Lcb**2*R*Rb+Lb**2*R**2)*om**2+R**2*Rb**2) /  &
+          (C**2*(L*Lb-Lcb**2)**2*om**6+((L**2*Rb**2+2*Lcb**2*R*Rb+Lb**2*R**2)*C- &
+           2*L*Lb**2+2*Lb*Lcb**2)*C*om**4+(C**2*R**2*Rb**2-2*C*L*Rb**2+Lb**2)*om**2+Rb**2)
+
+       Z = sqrt(Z)
+
+     end function Zabs
+#END

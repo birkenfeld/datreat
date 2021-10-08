@@ -1,0 +1,9 @@
+makro _pstat_
+mkdir _pstat_
+
+cp last_plotsetting     _pstat_  
+cp datreat_plot_counter _pstat_
+cp lastselections       _pstat_
+cp lastusv              _pstat_
+cp last_datreat_content _pstat_ 
+

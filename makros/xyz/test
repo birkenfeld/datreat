@@ -1,0 +1,3 @@
+makro _a_
+mkdir _a_ 
+cp test _a_

@@ -1,0 +1,20 @@
+#THEORY hyperbra
+        Simple approach (Dolgushev) to the dynamics of hyperbranched denrimers:
+        exp(-q**2 * D * t) * exp(-(gam_q*q**q_exp)*t)**beta)
+#CITE
+#PARAMETERS
+        ampli            ! prefactor 
+        diff             ! center of mass diffusion
+        gam_q            ! rate prefactor    
+        q_exp            ! Gamma q exponent  
+        beta             ! streched exp 
+#RECIN-PARAMETERS    (allow 8 chars for name, start only beyond 8 with default)
+        q                ! q
+#RECOUT-PARAMETERS
+#VARIABLES
+     double precision :: t
+#IMPLEMENTATION
+     t   = x
+     th  = ampli * exp( -q*q*diff*t -((gam_q*q**q_exp)*t)**beta)
+#SUBROUTINES
+#END

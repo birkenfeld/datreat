@@ -1,0 +1,42 @@
+#THEORY name
+        hear a short description of what the theory with name (within datreat) does.               
+        It may contain several lines.
+        It will be displayed by datreat when the command "th name" is issued.
+#CITE
+        Put here any relevant literature references for information, displayed upon "th name"
+#PARAMETERS
+        nam_p1           ! first theory parameter (possibly fittable) named nam_p1 (typically here ampli=
+        nam_p2           ! second parameter with given name nam_p2
+        ...              ! further parameters may follow 
+        ...
+#RECIN-PARAMETERS    (allow 8 chars for name, start only beyond 8 with default)
+        nam_pjn1         defval1 ! name of parameter that is taken from the parameters section of each record
+        nam_pjn2         defval2 ! name of parameter that is taken from the parameters section of each record
+        ...           ...        ! name of parameter that is taken from the parameters section of each record
+#RECOUT-PARAMETERS
+        pjout1               ! name of any record j associated parameters that shall be set/modified by the theory
+        pjout2               ! next, if applies
+        ...                  ! until finished
+#VARIABLES
+        double precision :: list of fortran variables that shall be used
+        integer          ::  "
+#IMPLEMENTATION
+     xvar   = x              ! extract the x-value and copy it to the variable name you want to use for x
+     ...                     ! valid fortran staements
+     ...                     ! that compute the desired function result stored say on a variable y
+     th  = y                 ! this will be returnde as function value
+
+#SUBROUTINES
+
+    here add any subroutines and functions to be used to compute results needed to arrive at the value for 
+    y.
+
+    Note: these will be appended to the theory function by a CONTAINS statement. This means that
+    variables that are defined above (i.e. defined in the proper th-function that emerges) are also
+    known to the here located subroutines (like former COMMON) without the need of any specification.
+    HOWEVER, if a variable with the same name is defined locally in one of the subroutines it is
+    local to that subroutine and NOT shared with the other parts of the program.
+
+    Further CONTAINS avoids name conflicts with equally named subroutines/functions used in other
+    theories. As a consequence the here entered subroutines are only visible to this theory.
+#END

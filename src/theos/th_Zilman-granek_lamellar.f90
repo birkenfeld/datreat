@@ -133,7 +133,7 @@
                                                                         
 
         epsro = 1.d-6 
-        maxitro = 1.d8 
+        maxitro = 1000 
         erracro = 0.0d0 
                                                                         
         romin = na*aa 
@@ -177,7 +177,7 @@
 !        pi = 4.*atan(1.) 
                                                                         
         epsu = 1.d-8 
-        maxitu = 1.d8 
+        maxitu = 1000 
         erracu = 0.0d0 
                                                                         
 !        sigma = axi*xi                                                 

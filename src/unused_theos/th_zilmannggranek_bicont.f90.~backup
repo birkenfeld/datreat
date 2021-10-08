@@ -1,260 +1,240 @@
-        function th_zglam(x,pa,thnam,parnam,npar,ini, nopar ,params,napar,mbuf) 
-!       ===================================================             
+       function th_zgbicbic(x,pa,thnam,parnam,npar, ini, nopar ,params,napar,mbuf) 
+!      ===================================================              
 !                                                                       
-! -------> zilman-granek for lammelar phase  <--------                  
+!       zilman-granek for bicontinuous phase
+!
+         ! cite:
+         ! M. Monkenbusch et al., CONDENSED MATTER J. Phys.: Condens. Matter 17 (2005) S2903–S2909
+         ! doi:10.1088/0953-8984/17/31/017
+         ! and the Original Zilman Granek PRL 
+         
 !                                                                       
-!                                                                       
-        implicit none                                                  
 
-
-        real, intent(in)       :: x, pa(20)
-        character*8            :: thnam
-        character*8            :: parnam(20)
-        integer                :: npar
-        integer, intent(in)    :: ini
-        integer                :: mbuf
-        integer, intent(inout) :: nopar                 ! Anzahl der Parameter data
+!        implicit none                                                  
+        CHARACTER(8) thnam,parnam (20) 
+        DIMENSION pa (20), qq (3) 
+        integer :: mbuf
+		integer, intent(inout) :: nopar                 ! Anzahl der Parameter data
         character*80, intent(inout) :: napar(mbuf)      ! name des parameters n
-        real, intent(inout)    :: params(mbuf)          ! value des parameters n
-
-        real                   :: q, q_para, q_perp
-        double precision       :: Pi
-        parameter(Pi=3.1415952d0)
-
-
-        integer                :: ier, nparx
-        real                   :: th_zglam, th_zglam_0
-
-
-        integer i, ifail, maxitro 
-        integer na 
-        real*8 epsro, erracro, romin, romax 
-        real*8 a_miu, a_ro, miu, ro, qu, sum_u, sum_ro 
-        real*8 qh, akappa, eta, xi, aa, ti, axi, sint2   
-        real*8 sigma, amp 
-        real*8 f_ro, s17aef, zadapint 
-        real*8 o_q, o_xi, o_axi, o_aa, o_na, o_akappa, o_eta, o_amp 
-        common/com_pa/qh, akappa, eta, xi, aa, ti, sint2, axi, na 
-        real*8 lbar, sigtx
-        common/com_pa2/ lbar, sigtx
-        common/miuro/ro 
+		real, intent(inout) :: params(mbuf)             ! value des parameters n
+		INTEGER i, ifail, lim, npts, nxi, na
+        REAL(8) ti, ws 
+        REAL(8) a_miu, a_ro, miu, ro, qu, sum_u, sum_ro 
+        REAL(8) akappa, eta, omega, aa, qh, axi, amp 
+        REAL(8) a1, a2, sigma, xi, pi 
+        REAL(8) f_miu, s17aef, d01ahf, eps, errrel
+        REAL(8)  o_na, o_nxi 
+        REAL(8) o_q, o_xi, o_aa, o_akappa, o_eta, o_axi, o_amp 
                                                                         
-        save o_q, o_xi, o_axi, o_aa, o_na, o_akappa, o_eta, o_amp 
+        common/com_pa/qh, akappa, eta, xi, aa, axi, amp, ti, ws, nxi, na 
+        common/miuro/miu, ro 
+                                                                        
+        save o_q, o_xi, o_nxi, o_aa, o_na, o_akappa, o_eta, o_axi, o_amp 
         logical changed 
                                                                         
-
+        data zpi/6.283185/ 
                                                                         
-        external f_ro 
+        external f_miu 
 !                                                                       
 ! ----- initialisation -----                                            
        if(ini.eq.0) then 
-         thnam = 'zglam1' 
-         nparx = 9 
+         thnam = 'zgbic' 
+         nparx = 8 
          if(npar.lt.nparx) then 
            write(6,1)thnam,nparx,npar 
     1      format(' theory: ',a8,' no of parametrs=',i8,                &
      &      ' exceeds current max. = ',i8)                              
-           th_zglam  = 0 
+           th_zgbic  = 0 
            return 
          endif 
          npar = nparx 
 !        --------------> set the number of parameters                   
          parnam(1) = 'xi' 
-         parnam(2) = 'axi' 
+         parnam(2) = 'nxi' 
          parnam(3) = 'aa' 
          parnam(4) = 'na' 
          parnam(5) = 'akappa' 
          parnam(6) = 'eta' 
-         parnam(7) = 'amp' 
-         parnam(8) = 'lbar'   !! distance from surface
-         parnam(9) = 'sigtx'  !! tension in kT/A**2
+         parnam(7) = 'axi' 
+         parnam(8) = 'amp' 
                                                                         
-         th_zglam = 0 
+         th_zgbic = 0 
          return 
        endif 
 !                                                                       
 ! ---- calculate theory here -----                                      
-                             !!--> correlation length                  
-       xi  = abs(pa(1)) 
-                             !!--> scaling factor of the limit over the
-       axi = pa(2) 
-                             !! vector (k) spectrum k_min=pi/(
-       aa  = abs(pa(3)) 
-                             !!--> short wavelength limit k_max=pi/(na 
+                          !!--> correlation length                      
+       xi  = pa(1) 
+                          !!--> additional scaling factor for r_max limi
+       nxi = pa(2) 
+                          !!--> molecular size [A]                      
+       aa = pa(3) 
+                          !!--> na=0                                    
        na = pa(4) 
-                             !!--> bending modulus (k_BT)              
-       akappa = abs(pa(5)) 
-                             !!--> solvent viscosity [k_BT A^3/ns]     
-       eta = abs(pa(6)) 
-                             !!--> should be ~ 1                         
-       amp = abs(pa(7)) 
-
-       lbar = abs(pa(8))     !! distance from surface   see Ref. Seifert PRE49,3124,(1994) [Eq 10]
-       sigtx= abs(pa(9))     !! tension in kT/A**2,     see Ref. Seifert PRE49,3124,(1994) [Eq 16]   
-       
+                          !!--> bending modulus [k_BT]                  
+       akappa = pa(5) 
+                          !!--> solvent viscosity [k_BT A^3/ns]         
+       eta = pa(6) 
+                          !!--> scaling factor of the limit over the mod
+       axi = pa(7) 
+                                !! vector (k) spectrum: k_min=pi/(axi xi
+                          !!--> scaling factor amp*S(q,t)/S(q)          
+       amp = pa(8) 
                                                                         
-       q = 0.0d0 
                                                                         
        call  getpar('q       ',q,nopar ,params,napar,mbuf, ier) 
-       q = abs(q) 
-       q_para = 0.001
-       q_perp = 0.0
-       call  getpar('q_para  ',q_para,nopar ,params,napar,mbuf, ier) 
-       call  getpar('q_perp  ',q_perp,nopar ,params,napar,mbuf, ier)
-
-       if(q .eq. 0.0) then
-          q = sqrt(q_para**2+q_perp**2)
-       endif       
-       sint2 = q_para / q
-
-       call  setpar('q       ',q,nopar ,params,napar,mbuf, ier) 
-       call  setpar('q_para  ',q_para,nopar ,params,napar,mbuf, ier) 
-       call  setpar('q_perp  ',q_perp,nopar ,params,napar,mbuf, ier)
+       q=abs(q) 
                                                                         
                                                                         
-!       if (o_q.NE.q.OR.o_xi.NE.xi.OR.o_axi.NE.axi.OR.o_aa.NE.aa.OR.     &
-!     &    o_na.NE.na.OR.o_akappa.NE.akappa.OR.o_eta.NE.eta.OR.          &
-!     &    o_amp.NE.amp) then                                            
-!                                                                        
-!         changed = .true. 
-!         o_q = q 
-!         o_xi = xi 
-!         o_axi = axi 
-!         o_aa = aa 
-!         o_na = na 
-!         o_akappa = akappa 
-!         o_eta = eta 
-!         o_amp = amp 
-!       else 
-!          changed = .false. 
-!       endif 
-!                                                                        
-        qh = q 
+       if (o_q.NE.q.OR.o_xi.NE.xi.OR.o_nxi.NE.nxi.OR.o_aa.NE.aa.OR.     &
+     &  o_na.NE.na.OR.o_akappa.NE.akappa.OR.o_eta.NE.eta.OR.            &
+     &  o_axi.NE.axi.OR.o_amp.NE.amp) then                           
                                                                         
-
-        epsro = 1.d-6 
+         changed = .true. 
+         o_q = q 
+         o_xi = xi 
+         o_nxi = nxi 
+         o_aa = aa 
+         o_na = na 
+         o_akappa = akappa 
+         o_eta = eta 
+         o_axi = axi 
+         o_amp = amp 
+       else 
+          changed = .false. 
+       endif 
+                                                                        
+       qh = q 
+       pi = 4.*atan(1.) 
+       a1 = 0.0d0 
+       a2 = 1.0d0 
+                                                                        
+       eps = 1.d-4 
+       lim = 5.d3 
+       ifail = -1
+       errrel = 0.1
+       npts = 1000 
+       ti = x 
+       write(*,*) 'q=', qh 
+       write(*,*) 't=', ti 
+                                                                        
+                                                                        
+       if (changed) then 
+         th_zgbic_0 = d01ahf(a1, a2, eps, npts, errrel, f_miu, lim, ifail) 
+         call  setpar('th_zgbic_0 ',th_zgbic_0,nopar ,params,napar,mbuf, ier) 
+        write(*,*) 'th0=', th_zgbic_0 
+       endif 
+                                                                        
+       call  getpar('th_zgbic_0 ',th_zgbic_0,nopar ,params,napar,mbuf, ier) 
+       th_zgbic = d01ahf(a1, a2, eps, npts, errrel, f_miu, lim, ifail) 
+       th_zgbic = amp*th_zgbic/th_zgbic_0 
+       write(*,*)'th_zgbic, th_zgbic_0, amp=',th_zgbic, th_zgbic_0, amp
+!                                                                       
+       return 
+       END                                           
+                                                                        
+         real*8 function f_miu(a_miu) 
+!====================================================================   
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
+        implicit none 
+        integer i, ifail, maxitro, nxi, na 
+        real*8 a_miu, miu, ro 
+        real*8 qh, akappa, eta, xi, aa, axi, amp 
+        real*8 ti, ws 
+        real*8 romin, romax, sigma 
+        real*8 pi, epsro, erracro 
+        real*8 f_ro1, radapint, s17aef, sum_ro 
+        common/com_pa/qh, akappa, eta, xi, aa, axi, amp, ti, ws, nxi, na 
+        common/miuro/miu, ro 
+                                                                        
+        external f_ro1 
+                                                                        
+        miu = a_miu 
+        pi = 4.*atan(1.) 
+                                                                        
+        epsro = 1.d-8 
         maxitro = 1.d8 
         erracro = 0.0d0 
                                                                         
         romin = na*aa 
-        romax = axi*xi 
+        romax = nxi*axi*xi 
+                                                                        
+        sum_ro = radapint(f_ro1, romin, romax, epsro, maxitro, erracro) 
+                                                                        
+        f_miu = sum_ro 
+                                                                        
+        return 
+       END                                           
                                                                         
                                                                         
-        ti = 0.0 
-        th_zglam_0 = zadapint(f_ro, romin, romax, epsro, maxitro, erracro) 
-                                                      
-        ti = x 
-        th_zglam   = zadapint(f_ro, romin, romax, epsro, maxitro, erracro) 
-
-        
-        th_zglam = amp*th_zglam/th_zglam_0 
-
-!                                                                       
-       return 
-      END                                           
-                                                                        
-                                                                        
-        real*8 function f_ro(a_ro) 
+        real*8 function f_ro1(a_ro) 
 !====================================================================   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
         implicit none 
-        integer i, ifail, maxitu 
-        integer  na 
+        integer i, ifail, maxitu, nxi, na 
         real*8 a_ro, miu, ro 
-        real*8 qh, akappa, eta, xi, aa, ti, axi, sint2 
+        real*8 qh, akappa, eta, xi, aa, axi, amp 
+        real*8 ti, ws 
         real*8 umin, umax, sigma 
-        real*8 epsu, erracu 
-        real*8 f_u, uadapint, DBESJ0, sum_u 
-        common/com_pa/qh, akappa, eta, xi, aa, ti, sint2, axi, na 
-        real*8 lbar, sigtx
-        common/com_pa2/ lbar, sigtx
-        common/miuro/ro 
-        double precision       :: Pi
-        parameter(Pi=3.1415952d0)
+        real*8 pi, epsu, erracu 
+        real*8 f_u1, uadapin1, s17aef, sum_u 
+        common/com_pa/qh, akappa, eta, xi, aa, axi, amp, ti, ws, nxi, na 
+        common/miuro/miu, ro 
                                                                         
-        external f_u 
+        external f_u1 
         ro = a_ro 
-!        pi = 4.*atan(1.) 
+        pi = 4.*atan(1.) 
                                                                         
-        epsu = 1.d-8 
+        epsu = 1.d-6 
         maxitu = 1.d8 
         erracu = 0.0d0 
                                                                         
-!        sigma = axi*xi                                                 
-                           !! set the limits of integration k_min and k_
+        sigma = axi*xi 
+                                                                        
         umin = pi/(axi*xi) 
-                           !! over the undulation mode spectrum         
         umax = pi/aa 
                                                                         
         ifail=-1 
                                                                         
-!       write(*,*)'cost2=', dsqrt(1.d0-sint2**2)                        
+        sum_u = uadapin1(f_u1, umin, umax, epsu, maxitu, erracu) 
                                                                         
-        sum_u = uadapint(f_u, umin, umax, epsu, maxitu, erracu) 
+        f_ro1 =a_ro*Bessel_JN(0,qh*a_ro*sqrt(1-miu**2))*               &
+     &        exp(-1./(2.*pi*akappa)*miu**2*qh**2*sum_u                 &
+     &        -a_ro**2/(2.*sigma**2))                                   
                                                                         
-        f_ro = a_ro*DBESJ0(qh*a_ro*sint2)*                        &
-     &         exp(-(1.d0-sint2**2)*qh**2*sum_u/(2d0*Pi))    
-
-
-
-
-
-
-  
-!     *         -a_ro**2/(2.*sigma**2)) !! the smooth cutoff using a gau
-                                        !! no more necessary!           
                                                                         
         return 
-      END                                           
+       END                                           
                                                                         
                                                                         
-        real*8 function f_u(u) 
+        real*8 function f_u1(u) 
 !====================================================================   
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!   
         implicit none 
-        integer i, ifail 
-        integer  na 
-        real*8 ro, u, umin, umax, sigma, miu 
-        real*8 qh, akappa, eta, xi, aa, ti, axi, sint2 
-        real*8 sigmau, omega 
-!        real*8 s17aef 
-        common/com_pa/qh, akappa, eta, xi, aa, ti, sint2, axi, na 
-        real*8 lbar, sigtx
-        common/com_pa2/ lbar, sigtx
-        common/miuro/ro 
-
-        double precision       :: kl,gam,eqx,gnom, DBESJ0
-        double precision       :: Pi
-        parameter(Pi=3.1415952d0)
+        integer i, ifail, nxi, na 
+        real*8 pi, ro, u, umin, umax, sigma, miu 
+        real*8 qh, akappa, eta, xi, omega, aa, axi, amp 
+        real*8 ti, sigmau, ws 
+        real*8 s17aef 
+        common/com_pa/qh, akappa, eta, xi, aa, axi, amp, ti, ws, nxi, na 
+        common/miuro/miu, ro 
                                                                         
-!        pi = 4.*atan(1.) 
+        pi = 4.*atan(1.) 
                                                                         
-!!! expresion for the rate dispersion of a membrane adjacent to a wall in distance lbar
-!!! from Ref. Seifert, PRE 49, 3124 (1994) Eq.(10)
-
-        kl    = u*lbar
-        gnom  = 2*eta*u*(sinh(kl)**2-(kl**2)+sinh(kl)*cosh(kl)+kl)
-        gam   = (sinh(kl)**2-(kl**2))/gnom  
-        eqx   = akappa*(u**4+xi**(-4))+sigtx*u**2          !! Ref. Seifert, Eq (16)
-
-
-                                                    
-!!        omega = akappa*u**3/(4.0d0*eta)
-        omega = gam*eqx
+        ifail=-1 
                                                                         
-        f_u = (1.d0-exp(-omega*ti)* DBESJ0(u*ro)) * u/eqx                                                 
-
-
-
-
-!     *(1.-exp(-u**2/(2.*sigmau**2)))                                   
+        omega = akappa/(4.0d0*eta) 
+!        write(*,*) 'omega=', omega                                     
+                                                                        
+        f_u1 = (1.d0-exp(-omega*ti*u**3)*Bessel_JN(0,u*ro, ifail))*          &
+     &        1.d0/u**3                                                 
                                                                         
                                                                         
         return 
-      END                                           
+       END                                           
                                                                         
                                                                         
-       function zgaus8a (f,xu,xo) 
+       function rgaus8a (f,xu,xo) 
 !-----------------------------------------------------------------------
 !      8-punkte gauss-integration  : int(f,xu..xo)  2te kopie wg. rekur.
 !-----------------------------------------------------------------------
@@ -277,29 +257,30 @@
        do i=1,ndim2 
          sum = sum + a(i)*( f(xave+range*x(i))+ f(xave-range*x(i)) ) 
        enddo 
-       zgaus8a = sum * range 
+       rgaus8a = sum * range 
                                                                         
        return 
-      END                                           
+       END                                           
 !*ds                                                                    
 !*ed                                                                    
-       function zadapint(f,a,b,epsilon,maxiter,erroraccu) 
+       function radapint(f,a,b,epsilon,maxiter,erroraccu) 
 !      =================================================                
 !                                                                       
 !      lokal adaptives integrationsverfahren 2te ver. wg. rekur.        
 !                                                                       
+       use outlev
        implicit real*8 (a-h,o-z) 
 !                                                                       
        parameter( maxstack = 200 ) 
 !                 --------------->  stacktiefe                          
        dimension s(0:maxstack), xa(0:maxstack), xb(0:maxstack) 
 !                                                                       
-       logical cray 
+!       logical cray 
 !!     common/outlev/iot,ibild,ierrs,inka, cray                         
                                                                      !! 
-       real*4 xxxx,yyyy,ptxf 
+!       real*4 xxxx,yyyy,ptxf 
                                                                      !! 
-       common/outlev/iot ,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20) 
+!       common/outlev/iot ,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20) 
 !                                                                       
        external f 
 !                                                                       
@@ -311,7 +292,7 @@
          itop      = 0 
          xa(itop)  = a 
          xb(itop)  = b 
-         s(itop)   = zgaus8a( f, a, b ) 
+         s(itop)   = rgaus8a( f, a, b ) 
                                                                         
          do i=1,maxiter 
            if (itop.ge.(maxstack-2)) then 
@@ -328,11 +309,11 @@
               itop             = itop +1 
               xa(itop) = (xa(itop-1)+xb(itop-1))*0.5d0 
               xb(itop) =  xb(itop-1) 
-              s(itop)  = zgaus8a( f, xa(itop), xb(itop) ) 
+              s(itop)  = rgaus8a( f, xa(itop), xb(itop) ) 
               itop             = itop +1 
               xa(itop) =  xa(itop-2) 
               xb(itop) =  xa(itop-1) 
-              s(itop)  = zgaus8a( f, xa(itop), xb(itop) ) 
+              s(itop)  = rgaus8a( f, xa(itop), xb(itop) ) 
               error   =  dabs((s(itop)+s(itop-1))-s(itop-2)) 
                                                                         
               if (iot.gt.2) then 
@@ -356,17 +337,17 @@
             if (itop.le.0) goto 3 
          enddo 
          write(6,*)                                                     &
-     &   'zadapint fatal error iterationnumber exceeded!'               
+     &   'radapint fatal error iterationnumber exceeded!'               
     3    continue 
                                                                         
                                                                         
-         zadapint = erg 
+         radapint = erg 
                                                                         
          return 
                                                                         
-      END                                           
+       END                                           
                                                                         
-       function ugaus8a (f,xu,xo) 
+       function ugaus8a1 (f,xu,xo) 
 !-----------------------------------------------------------------------
 !      8-punkte gauss-integration  : int(f,xu..xo)  2te kopie wg. rekur.
 !-----------------------------------------------------------------------
@@ -389,29 +370,30 @@
        do i=1,ndim2 
          sum = sum + a(i)*( f(xave+range*x(i))+ f(xave-range*x(i)) ) 
        enddo 
-       ugaus8a = sum * range 
+       ugaus8a1 = sum * range 
                                                                         
        return 
-      END                                           
+       END                                           
 !*ds                                                                    
 !*ed                                                                    
-       function uadapint(f,a,b,epsilon,maxiter,erroraccu) 
+       function uadapin1(f,a,b,epsilon,maxiter,erroraccu) 
 !      =================================================                
 !                                                                       
 !      lokal adaptives integrationsverfahren 2te ver. wg. rekur.        
-!                                                                       
+!      
+       use outlev                                                                 
        implicit real*8 (a-h,o-z) 
 !                                                                       
        parameter( maxstack = 200 ) 
 !                 --------------->  stacktiefe                          
        dimension s(0:maxstack), xa(0:maxstack), xb(0:maxstack) 
 !                                                                       
-       logical cray 
+!       logical cray 
 !!     common/outlev/iot,ibild,ierrs,inka, cray                         
                                                                      !! 
-       real*4 xxxx,yyyy,ptxf 
+!       real*4 xxxx,yyyy,ptxf 
                                                                      !! 
-       common/outlev/iot ,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20) 
+!       common/outlev/iot ,ibild,ierrs,inka,iibuf,xxxx,yyyy,ptxf(20) 
 !                                                                       
        external f 
 !                                                                       
@@ -423,7 +405,7 @@
          itop      = 0 
          xa(itop)  = a 
          xb(itop)  = b 
-         s(itop)   = ugaus8a( f, a, b ) 
+         s(itop)   = ugaus8a1( f, a, b ) 
                                                                         
          do i=1,maxiter 
            if (itop.ge.(maxstack-2)) then 
@@ -440,11 +422,11 @@
               itop             = itop +1 
               xa(itop) = (xa(itop-1)+xb(itop-1))*0.5d0 
               xb(itop) =  xb(itop-1) 
-              s(itop)  = ugaus8a( f, xa(itop), xb(itop) ) 
+              s(itop)  = ugaus8a1( f, xa(itop), xb(itop) ) 
               itop             = itop +1 
               xa(itop) =  xa(itop-2) 
               xb(itop) =  xa(itop-1) 
-              s(itop)  = ugaus8a( f, xa(itop), xb(itop) ) 
+              s(itop)  = ugaus8a1( f, xa(itop), xb(itop) ) 
               error   =  dabs((s(itop)+s(itop-1))-s(itop-2)) 
                                                                         
               if (iot.gt.2) then 
@@ -468,12 +450,12 @@
             if (itop.le.0) goto 3 
          enddo 
          write(6,*)                                                     &
-     &  'uadapint fatal error iterationnumber exceeded!'                
+     &   'uadapin1 fatal error iterationnumber exceeded!'               
     3    continue 
                                                                         
                                                                         
-         uadapint = erg 
+         uadapin1 = erg 
                                                                         
          return 
                                                                         
-      END                                           
+       END                                           

@@ -14,15 +14,6 @@
            goto 250
 2        continue
            if(imu) then
-              sum=sum*th_ddiavo(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
-           elseif(iins) then
-               sum=th_ddiavo(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
-           else
-               sum=sum+th_ddiavo(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
-           endif
-           goto 250
-3        continue
-           if(imu) then
               sum=sum*th_kohlfast(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
            elseif(iins) then
                sum=th_kohlfast(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
@@ -30,7 +21,7 @@
                sum=sum+th_kohlfast(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
            endif
            goto 250
-4        continue
+3        continue
            if(imu) then
               sum=sum*th_kohl_q(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
            elseif(iins) then
@@ -39,7 +30,7 @@
                sum=sum+th_kohl_q(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
            endif
            goto 250
-5        continue
+4        continue
            if(imu) then
               sum=sum*th_ln_bss(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
            elseif(iins) then
@@ -48,7 +39,7 @@
                sum=sum+th_ln_bss(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
            endif
            goto 250
-6        continue
+5        continue
            if(imu) then
               sum=sum*th_nrouse3(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
            elseif(iins) then
@@ -57,13 +48,22 @@
                sum=sum+th_nrouse3(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
            endif
            goto 250
-7        continue
+6        continue
            if(imu) then
               sum=sum*th_eval(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
            elseif(iins) then
                sum=th_eval(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
            else
                sum=sum+th_eval(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),mbuf,1)
+           endif
+           goto 250
+7        continue
+           if(imu) then
+              sum=sum*th_zglam(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
+           elseif(iins) then
+              sum=th_zglam(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
+           else
+               sum=sum+th_zglam(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 8        continue
@@ -131,15 +131,6 @@
            goto 250
 15        continue
            if(imu) then
-              sum=sum*th_diffonsphere(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
-           elseif(iins) then
-              sum=th_diffonsphere(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
-           else
-               sum=sum+th_diffonsphere(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
-           endif
-           goto 250
-16        continue
-           if(imu) then
               sum=sum*th_diffusion(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
               sum=th_diffusion(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
@@ -147,7 +138,34 @@
                sum=sum+th_diffusion(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
+16        continue
+           if(imu) then
+              sum=sum*th_dipole(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
+           elseif(iins) then
+              sum=th_dipole(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
+           else
+               sum=sum+th_dipole(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
+           endif
+           goto 250
 17        continue
+           if(imu) then
+              sum=sum*th_dipolep(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
+           elseif(iins) then
+              sum=th_dipolep(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
+           else
+               sum=sum+th_dipolep(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
+           endif
+           goto 250
+18        continue
+           if(imu) then
+              sum=sum*th_dipole3(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
+           elseif(iins) then
+              sum=th_dipole3(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
+           else
+               sum=sum+th_dipole3(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
+           endif
+           goto 250
+19        continue
            if(imu) then
               sum=sum*th_dlocrepx(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
@@ -156,7 +174,7 @@
                sum=sum+th_dlocrepx(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
-18        continue
+20        continue
            if(imu) then
               sum=sum*echotrig2(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
@@ -165,7 +183,7 @@
                sum=sum+echotrig2(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
-19        continue
+21        continue
            if(imu) then
               sum=sum*thgauss(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
@@ -174,7 +192,7 @@
                sum=sum+thgauss(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
-20        continue
+22        continue
            if(imu) then
               sum=sum*thgauss2(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
@@ -183,31 +201,13 @@
                sum=sum+thgauss2(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
-21        continue
+23        continue
            if(imu) then
               sum=sum*thgaussft(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
               sum=thgaussft(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
                sum=sum+thgaussft(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
-           endif
-           goto 250
-22        continue
-           if(imu) then
-              sum=sum*th_hetdif(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
-           elseif(iins) then
-              sum=th_hetdif(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
-           else
-               sum=sum+th_hetdif(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
-           endif
-           goto 250
-23        continue
-           if(imu) then
-              sum=sum*th_hyperbra(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
-           elseif(iins) then
-              sum=th_hyperbra(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
-           else
-               sum=sum+th_hyperbra(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 24        continue
@@ -347,11 +347,11 @@
            goto 250
 39        continue
            if(imu) then
-              sum=sum*th_nrousalpha(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
+              sum=sum*th_nrousalpha_corr(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_nrousalpha(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
+              sum=th_nrousalpha_corr(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_nrousalpha(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
+               sum=sum+th_nrousalpha_corr(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 40        continue
@@ -554,20 +554,20 @@
            goto 250
 62        continue
            if(imu) then
-              sum=sum*th_rpalina(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
-           elseif(iins) then
-              sum=th_rpalina(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
-           else
-               sum=sum+th_rpalina(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
-           endif
-           goto 250
-63        continue
-           if(imu) then
               sum=sum*th_rpalina0(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
               sum=th_rpalina0(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
                sum=sum+th_rpalina0(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
+           endif
+           goto 250
+63        continue
+           if(imu) then
+              sum=sum*th_rpalina(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
+           elseif(iins) then
+              sum=th_rpalina(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
+           else
+               sum=sum+th_rpalina(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 64        continue
@@ -680,20 +680,20 @@
            goto 250
 76        continue
            if(imu) then
-              sum=sum*th_sinhafra(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
-           elseif(iins) then
-              sum=th_sinhafra(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
-           else
-               sum=sum+th_sinhafra(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
-           endif
-           goto 250
-77        continue
-           if(imu) then
               sum=sum*sofqq(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
               sum=sofqq(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
                sum=sum+sofqq(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
+           endif
+           goto 250
+77        continue
+           if(imu) then
+              sum=sum*th_spatcorr(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
+           elseif(iins) then
+              sum=th_spatcorr(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
+           else
+               sum=sum+th_spatcorr(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 78        continue

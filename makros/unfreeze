@@ -1,0 +1,8 @@
+makro
+
+cp ./PREVIOUS_STATE/last_plotsetting     ./  
+cp ./PREVIOUS_STATE/datreat_plot_counter ./
+cp ./PREVIOUS_STATE/lastselections       ./
+cp ./PREVIOUS_STATE/lastusv              ./
+cp ./PREVIOUS_STATE/last_datreat_content ./ 
+
