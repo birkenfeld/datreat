@@ -78,7 +78,7 @@
        nthpar(38) = mtpar 
        dummy = th_nrouring_mp(x,par,thenam(38),thparn(:,38),nthpar(38),ini,idum ,idum,idum,idum)
        nthpar(39) = mtpar 
-       dummy = th_nrousalpha(x,par,thenam(39),thparn(:,39),nthpar(39),ini,idum ,idum,idum,idum)
+       dummy = th_nrousalpha_corr(x,par,thenam(39),thparn(:,39),nthpar(39),ini,idum ,idum,idum,idum)
        nthpar(40) = mtpar 
        dummy = th_nrouseac(x,par,thenam(40),thparn(:,40),nthpar(40),ini,idum ,idum,idum,idum)
        nthpar(41) = mtpar 
@@ -124,9 +124,9 @@
        nthpar(61) = mtpar 
        dummy = th_rpalin2b(x,par,thenam(61),thparn(:,61),nthpar(61),ini,idum ,idum,idum,idum)
        nthpar(62) = mtpar 
-       dummy = th_rpalina(x,par,thenam(62),thparn(:,62),nthpar(62),ini,idum ,idum,idum,idum)
+       dummy = th_rpalina0(x,par,thenam(62),thparn(:,62),nthpar(62),ini,idum ,idum,idum,idum)
        nthpar(63) = mtpar 
-       dummy = th_rpalina0(x,par,thenam(63),thparn(:,63),nthpar(63),ini,idum ,idum,idum,idum)
+       dummy = th_rpalina(x,par,thenam(63),thparn(:,63),nthpar(63),ini,idum ,idum,idum,idum)
        nthpar(64) = mtpar 
        dummy = th_rpalinb(x,par,thenam(64),thparn(:,64),nthpar(64),ini,idum ,idum,idum,idum)
        nthpar(65) = mtpar 

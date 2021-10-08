@@ -347,11 +347,11 @@
            goto 250
 39        continue
            if(imu) then
-              sum=sum*th_nrousalpha(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
+              sum=sum*th_nrousalpha_corr(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_nrousalpha(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
+              sum=th_nrousalpha_corr(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_nrousalpha(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
+               sum=sum+th_nrousalpha_corr(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 40        continue
@@ -554,20 +554,20 @@
            goto 250
 62        continue
            if(imu) then
-              sum=sum*th_rpalina(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
-           elseif(iins) then
-              sum=th_rpalina(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
-           else
-               sum=sum+th_rpalina(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
-           endif
-           goto 250
-63        continue
-           if(imu) then
               sum=sum*th_rpalina0(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
               sum=th_rpalina0(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
                sum=sum+th_rpalina0(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
+           endif
+           goto 250
+63        continue
+           if(imu) then
+              sum=sum*th_rpalina(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
+           elseif(iins) then
+              sum=th_rpalina(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
+           else
+               sum=sum+th_rpalina(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 64        continue
