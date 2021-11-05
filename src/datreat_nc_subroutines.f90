@@ -2049,6 +2049,10 @@ sl:       do j=1,maxstep
 !+
        ssq = ssq  
        if(iprt.gt.0) then
+
+         write(*,'(a)')char(27)//"[2J"       ! clear screen  !!??mm
+         write(*,'(a)')char(27)//"[H"        ! goto top      !!??mm
+
          write(6,'(i8,": ssq=",es12.4)',advance='no') icall,ssq
          if(pardev_scale > 0d0) then
            write(6,'(" ssq2=",es12.4)',advance='no') ssq2
@@ -2875,6 +2879,10 @@ sl:       do j=1,maxstep
 ! ---- > write the file file lastth to restore the theory-params
           kk = 6
 !         ------> write first to std-output...
+
+          write(*,'(a)')char(27)//"[2J"       ! clear screen  !!??mm
+          write(*,'(a)')char(27)//"[H"        ! goto top      !!??mm
+
           write(kk,*)'current parametersetting:'
  6666     continue
 

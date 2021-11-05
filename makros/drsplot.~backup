@@ -5,10 +5,10 @@ in last_sqt.dat
 set n (nbuf)
 dac
 ac strexpo
-chgtpar strexpo 1 amplitu par 1   scale 0
-chgtpar strexpo 1 tau     par 10  scale 0.1
-chgtpar strexpo 1 beta    par 0.7 scale 0.01
-chgtpar strexpo 1 qexp    par 0   scale 0
+chgthpar strexpo 1 amplitu par 1   scale 0
+chgthpar strexpo 1 tau     par 10  scale 0.1
+chgthpar strexpo 1 beta    par 0.7 scale 0.01
+chgthpar strexpo 1 qexp    par 0   scale 0
 serfit vs q
 sel 1 (-n) fit+
 plot xmin (MINX/2) xmax (MAXX*2) lin_x
