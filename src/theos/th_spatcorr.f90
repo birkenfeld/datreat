@@ -1,10 +1,10 @@
- FUNCTION th_spatcorr(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
+ FUNCTION th_spatcorr2(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
 !================================================================================
 !  reptation approach , Spatial correlations of entangled polymer dynamics, Jihong Ma
 !  PHYSICAL REVIEW E 104, 024503 (2021)
       use theory_description 
       implicit none 
-      real    :: th_spatcorr
+      real    :: th_spatcorr2
       character(len=8) :: thnam, parnam (*) 
       real    :: pa (*) 
       real    :: x , xh
@@ -23,6 +23,7 @@
      double precision :: beta       ! spatial streching exponent                                                      
      double precision :: a          ! transition exponent in K(t)                                                     
      double precision :: exp1, exp2
+     double precision :: betagt0, betagwd, betat
 ! the recin parameter representation 
      double precision :: q          ! q-value    default value                                                        
 ! the reout parameter representation 
@@ -33,11 +34,11 @@
 !
 ! ----- initialisation ----- 
     IF (ini.eq.0) then     
-       thnam = 'spatcorr'
-       nparx =        7
+       thnam = 'spatcor2'
+       nparx =        9
        IF (npar.lt.nparx) then
            WRITE (6,*)' theory: ',thnam,' no of parametrs=',nparx,' exceeds current max. = ',npar
-          th_spatcorr = 0
+          th_spatcorr2 = 0
           RETURN
        ENDIF
        npar = nparx
@@ -54,6 +55,8 @@
         parnam ( 5) = 'a       '  ! transition exponent in K(t)                                                     
         parnam ( 6) = 'exp1    '  ! t-exp 1 (1/4)                                                    
         parnam ( 7) = 'exp2    '  ! t-exp 2 (1/2)                                                    
+        parnam ( 8) = 'betagt0 '  !                                                     
+        parnam ( 9) = 'betagwd '  !                                                     
 ! >>>>> describe parameters >>>>>>> 
         th_param_desc( 1,idesc) = "prefactor" !//cr//parspace//&
         th_param_desc( 2,idesc) = "msd-scale, prefactor to Kt2" !//cr//parspace//&
@@ -62,13 +65,15 @@
         th_param_desc( 5,idesc) = "transition exponent in K(t)" !//cr//parspace//&
         th_param_desc( 6,idesc) = "small t exp (1/4)" !//cr//parspace//&
         th_param_desc( 7,idesc) = "large t exp (1/2)" !//cr//parspace//&
+        th_param_desc( 8,idesc) = "gaussian center beta" !//cr//parspace//&
+        th_param_desc( 9,idesc) = "gaussian width beta " !//cr//parspace//&
 ! >>>>> describe record parameters used >>>>>>>
         th_file_param(:,idesc) = " " 
         th_file_param(  1,idesc) = "q        > q-value    default value"
 ! >>>>> describe record parameters creaqted by this theory >>>>>>> 
         th_out_param(:,idesc)  = " "
 ! 
-        th_spatcorr = 0.0
+        th_spatcorr2 = 0.0
  
         RETURN
      ENDIF
@@ -81,6 +86,8 @@
       a        =  abs(pa( 5))
       exp1     =  abs(pa( 6))
       exp2     =  abs(pa( 7))
+      betagt0  =  abs(pa( 8))
+      betagwd  =  abs(pa( 9))
 ! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
       iadda = actual_record_address()
 ! >>> extract: q-value    default value
@@ -93,9 +100,12 @@
 ! ------------------------------------------------------------------
 ! 
      t  = x              ! since we prefer to call the independent variable t, x must be copied to t
-     th = ampli * exp(-(1d0/6d0)*(q*q*Kt2(t,a))**beta)
 
-     th_spatcorr = th
+     betat = 1 + (beta-1)*exp(-(log(t/betagt0)/betagwd)**2)
+
+     th = ampli * exp(-(1d0/6d0)*(q*q*Kt2(t,a))**betat)
+
+     th_spatcorr2 = th
  
 ! ---- writing computed parameters to the record >>>  
  
@@ -115,4 +125,4 @@
   end function Kt2
 
 
- end function th_spatcorr
+ end function th_spatcorr2

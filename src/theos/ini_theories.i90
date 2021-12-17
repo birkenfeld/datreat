@@ -154,7 +154,7 @@
        nthpar(76) = mtpar 
        dummy = sofqq(x,par,thenam(76),thparn(:,76),nthpar(76),ini,idum ,idum,idum,idum)
        nthpar(77) = mtpar 
-       dummy = th_spatcorr(x,par,thenam(77),thparn(:,77),nthpar(77),ini,idum ,idum,idum,idum)
+       dummy = th_spatcorr2(x,par,thenam(77),thparn(:,77),nthpar(77),ini,idum ,idum,idum,idum)
        nthpar(78) = mtpar 
        dummy = th_star(x,par,thenam(78),thparn(:,78),nthpar(78),ini,idum ,idum,idum,idum)
        nthpar(79) = mtpar 

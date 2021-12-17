@@ -1612,6 +1612,19 @@ da1:     do i=1,nbuf
          goto 2000
        endif
 !
+       if(comand.eq.'spqscal ') then
+!                    -------
+!       ---> special scaling function for spacorr (only for checking  PHYSICAL REVIEW E 104, 024503 (2021))
+
+         call spatcorqscal()
+
+         goto 2000
+       endif
+!
+ 
+
+
+
        if(comand.eq.'addval  ') then
 !                    ------
         if(found('help    ')) then 
@@ -5745,6 +5758,169 @@ dse:    do i=1,nsel
      write(*,'(a,i0,a,i0)')     "      ==> ",nbuf," now selected, new numor = ",numor(nbuf)
 
    end subroutine arit
+
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!! spatcor2 Q scaling                                                                 !!
+!!!!! uses the parameters obtained by the last fit of theory spatcorr resp. spatcor2     !!
+!!!!! to obtain the functin Kt from PRE paper PRE                                        !!
+!!!!!  =>  reptation approach , Spatial correlations of entangled polymer dynamics,      !! 
+!!!!! Jihong Ma et al.  !  PHYSICAL REVIEW E 104, 024503 (2021)                          !!
+!!!!! applied on the selected runs                                                       !!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+subroutine  spatcorqscal
+ 
+      use dimensions
+      use new_com
+      ! use cincoc
+      use xoutxx
+      use cdata
+      ! use outlev
+      use theory
+      use selist
+      use fslist
+      use theorc
+      use thparc
+      use formul
+      use cfc
+      use cfunc
+      use cfunce
+      use partran
+      use wlntran
+!      use sqtran
+!      use constants
+      use PhysicalConstantsPlus
+ 
+      implicit none
+      integer              :: i, j, n1, ier, nenter 
+
+
+      real :: xh
+      double precision :: beta, betagt0, betagwd 
+      double precision :: exp1, exp2, a
+      double precision :: tau, r2, q  
+    
+
+
+      if(found('help    ')) then 
+       write(6,*)'=============================================================================='
+       write(6,*)'= spatcorq                                                                   ='
+       write(6,*)'=============================================================================='
+       return
+      endif
+
+
+      if(nsel < 1) then
+        write(*,*)"ERROR: aligny needs selection of curves"
+        write(*,*)"Select all curves to be scaled!"
+        ierrs = 1000
+        return
+      endif
+
+      if(nbuf >= size(nwert)-1) then
+        write(*,*)"..too many buffers", nbuf, size(nwert)
+        ierrs = 2000
+        return
+      endif
+
+! prepare destination
+      nbuf = nbuf + 1
+      call txfera(isels(1),nbuf)
+      numor(nbuf)    = numor(isels(1))+400000
+
+
+!!! Extratc the parameters from fit of spatcorr (one instance!) which are 
+!!! automatically put to user-variables, here extraction  of the values of
+!!! these user values: tau, r2, a, exp1 and exp2
+
+      call evaluate('tau       ',tau,ier)
+      if(ier.ne.0) write(*,*)"ERROR: missing tau, ac spatcorr first!"
+    
+
+      call evaluate('r2        ',r2,ier)
+      if(ier.ne.0) write(*,*)"ERROR: missing r2, ac spatcorr first!"
+
+!      call parget('beta       ',xh,isels(n1),ier)
+!      if(ier.ne.0) write(*,*)"ERROR: missing beta, ac spatcorr first!"
+!      beta  = xh
+
+      call evaluate('a          ',a,ier)
+      if(ier.ne.0) write(*,*)"ERROR: missing a, ac spatcorr first!"
+    
+
+      call evaluate('exp1          ',exp1,ier)
+      if(ier.ne.0) write(*,*)"ERROR: missing exp1, ac spatcorr first!"
+   
+ 
+      call evaluate('exp2         ',exp2,ier)
+      if(ier.ne.0) write(*,*)"ERROR: missing exp2, ac spatcorr first!"
+     
+  
+!!!! collect points and transfer them to the destimnation
+
+      nenter = 0
+dis:  do i=1,nsel
+        n1 = nwert(isels(i))
+        call parget('q       ',xh,isels(i),ier)
+        q  = xh
+write(*,*)"isel=",i,isels(i),n1,"q=",q
+
+        if(ier .ne. 0) cycle dis
+        do j=1,n1
+          nenter = nenter + 1
+          nenter = min(nenter,c_MWERT)
+write(*,*)"j,nenter=",j,nenter,nbuf, i, isels(i), ywerte(j,isels(i)) 
+          xwerte(nenter,nbuf) = k1(xwerte(j,isels(i))) * q
+          ywerte(nenter,nbuf) =   ywerte(j,isels(i))          
+          yerror(nenter,nbuf) =   yerror(j,isels(i))          
+        enddo 
+
+      enddo  dis
+
+!!!! finlise the destination record and move selection to it
+      ifits  = 0
+      isfits = 0
+      nfsel  = 0    
+
+      nwert(nbuf)  = nenter
+      nsel         = 1
+      isels(1)     = nbuf
+      xname(nbuf)  = "k1*Q"
+
+      write(*,'(a,i6)') "Scaled data written to record ",nbuf
+      write(*,'(a,2i6)')"Selected i   now              ",isels(1)
+
+      
+      call parset("tau      ",sngl(tau ),nbuf)
+      call parset("r2       ",sngl(r2  ),nbuf)
+      call parset("a        ",sngl(a   ),nbuf)
+      call parset("exp1     ",sngl(exp1),nbuf)
+      call parset("exp2     ",sngl(exp2),nbuf)
+
+
+
+contains 
+
+   function k1(t) result(val)
+     real            , intent(in) :: t
+     double precision             :: val
+     
+     val = r2/((1d0/(t/tau)**(exp1))**a+(1d0/(t/tau)**exp2)**a)**(1d0/a)
+     val = sqrt(val)
+
+   end function k1
+
+end subroutine   spatcorqscal
+
+
+
+
+
+
+
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !! intensity aligning two data sets by scale an offset

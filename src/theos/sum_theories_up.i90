@@ -689,11 +689,11 @@
            goto 250
 77        continue
            if(imu) then
-              sum=sum*th_spatcorr(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
+              sum=sum*th_spatcorr2(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            elseif(iins) then
-              sum=th_spatcorr(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
+              sum=th_spatcorr2(sum ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            else
-               sum=sum+th_spatcorr(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
+               sum=sum+th_spatcorr2(x ,thparx(:,it),thenam(it),thparn(:,it),nthpar(it),1,nopar ,params,napar,mbuf)
            endif
            goto 250
 78        continue
