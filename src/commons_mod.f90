@@ -1,7 +1,7 @@
 
   module dimensions
    save
-   integer, parameter :: c_MINC        = 40
+   integer, parameter :: c_MINC        = 200
    integer, parameter :: c_MDEPTH      = 20
    integer, parameter :: c_MUSEVAR     = 300
    integer, parameter :: c_MBUF        = 1200
