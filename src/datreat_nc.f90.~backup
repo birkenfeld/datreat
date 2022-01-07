@@ -1614,6 +1614,8 @@ da1:     do i=1,nbuf
 !
        if(comand.eq.'spqscal ') then
 !                    -------
+!       ---> special scaling function for spacorr (only for checking  PHYSICAL REVIEW E 104, 024503 (2021))
+
          call spatcorqscal()
 
          goto 2000
@@ -5762,6 +5764,12 @@ dse:    do i=1,nsel
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!! spatcor2 Q scaling                                                                 !!
+!!!!! uses the parameters obtained by the last fit of theory spatcorr resp. spatcor2     !!
+!!!!! to obtain the functin Kt from PRE paper PRE                                        !!
+!!!!!  =>  reptation approach , Spatial correlations of entangled polymer dynamics,      !! 
+!!!!! Jihong Ma et al.  !  PHYSICAL REVIEW E 104, 024503 (2021)                          !!
+!!!!! applied on the selected runs                                                       !!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 subroutine  spatcorqscal
  
@@ -5823,6 +5831,11 @@ subroutine  spatcorqscal
       call txfera(isels(1),nbuf)
       numor(nbuf)    = numor(isels(1))+400000
 
+
+!!! Extratc the parameters from fit of spatcorr (one instance!) which are 
+!!! automatically put to user-variables, here extraction  of the values of
+!!! these user values: tau, r2, a, exp1 and exp2
+
       call evaluate('tau       ',tau,ier)
       if(ier.ne.0) write(*,*)"ERROR: missing tau, ac spatcorr first!"
     
@@ -5846,7 +5859,7 @@ subroutine  spatcorqscal
       if(ier.ne.0) write(*,*)"ERROR: missing exp2, ac spatcorr first!"
      
   
-
+!!!! collect points and transfer them to the destimnation
 
       nenter = 0
 dis:  do i=1,nsel
@@ -5867,7 +5880,7 @@ write(*,*)"j,nenter=",j,nenter,nbuf, i, isels(i), ywerte(j,isels(i))
 
       enddo  dis
 
-
+!!!! finlise the destination record and move selection to it
       ifits  = 0
       isfits = 0
       nfsel  = 0    
