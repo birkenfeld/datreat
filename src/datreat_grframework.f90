@@ -1139,7 +1139,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
        integer,save :: icolo(size(inpar)) = 0
        integer,save :: irecv(size(inpar))
        integer :: i
-       integer,save :: isymb(1:size(inpar)) = [(min(size(MARKERTYPE),i),i=1,size(inpar))]   !! check Markertypes 
+       integer,save :: isymb(1:size(inpar)) = [(min(size(MARKERTYPE)-1,i),i=1,size(inpar))]+1   !! check Markertypes 
        integer,save :: ifrec(1:size(inpar))
 
        double precision, save :: linewidth_scaling(1:size(inpar)) = 1d0
