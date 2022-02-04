@@ -17,8 +17,8 @@ DOUBLE := $(shell grep -h "^ *[Ff][Uu][Nn][Cc][Tt][Ii][Oo][nN] .*( *x *, *pa *, 
 
 FC=gfortran
 #FFLAGS= -O3 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -Wunused-function -Wunused-variable -I../ -fopenmp
-#FFLAGS= -O3 -fcheck=bounds -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -fopenmp -I../ 
-FFLAGS= -O3  -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -fopenmp -I../ 
+FFLAGS= -O3 -fcheck=bounds -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -fopenmp -I../ 
+#FFLAGS= -O3  -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -fopenmp -I../ 
 
 
 #FFLAGS=-march=core2 -O2 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -msse4a -mfpmath=sse -Wunused-function -Wunused-variable -I../
