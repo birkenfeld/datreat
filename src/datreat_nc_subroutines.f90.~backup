@@ -3253,6 +3253,7 @@ sl:       do j=1,maxstep
 
        logical      :: is_inx, is_ins 
        integer      :: nfirst, nlast
+       integer      :: jsel
 
 !  neu fuer pfad
        character*1024 uspfad
@@ -3542,9 +3543,14 @@ sl:       do j=1,maxstep
         subroutine selectreads
 
            nsel  = max(0,nlast - nfirst + 1)
+           jsel  = 0
            do i=1,nsel
-             isels(i) = nfirst + i-1
+             if(numor(nfirst + i-1) >= 0) then
+                jsel = jsel+1
+                isels(jsel) = nfirst + i-1
+             endif
            enddo 
+           nsel = jsel
            ifits = 0
         end subroutine selectreads
       END   ! input

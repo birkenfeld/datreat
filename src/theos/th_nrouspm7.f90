@@ -1,10 +1,10 @@
- FUNCTION th_nrouspm5(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
+ FUNCTION th_nrouspm7(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
 !================================================================================
 !  Rouse by discrete summation with mode restriction
 !  Rouse, Doi_Edwards
       use theory_description 
       implicit none 
-      real    :: th_nrouspm5
+      real    :: th_nrouspm7
       character(len=8) :: thnam, parnam (*) 
       real    :: pa (*) 
       real    :: x , xh
@@ -35,7 +35,7 @@
      double precision :: sqt, sq, t
      double precision :: labelarray(1000)
      double precision :: modeamp   (size(labelarray))
-     double precision :: aptrans, apwidth,  ap1, apnu
+     double precision :: aptrans, apwidth,  ap0, ap1, ap2, ap3, am, w1
 
      double precision :: label1_s, label2_s, label3_s
      double precision :: label1_a, label2_a, label3_a, label4_a
@@ -53,11 +53,11 @@
 !
 ! ----- initialisation ----- 
     IF (ini.eq.0) then     
-       thnam = 'nrouspm5'
-       nparx =        13
+       thnam = 'nrouspm7'
+       nparx =        15
        IF (npar.lt.nparx) then
            WRITE (6,*)' theory: ',thnam,' no of parametrs=',nparx,' exceeds current max. = ',npar
-          th_nrouspm5 = 0
+          th_nrouspm7 = 0
           RETURN
        ENDIF
        npar = nparx
@@ -80,8 +80,10 @@
         parnam ( 9) = 'a_cross '  ! cross oover a                              
         parnam (10) = 'aptrans '  ! amplitude step location in p                     
         parnam (11) = 'apwidth '  ! width of p step                    
-        parnam (12) = 'ap1     '  ! start amplitude level                    
-        parnam (13) = 'apnu    '  ! fermi(x**nu)                   
+        parnam (12) = 'ap0     '  ! start amplitude level                    
+        parnam (13) = 'ap1     '  ! fermi(x**nu)                   
+        parnam (14) = 'ap2     '  ! fermi(x**nu)                   
+        parnam (15) = 'ap3     '  ! fermi(x**nu)                   
                
 ! >>>>> describe parameters >>>>>>> 
         th_param_desc( 1,idesc) = "prefactor" !//cr//parspace//&
@@ -95,8 +97,10 @@
         th_param_desc( 9,idesc) = "transition sharpness exponent" !//cr//parspace//&
         th_param_desc(10,idesc) = "amod(p) transition p-value " !//cr//parspace//&
         th_param_desc(11,idesc) = "amod(p) transition width (fermi) " !//cr//parspace//&
-        th_param_desc(12,idesc) = "amod(1) start-llevel (fermi) " !//cr//parspace//&
-        th_param_desc(13,idesc) = "fermi(x) ==> fermi(x**apnu) " !//cr//parspace//&
+        th_param_desc(12,idesc) = "ap0 const polynom " !//cr//parspace//&
+        th_param_desc(13,idesc) = "ap1 lin polynom" !//cr//parspace//&
+        th_param_desc(14,idesc) = "ap2 quadratic pol " !//cr//parspace//&
+        th_param_desc(15,idesc) = "ap3 cubic pol coeff " !//cr//parspace//&
 ! >>>>> describe record parameters used >>>>>>>
         th_file_param(:,idesc) = " " 
         th_file_param(  1,idesc) = "q        > momentum transfer"
@@ -117,7 +121,7 @@
         th_out_param(  4,idesc) = "wl4      > inferred value of Wl4"
         th_out_param(  4,idesc) = "pfix     > used pfix value -0.5=fixed end, 0=normal"
 ! 
-        th_nrouspm5 = 0.0
+        th_nrouspm7 = 0.0
  
         RETURN
      ENDIF
@@ -132,15 +136,22 @@
       nu_subdiff= abs(pa( 7))
       r02      =  abs(pa( 8))
       a_cross  =  abs(pa( 9))
-      aptrans  =      pa(10)
+      aptrans  =  abs(pa(10))
       apwidth  =  abs(pa(11))
-      ap1      =  abs(pa(12))
-      apnu     =     (pa(13))
+      ap0      =     (pa(12))
+      ap1      =     (pa(13))
+      ap2      =     (pa(14))
+      ap3      =     (pa(15))
       
       modeamp        =  1d0            !! default: ALL = 1 
 !      modeamp(1:11)  =  atan(abs(pa(10:20)))*2/Pi !! possibly modify the first 11
       do i=1,n_segmen
-        modeamp(i) = ap1 + (1d0-ap1)*fermi( dble(i)**apnu , aptrans**apnu, apwidth )  
+!        modeamp(i) = ap1 + (1d0-ap1)*fermi( dble(i)**apnu , aptrans**apnu, apwidth ) 
+!         modeamp(i) = ap1 + (1d0-ap1)*erf(((i-1d0)/aptrans)**apnu)  
+         w1  = fermi( dble(i) , aptrans, apwidth ) 
+         xh  = sqrt(dble(i-1))
+         am  = (atan(ap0 + ap1*xh + ap2*xh**2 + ap3*xh**3)*2d0/Pi)**2
+         modeamp(i) = (1-w1)*am + w1
       enddo
 
 ! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
@@ -220,7 +231,7 @@
 !     Dr  = com_diff * 1d-9 / 1d-16  ! in A**2/ns
      Dr  = 1d-16  ! eff=0 so nrouse is without diff, which is added via rr
 
-     call nrouspm5(q,t,temp,Dr,wl4,n_segmen,Re, W, l,labelarray, modeamp, Sq,Sqt)
+     call nrouspm7(q,t,temp,Dr,wl4,n_segmen,Re, W, l,labelarray, modeamp, Sq,Sqt)
 
 
      rr = ((exp(-log(r02/com_diff/6)*nu_subdiff)*r02*t** nu_subdiff)** a_cross +&
@@ -228,7 +239,7 @@
 
      if(fixend == 1) rr = 0d0
 
-     th_nrouspm5 = amplitu * sqt/sq  * exp( -(q*q*rr/6d0) )
+     th_nrouspm7 = amplitu * sqt/sq  * exp( -(q*q*rr/6d0) )
 
 
  
@@ -248,7 +259,7 @@
  CONTAINS 
  
 
-       subroutine nrouspm5(q,t,temp,Dr,wl4,N,R, W, l,labelarray, modeamplitudes, Sq,Sqt)
+       subroutine nrouspm7(q,t,temp,Dr,wl4,N,R, W, l,labelarray, modeamplitudes, Sq,Sqt)
 !      ========================================================
 !
 ! Rouse expression for a chain of finite length:
@@ -371,4 +382,4 @@
 
  end function fermi
 
- end function th_nrouspm5
+ end function th_nrouspm7

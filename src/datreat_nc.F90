@@ -3702,6 +3702,8 @@ write(*,'(a,a,4f12.6)')"TEST: form2=",trim(yformel),xxxx,yyyy,yyee,val8y
         write(6,*)'=            clears all records that are NOT SELECTED                        ='
         write(6,*)'=    purge sel                                                               ='
         write(6,*)'=            removes all SELECTED records                                    ='
+        write(6,*)'=    purge fits                                                              ='
+        write(6,*)'=            removes all fitb results (i.e. numor < 0)                       ='
         write(6,*)'=    purge all                                                               ='
         write(6,*)'=            clears record list completely                                   ='
         write(6,*)'=    Hint:                                                                   ='
@@ -3712,8 +3714,8 @@ write(*,'(a,a,4f12.6)')"TEST: form2=",trim(yformel),xxxx,yyyy,yyee,val8y
        endif
 
 ! 
-          if(.not.(found('all     ').or.found('sel     ').or. found('rest    ' )) &
-              .or.   (iparf() > 0 ) ) then
+          if(.not.(found('all     ').or.found('sel     ').or. found('rest    ' ) &
+              .or. found('fits    ')) .or.   (iparf() > 0 ) ) then
               call errsig(999,"NEED all, sel OR rest AS OPTION => nothing purged! $")
               goto 2000
           endif
@@ -3749,6 +3751,25 @@ write(*,'(a,a,4f12.6)')"TEST: form2=",trim(yformel),xxxx,yyyy,yyee,val8y
            enddo
           endif
 
+          if(found('fits    ')) then
+            ifits = 0                    !! ATTENTION: if its are selected 
+            do i=1,nbuf
+              if(numor(i) < 0) nwert(i) = 0
+              do j=1,nsel
+                if(isels(j) == i) isels(j) = 0
+              enddo
+            enddo
+            m = 0
+            do j=1,nsel
+              if(isels(j) > 0) then
+                m = m+1
+                isels(m) = isels(j)
+              endif
+            enddo
+            nsel = m
+          endif
+
+!!! consolidate list, remove all records with nwert=0 and compress list !!!
           m = 0
           do  j=1,nbuf
             if(nwert(j).ne.0) then

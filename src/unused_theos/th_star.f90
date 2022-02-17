@@ -235,7 +235,12 @@ eig:  if(first_run .or. n_arm .ne. n_arm0 .or. f_arm .ne. f_arm0) then
    !
    ! Slatec:
     call SSIEV (Eigenvectors, N , N, Eigenvalues, WORK, JOB, INFO)
-   
+  
+ !!   write(6,*)"Eigenvalues:"
+ !!   do i=1,N
+ !!    write(6,'(i8,f12.6)')i, Eigenvalues(i)
+ !!   enddo
+ 
  endif eig
 
 

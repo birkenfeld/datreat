@@ -1,10 +1,10 @@
- FUNCTION th_nrouspm5(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
+ FUNCTION th_nrouspm6(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
 !================================================================================
 !  Rouse by discrete summation with mode restriction
 !  Rouse, Doi_Edwards
       use theory_description 
       implicit none 
-      real    :: th_nrouspm5
+      real    :: th_nrouspm6
       character(len=8) :: thnam, parnam (*) 
       real    :: pa (*) 
       real    :: x , xh
@@ -53,11 +53,11 @@
 !
 ! ----- initialisation ----- 
     IF (ini.eq.0) then     
-       thnam = 'nrouspm5'
+       thnam = 'nrouspm6'
        nparx =        13
        IF (npar.lt.nparx) then
            WRITE (6,*)' theory: ',thnam,' no of parametrs=',nparx,' exceeds current max. = ',npar
-          th_nrouspm5 = 0
+          th_nrouspm6 = 0
           RETURN
        ENDIF
        npar = nparx
@@ -117,7 +117,7 @@
         th_out_param(  4,idesc) = "wl4      > inferred value of Wl4"
         th_out_param(  4,idesc) = "pfix     > used pfix value -0.5=fixed end, 0=normal"
 ! 
-        th_nrouspm5 = 0.0
+        th_nrouspm6 = 0.0
  
         RETURN
      ENDIF
@@ -132,7 +132,7 @@
       nu_subdiff= abs(pa( 7))
       r02      =  abs(pa( 8))
       a_cross  =  abs(pa( 9))
-      aptrans  =      pa(10)
+      aptrans  =  abs(pa(10))
       apwidth  =  abs(pa(11))
       ap1      =  abs(pa(12))
       apnu     =     (pa(13))
@@ -140,7 +140,8 @@
       modeamp        =  1d0            !! default: ALL = 1 
 !      modeamp(1:11)  =  atan(abs(pa(10:20)))*2/Pi !! possibly modify the first 11
       do i=1,n_segmen
-        modeamp(i) = ap1 + (1d0-ap1)*fermi( dble(i)**apnu , aptrans**apnu, apwidth )  
+!        modeamp(i) = ap1 + (1d0-ap1)*fermi( dble(i)**apnu , aptrans**apnu, apwidth ) 
+         modeamp(i) = ap1 + (1d0-ap1)*erf(((i-1d0)/aptrans)**apnu)   
       enddo
 
 ! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
@@ -220,7 +221,7 @@
 !     Dr  = com_diff * 1d-9 / 1d-16  ! in A**2/ns
      Dr  = 1d-16  ! eff=0 so nrouse is without diff, which is added via rr
 
-     call nrouspm5(q,t,temp,Dr,wl4,n_segmen,Re, W, l,labelarray, modeamp, Sq,Sqt)
+     call nrouspm6(q,t,temp,Dr,wl4,n_segmen,Re, W, l,labelarray, modeamp, Sq,Sqt)
 
 
      rr = ((exp(-log(r02/com_diff/6)*nu_subdiff)*r02*t** nu_subdiff)** a_cross +&
@@ -228,7 +229,7 @@
 
      if(fixend == 1) rr = 0d0
 
-     th_nrouspm5 = amplitu * sqt/sq  * exp( -(q*q*rr/6d0) )
+     th_nrouspm6 = amplitu * sqt/sq  * exp( -(q*q*rr/6d0) )
 
 
  
@@ -248,7 +249,7 @@
  CONTAINS 
  
 
-       subroutine nrouspm5(q,t,temp,Dr,wl4,N,R, W, l,labelarray, modeamplitudes, Sq,Sqt)
+       subroutine nrouspm6(q,t,temp,Dr,wl4,N,R, W, l,labelarray, modeamplitudes, Sq,Sqt)
 !      ========================================================
 !
 ! Rouse expression for a chain of finite length:
@@ -371,4 +372,4 @@
 
  end function fermi
 
- end function th_nrouspm5
+ end function th_nrouspm6
