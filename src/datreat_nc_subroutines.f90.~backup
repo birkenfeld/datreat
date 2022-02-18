@@ -3541,7 +3541,7 @@ sl:       do j=1,maxstep
       contains
 
         subroutine selectreads
-
+           ifits = 0
            nsel  = max(0,nlast - nfirst + 1)
            jsel  = 0
            do i=1,nsel

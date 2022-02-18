@@ -3491,7 +3491,24 @@ sl:       do j=1,maxstep
           name(nbuf) = vname(1)
           yname(nbuf) = vname(2)
           xname(nbuf) = vname(4)
-          numor(nbuf) = Nint(rpar(1)) 
+          numor(nbuf) = Nint(rpar(1))
+!!?? >>>>>> tbd tentativ ??
+          if(numor(nbuf) == 0) then
+             numor(nbuf) = 1
+             if(nbuf > 1) then 
+                numor(nbuf) = maxval(numor(1:nbuf-1))+1  
+             endif         
+          endif
+!! ?? unique
+          if(nbuf > 1) then
+                if(minval(abs(numor(nbuf)-numor(1:nbuf-1))) == 0) then
+                   write(*,'(a,i12,a)',advance="no")"Numor=",numor(nbuf),"  is not unique! Set it to "
+                   numor(nbuf) = maxval(numor(1:nbuf-1))+1 
+                   write(*,'(i12)') numor(nbuf)
+                endif
+          endif
+!!?? <<<<<<
+ 
           goto 2000
                 else ! --  identification & comment-line        evrything else
                         if ( coment(nbuf).eq. ''  ) then

@@ -3754,7 +3754,7 @@ write(*,'(a,a,4f12.6)')"TEST: form2=",trim(yformel),xxxx,yyyy,yyee,val8y
           if(found('fits    ')) then
             ifits = 0                    !! ATTENTION: if its are selected 
             do i=1,nbuf
-              if(numor(i) < 0) nwert(i) = 0
+              if(numor(i) < 0 .or. index(name(i),"fit")==1) nwert(i) = 0
               do j=1,nsel
                 if(isels(j) == i) isels(j) = 0
               enddo
@@ -5131,7 +5131,7 @@ ipl:        do i=1,ipars
                      
            numc    = 1
            call parset("prevnum ",real(numor(nbuf)),nbuf)
-           do i = 1, nbuf-1
+           do i = 1, nbuf  !! nbuf-1 ??
               if(numor(i) == 0) numor(i) = i
               call parset("prevnum ",real(numor(i)),i)
               numx = numor(i)
