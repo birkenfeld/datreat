@@ -16,6 +16,9 @@ module lcalc_Zomega_cc
 ! use adaptive_integral
  implicit none
 
+ private
+ public :: Z_llcoil,  Zomega
+
 
    abstract interface 
      function f_kernel(x)

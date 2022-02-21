@@ -3247,7 +3247,8 @@ sl:       do j=1,maxstep
        implicit none
        integer ln, le, la, lx, ly, j, inew, i,ier
        character*1024  infile
-       character*80 rline
+!       character*80 rline
+       character(len=256) :: rline
        logical*4    fileda
        real*8       xshift, yshift
 
@@ -4288,7 +4289,8 @@ sl:       do j=1,maxstep
        ! use outlev
 
        implicit none
-       character*80 tline
+ !      character*80 tline
+       character(len=*) :: tline
        integer i,j
 
        integer :: istat
@@ -4296,13 +4298,13 @@ sl:       do j=1,maxstep
 !
        if(iout().gt.2)  write(6,*)'Decode :',trim(tline),'#-------------'
 
-       if(tline(79:80).ne.'  ') then
-         write(6,*)'decode(w): truncating ',tline(79:80),'  of:'
-         write(6,*)tline
+       if(tline(len(tline)-1:len(tline)).ne.'  ') then
+         write(6,*)'decode(w): truncating ',tline(len(tline)-1:len(tline)),'  of:'
+         write(6,*)trim(tline)
        endif
 !
        ioldc  = 1
-       reslin = '_ '//tline(1:78)
+       reslin = '_ '//tline(1:len(tline)-2)
 
        if(iout().gt.2) then
          write(6,*)'Decode2:',trim(reslin)//'#-------------'
@@ -4606,7 +4608,7 @@ sl:       do j=1,maxstep
                                 ispc = isels(l)
                                 write(18,'(a)')trim(coment(ispc) )
                                 write(18,'(a,a,a,a,a,i14)')trim(name(ispc)(index(name(ispc),'/',back=.true.)+1:)),&
-                      ' ',yname(ispc)(1:20), ' vs ',xname(ispc)(1:20),numor(ispc)
+                      ' ',trim(yname(ispc)), ' vs ',trim(xname(ispc)),numor(ispc)
 !                               write(18,'(2x,a8,10x,e14.7)')(napar(i,ispc),params(i,ispc),i= 1,nopar(ispc))
                                 write(18,'(2x,a8,10x,e14.7,i8)')(napar(i,ispc),params(i,ispc),params_display_level(i,ispc),&
                            i= 1,nopar(ispc))
