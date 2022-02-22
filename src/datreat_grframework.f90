@@ -1708,7 +1708,10 @@ scl:   if(found('scaled  ')) then
        sx = stunde(1:2)//':'//stunde(3:4)//':'//stunde(5:6)
 !       xtext = tx//'  '//sx
        write(xtext,'(a,i0)') tx//'  '//sx//' #',max(0,ibild-1)
-       call grtext(-DEFAULT_WC_MARGIN*150*fyskip * txsizt ,ylow,(xtext),GR_BLACK) !> neu
+!       call grtext(-DEFAULT_WC_MARGIN*150*fyskip * txsizt ,ylow,(xtext),GR_BLACK) !> neu
+        call grtext(-DEFAULT_WC_MARGIN*150*fyskip * 0.33d0 , &
+           ylow - (DEVICE_UPPER_RIGHT_Y- DEVICE_LOWER_LEFT_Y)*DEFAULT_WC_MARGIN*100 * 1.18d0 &
+         ,(xtext),GR_BLACK) !> neu
 
 ! ---- plot theory parameters ----
          if(ntheos.ne.0) then
