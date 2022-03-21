@@ -1,10 +1,10 @@
- FUNCTION th_nrousepm(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
+ FUNCTION th_nrouamrm(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
 !================================================================================
-!  Rouse by discrete summation with mode restriction
+!  Rouse by discrete summation with mode restriction and rate modifiers
 !  Rouse, Doi_Edwards
       use theory_description 
       implicit none 
-      real    :: th_nrousepm
+      real    :: th_nrouamrm
       character(len=8) :: thnam, parnam (*) 
       real    :: pa (*) 
       real    :: x , xh
@@ -34,7 +34,8 @@
                                                                     
      double precision :: sqt, sq, t
      double precision :: labelarray(1000)
-     double precision :: modeamp   (size(labelarray))
+     double precision :: modeamp        (size(labelarray))
+     double precision :: ratemodifier   (size(labelarray))
 
      double precision :: label1_s, label2_s, label3_s
      double precision :: label1_a, label2_a, label3_a, label4_a
@@ -46,11 +47,11 @@
 !
 ! ----- initialisation ----- 
     IF (ini.eq.0) then     
-       thnam = 'nrousepm'
-       nparx =        17
+       thnam = 'nrouamrm'
+       nparx =        28
        IF (npar.lt.nparx) then
            WRITE (6,*)' theory: ',thnam,' no of parametrs=',nparx,' exceeds current max. = ',npar
-          th_nrousepm = 0
+          th_nrouamrm = 0
           RETURN
        ENDIF
        npar = nparx
@@ -58,7 +59,7 @@
        idesc = next_th_desc()
        th_identifier(idesc)   = thnam
        th_explanation(idesc)  = " Rouse by discrete summation with 4 zone labelled chain and mode modification "//cr//parspace//&
-                                " ACCELERATED (OMP+IMPOVED ALG.) VERSION!"
+                                " mode amplitude and rate modifiers as parameters !"
 
        th_citation(idesc)     = " Rouse, Doi_Edwards"
 !       --------------> set the parameter names --->
@@ -78,7 +79,18 @@
         parnam (14) = 'amod8   '  ! minimum mode to be included                                                    
         parnam (15) = 'amod9   '  ! minimum mode to be included                                                    
         parnam (16) = 'amod10  '  ! minimum mode to be included                                                    
-        parnam (17) = 'amod11  '  ! minimum mode to be included                                                    
+        parnam (17) = 'amod11  '  ! minimum mode to be included             
+        parnam (18) = 'rmod1   '  ! minimum mode to be included                                                    
+        parnam (19) = 'rmod2   '  ! minimum mode to be included                                                    
+        parnam (20) = 'rmod3   '  ! minimum mode to be included                                                    
+        parnam (21) = 'rmod4   '  ! minimum mode to be included                                                    
+        parnam (22) = 'rmod5   '  ! minimum mode to be included                                                    
+        parnam (23) = 'rmod6   '  ! minimum mode to be included                                                    
+        parnam (24) = 'rmod7   '  ! minimum mode to be included                                                    
+        parnam (25) = 'rmod8   '  ! minimum mode to be included                                                    
+        parnam (26) = 'rmod9   '  ! minimum mode to be included                                                    
+        parnam (27) = 'rmod10  '  ! minimum mode to be included                                                    
+        parnam (28) = 'rmod11  '  ! minimum mode to be included                                                    
 ! >>>>> describe parameters >>>>>>> 
         th_param_desc( 1,idesc) = "prefactor" !//cr//parspace//&
         th_param_desc( 2,idesc) = "rouse rate" !//cr//parspace//&
@@ -97,6 +109,18 @@
         th_param_desc(15,idesc) = "mode amplitude " !//cr//parspace//&
         th_param_desc(16,idesc) = "mode amplitude " !//cr//parspace//&
         th_param_desc(17,idesc) = "mode amplitude " !//cr//parspace//&
+        th_param_desc(18,idesc) = "mode rate modification factor " !//cr//parspace//&
+        th_param_desc(19,idesc) = "mode rate modification factor " !//cr//parspace//&
+        th_param_desc(20,idesc) = "mode rate modification factor " !//cr//parspace//&
+        th_param_desc(21,idesc) = "mode rate modification factor " !//cr//parspace//&
+        th_param_desc(22,idesc) = "mode rate modification factor " !//cr//parspace//&
+        th_param_desc(23,idesc) = "mode rate modification factor " !//cr//parspace//&
+        th_param_desc(24,idesc) = "mode rate modification factor " !//cr//parspace//&
+        th_param_desc(25,idesc) = "mode rate modification factor " !//cr//parspace//&
+        th_param_desc(26,idesc) = "mode rate modification factor " !//cr//parspace//&
+        th_param_desc(27,idesc) = "mode rate modification factor " !//cr//parspace//&
+        th_param_desc(28,idesc) = "mode rate modification factor " !//cr//parspace//&
+
 ! >>>>> describe record parameters used >>>>>>>
         th_file_param(:,idesc) = " " 
         th_file_param(  1,idesc) = "q        > momentum transfer"
@@ -115,7 +139,7 @@
         th_out_param(  3,idesc) = "w        > rouse rate: W"
         th_out_param(  4,idesc) = "wl4      > inferred value of Wl4"
 ! 
-        th_nrousepm = 0.0
+        th_nrouamrm = 0.0
  
         RETURN
      ENDIF
@@ -128,7 +152,8 @@
       temp     =      pa( 5)
       com_diff =  abs(pa( 6))
       modeamp        =  1d0            !! default: ALL = 1 
-      modeamp(1:11)  =  abs(pa( 7:17)) !! possibly modify the first 11
+      modeamp(1:11)       =  abs(pa( 7:17)) !! possibly modify the first 11
+      ratemodifier(1:11)  =  abs(pa(18:28)) !! possibly modify the first 11
 
 ! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
       iadda = actual_record_address()
@@ -198,10 +223,10 @@
 
      Dr  = com_diff * 1d-9 / 1d-16  ! in A**2/ns
 
-     call nrousepm(q,t,temp,Dr,wl4,n_segmen,Re, W, l,labelarray, modeamp, Sq,Sqt)
+     call nrouamrmr(q,t,temp,Dr,wl4,n_segmen,Re, W, l,labelarray, modeamp, ratemodifier, Sq,Sqt)
 
 
-     th_nrousepm = amplitu * sqt/sq
+     th_nrouamrm = amplitu * sqt/sq
 
  
 ! ---- writing computed parameters to the record >>>
@@ -215,7 +240,7 @@
  CONTAINS 
  
 
-       subroutine nrousepm(q,t,temp,Dr,wl4,N,R, W, l,labelarray, modeamplitudes, Sq,Sqt)
+       subroutine nrouamrmr(q,t,temp,Dr,wl4,N,R, W, l,labelarray, modeamplitudes, ratemod, Sq,Sqt)
 !      ========================================================
 !
 ! Rouse expression for a chain of finite length:
@@ -229,6 +254,7 @@
 !    R     ----> end-to-end distance of the polymer molecule
 !    labelarray      ----> labels along chain = segemntwise contrast array
 !    modeamplitudes  ----> mode amplitude modification factors  
+!    modeamplitudes  ----> ratemodifiers  
 ! Output parameters:
 !    W     <--- "Rouse factor" 3kT/(xi*l**2); R**2=N*l**2
 !    l     <--- "Segment length l"
@@ -244,7 +270,7 @@
 
        double precision :: q,t,temp,Dr,xi,R, W,Sq,Sqt, wl4
        integer          :: N, nn,mm,ifix,ip
-       double precision :: labelarray(N), modeamplitudes(N)
+       double precision :: labelarray(N), modeamplitudes(N), ratemod(N)
 
        double precision l, tau_p, kbt, Sq0, arg1, arg2
        double precision a0,e0, ff2, ffc,    arg10,arg20
@@ -290,7 +316,7 @@
 
 !$OMP PARALLEL DO    
        do i=1,N
-         ewfac(i) = (1d0-exp(-2*W*(1-cos((pi*i)/dfloat(N)))*t)) * modeamplitudes(i)
+         ewfac(i) = (1d0-exp(-2*ratemod(i)*W*(1-cos((pi*i)/dfloat(N)))*t)) * modeamplitudes(i)
        enddo
 !$OMP END PARALLEL DO    
 
@@ -328,4 +354,4 @@
        end
  
 
- end function th_nrousepm
+ end function th_nrouamrm

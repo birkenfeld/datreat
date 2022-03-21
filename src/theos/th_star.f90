@@ -11,7 +11,7 @@
       integer :: npar, ini, nparx, ier, iert, ierq
       integer                     :: mbuf
       integer, intent(inout)      :: nopar                 ! Anzahl der Parameter data
-      character*80, intent(inout) :: napar(mbuf)           ! name des parameters n
+      character(len=80), intent(inout) :: napar(mbuf)           ! name des parameters n
       real, intent(inout)         :: params(mbuf)          ! value des parameters n
       REAL(8) temp, qz, tau, eta, yz, SQ_rouse, a, b, xi 
       REAL(8) a0, sum, sumnorm, q_width, dqw, qzz, fn 
@@ -19,7 +19,7 @@
       REAL qget, tget, tauget 
 
       integer :: f_arm, n_arm
-      double precision :: pericostar_sqt, sqt0
+      double precision :: sqt0
        
       logical :: x_is_tau = .true.                                                                 
                                                                         
@@ -94,10 +94,8 @@
         th_star = th_star * exp(-qz*qz*diff*tau)
       endif 
                                                                        
-      RETURN 
-      END FUNCTION th_star
 
-
+CONTAINS
 
    
 double precision function pericostar_sqt(q,t,f_arm,n_arm,Re_arm,Wl4,diff)
@@ -300,3 +298,7 @@ philp: do i=1,N
 
 
 end function pericostar_sqt
+
+
+
+END FUNCTION th_star

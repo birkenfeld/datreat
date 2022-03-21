@@ -1,10 +1,10 @@
- FUNCTION th_nrousepm(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
+ FUNCTION th_nrouparm5(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
 !================================================================================
 !  Rouse by discrete summation with mode restriction
 !  Rouse, Doi_Edwards
       use theory_description 
       implicit none 
-      real    :: th_nrousepm
+      real    :: th_nrouparm5
       character(len=8) :: thnam, parnam (*) 
       real    :: pa (*) 
       real    :: x , xh
@@ -35,6 +35,9 @@
      double precision :: sqt, sq, t
      double precision :: labelarray(1000)
      double precision :: modeamp   (size(labelarray))
+     double precision :: modrate   (size(labelarray))
+     double precision :: aptrans, apwidth,  ap1, apnu
+     double precision :: rptrans, rpwidth,  rp1, rpnu, ppnu, rbeta
 
      double precision :: label1_s, label2_s, label3_s
      double precision :: label1_a, label2_a, label3_a, label4_a
@@ -43,14 +46,20 @@
      double precision, save :: labelstat(7)
      character(len=8) :: buf
      integer          :: i
+
+     double precision :: rr, a_cross, nu_subdiff, r02
+    
+
+     double precision :: pfix      ! selects fixed chain spectrum if =-0.5 else 0=normal rouse
+     integer          :: fixend
 !
 ! ----- initialisation ----- 
     IF (ini.eq.0) then     
-       thnam = 'nrousepm'
-       nparx =        17
+       thnam = 'nroparm5'
+       nparx =        19
        IF (npar.lt.nparx) then
            WRITE (6,*)' theory: ',thnam,' no of parametrs=',nparx,' exceeds current max. = ',npar
-          th_nrousepm = 0
+          th_nrouparm5 = 0
           RETURN
        ENDIF
        npar = nparx
@@ -58,7 +67,7 @@
        idesc = next_th_desc()
        th_identifier(idesc)   = thnam
        th_explanation(idesc)  = " Rouse by discrete summation with 4 zone labelled chain and mode modification "//cr//parspace//&
-                                " ACCELERATED (OMP+IMPOVED ALG.) VERSION!"
+                                " modeamplitudes amodx = arctan(amtanx)*2/Pi and rates modifier and nu and beta"
 
        th_citation(idesc)     = " Rouse, Doi_Edwards"
 !       --------------> set the parameter names --->
@@ -68,39 +77,45 @@
         parnam ( 4) = 're      '  ! end-to-end radius of Gaussian coil                                              
         parnam ( 5) = 'temp    '  ! temperature if not in parameters                                                
         parnam ( 6) = 'com_diff'  ! center of mass diffusion (if 0, use Rouse default)                              
-        parnam ( 7) = 'amod1   '  ! minimum mode to be included                                                    
-        parnam ( 8) = 'amod2   '  ! minimum mode to be included                                                    
-        parnam ( 9) = 'amod3   '  ! minimum mode to be included                                                    
-        parnam (10) = 'amod4   '  ! minimum mode to be included                                                    
-        parnam (11) = 'amod5   '  ! minimum mode to be included                                                    
-        parnam (12) = 'amod6   '  ! minimum mode to be included                                                    
-        parnam (13) = 'amod7   '  ! minimum mode to be included                                                    
-        parnam (14) = 'amod8   '  ! minimum mode to be included                                                    
-        parnam (15) = 'amod9   '  ! minimum mode to be included                                                    
-        parnam (16) = 'amod10  '  ! minimum mode to be included                                                    
-        parnam (17) = 'amod11  '  ! minimum mode to be included                                                    
+        parnam ( 7) = 'nu_subd '  ! subdiff nu                             
+        parnam ( 8) = 'r02     '  ! transition r**2 to com diff                            
+        parnam ( 9) = 'a_cross '  ! cross oover a                              
+        parnam (10) = 'aptrans '  ! amplitude step location in p                     
+        parnam (11) = 'apwidth '  ! width of p step                    
+        parnam (12) = 'ap1     '  ! start amplitude level                    
+        parnam (13) = 'apnu    '  ! fermi(x**nu)                   
+        parnam (14) = 'rptrans '  ! rate-modifier step location in p                     
+        parnam (15) = 'rpwidth '  ! rate modifier width of p step                    
+        parnam (16) = 'rp1     '  ! start rate level                    
+        parnam (17) = 'rpnu    '  ! fermi(x**nu)                   
+        parnam (18) = 'ppnu    '  ! p**nu                   
+        parnam (19) = 'rbeta   '  ! rate stretching exponent                   
+                
 ! >>>>> describe parameters >>>>>>> 
         th_param_desc( 1,idesc) = "prefactor" !//cr//parspace//&
         th_param_desc( 2,idesc) = "rouse rate" !//cr//parspace//&
         th_param_desc( 3,idesc) = "effective N for summation" !//cr//parspace//&
         th_param_desc( 4,idesc) = "end-to-end radius of Gaussian coil" !//cr//parspace//&
         th_param_desc( 5,idesc) = "temperature if not in parameters" !//cr//parspace//&
-        th_param_desc( 6,idesc) = "center of mass diffusion (if 0, use Rouse default)" !//cr//parspace//&
-        th_param_desc( 7,idesc) = "mode amplitude " !//cr//parspace//&
-        th_param_desc( 8,idesc) = "mode amplitude " !//cr//parspace//&
-        th_param_desc( 9,idesc) = "mode amplitude " !//cr//parspace//&
-        th_param_desc(10,idesc) = "mode amplitude " !//cr//parspace//&
-        th_param_desc(11,idesc) = "mode amplitude " !//cr//parspace//&
-        th_param_desc(12,idesc) = "mode amplitude " !//cr//parspace//&
-        th_param_desc(13,idesc) = "mode amplitude " !//cr//parspace//&
-        th_param_desc(14,idesc) = "mode amplitude " !//cr//parspace//&
-        th_param_desc(15,idesc) = "mode amplitude " !//cr//parspace//&
-        th_param_desc(16,idesc) = "mode amplitude " !//cr//parspace//&
-        th_param_desc(17,idesc) = "mode amplitude " !//cr//parspace//&
+        th_param_desc( 6,idesc) = "center of mass diffusion " !//cr//parspace//&
+        th_param_desc( 7,idesc) = "sub diffusion strech exponent" !//cr//parspace//&
+        th_param_desc( 8,idesc) = "sub diffusion to com r**2" !//cr//parspace//&
+        th_param_desc( 9,idesc) = "transition sharpness exponent" !//cr//parspace//&
+        th_param_desc(10,idesc) = "amod(p) transition p-value " !//cr//parspace//&
+        th_param_desc(11,idesc) = "amod(p) transition width (fermi) " !//cr//parspace//&
+        th_param_desc(12,idesc) = "amod(1) start-llevel (fermi) " !//cr//parspace//&
+        th_param_desc(13,idesc) = "amod fermi(x) ==> fermi(x**apnu) " !//cr//parspace//&
+        th_param_desc(14,idesc) = "rmod(p) transition p-value " !//cr//parspace//&
+        th_param_desc(15,idesc) = "rmod(p) transition width (fermi) " !//cr//parspace//&
+        th_param_desc(16,idesc) = "rmod(1) start-llevel (fermi) " !//cr//parspace//&
+        th_param_desc(17,idesc) = "rmod fermi(x) ==> fermi(x**apnu) " !//cr//parspace//&
+        th_param_desc(18,idesc) = "overall rate exponent rate modifier  proto (1-cos(p**ppnu/N)) !!?largep " !//cr//parspace//&
+        th_param_desc(19,idesc) = "mode streching exponent exp(-(rate(p)*t)**rbeta)" !//cr//parspace//&
 ! >>>>> describe record parameters used >>>>>>>
         th_file_param(:,idesc) = " " 
         th_file_param(  1,idesc) = "q        > momentum transfer"
         th_file_param(  2,idesc) = "temp     > temperature"
+        th_file_param(  2,idesc) = "fixend   > 1=fixed end chain, 0=normal rouse"
         th_file_param(  3,idesc) = "label1_s > relative (0..1) position of label l1=1..N*l1s, l2=..N*l2s, ..."
         th_file_param(  4,idesc) = "label2_s > relative (0..1) position of label l1=1..N*l1s, l2=..N*l2s, ..."
         th_file_param(  5,idesc) = "label3_s > relative (0..1) position of label l1=1..N*l1s, l2=..N*l2s, ..."
@@ -114,8 +129,9 @@
         th_out_param(  2,idesc) = "l        > effective segment length"
         th_out_param(  3,idesc) = "w        > rouse rate: W"
         th_out_param(  4,idesc) = "wl4      > inferred value of Wl4"
+        th_out_param(  4,idesc) = "pfix     > used pfix value -0.5=fixed end, 0=normal"
 ! 
-        th_nrousepm = 0.0
+        th_nrouparm5 = 0.0
  
         RETURN
      ENDIF
@@ -127,8 +143,34 @@
       re       =  abs(pa( 4))
       temp     =      pa( 5)
       com_diff =  abs(pa( 6))
+      nu_subdiff= abs(pa( 7))
+      r02      =  abs(pa( 8))
+      a_cross  =  abs(pa( 9))
+      aptrans  =      pa(10)
+      apwidth  =  abs(pa(11))
+      ap1      =  abs(pa(12))
+      apnu     =     (pa(13))
+      rptrans  =     (pa(14))                
+      rpwidth  =  abs(pa(15))                
+      rp1      =  abs(pa(16))            
+      rpnu     =     (pa(17))             
+      ppnu     =  abs(pa(18))             
+      rbeta    =  abs(pa(19))              
+                  
+      
+
+
       modeamp        =  1d0            !! default: ALL = 1 
-      modeamp(1:11)  =  abs(pa( 7:17)) !! possibly modify the first 11
+!      modeamp(1:11)  =  atan(abs(pa(10:20)))*2/Pi !! possibly modify the first 11
+      do i=1,n_segmen
+        modeamp(i) = ap1 + (1d0-ap1)*fermi( dble(i)**apnu , aptrans**apnu, apwidth )  
+      enddo
+
+      modrate       =  1d0            !! default: ALL = 1 
+!      modeamp(1:11)  =  atan(abs(pa(10:20)))*2/Pi !! possibly modify the first 11
+      do i=1,n_segmen
+        modrate(i) = rp1 + (1d0-rp1)*fermi( dble(i)**rpnu , rptrans**rpnu, rpwidth )  
+      enddo
 
 ! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
       iadda = actual_record_address()
@@ -164,6 +206,15 @@
       call parget('label4_a ',xh,iadda,ier)
       label4_a     = xh
 
+      xh =    0d0
+      call parget('fixend   ',xh,iadda,ier)
+      fixend    = nint(xh)
+      if(fixend == 1) then 
+         pfix = -0.5d0
+      else
+         pfix = 0d0
+      endif
+
 ! distribute contrasts to label-zone array
       if(n_segmen > size(labelarray)) n_segmen = size(labelarray)
       labelarray = 1d0
@@ -187,7 +238,6 @@
    
 !! write(*,'(a,12f8.3,a)')"Tmod:",modeamp(1:12)," ...."
 
-
  
 ! 
 ! ------------------------------------------------------------------
@@ -196,26 +246,42 @@
 ! 
      t   = x
 
-     Dr  = com_diff * 1d-9 / 1d-16  ! in A**2/ns
+!     Dr  = com_diff * 1d-9 / 1d-16  ! in A**2/ns
+     Dr  = 1d-16  ! eff=0 so nrouse is without diff, which is added via rr
 
-     call nrousepm(q,t,temp,Dr,wl4,n_segmen,Re, W, l,labelarray, modeamp, Sq,Sqt)
+     call nrouparm5(q,t,temp,Dr,wl4,n_segmen,Re, W, l,labelarray, modeamp, modrate, ppnu, rbeta,  Sq,Sqt)
 
 
-     th_nrousepm = amplitu * sqt/sq
+     rr = ((exp(-log(r02/com_diff/6)*nu_subdiff)*r02*t** nu_subdiff)** a_cross +&
+                (6*com_diff*t)**a_cross)**(1d0/a_cross)
+
+     if(fixend == 1) rr = 0d0
+
+     th_nrouparm5 = amplitu * sqt/sq  * exp( -(q*q*rr/6d0) )
+
 
  
 ! ---- writing computed parameters to the record >>>
       call        parset('l       ',sngl(l),iadda,ier)      ! in ns A units
       call        parset('w       ',sngl(W),iadda,ier)      !     "
       call        parset('wl4     ',sngl(W*l**4),iadda,ier) !     "
+      call        parset('pfix    ',sngl(pfix),iadda,ier)   !     "
+      do i=1,12
+         write(buf,'("amod",i0)') i
+         call        parset(buf,sngl(modeamp(i)),iadda,ier) 
+      enddo
+      do i=1,12
+         write(buf,'("rmod",i0)') i
+         call        parset(buf,sngl(modrate(i)),iadda,ier) 
+      enddo
   
-      Dr        = Dr /( 1d-9 / 1d-16 ) ! in cm**2/s
-      call parset('diff    ',sngl(Dr),iadda,ier)
+!      Dr        = Dr /( 1d-9 / 1d-16 ) ! in cm**2/s
+!      call parset('diff    ',sngl(Dr),iadda,ier)
  
  CONTAINS 
  
 
-       subroutine nrousepm(q,t,temp,Dr,wl4,N,R, W, l,labelarray, modeamplitudes, Sq,Sqt)
+       subroutine nrouparm5(q,t,temp,Dr,wl4,N,R, W, l,labelarray, modeamplitudes, modrates, pnu, rbet,Sq,Sqt)
 !      ========================================================
 !
 ! Rouse expression for a chain of finite length:
@@ -229,6 +295,9 @@
 !    R     ----> end-to-end distance of the polymer molecule
 !    labelarray      ----> labels along chain = segemntwise contrast array
 !    modeamplitudes  ----> mode amplitude modification factors  
+!    modrates        ----> mode rate modification factors  
+!    pnu             ----> exponent of p for moderates  
+!    rbet            ----> streching of mode relax  
 ! Output parameters:
 !    W     <--- "Rouse factor" 3kT/(xi*l**2); R**2=N*l**2
 !    l     <--- "Segment length l"
@@ -245,6 +314,9 @@
        double precision :: q,t,temp,Dr,xi,R, W,Sq,Sqt, wl4
        integer          :: N, nn,mm,ifix,ip
        double precision :: labelarray(N), modeamplitudes(N)
+       double precision :: modrates(N)
+       double precision :: pnu
+       double precision :: rbet
 
        double precision l, tau_p, kbt, Sq0, arg1, arg2
        double precision a0,e0, ff2, ffc,    arg10,arg20
@@ -283,14 +355,15 @@
 !$OMP PARALLEL DO     
        do nn=1,N
         do ip=1,N
-         cosarray(nn,ip) = cos((pi*ip*nn)/dfloat(N)) / ip  
+         cosarray(nn,ip) = cos((pi*(ip+pfix)*nn)/dfloat(N)) / (ip+pfix)  
         enddo
        enddo
 !$OMP END PARALLEL DO   
 
 !$OMP PARALLEL DO    
        do i=1,N
-         ewfac(i) = (1d0-exp(-2*W*(1-cos((pi*i)/dfloat(N)))*t)) * modeamplitudes(i)
+         ewfac(i) = (1d0-exp(-W*modrates(i)* &
+                            ((2*(1-cos((pi*(i+pfix)**pnu)/dfloat(N))))) *t)**rbet ) * modeamplitudes(i)
        enddo
 !$OMP END PARALLEL DO    
 
@@ -328,4 +401,14 @@
        end
  
 
- end function th_nrousepm
+
+ double precision function fermi(x, x0, xw)
+   double precision, intent(in) :: x
+   double precision, intent(in) :: x0
+   double precision, intent(in) :: xw
+
+   fermi = 1d0/(1d0+exp((x0-x)/xw))   
+
+ end function fermi
+
+ end function th_nrouparm5

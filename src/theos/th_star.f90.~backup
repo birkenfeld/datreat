@@ -94,10 +94,8 @@
         th_star = th_star * exp(-qz*qz*diff*tau)
       endif 
                                                                        
-      RETURN 
-      END FUNCTION th_star
 
-
+CONTAINS
 
    
 double precision function pericostar_sqt(q,t,f_arm,n_arm,Re_arm,Wl4,diff)
@@ -300,3 +298,7 @@ philp: do i=1,N
 
 
 end function pericostar_sqt
+
+
+
+END FUNCTION th_star

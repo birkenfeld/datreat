@@ -26,8 +26,7 @@
      double precision :: q          ! momentum transfer                                                               
      double precision :: temp       ! temperature                                                                     
 ! the reout parameter representation 
-     double precision :: diff       ! diffusion                                                                       
-     double precision ::            !                                                                                 
+     double precision :: diff=0d0       ! diffusion                                                                       
  
      double precision :: th
  
@@ -67,7 +66,6 @@
 ! >>>>> describe record parameters creaqted by this theory >>>>>>> 
         th_out_param(:,idesc)  = " "
         th_out_param(  1,idesc) = "diff     > diffusion"
-        th_out_param(  2,idesc) = "         > "
 ! 
         th_rrofpm = 0.0
  
@@ -83,11 +81,11 @@
 ! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
       iadda = actual_record_address()
 ! >>> extract: momentum transfer
-      xh = 
+      xh =  0.1d0
       call parget('q       ',xh,iadda,ier)
       q        = xh
 ! >>> extract: temperature
-      xh = 
+      xh = 300d0
       call parget('temp    ',xh,iadda,ier)
       temp     = xh
 ! 
@@ -106,7 +104,6 @@
  
 ! ---- writing computed parameters to the record >>>  
       call parset('diff    ',sngl(diff),iadda,ier)
-      call parset('        ',sngl(),iadda,ier)
  
  CONTAINS 
  
