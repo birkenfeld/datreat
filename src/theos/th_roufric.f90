@@ -131,7 +131,7 @@ double precision function pericoroufric_sqt(q,t,f_arm,n_arm,Re_arm,Wl4, fric0, f
   double precision              :: l0         ! effective segment length
   double precision              :: tauR       ! basic Rouse-time of a chain of 2 arm lengths
 
-  double precision              :: p, s11, s12, dec
+  double precision              :: p, s11=0, s12=0, dec
 
 
  logical, save                :: first_run = .true.
