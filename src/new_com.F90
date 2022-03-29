@@ -1215,8 +1215,63 @@ CONTAINS
        close(99)
        goto 8888
     endif
+
+!>>new22
+    !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    ! writinga tech table                                  | print
+    !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    if(comand.eq.'table   ') then
+       !                    ----------------> print evaluated numbers !
+
+       if(inames.lt.1) then
+          write(6,*)'table: needs filename'
+          goto 8888
+       endif
+
+       if(trim(vname(2))=="open") then
+         open(99,file=trim(vname(1))//".tex",status='unknown',position='append')
+         write(99,'(a)')"\begin{table}[h!]"
+         write(99,'(a)',advance="no")"\begin{tabular}{|"
+         j = iitems - 2
+         do i=1,j 
+           write(99,'(a)',advance="no")"l|"
+         enddo
+         write(99,'(a)')"}"
+         write(99,'(a)')"\hline"
+         do i=1,j-1
+           write(99,'(a)')trim(cmd_item(i+2))//" &" 
+         enddo
+         write(99,'(a)')trim(cmd_item(i+2))
+         write(99,'(a)')" \\ \hline" 
+         close(99)
+         goto 8888
+       endif
+
+       if(trim(vname(2))=="close") then
+         open(99,file=trim(vname(1))//".tex",status='unknown',position='append')
+             write(99,'(a)')"\hline"
+             write(99,'(a)')"\end{tabular}"
+             write(99,'(a)')"\caption{ \label{tab:"//trim(vname(1))//"}"
+             write(99,'(a)')"Caption of table:"//trim(vname(1))//"}"
+             write(99,'(a)')"\end{table}"
+         close(99)
+         goto 8888
+       endif
+
+         open(99,file=trim(vname(1))//".tex",status='unknown',position='append')
+         j = iitems - 1
+         if(j .ne. ipars) then
+           write(*,*)"WARNING TABLE GENERATION number of items and entries mismatch!",i, ipars, trim(vname(1))
+         endif
+         do i=1,ipars-1 
+           write(99,'(f10.3,a)', advance="no")rpar(i)," & "
+         enddo
+         write(99,'(f10.3,a)')rpar(ipars)," \\ "
+         close(99)
+       goto 8888
+    endif
     !
-    !
+!<<new22    !
 
     !
     !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
