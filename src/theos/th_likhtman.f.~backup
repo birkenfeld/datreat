@@ -146,9 +146,6 @@ c mz
         sumlik = (n/(2*mue**2))*(2*mue+dexp(-2*mue)+2.d0-4*mue*st-4*
      +       dexp(-2*mue*st)+dexp(-4*mue*st))
 
-
-!       write(*,*)"lik:",q,t,taue,mue,st,sumlik
-
         sumlik0 = (n/(2*mue**2))*(2*mue+dexp(-2*mue)-1.d0)
 
         sumlik = sumlik/sumlik0
