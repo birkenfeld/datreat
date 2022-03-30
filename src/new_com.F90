@@ -287,6 +287,7 @@ MODULE new_com
   integer :: isignal  ! utilux communication --> rather make utilux a module
   common/sig/isignal
 
+  character(cmd_len) :: tabformat
 
   ! constants
 
@@ -508,6 +509,9 @@ CONTAINS
     integer             ::  iretus
     logical             ::  sflag
     logical,save        ::  aufcal=.true.
+
+    integer             :: ev_err, ios
+    double precision    :: ev_val
 
     save :: blank, csep, crem
 
@@ -1260,13 +1264,32 @@ CONTAINS
 
          open(99,file=trim(vname(1))//".tex",status='unknown',position='append')
          j = iitems - 1
-         if(j .ne. ipars) then
-           write(*,*)"WARNING TABLE GENERATION number of items and entries mismatch!",i, ipars, trim(vname(1))
-         endif
-         do i=1,ipars-1 
-           write(99,'(f10.3,a)', advance="no")rpar(i)," & "
+!        if(j .ne. ipars) then
+!           write(*,*)"WARNING TABLE GENERATION number of items and entries mismatch!",i, ipars, trim(vname(1))
+!         endif
+       
+         tabformat = "(f12.6)"
+         do i=2,iitems 
+           if(cmd_item(i)(1:2)=="F:") then
+             tabformat = "("//trim(cmd_item(i)(3:))//")"
+             cycle
+           endif
+           
+           
+           call evaluate(trim(cmd_item(i))//' ',ev_val,ev_err)
+           
+           if(ev_err==0) then 
+              write(99,tabformat, advance="no",iostat=ios) ev_val
+              if(ios .ne. 0) then
+                write(*,*)"ERROR: tabentrty writing failed: ",trim(cmd_item(i))," F:",trim(tabformat)
+                write(99,'(a)', advance="no")" ??????? "
+              endif
+           else
+              write(99,'(a)', advance="no") cmd_item(i)(1:max(16,len_trim(cmd_item(i))))
+           endif
+           if(i<iitems) write(99,'(a)', advance="no") " & "
          enddo
-         write(99,'(f10.3,a)')rpar(ipars)," \\ "
+         write(99,'(a)') " \\ \hline"
          close(99)
        goto 8888
     endif
