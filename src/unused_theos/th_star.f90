@@ -103,7 +103,7 @@
 double precision function pericostar_sqt(q,t,f_arm,n_arm,Re_arm,Wl4,diff)
 !-------------------------------------------------------------------
 !! star following the derivation of:
-!!      M. Guenza, M. Mormino and A. Perico, Macromolecules 1991, 24, 6166-6174
+!!      M. Guenza, M. Mormino and A. Perico, Macromolecules 1991, 24, 6168-6174
 !! and  M. Guenza, A. Perico Macromolecules 1993, 26, 4196-4202
 !!
 !! this module written by: michael Monkenbusch, Jcns
@@ -235,7 +235,12 @@ eig:  if(first_run .or. n_arm .ne. n_arm0 .or. f_arm .ne. f_arm0) then
    !
    ! Slatec:
     call SSIEV (Eigenvectors, N , N, Eigenvalues, WORK, JOB, INFO)
-   
+  
+ !!   write(6,*)"Eigenvalues:"
+ !!   do i=1,N
+ !!    write(6,'(i8,f12.6)')i, Eigenvalues(i)
+ !!   enddo
+ 
  endif eig
 
 

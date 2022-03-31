@@ -782,6 +782,14 @@ dt22:           do  j=1,nthpar(ith)
         return
       endif 
 
+       
+      if(nbuf+nsel.gt.size(nwert)) then
+         write(6,*)'not enough space to store computed spectra!'
+         ierrs = 301
+         return
+      endif
+
+
 
 ! ---- take parameters from stack ----
        sqwght= sqwbuf
@@ -2050,8 +2058,11 @@ sl:       do j=1,maxstep
        ssq = ssq  
        if(iprt.gt.0) then
 
-         write(*,'(a)')char(27)//"[2J"       ! clear screen  !!??mm
-         write(*,'(a)')char(27)//"[H"        ! goto top      !!??mm
+
+!! VT100 commands to set ssq always as firts line, may be useful for slow fits with huge output
+!! for now skip
+!!vt100:!         write(*,'(a)')char(27)//"[2J"       ! clear screen  !!??mm
+!!vt100:!          write(*,'(a)')char(27)//"[H"       ! goto top      !!??mm
 
          write(6,'(i8,": ssq=",es12.4)',advance='no') icall,ssq
          if(pardev_scale > 0d0) then
@@ -3236,12 +3247,14 @@ sl:       do j=1,maxstep
        implicit none
        integer ln, le, la, lx, ly, j, inew, i,ier
        character*1024  infile
-       character*80 rline
+!       character*80 rline
+       character(len=256) :: rline
        logical*4    fileda
        real*8       xshift, yshift
 
        logical      :: is_inx, is_ins 
        integer      :: nfirst, nlast
+       integer      :: jsel
 
 !  neu fuer pfad
        character*1024 uspfad
@@ -3328,20 +3341,21 @@ sl:       do j=1,maxstep
    
 
 20000  continue                         !  new dataset
+       if(nbuf.ge.size(nwert)) then
+        write(6,*)'cdata buffer is full!'
+        close(20)        
+        call setudf('readlast ',dble(size(nwert)),ier)
+        nlast = nbuf
+        call selectreads
+        return
+      endif
+
       nbuf = nbuf + 1
       nopar(nbuf) = 0                          ! Anzahl der parameter in dataset nbuf
       lx = 0   ! anzahl x y ey werte
       ly = 0
       le = 0
 
-        if(nbuf.gt.size(nwert)) then
-        write(6,*)'cdata buffer is full!'
-        close(20)        
-        call setudf('readlast ',dble(size(nwert)),ier)
-        nlast = nbuf
-        return
-        call selectreads
-      endif
       name(nbuf)  = infile
       yname(nbuf) = 'y-data'
       xname(nbuf) = 'x-data'
@@ -3478,7 +3492,24 @@ sl:       do j=1,maxstep
           name(nbuf) = vname(1)
           yname(nbuf) = vname(2)
           xname(nbuf) = vname(4)
-          numor(nbuf) = Nint(rpar(1)) 
+          numor(nbuf) = Nint(rpar(1))
+!!?? >>>>>> tbd tentativ ??
+          if(numor(nbuf) == 0) then
+             numor(nbuf) = 1
+             if(nbuf > 1) then 
+                numor(nbuf) = maxval(numor(1:nbuf-1))+1  
+             endif         
+          endif
+!! ?? unique
+          if(nbuf > 1) then
+                if(minval(abs(numor(nbuf)-numor(1:nbuf-1))) == 0) then
+                   write(*,'(a,i12,a)',advance="no")"Numor=",numor(nbuf),"  is not unique! Set it to "
+                   numor(nbuf) = maxval(numor(1:nbuf-1))+1 
+                   write(*,'(i12)') numor(nbuf)
+                endif
+          endif
+!!?? <<<<<<
+ 
           goto 2000
                 else ! --  identification & comment-line        evrything else
                         if ( coment(nbuf).eq. ''  ) then
@@ -3528,11 +3559,16 @@ sl:       do j=1,maxstep
       contains
 
         subroutine selectreads
-
+           ifits = 0
            nsel  = max(0,nlast - nfirst + 1)
+           jsel  = 0
            do i=1,nsel
-             isels(i) = nfirst + i-1
+             if(numor(nfirst + i-1) >= 0) then
+                jsel = jsel+1
+                isels(jsel) = nfirst + i-1
+             endif
            enddo 
+           nsel = jsel
            ifits = 0
         end subroutine selectreads
       END   ! input
@@ -4253,7 +4289,8 @@ sl:       do j=1,maxstep
        ! use outlev
 
        implicit none
-       character*80 tline
+ !      character*80 tline
+       character(len=*) :: tline
        integer i,j
 
        integer :: istat
@@ -4261,13 +4298,13 @@ sl:       do j=1,maxstep
 !
        if(iout().gt.2)  write(6,*)'Decode :',trim(tline),'#-------------'
 
-       if(tline(79:80).ne.'  ') then
-         write(6,*)'decode(w): truncating ',tline(79:80),'  of:'
-         write(6,*)tline
+       if(tline(len(tline)-1:len(tline)).ne.'  ') then
+         write(6,*)'decode(w): truncating ',tline(len(tline)-1:len(tline)),'  of:'
+         write(6,*)trim(tline)
        endif
 !
        ioldc  = 1
-       reslin = '_ '//tline(1:78)
+       reslin = '_ '//tline(1:len(tline)-2)
 
        if(iout().gt.2) then
          write(6,*)'Decode2:',trim(reslin)//'#-------------'
@@ -4571,7 +4608,7 @@ sl:       do j=1,maxstep
                                 ispc = isels(l)
                                 write(18,'(a)')trim(coment(ispc) )
                                 write(18,'(a,a,a,a,a,i14)')trim(name(ispc)(index(name(ispc),'/',back=.true.)+1:)),&
-                      ' ',yname(ispc)(1:20), ' vs ',xname(ispc)(1:20),numor(ispc)
+                      ' ',trim(yname(ispc)), ' vs ',trim(xname(ispc)),numor(ispc)
 !                               write(18,'(2x,a8,10x,e14.7)')(napar(i,ispc),params(i,ispc),i= 1,nopar(ispc))
                                 write(18,'(2x,a8,10x,e14.7,i8)')(napar(i,ispc),params(i,ispc),params_display_level(i,ispc),&
                            i= 1,nopar(ispc))

@@ -66,3 +66,20 @@ NEU 4/20 TBD
 
 
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+TOBE DONE 22
+
+in der Kopfzeine: name   x vs y ....
+Lange Namen zulassen (oder dann kürzen) ohne den rest zu tangieren
+
+
+
+bei buffer overflow (nbuf) konsistent error returns
+speziell, wenn bei vollem Buffer thc odfer fit, ist kein
+Platz für die berechneten Kurven:  sofort Rausspringen !!
+nicht auf ywerte(0... schreiben!)
+(Oder Dimensionieren ywerte(0:...) aber dann check auf Verwendung von size..,
+bessr ubound  !
+
+

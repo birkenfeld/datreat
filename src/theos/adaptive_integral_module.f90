@@ -27,7 +27,7 @@ MODULE ADAPTIVE_INTEGRAL
 
 
 
-      integer, parameter, private           :: maxstack = 2000  ! --> stacktiefe
+      integer, parameter, private           :: maxstack = 10000  ! --> stacktiefe
 
       integer, parameter, private           :: ndim = 8
       integer, Parameter, private           :: ndim2 = ndim / 2

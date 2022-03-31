@@ -1139,7 +1139,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
        integer,save :: icolo(size(inpar)) = 0
        integer,save :: irecv(size(inpar))
        integer :: i
-       integer,save :: isymb(1:size(inpar)) = [(i,i=1,size(inpar))]+1   !! check Markertypes 
+       integer,save :: isymb(1:size(inpar)) = [(min(size(MARKERTYPE)-1,i),i=1,size(inpar))]+1   !! check Markertypes 
        integer,save :: ifrec(1:size(inpar))
 
        double precision, save :: linewidth_scaling(1:size(inpar)) = 1d0
@@ -1201,6 +1201,8 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
       
       logical, save :: initial = .true.
       logical       :: clipping
+
+      integer       :: iss
 
 
 
@@ -1568,7 +1570,7 @@ scl:   if(found('scaled  ')) then
         irfcu = isfits(i)
         if(irfcu <= 0) cycle
         npicf = nwert(irfcu)
-        icco = mod(icolo(i),7) + 1
+        icco = mod(icolo(min(i,size(icolo))),7) + 1
         nnpi = 0
         do 70010 j=1,npicf
           if(xwerte(j,irfcu).ge.xmin.and.xwerte(j,irfcu).le.xmax) then
@@ -1595,7 +1597,7 @@ scl:   if(found('scaled  ')) then
        do 20 i=1,nkurv
         ircu = isels(i)
         ircf = ifits(i)
-        icco = mod(icolo(i),7) + 1
+        icco = mod(icolo(min(i,size(icolo))),7) + 1
         npic = nwert(ircu)
         if(fitplo) then
         if(ircf.ne.0) then
@@ -1645,13 +1647,14 @@ scl:   if(found('scaled  ')) then
 ! write(*,*)"TP2: plot curve with par:",i, icco, isymb(i), MARKERTYPE(max(1,isymb(i))),  sysize_scaling(i)
 
 !          ----------- plot a dataline -------
-           if(isymb(i).eq.0) then
-             call grline(x=x, y=y, n=nnpi,   color=icco,   thickness=datline_thickness*linewidth_scaling(i),&
-                                                           typ=linetype(i)) !> neu
+           iss = min(i,size(isymb))
+           if(isymb(iss).eq.0) then
+             call grline(x=x, y=y, n=nnpi,   color=icco,   thickness=datline_thickness*linewidth_scaling(iss),&
+                                                           typ=linetype(iss)) !> neu
            else
              call grsymbol(x=x, y=y,  n=nnpi, &    ! xerror    = y(ind)*0.2d0, yerror = y(ind)*0.1d0, &
-                                      color=icco, symbolsize= sysize * sysize_scaling(i), &
-                                      typ= MARKERTYPE(isymb(i)) )
+                                      color=icco, symbolsize= sysize * sysize_scaling(iss), &
+                                      typ= MARKERTYPE(isymb(iss)) )
            endif
 
            if(errplo) then
@@ -1705,7 +1708,10 @@ scl:   if(found('scaled  ')) then
        sx = stunde(1:2)//':'//stunde(3:4)//':'//stunde(5:6)
 !       xtext = tx//'  '//sx
        write(xtext,'(a,i0)') tx//'  '//sx//' #',max(0,ibild-1)
-       call grtext(-DEFAULT_WC_MARGIN*150*fyskip * txsizt ,ylow,(xtext),GR_BLACK) !> neu
+!       call grtext(-DEFAULT_WC_MARGIN*150*fyskip * txsizt ,ylow,(xtext),GR_BLACK) !> neu
+        call grtext(-DEFAULT_WC_MARGIN*150*fyskip * 0.33d0 , &
+           ylow - (DEVICE_UPPER_RIGHT_Y- DEVICE_LOWER_LEFT_Y)*DEFAULT_WC_MARGIN*100 * 1.18d0 &
+         ,(xtext),GR_BLACK) !> neu
 
 ! ---- plot theory parameters ----
          if(ntheos.ne.0) then
