@@ -119,6 +119,14 @@ CONTAINS
        integer          :: i
        logical          :: witherr 
 
+
+!! ???? fresh init
+       RELATIVE_RATE_COMBINE    = 0.25d0
+       RELATIVE_LOWRATE_COMBINE = 1d0
+!! ????
+
+
+
        if(present(iout)) iout0 = iout
        
        witherr = present(yerr)

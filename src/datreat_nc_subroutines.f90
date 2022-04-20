@@ -330,7 +330,7 @@
         write(*,'(a,f12.6)')"Relative rate                 combine limit: rtc  =", RELATIVE_RATE_COMBINE 
         write(*,'(a,f12.6)')"Absolute rate (minrate ratio) combine limit: atc  =", RELATIVE_LOWRATE_COMBINE  
         write(*,'(a,f12.6)')"Maximum rate                               : rmax =", NEXP_MAXIMUM_RATE  
-        write(*,'(a,f12.6)')"Root mean squared deviation limkit         : rms  =", rmsdev  
+        write(*,'(a,f12.6)')"Root mean squared deviation limit          : rms  =", rmsdev  
         write(*,'(a,i6)')   "Maximum number of exponentials             : n    =", n 
  
 ! --- distribute the results ---
