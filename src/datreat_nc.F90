@@ -3739,20 +3739,22 @@ write(*,'(a,a,4f12.6)')"TEST: form2=",trim(yformel),xxxx,yyyy,yyee,val8y
             else
               call errsig(999,"NOTHING SELECTED => nothing purged! $")
             endif
-          else
-            do i=1,nbuf
-             keep = .false.
-             do j=1,nsel
-               if(i.eq.isels(j)) then
-                 keep = .true.                 
-               endif
+          else 
+            if(.not. found('fits    ')) then    !! this should be refactored to make logeic more clear
+              do i=1,nbuf
+               keep = .false.
+               do j=1,nsel
+                 if(i.eq.isels(j)) then
+                   keep = .true.                 
+                 endif
+               enddo
+               if(.not.keep) nwert(i) = 0   
              enddo
-             if(.not.keep) nwert(i) = 0   
-           enddo
+           endif
           endif
 
           if(found('fits    ')) then
-            ifits = 0                    !! ATTENTION: if its are selected 
+            ifits = 0                    !! ATTENTION: if its are selected
             do i=1,nbuf
               if(numor(i) < 0 .or. index(name(i),"fit")==1) nwert(i) = 0
               do j=1,nsel

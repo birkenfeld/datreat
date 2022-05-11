@@ -2135,6 +2135,7 @@ sl:       do j=1,maxstep
 !
        do 2001 i=1,inames
         j = inapa(i)
+        if(j<1) cycle
         if(vname(i).eq.'x1      ') then
             x1     = rpar(j)
             autox1 = .false.
