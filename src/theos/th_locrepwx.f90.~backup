@@ -1,4 +1,4 @@
- FUNCTION th_locrepwt(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
+ FUNCTION th_locrepwx(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
 !================================================================================
 !  generalized local reptation expression along the lines of deGennes, 
 !  but with finite summation of integrals and lenthscale, 
@@ -6,7 +6,7 @@
 !  Journal de Physique, 1981, 42 (5), pp.735-740. <10.1051/jphys:01981004205073500>
       use theory_description 
       implicit none 
-      real    :: th_locrepwt
+      real    :: th_locrepwx
       character(len=8) :: thnam, parnam (*) 
       real    :: pa (*) 
       real    :: x , xh
@@ -62,6 +62,9 @@
      double precision :: sqdebt, sqdeb0
      double precision :: slope_l , tauexp, alphaex
      double precision :: ww0, t0, tww
+     double precision :: dnse, deff, dblob
+     double precision :: f_re, f_dnse, f_deff, wd_mod
+     
 
      double precision, parameter   :: teps = 1d-6
 !     integer                       :: mode
@@ -70,11 +73,11 @@
 !
 ! ----- initialisation ----- 
     IF (ini.eq.0) then     
-       thnam = 'locrepwt'
-       nparx =        17
+       thnam = 'locrepwx'
+       nparx =        11
        IF (npar.lt.nparx) then
            WRITE (6,*)' theory: ',thnam,' no of parametrs=',nparx,' exceeds current max. = ',npar
-          th_locrepwt = 0
+          th_locrepwx = 0
           RETURN
        ENDIF
        npar = nparx
@@ -83,7 +86,8 @@
        th_identifier(idesc)   = thnam
        th_explanation(idesc)  = " generalized local reptation expression along the lines of deGennes, " //cr//parspace//&
                                 " fermi W modificatio and b,w,ne coupling," //cr//parspace//&
-                                " timescale and fluctuation ratio as parameters  locrep t=0 limit exp(-t) "
+                                " timescale and fluctuation ratio as parameters  locrep t=0 limit exp(-t) "//cr//parspace//&
+                                " correlation in timescales by factors to Re, dNSE, deff "
        th_citation(idesc)     = " Journal de Physique, 1981, 42 (5), pp.735-740. <10.1051/jphys:01981004205073500>"
 !       --------------> set the parameter names --->
         parnam ( 1) = 'b       '  ! fluctuation intensity 
@@ -91,36 +95,24 @@
         parnam ( 3) = 'ne      '  ! entanglemen ne length        
         parnam ( 4) = 'n       '  ! n                                                                      
         parnam ( 5) = 'wl4     '  ! rouse rate                                                                      
-        parnam ( 6) = 'n_segmen'  ! effective N for summation                                                       
-        parnam ( 7) = 're      '  ! end-to-end radius of Gaussian coil                                              
-        parnam ( 8) = 'temp    '  ! temperature if not in parameters                                                
-        parnam ( 9) = 'com_diff'  ! center of mass diffusion (if 0, use Rouse default)                              
-        parnam (10) = 'pmin    '  ! minimum mode to be included                                                     
-        parnam (11) = 'pmax    '  ! minimum mode to be included                                                     
-        parnam (12) = 't0locr  '  ! cutoff of locrep
-        parnam (13) = 'twlocr  '  ! width of fermi    
-        parnam (14) = 'alpha0  '  !                                                     
-        parnam (15) = 'talpmax '  !                                                     
-        parnam (16) = 'talpwd  '  !                                                    
-        parnam (17) = 'alpoffs '  !                                                                 
+        parnam ( 6) = 're      '  ! end-to-end radius of Gaussian coil                                              
+        parnam ( 7) = 'f_re    '  ! cutoff of locrep
+        parnam ( 8) = 'f_dnse  '  ! width of fermi    
+        parnam ( 9) = 'f_deff  '  !                                                     
+        parnam (10) = 'wd_mod  '  !                                                     
+        parnam (11) = 'alpha0  '  !                                                     
 ! >>>>> describe parameters >>>>>>> 
         th_param_desc( 1,idesc) = "fluctuation intensity" !//cr//parspace//&
         th_param_desc( 2,idesc) = "length scale" !//cr//parspace//&
         th_param_desc( 3,idesc) = "entanglement ne" !//cr//parspace//&
         th_param_desc( 4,idesc) = "totla n" !//cr//parspace//&
         th_param_desc( 5,idesc) = "rouse rate" !//cr//parspace//&
-        th_param_desc( 6,idesc) = "effective N for summation" !//cr//parspace//&
-        th_param_desc( 7,idesc) = "end-to-end radius of Gaussian coil" !//cr//parspace//&
-        th_param_desc( 8,idesc) = "temperature if not in parameters" !//cr//parspace//&
-        th_param_desc( 9,idesc) = "center of mass diffusion (if 0, use Rouse default)" !//cr//parspace//&
-        th_param_desc(10,idesc) = "minimum mode to be included" !//cr//parspace//&
-        th_param_desc(11,idesc) = "maximum mode to be included" !//cr//parspace//&
-        th_param_desc(12,idesc) = "cut off time of local reptation t=0 spike" !//cr//parspace//&
-        th_param_desc(13,idesc) = "width of cutoff" !//cr//parspace//&
-        th_param_desc(14,idesc) = "prefactor of non Gaussianity alpha(t) expression" !//cr//parspace//&
-        th_param_desc(17,idesc) = "t of max in log distribution alpha(t)" !//cr//parspace//&
-        th_param_desc(16,idesc) = "width of Gaussion max. in log t of alpha(t)" !//cr//parspace//&
-        th_param_desc(17,idesc) = "offset in alpha(t)" !//cr//parspace//&
+        th_param_desc( 6,idesc) = "end-to-end radius of Gaussian coil" !//cr//parspace//&
+        th_param_desc( 7,idesc) = "dblob factor for Re" !//cr//parspace//&
+        th_param_desc( 8,idesc) = "dblob factor for dnse" !//cr//parspace//&
+        th_param_desc( 9,idesc) = "dblob factor for deff" !//cr//parspace//&
+        th_param_desc(10,idesc) = "width modification factro w(t), alpha(t)" !//cr//parspace//&
+        th_param_desc(11,idesc) = "NG alpha strength" !//cr//parspace//&
 ! >>>>> describe record parameters used >>>>>>>
  ! >>>>> describe record parameters used >>>>>>>
         th_file_param(:,idesc) = " " 
@@ -136,16 +128,19 @@
         th_file_param(  2,idesc) = "temp     > temperature"
 ! >>>>> describe record parameters creaqted by this theory >>>>>>> 
         th_out_param(:,idesc)  = " "
-        th_out_param(  1,idesc) = "diff     > diffusion in cm**2/s"
-        th_out_param(  2,idesc) = "l        > effective segment length (Rouse summation)"
-        th_out_param(  3,idesc) = "w0       > rouse rate: W for WL4/a**4"
-        th_out_param(  4,idesc) = "wl4      > inferred value of Wl4"
-        th_out_param(  5,idesc) = "rga      > sqrt(ne) * a"
+        th_out_param(  1,idesc) = "l        > effective segment length (Rouse summation)"
+        th_out_param(  2,idesc) = "w0       > rouse rate: W for WL4/a**4"
+        th_out_param(  3,idesc) = "wl4      > inferred value of Wl4"
+        th_out_param(  4,idesc) = "deff     > sqrt((dnse**2+2*re**2)/3)"
+        th_out_param(  5,idesc) = "dnse     > sqrt(b*ne) * a"
+        th_out_param(  6,idesc) = "dblob    > f_re*re+f_dnse*dnse+f_deff*deff"
+        th_out_param(  7,idesc) = "t0_locrep> t0 of w(t) (=t_blob)"
+        th_out_param(  8,idesc) = "tw_locrep> width of w(t) fermi modification "
 !
 
 
  
-        th_locrepwt = 0.0
+        th_locrepwx = 0.0
  
         RETURN
      ENDIF
@@ -156,18 +151,12 @@
       ne       =   abs( pa( 3) )
       n        =   abs( pa( 4) )
       wl4      =   abs( pa( 5))
-      n_segmen =  nint( pa( 6))
-      re       =   abs( pa( 7))
-      temp     =        pa( 8)
-      com_diff =   abs( pa( 9))
-      pmin     =        pa(10)
-      pmax     =        pa(11)
-      t0_locrep=   abs( pa(12))
-      tw_locrep=   abs( pa(13))
-      alpha0   =        pa(14)
-      talphamax=   abs(pa(15))
-      talphawd =   abs(pa(16))
-      aoffset  =        pa(17)
+      re       =   abs( pa( 6))
+      f_re     =   abs( pa( 7))
+      f_dnse   =   abs( pa( 8))
+      f_deff   =   abs( pa( 9))
+      wd_mod   =   abs( pa(10))
+      alpha0   =      ( pa(11))
  
 
       ampli     = 1d0
@@ -187,6 +176,24 @@
       xh =     400d0
       call parget('temp    ',xh,iadda,ier)
       temp     = xh
+
+      dnse = sqrt(b*ne)*a
+      deff = sqrt( (dnse**2 + 2*re**2)/3d0 )
+
+      dblob = f_re * re + f_dnse * dnse + f_deff * deff
+
+      t0_locrep = dblob**4 /(Pi**2 * wl4)  
+      tw_locrep = t0_locrep * wd_mod
+
+      talphamax = t0_locrep
+      talphawd  = log( talphamax * wd_mod )
+
+      n_segmen = ne
+      com_diff = 1d-14
+      pmin     = 1
+      pmax     = n_segmen
+      aoffset  = 0
+      temp     = 400d0     ! ist irrelevant
 
 
 
@@ -216,7 +223,7 @@
 
 
  ! write(*,*)"q,t=",q,t,"  sqt0, sqt=",sqt0,sqt, "debye=", Sqdeb0,Sqdebt
-      th_locrepwt = ampli * sqt/sqt0  * Sqdebt/Sqdeb0
+      th_locrepwx = ampli * sqt/sqt0  * Sqdebt/Sqdeb0
 
 !     write(6,*) t, q, sqt, sqt0
       call parset("a2sqt   ", sngl(a*a/sqrt(tau)),iadda,ier)
@@ -224,11 +231,14 @@
       call        parset('l       ',sngl(l),iadda,ier)      ! in ns A units
       call        parset('w0      ',sngl(W0),iadda,ier)      !     "
       call        parset('wl4     ',sngl(W0*l**4),iadda,ier) !     "
-      call        parset('rga     ',sngl(sqrt(ne)*a),iadda,ier) !     "
-      call        parset('t0w     ',sngl(t0),iadda,ier) !     "
+      call        parset('deff    ',sngl(deff),iadda,ier) !     "
+      call        parset('dnse    ',sngl(dnse),iadda,ier) !     "
+      call        parset('dblob   ',sngl(dblob),iadda,ier) !     "
+      call        parset('t0_locrep     ',sngl(t0),iadda,ier) !     "
+      call        parset('tw_locrep     ',sngl(tww),iadda,ier) !     "
   
-      Dr        = Dr /( 1d-9 / 1d-16 ) ! in cm**2/s
-      call parset('diff    ',sngl(Dr),iadda,ier)
+!      Dr        = Dr /( 1d-9 / 1d-16 ) ! in cm**2/s
+!      call parset('diff    ',sngl(Dr),iadda,ier)
  
 
                    
@@ -572,6 +582,6 @@ end function alpha
 
 
 
- end function th_locrepwt
+ end function th_locrepwx
 
  
