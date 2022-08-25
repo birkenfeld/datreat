@@ -14,7 +14,7 @@
       character(len=80), intent(inout) :: napar(mbuf) 
       real, intent(inout) :: params(mbuf) 
      
-      double precision, parameter :: Pi = 4*atan(1d0)
+ !     double precision, parameter :: Pi = 4*atan(1d0)
       integer                     :: actual_record_address
      
 ! the internal parameter representation 
@@ -128,8 +128,22 @@
 ! ------------------------------------------------------------------
 ! 
      frequenz   = x
+
+write(*,*) "freq      =",x
+write(*,*) "rhoAl     =",rhoAl
+write(*,*) "cpa       =",cpa
+write(*,*) "cper      =",cper
+write(*,*) "dlengtha  =",dlengtha
+write(*,*) "wwidthaa  =",wwidtha
+write(*,*) "rsepa     =",rsepa
+write(*,*) "Rwc_mod   =",Rwc_mod
+
+
+
+
      zx         =  Z_llcoil(frequenz, rhoAl, cpa, cper, dlengtha, wwidtha, rsepa, Rwc_mod) + R0
      zx         = zx * ampli
+write(*,*) "zx=",zx
      if(nint(abspha) <= 1)  then
         th = abs(zx)
      else

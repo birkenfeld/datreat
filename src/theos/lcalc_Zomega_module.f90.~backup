@@ -13,41 +13,8 @@ module lcalc_Zomega_cc
 !
 !
 !
-! use adaptive_integral
+ use adaptive_integral
  implicit none
-
- private
- public :: Z_llcoil,  Zomega
-
-
-   abstract interface 
-     function f_kernel(x)
-     double precision  :: f_kernel
-     double precision  :: x
-     end function f_kernel
-   end interface 
-
-
-!   abstract interface 
-!     function f_kernel_mp(x,i)
-!     double precision  :: f_kernel_mp
-!     double precision  :: x
-!     integer           :: i
-!     end function f_kernel_mp
-!   end interface 
-
-
-
-
-      integer, parameter, private           :: maxstack = 10000  ! --> stacktiefe
-
-      integer, parameter, private           :: ndim = 8
-      integer, Parameter, private           :: ndim2 = ndim / 2
-      double precision, parameter, private  :: a (ndim2) = [0.362683783378362d0, 0.313706645877887d0,  &
-                                                            0.222381034453374d0, 0.101228536290376d0 ] 
-      double precision, parameter, private  :: x (ndim2) = [0.183434642495650d0, 0.525532409916329d0,  &
-                                                            0.796666477413627d0, 0.960289856497536d0 ]  
-
 
                        
 !! integrand
@@ -83,7 +50,7 @@ module lcalc_Zomega_cc
   double precision :: ZArea1, ZArea2
   double precision :: erg   
 
-  integer          :: maxit = 15000
+  integer          :: maxit = 50000
   double precision :: eps0  = 1d-6
 
   integer, parameter :: mcoil                = 100
@@ -167,8 +134,8 @@ subroutine init_ll(dlength, wwidth, rsep)
  double precision, intent(in) :: wwidth
  double precision, intent(in) :: rsep
   
-!  open(10, file="coiltables.plain")
-  open(10, file="/Users/monk/Desktop/HOMEWORK/NIST/LCALC/coiltables.plain")
+  open(10, file="coiltables.plain")
+!  open(10, file="/Users/Apple/Desktop/HOMEWORK/NIST/LCALC/coiltables.plain")
 
 
 
@@ -233,7 +200,20 @@ subroutine init_ll(dlength, wwidth, rsep)
             ZArea2 =  1d0/((R2a-R2i)*(ZZ2-ZZ1))
          endif
 
-         ll(ic1,ic2) =  a3dapint(fker3,R2i,R2a,eps0,maxit)  &
+write(*,*)"TEST:  ic1,ic2=",ic1,ic2
+write(*,*)" ==> ",R2i,R2a,eps0,maxit,Pi
+write(*,*)
+write(*,*)"========================== coil model ======================================== "
+write(*,*)"coil:  z1         z2          ri        ra            N                        "
+do i=1,ncoils
+  write(*,'(i4,":",2f10.6,3x,2f10.6,i8)') ic1, z(:,i), ri(i), ra(i), nturns(i)
+enddo
+write(*,*)"============================================================================== "
+write(*,*)
+write(*,*)"TEST: R2i,a, eps0, maxit:",R2i,R2a,eps0,maxit 
+
+
+         ll(ic1,ic2) =  m_a3dapint(fker3,R2i,R2a,eps0,maxit)  &
                      * mu0/4*Pi *(2*Pi) * nturns(ic1) * nturns(ic2) &
                      * ZArea1 * ZArea2 &
                       /Pi/Pi
@@ -244,6 +224,7 @@ subroutine init_ll(dlength, wwidth, rsep)
  !                                                                            ------> wieso der Faktor
  ! 
  !        write(*,'("L(",i0,",",i0,")=",f16.12)')ic1,ic2, ll(ic1,ic2)
+write(*,*)ll(ic1,ic2)
    enddo dc2
  enddo dc1
 
@@ -256,7 +237,6 @@ subroutine init_ll(dlength, wwidth, rsep)
  enddo
  write(*,*)"============================================================================== "
  write(*,*)
-
 
  write(*,*)
  write(*,*)"========================== Inductance Matrix [Hy] ============================ "
@@ -443,7 +423,7 @@ function fker2(r) result (fval)
   else
     rj1   = 1
   endif
-  fval = adapint(fker1,0.d0,2*Pi, eps0, maxit)
+  fval = m_adapint(fker1,0.d0,2*Pi, eps0, maxit)
  
 end function fker2
 
@@ -459,416 +439,9 @@ function fker3(r) result (fval)
     rj2   = 1
   endif
 
-  fval = a2dapint(fker2,R1i,R1a, eps0, maxit)
+  fval = m_a2dapint(fker2,R1i,R1a, eps0, maxit)
  
 end function fker3
 
 
-
-
-
-      FUNCTION adapint (f, a, b, epso, maxitero, erroraccu) 
-!      =================================================                
-!                                                                       
-!      lokal adaptives integrationsverfahren 2te ver. wg. rekur.        
-      IMPLICIT none 
-!                                                                       
-                         
-                                                                       
-!     double precision, EXTERNAL     ::  f 
-      procedure(f_kernel)            ::  f
-      double precision, intent(in)   ::  a
-      double precision, intent(in)   ::  b
-      double precision, intent(in), optional   ::  epso
-      integer         , intent(in), optional   ::  maxitero
-      double precision, intent(out),optional   ::  erroraccu
-      double precision               ::  adapint
-!               
-      integer           :: iterationcounter , maxiter
-      integer           :: i, itop, itm  
-      double precision  :: erg, xbb, error, erraccu, eps
-      double precision   ::  s (0:maxstack), xa (0:maxstack), xb (0:maxstack) 
-                                                         
-!                                                                        
-!                                                                       
-!      -----------------------------------------------------------------
-      if(present(epso)) then
-        eps = epso
-      else
-        eps = abs(f((a+b)/2d0)) * 1d-10
-      endif  
-                 
-      if(present(maxitero)) then
-        maxiter = maxitero
-      else
-        maxiter = 1000
-      endif                   
-                                                     
-                                                                        
-      iterationcounter = 0 
-      erg = 0.0d0 
-      erraccu = 0
-      itop = 0 
-      xa (itop) = a 
-      xb (itop) = b 
-      s (itop) = gaus8a (f, a, b) 
-                                                                        
-      DO i = 1, maxiter 
-      IF (itop.ge. (maxstack - 2) ) then 
-         erg = erg + s (itop) 
-         xbb = xb (itop) 
-         itm = itop - 1 
-         DO itop = itm, 0, - 1 
-         IF (xa (itop) .eq.xbb) goto 1 
-         enddo 
-    1    CONTINUE 
-         WRITE (6, * ) 'warning! adaptint stack overflow!' 
-      ELSE 
-         iterationcounter = iterationcounter + 1 
-         itop = itop + 1 
-         xa (itop) = (xa (itop - 1) + xb (itop - 1) ) * 0.5d0 
-         xb (itop) = xb (itop - 1) 
-         s (itop) = gaus8a (f, xa (itop), xb (itop) ) 
-         itop = itop + 1 
-         xa (itop) = xa (itop - 2) 
-         xb (itop) = xa (itop - 1) 
-         s (itop) = gaus8a (f, xa (itop), xb (itop) ) 
-         error = dabs ( (s (itop) + s (itop - 1) ) - s (itop - 2) ) 
-                                                                        
-                                                                        
-         IF (error.lt.eps) then 
-            erg = erg + s (itop) + s (itop - 1) 
-            erraccu = erraccu + error 
-            itop = itop - 1 
-            xbb = xb (itop) 
-            itop = itop - 1 
-            itm = itop - 1 
-            DO itop = itm, 0, - 1 
-            IF (xa (itop) .eq.xbb) goto 2 
-            enddo 
-    2       CONTINUE 
-         ENDIF 
-      ENDIF 
-      IF (itop.le.0) goto 3 
-      enddo 
-      WRITE (6, * ) 'adapint fatal error iterationnumber exceeded!' 
-    3 CONTINUE 
-                                                                        
-      if(present(erroraccu)) erroraccu = erraccu      
-                                                                  
-      adapint = erg 
-                                                                        
-      RETURN 
-                                                                        
-      END FUNCTION adapint        
-
-
-      FUNCTION a2dapint (f, a, b, epso, maxitero, erroraccu) 
-!      =================================================                
-!                                                                       
-!      lokal adaptives integrationsverfahren 2te ver. wg. rekur.        
-      IMPLICIT none 
-!                                                                       
-                       
-                                                                       
-!     double precision, EXTERNAL     ::  f 
-      procedure(f_kernel)            ::  f
-      double precision, intent(in)   ::  a
-      double precision, intent(in)   ::  b
-      double precision, intent(in), optional   ::  epso
-      integer         , intent(in), optional   ::  maxitero
-      double precision, intent(out),optional   ::  erroraccu
-      double precision               ::  a2dapint
-!               
-      integer           :: iterationcounter , maxiter
-      integer           :: i, itop, itm  
-      double precision  :: erg, xbb, error, erraccu, eps
-      double precision   ::  s (0:maxstack), xa (0:maxstack), xb (0:maxstack) 
-                                                         
-!                                                                       
-!      -----------------------------------------------------------------
-      if(present(epso)) then
-        eps = epso
-      else
-        eps = abs(f((a+b)/2d0)) * 1d-10
-      endif  
-                 
-      if(present(maxitero)) then
-        maxiter = maxitero
-      else
-        maxiter = 1000
-      endif                   
-                                                     
-                                                                        
-      iterationcounter = 0 
-      erg = 0.0d0 
-      erraccu = 0
-      itop = 0 
-      xa (itop) = a 
-      xb (itop) = b 
-      s (itop) = g2aus8a (f, a, b) 
-                                                                        
-      DO i = 1, maxiter 
-      IF (itop.ge. (maxstack - 2) ) then 
-         erg = erg + s (itop) 
-         xbb = xb (itop) 
-         itm = itop - 1 
-         DO itop = itm, 0, - 1 
-         IF (xa (itop) .eq.xbb) goto 1 
-         enddo 
-    1    CONTINUE 
-         WRITE (6, * ) 'warning! a2daptint stack overflow!' 
-      ELSE 
-         iterationcounter = iterationcounter + 1 
-         itop = itop + 1 
-         xa (itop) = (xa (itop - 1) + xb (itop - 1) ) * 0.5d0 
-         xb (itop) = xb (itop - 1) 
-         s (itop) = g2aus8a (f, xa (itop), xb (itop) ) 
-         itop = itop + 1 
-         xa (itop) = xa (itop - 2) 
-         xb (itop) = xa (itop - 1) 
-         s (itop) = g2aus8a (f, xa (itop), xb (itop) ) 
-         error = dabs ( (s (itop) + s (itop - 1) ) - s (itop - 2) ) 
-                                                                        
-                                                                        
-         IF (error.lt.eps) then 
-            erg = erg + s (itop) + s (itop - 1) 
-            erraccu = erraccu + error 
-            itop = itop - 1 
-            xbb = xb (itop) 
-            itop = itop - 1 
-            itm = itop - 1 
-            DO itop = itm, 0, - 1 
-            IF (xa (itop) .eq.xbb) goto 2 
-            enddo 
-    2       CONTINUE 
-         ENDIF 
-      ENDIF 
-      IF (itop.le.0) goto 3 
-      enddo 
-      WRITE (6, * ) 'a2dapint fatal error iterationnumber exceeded!' 
-    3 CONTINUE 
-                                                                        
-      if(present(erroraccu)) erroraccu = erraccu      
-                                                                  
-      a2dapint = erg 
-
-                                                                        
-      END FUNCTION a2dapint        
-
-
-
-      FUNCTION a3dapint (f, a, b, epso, maxitero, erroraccu) 
-!      =================================================                
-!                                                                       
-!      lokal adaptives integrationsverfahren 2te ver. wg. rekur.        
-      IMPLICIT none 
-!                                                                       
-                       
-!     double precision, EXTERNAL     ::  f 
-      procedure(f_kernel)            ::  f
-                                                                 
-      double precision, intent(in)   ::  a
-      double precision, intent(in)   ::  b
-      double precision, intent(in), optional   ::  epso
-      integer         , intent(in), optional   ::  maxitero
-      double precision, intent(out),optional   ::  erroraccu
-      double precision               ::  a3dapint
-!               
-      integer           :: iterationcounter , maxiter
-      integer           :: i, itop, itm  
-      double precision  :: erg, xbb, error, erraccu, eps
-      double precision   ::  s (0:maxstack), xa (0:maxstack), xb (0:maxstack) 
-                                                         
-!                                                                       
-!      -----------------------------------------------------------------
-      if(present(epso)) then
-        eps = epso
-      else
-        eps = abs(f((a+b)/2d0)) * 1d-10
-      endif  
-                 
-      if(present(maxitero)) then
-        maxiter = maxitero
-      else
-        maxiter = 1000
-      endif                   
-                                                     
-                                                                        
-      iterationcounter = 0 
-      erg = 0.0d0 
-      erraccu = 0
-      itop = 0 
-      xa (itop) = a 
-      xb (itop) = b 
-      s (itop) = g2aus8a (f, a, b) 
-                                                                        
-      DO i = 1, maxiter 
-      IF (itop.ge. (maxstack - 2) ) then 
-         erg = erg + s (itop) 
-         xbb = xb (itop) 
-         itm = itop - 1 
-         DO itop = itm, 0, - 1 
-         IF (xa (itop) .eq.xbb) goto 1 
-         enddo 
-    1    CONTINUE 
-         WRITE (6, * ) 'warning! a3daptint stack overflow!' 
-      ELSE 
-         iterationcounter = iterationcounter + 1 
-         itop = itop + 1 
-         xa (itop) = (xa (itop - 1) + xb (itop - 1) ) * 0.5d0 
-         xb (itop) = xb (itop - 1) 
-         s (itop) = g2aus8a (f, xa (itop), xb (itop) ) 
-         itop = itop + 1 
-         xa (itop) = xa (itop - 2) 
-         xb (itop) = xa (itop - 1) 
-         s (itop) = g2aus8a (f, xa (itop), xb (itop) ) 
-         error = dabs ( (s (itop) + s (itop - 1) ) - s (itop - 2) ) 
-                                                                        
-                                                                        
-         IF (error.lt.eps) then 
-            erg = erg + s (itop) + s (itop - 1) 
-            erraccu = erraccu + error 
-            itop = itop - 1 
-            xbb = xb (itop) 
-            itop = itop - 1 
-            itm = itop - 1 
-            DO itop = itm, 0, - 1 
-            IF (xa (itop) .eq.xbb) goto 2 
-            enddo 
-    2       CONTINUE 
-         ENDIF 
-      ENDIF 
-      IF (itop.le.0) goto 3 
-      enddo 
-      WRITE (6, * ) 'a3dapint fatal error iterationnumber exceeded!' 
-    3 CONTINUE 
-                                                                        
-      if(present(erroraccu)) erroraccu = erraccu      
-                                                                  
-      a3dapint = erg 
-                                                                        
-      RETURN 
-                                                                        
-      END FUNCTION a3dapint        
-
-
- 
-      FUNCTION gaus8a (f, xu, xo) 
-!-----------------------------------------------------------------------
-!      8-punkte gauss-integration  : int(f,xu..xo)  
-!-----------------------------------------------------------------------
-      implicit none
-
-!     double precision, EXTERNAL     ::  f 
-      procedure(f_kernel)            ::  f
-
-      double precision, intent(in)   ::  xu
-      double precision, intent(in)   ::  xo
-      double precision               ::  gaus8a
- 
-      integer          :: i
-      double precision :: xave, grange, gsum
-                                                                  
-      xave = (xo + xu) * 0.5d0 
-      grange = (xo - xu) * 0.5d0 
-      gsum = 0.d0 
-      DO i = 1, ndim2 
-      gsum = gsum + a (i) * (f (xave+grange * x (i) ) + f (xave-grange * x ( i) ) )                                                            
-      enddo 
-      gaus8a = gsum * grange 
-                                                                        
-      END FUNCTION gaus8a  
-
-
-      FUNCTION g2aus8a (f, xu, xo) 
-!-----------------------------------------------------------------------
-!      8-punkte gauss-integration  : int(f,xu..xo)  
-!-----------------------------------------------------------------------
-      implicit none
-
-!     double precision, EXTERNAL     ::  f 
-      procedure(f_kernel)            ::  f
-
-      double precision, intent(in)   ::  xu
-      double precision, intent(in)   ::  xo
-      double precision               ::  g2aus8a
- 
-      integer          :: i
-      double precision :: xave, grange, gsum
-                                                                  
-      xave = (xo + xu) * 0.5d0 
-      grange = (xo - xu) * 0.5d0 
-      gsum = 0.d0 
-      DO i = 1, ndim2 
-      gsum = gsum + a (i) * (f (xave+grange * x (i) ) + f (xave-grange * x ( i) ) )                                                            
-      enddo 
-      g2aus8a = gsum * grange 
-                                                                        
-      END FUNCTION g2aus8a  
-
-
-      FUNCTION g3aus8a (f, xu, xo) 
-!-----------------------------------------------------------------------
-!      8-punkte gauss-integration  : int(f,xu..xo)  
-!-----------------------------------------------------------------------
-      implicit none
-
-!     double precision, EXTERNAL     ::  f 
-      procedure(f_kernel)            ::  f
-
-      double precision, intent(in)   ::  xu
-      double precision, intent(in)   ::  xo
-      double precision               ::  g3aus8a
- 
-      integer          :: i
-      double precision :: xave, grange, gsum
-                                                                  
-      xave = (xo + xu) * 0.5d0 
-      grange = (xo - xu) * 0.5d0 
-      gsum = 0.d0 
-      DO i = 1, ndim2 
-      gsum = gsum + a (i) * (f (xave+grange * x (i) ) + f (xave-grange * x ( i) ) )                                                            
-      enddo 
-      g3aus8a = gsum * grange 
-                                                                        
-      END FUNCTION g3aus8a  
-
-
-
-
-end module lcalc_Zomega_cc
-
-
-!
-!program testll
-! use lcalc_20_Zomega_cc
-! implicit none
-!
-! double precision :: frequenz
-! double precision :: R0, zabs, zphase
-! complex          :: zx
-! integer          :: iomeg
-!
-!
-!  dlength      = 0.01d0
-!  wwidth       = 0.01d0  
-!  rsep         = 0.0005d0
-!  CperSQM      = 1d-9   
-!  cparallel    = 5d-9 
-!  rhoAlcore    = 2d-9
-!  R0           = 0.0d0
-!
-!  
-!diom: do iomeg=0,2500
-!  
-!  frequenz   = 0.0001d0 * 2d0**(iomeg*0.01d0)
-!
-!  zx =  Z_llcoil(frequenz, rhoAlcore, cparallel, cpersqm, dlength, wwidth, rsep) + R0
-!
-!  write(*,'("f=",f12.6,"   |Z|=",f18.4,"  Zr=",f18.4,"  Zi=",f18.6,"  phase=",F12.4)') &
-!               frequenz,      abs(zx),    zx, atan2(aimag(zx),real(zx))*180d0/Pi
-!
-!end do diom
-! 
-! end program testll
+end module  lcalc_Zomega_cc

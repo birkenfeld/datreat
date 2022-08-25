@@ -40,7 +40,7 @@ MODULE ADAPTIVE_INTEGRAL
 CONTAINS
                        
 
-      FUNCTION adapint (f, a, b, epso, maxitero, erroraccu) 
+      FUNCTION m_adapint (f, a, b, epso, maxitero, erroraccu) 
 !      =================================================                
 !                                                                       
 !      lokal adaptives integrationsverfahren 2te ver. wg. rekur.        
@@ -55,7 +55,7 @@ CONTAINS
       double precision, intent(in), optional   ::  epso
       integer         , intent(in), optional   ::  maxitero
       double precision, intent(out),optional   ::  erroraccu
-      double precision               ::  adapint
+      double precision               ::  m_adapint
 !               
       integer           :: iterationcounter , maxiter
       integer           :: i, itop, itm  
@@ -84,7 +84,7 @@ CONTAINS
       itop = 0 
       xa (itop) = a 
       xb (itop) = b 
-      s (itop) = gaus8a (f, a, b) 
+      s (itop) = m_gaus8a (f, a, b) 
                                                                         
       DO i = 1, maxiter 
       IF (itop.ge. (maxstack - 2) ) then 
@@ -101,11 +101,11 @@ CONTAINS
          itop = itop + 1 
          xa (itop) = (xa (itop - 1) + xb (itop - 1) ) * 0.5d0 
          xb (itop) = xb (itop - 1) 
-         s (itop) = gaus8a (f, xa (itop), xb (itop) ) 
+         s (itop) = m_gaus8a (f, xa (itop), xb (itop) ) 
          itop = itop + 1 
          xa (itop) = xa (itop - 2) 
          xb (itop) = xa (itop - 1) 
-         s (itop) = gaus8a (f, xa (itop), xb (itop) ) 
+         s (itop) = m_gaus8a (f, xa (itop), xb (itop) ) 
          error = dabs ( (s (itop) + s (itop - 1) ) - s (itop - 2) ) 
                                                                         
                                                                         
@@ -129,14 +129,14 @@ CONTAINS
                                                                         
       if(present(erroraccu)) erroraccu = erraccu      
                                                                   
-      adapint = erg 
+      m_adapint = erg 
                                                                         
       RETURN 
                                                                         
-      END FUNCTION adapint        
+      END FUNCTION m_adapint        
 
 
-      FUNCTION a2dapint (f, a, b, epso, maxitero, erroraccu) 
+      FUNCTION m_a2dapint (f, a, b, epso, maxitero, erroraccu) 
 !      =================================================                
 !                                                                       
 !      lokal adaptives integrationsverfahren 2te ver. wg. rekur.        
@@ -151,7 +151,7 @@ CONTAINS
       double precision, intent(in), optional   ::  epso
       integer         , intent(in), optional   ::  maxitero
       double precision, intent(out),optional   ::  erroraccu
-      double precision               ::  a2dapint
+      double precision               ::  m_a2dapint
 !               
       integer           :: iterationcounter , maxiter
       integer           :: i, itop, itm  
@@ -179,7 +179,7 @@ CONTAINS
       itop = 0 
       xa (itop) = a 
       xb (itop) = b 
-      s (itop) = g2aus8a (f, a, b) 
+      s (itop) = m_g2aus8a (f, a, b) 
                                                                         
       DO i = 1, maxiter 
       IF (itop.ge. (maxstack - 2) ) then 
@@ -196,11 +196,11 @@ CONTAINS
          itop = itop + 1 
          xa (itop) = (xa (itop - 1) + xb (itop - 1) ) * 0.5d0 
          xb (itop) = xb (itop - 1) 
-         s (itop) = g2aus8a (f, xa (itop), xb (itop) ) 
+         s (itop) = m_g2aus8a (f, xa (itop), xb (itop) ) 
          itop = itop + 1 
          xa (itop) = xa (itop - 2) 
          xb (itop) = xa (itop - 1) 
-         s (itop) = g2aus8a (f, xa (itop), xb (itop) ) 
+         s (itop) = m_g2aus8a (f, xa (itop), xb (itop) ) 
          error = dabs ( (s (itop) + s (itop - 1) ) - s (itop - 2) ) 
                                                                         
                                                                         
@@ -224,14 +224,14 @@ CONTAINS
                                                                         
       if(present(erroraccu)) erroraccu = erraccu      
                                                                   
-      a2dapint = erg 
+      m_a2dapint = erg 
 
                                                                         
-      END FUNCTION a2dapint        
+      END FUNCTION m_a2dapint        
 
 
 
-      FUNCTION a3dapint (f, a, b, epso, maxitero, erroraccu) 
+      FUNCTION m_a3dapint (f, a, b, epso, maxitero, erroraccu) 
 !      =================================================                
 !                                                                       
 !      lokal adaptives integrationsverfahren 2te ver. wg. rekur.        
@@ -246,7 +246,7 @@ CONTAINS
       double precision, intent(in), optional   ::  epso
       integer         , intent(in), optional   ::  maxitero
       double precision, intent(out),optional   ::  erroraccu
-      double precision               ::  a3dapint
+      double precision               ::  m_a3dapint
 !               
       integer           :: iterationcounter , maxiter
       integer           :: i, itop, itm  
@@ -259,22 +259,21 @@ CONTAINS
         eps = epso
       else
         eps = abs(f((a+b)/2d0)) * 1d-10
-      endif  
+      endif 
                  
       if(present(maxitero)) then
         maxiter = maxitero
       else
         maxiter = 1000
-      endif                   
-                                                     
-                                                                        
+      endif                  
+
       iterationcounter = 0 
       erg = 0.0d0 
       erraccu = 0
       itop = 0 
       xa (itop) = a 
       xb (itop) = b 
-      s (itop) = g2aus8a (f, a, b) 
+      s (itop) = m_g3aus8a (f, a, b) 
                                                                         
       DO i = 1, maxiter 
       IF (itop.ge. (maxstack - 2) ) then 
@@ -291,11 +290,11 @@ CONTAINS
          itop = itop + 1 
          xa (itop) = (xa (itop - 1) + xb (itop - 1) ) * 0.5d0 
          xb (itop) = xb (itop - 1) 
-         s (itop) = g2aus8a (f, xa (itop), xb (itop) ) 
+         s (itop) = m_g3aus8a (f, xa (itop), xb (itop) ) 
          itop = itop + 1 
          xa (itop) = xa (itop - 2) 
          xb (itop) = xa (itop - 1) 
-         s (itop) = g2aus8a (f, xa (itop), xb (itop) ) 
+         s (itop) = m_g3aus8a (f, xa (itop), xb (itop) ) 
          error = dabs ( (s (itop) + s (itop - 1) ) - s (itop - 2) ) 
                                                                         
                                                                         
@@ -319,15 +318,15 @@ CONTAINS
                                                                         
       if(present(erroraccu)) erroraccu = erraccu      
                                                                   
-      a3dapint = erg 
+      m_a3dapint = erg 
                                                                         
       RETURN 
                                                                         
-      END FUNCTION a3dapint        
+      END FUNCTION m_a3dapint        
 
 
  
-      FUNCTION gaus8a (f, xu, xo) 
+      FUNCTION m_gaus8a (f, xu, xo) 
 !-----------------------------------------------------------------------
 !      8-punkte gauss-integration  : int(f,xu..xo)  
 !-----------------------------------------------------------------------
@@ -338,7 +337,7 @@ CONTAINS
 
       double precision, intent(in)   ::  xu
       double precision, intent(in)   ::  xo
-      double precision               ::  gaus8a
+      double precision               ::  m_gaus8a
  
       integer          :: i
       double precision :: xave, grange, gsum
@@ -349,12 +348,12 @@ CONTAINS
       DO i = 1, ndim2 
       gsum = gsum + a (i) * (f (xave+grange * x (i) ) + f (xave-grange * x ( i) ) )                                                            
       enddo 
-      gaus8a = gsum * grange 
+      m_gaus8a = gsum * grange 
                                                                         
-      END FUNCTION gaus8a  
+      END FUNCTION m_gaus8a  
 
 
-      FUNCTION g2aus8a (f, xu, xo) 
+      FUNCTION m_g2aus8a (f, xu, xo) 
 !-----------------------------------------------------------------------
 !      8-punkte gauss-integration  : int(f,xu..xo)  
 !-----------------------------------------------------------------------
@@ -365,7 +364,7 @@ CONTAINS
 
       double precision, intent(in)   ::  xu
       double precision, intent(in)   ::  xo
-      double precision               ::  g2aus8a
+      double precision               ::  m_g2aus8a
  
       integer          :: i
       double precision :: xave, grange, gsum
@@ -376,12 +375,12 @@ CONTAINS
       DO i = 1, ndim2 
       gsum = gsum + a (i) * (f (xave+grange * x (i) ) + f (xave-grange * x ( i) ) )                                                            
       enddo 
-      g2aus8a = gsum * grange 
+      m_g2aus8a = gsum * grange 
                                                                         
-      END FUNCTION g2aus8a  
+      END FUNCTION m_g2aus8a  
 
 
-      FUNCTION g3aus8a (f, xu, xo) 
+      FUNCTION m_g3aus8a (f, xu, xo) 
 !-----------------------------------------------------------------------
 !      8-punkte gauss-integration  : int(f,xu..xo)  
 !-----------------------------------------------------------------------
@@ -392,7 +391,7 @@ CONTAINS
 
       double precision, intent(in)   ::  xu
       double precision, intent(in)   ::  xo
-      double precision               ::  g3aus8a
+      double precision               ::  m_g3aus8a
  
       integer          :: i
       double precision :: xave, grange, gsum
@@ -403,9 +402,9 @@ CONTAINS
       DO i = 1, ndim2 
       gsum = gsum + a (i) * (f (xave+grange * x (i) ) + f (xave-grange * x ( i) ) )                                                            
       enddo 
-      g3aus8a = gsum * grange 
+      m_g3aus8a = gsum * grange 
                                                                         
-      END FUNCTION g3aus8a  
+      END FUNCTION m_g3aus8a  
 
 
 
@@ -413,11 +412,11 @@ END MODULE ADAPTIVE_INTEGRAL
 
 
 
- double precision function ff(x)
-   double precision, intent(in) :: x
-   ff = 1d0/sqrt(x)
- end function ff
- 
+!! double precision function ff(x)
+!!   double precision, intent(in) :: x
+!!   ff = 1d0/sqrt(x)
+!! end function ff
+!!
 !! program testada
 !!   use ADAPTIVE_INTEGRAL
 !! 

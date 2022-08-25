@@ -322,7 +322,8 @@
                         write(*,*)'=                 (old behavior)                                 ='
                         write(*,*)'=  VERSION                                                       ='
                         write(6,*)'=================================================================='
-                       
+              
+!           
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
 !       pi   = 4 * atan(1.0)
@@ -686,6 +687,12 @@
          ifits = 0
          isfits = 0
          write(6,*)'selections are removed ....'
+       endif
+!!
+       if(comand.eq.'testai  '.or.comand.eq.'tai      ') then
+!                    -                       ----
+         write(6,*)'testing ....'
+         call testai()
        endif
 !
 !
@@ -6843,3 +6850,13 @@ end
   write(6,*) "z         (synonym) zero    " , " "
   write(6,*) "zero                        " , " "
 end subroutine command_list
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+subroutine testai
+!================================================================================
+!  compute the frequency dependent impedance of the sc-maincoi
+ write(*,*)"testai calls test_llcoil"
+ call test_llcoil
+end subroutine testai

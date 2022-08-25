@@ -10,7 +10,7 @@ SRCSTHEO=  $(wildcard theos/*.f) $(wildcard theos/*.f90) $(wildcard theos/*.i90)
 FC=gfortran
 #FFLAGS= -O3 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -Wunused-function -Wunused-variable -fopenmp 
 FFLAGS= -O3 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -fopenmp -fcheck=bounds 
-#FFLAGS= -O3 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -fopenmp 
+#FFLAGS= -O3 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -fcheck=bounds 
 
 CC=gcc 
 
@@ -107,4 +107,4 @@ cleanall:
 
 
  
-?:help
+?:help 

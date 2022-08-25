@@ -3177,8 +3177,7 @@ d1: do i=1, n_intervals
 !----------------------------------------
   implicit none
 
-!  integer, parameter :: m=20
-  integer, parameter :: m=200
+  integer, parameter :: m=20
   integer, intent(in):: ityp
   real(kind=XPREC)   :: fu
   real(kind=XPREC)   :: cij(m,m), a(m), b(m), xv(m), yv(m), xc(m), yc(m)

@@ -19,9 +19,9 @@ PROGRAM locreptest
  nu     = 0.5d0
  M      = 100
 
- q      = 3d0
- A      = 1d0
- B      = 10d0
+ q      = 2d0
+ A      = 0d0
+ B      = 0.333333d0
  L      = 10d0
  nt     = 30
  t0     = 0.001d0

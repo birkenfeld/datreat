@@ -131,7 +131,7 @@
     double precision, parameter    :: Pi = 4*atan(1d0)
 
     double precision :: T1, T2, T3
-    wt = w*(1d0 - (1d0-ww0)/(1d0+exp((t-t0)/tw)))
+    wt = w*(1 - (1-ww0)/(1+exp((t-t0)/tw)))
 
     T1 = 72d0 * (exp(-q**2 * n * a**2 / 6d0) + q**2 * n * a**2 / 6d0 - 1d0) / q**4 / a**4
     T2 = b*((exp(-1/6*a**2*n*q**2-n**2/(4*wt*t))-1)*2/3*ne*sqrt(wt*t/Pi)+ &

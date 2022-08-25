@@ -50,7 +50,10 @@
 ! >>>>> describe theory with >>>>>>> 
        idesc = next_th_desc()
        th_identifier(idesc)   = thnam
-       th_explanation(idesc)  = " compute the frequency dependent impedance of the sc-maincoil"
+       th_explanation(idesc)  = " compute the frequency dependent impedance of the sc-maincoil" //cr//parspace//&
+        " NOTE: module lcalc_Zomega_cc must be manually compiled after make clean " //cr//parspace//&
+        "     ...some not resulved clash with the integrated adapint functions, or rename them .... TBD"
+
        th_citation(idesc)     = ""
 !       --------------> set the parameter names --->
         parnam ( 1) = 'ampli   '  ! prefactor                                                                       
@@ -125,8 +128,11 @@
 ! ------------------------------------------------------------------
 ! 
      frequenz   = x
+
+write(*,*) "freq=",x
      zx         =  Z_llcoil(frequenz, rhoAl, cpa, cper, dlengtha, wwidtha, rsepa, Rwc_mod) + R0
      zx         = zx * ampli
+write(*,*) "zx=",zx
      if(nint(abspha) <= 1)  then
         th = abs(zx)
      else

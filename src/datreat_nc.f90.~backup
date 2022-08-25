@@ -322,7 +322,8 @@
                         write(*,*)'=                 (old behavior)                                 ='
                         write(*,*)'=  VERSION                                                       ='
                         write(6,*)'=================================================================='
-                       
+              
+!           
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
 !       pi   = 4 * atan(1.0)
@@ -686,6 +687,12 @@
          ifits = 0
          isfits = 0
          write(6,*)'selections are removed ....'
+       endif
+!!
+       if(comand.eq.'testai  '.or.comand.eq.'tai      ') then
+!                    -                       ----
+         write(6,*)'testing ....'
+         call testai()
        endif
 !
 !
@@ -3739,20 +3746,22 @@ write(*,'(a,a,4f12.6)')"TEST: form2=",trim(yformel),xxxx,yyyy,yyee,val8y
             else
               call errsig(999,"NOTHING SELECTED => nothing purged! $")
             endif
-          else
-            do i=1,nbuf
-             keep = .false.
-             do j=1,nsel
-               if(i.eq.isels(j)) then
-                 keep = .true.                 
-               endif
+          else 
+            if(.not. found('fits    ')) then    !! this should be refactored to make logeic more clear
+              do i=1,nbuf
+               keep = .false.
+               do j=1,nsel
+                 if(i.eq.isels(j)) then
+                   keep = .true.                 
+                 endif
+               enddo
+               if(.not.keep) nwert(i) = 0   
              enddo
-             if(.not.keep) nwert(i) = 0   
-           enddo
+           endif
           endif
 
           if(found('fits    ')) then
-            ifits = 0                    !! ATTENTION: if its are selected 
+            ifits = 0                    !! ATTENTION: if its are selected
             do i=1,nbuf
               if(numor(i) < 0 .or. index(name(i),"fit")==1) nwert(i) = 0
               do j=1,nsel
@@ -6841,3 +6850,13 @@ end
   write(6,*) "z         (synonym) zero    " , " "
   write(6,*) "zero                        " , " "
 end subroutine command_list
+
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+subroutine testai
+!================================================================================
+!  compute the frequency dependent impedance of the sc-maincoi
+ write(*,*)"testai calls test_llcoil"
+ call test_llcoil
+end subroutine testai

@@ -86,7 +86,7 @@
                                 " timescale and fluctuation ratio as parameters  locrep t=0 limit exp(-t) "
        th_citation(idesc)     = " Journal de Physique, 1981, 42 (5), pp.735-740. <10.1051/jphys:01981004205073500>"
 !       --------------> set the parameter names --->
-        parnam ( 1) = 'b       '  ! fluctuation intensity 
+        parnam ( 1) = 'ampli   '  ! prefactor                                                                       
         parnam ( 2) = 'a       '  ! length scale                                                                    
         parnam ( 3) = 'ne      '  ! entanglemen ne length        
         parnam ( 4) = 'n       '  ! n                                                                      
@@ -104,7 +104,7 @@
         parnam (16) = 'talpwd  '  !                                                    
         parnam (17) = 'alpoffs '  !                                                                 
 ! >>>>> describe parameters >>>>>>> 
-        th_param_desc( 1,idesc) = "fluctuation intensity" !//cr//parspace//&
+        th_param_desc( 1,idesc) = "prefactor" !//cr//parspace//&
         th_param_desc( 2,idesc) = "length scale" !//cr//parspace//&
         th_param_desc( 3,idesc) = "entanglement ne" !//cr//parspace//&
         th_param_desc( 4,idesc) = "totla n" !//cr//parspace//&
@@ -151,7 +151,7 @@
      ENDIF
 !
 ! ---- transfer parameters -----
-      b        =   abs( pa( 1) )
+      ampli    =        pa( 1)
       a        =   abs( pa( 2) )
       ne       =   abs( pa( 3) )
       n        =   abs( pa( 4) )
@@ -170,12 +170,13 @@
       aoffset  =        pa(17)
  
 
-      ampli     = 1d0
       ampdebye  = 1d0
 
-     
+      b   = 1d0
       W0   = wl4/a**4
       ww0 = 1d0/ne
+      t0  = t0_locrep * ne**2/W0/Pi**2
+      tww = tw_locrep 
 
 ! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
       iadda = actual_record_address()
@@ -196,20 +197,26 @@
 ! ----------------------- implementation ---------------------------
 ! ------------------------------------------------------------------
 ! 
+     sqt0  =  local_reptationdr2( q, teps,      a, W0, n, ne,  b, 0)
+!?     sqt0p =  local_reptationdr2( q, t0_locrep+teps, a, W, n, ne,  b, mode)
+     sqt   =  local_reptationdr2( q, t,         a, W0, n, ne,  b, 0)
 
+!?     slope_l  = (sqt0p-sqt0)/teps
+!?     tauexp   = -sqt0/slope_l
+!=     alphaex  = sqt0 * exp(t0_locrep/tauexp)
+
+! write(*,*)"sqt0,sqt0p, sqt, slope, m, A=",sqt0,sqt0p,sqt,slope_l,mparab,aparab
+
+!?     sqt0 = alphaex
+!?     if(t <= t0_locrep) then
+!?      sqt  =  alphaex * exp(-t/tauexp) 
+!?     endif
+   
 
 
      Dr  = com_diff * 1d-9 / 1d-16  ! in A**2/ns
 !    call NrouseP        (q,t,temp,Dr,wl4,n_segmen,Re, Wr, l,pmin,pmax, Sqdeb0,Sqdebt)
      call nrousalpha_corr(q,t,temp,Dr,wl4,N_segmen,Re, Wr, l,pmin,pmax, Sqdeb0,Sqdebt) 
-
-!!     t0  = t0_locrep * N_segmen**2/Wr/Pi**2
-     t0  = t0_locrep
-     tww = tw_locrep 
-!?     sqt0  =  local_reptationdr2( q, teps,      a, W0, n, ne,  b, 0)
-     sqt0  = 1d0
-     sqt   =  local_reptationdr2( q, t,         a, W0, n, ne,  b, 0)
-
 
 !     Sqdeb0 = ampdebye * Sqdeb0 
 !     Sqdebt = ampdebye * Sqdebt 

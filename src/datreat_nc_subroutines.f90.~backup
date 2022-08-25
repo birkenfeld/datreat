@@ -2135,6 +2135,7 @@ sl:       do j=1,maxstep
 !
        do 2001 i=1,inames
         j = inapa(i)
+        if(j<1) cycle
         if(vname(i).eq.'x1      ') then
             x1     = rpar(j)
             autox1 = .false.
@@ -7096,13 +7097,13 @@ return
 998 continue
   call errsig(999,"ERROR #### extract_th: theory end not found! $")
 write(*,*)"iouints:",inunit,outunit
-  if(outunit .ne. 0) close(outunit)
+  if(outunit .gt. 0) close(outunit)   !! mm07-22
   close(inunit)
   return
 999 continue
   call errsig(999,"ERROR #### extract_th: theory section not found! $")
 write(*,*)"iouints:",inunit,outunit
-  if(outunit .ne. 0) close(outunit)
+  if(outunit .gt. 0) close(outunit)   !! mm07-22
   close(inunit)
 end subroutine extract_th
 
