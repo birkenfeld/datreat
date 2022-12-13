@@ -175,8 +175,6 @@
       b   = 1d0
       W0   = wl4/a**4
       ww0 = 1d0/ne
-      t0  = t0_locrep * ne**2/W0/Pi**2
-      tww = tw_locrep 
 
 ! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
       iadda = actual_record_address()
@@ -197,26 +195,18 @@
 ! ----------------------- implementation ---------------------------
 ! ------------------------------------------------------------------
 ! 
-     sqt0  =  local_reptationdr2( q, teps,      a, W0, n, ne,  b, 0)
-!?     sqt0p =  local_reptationdr2( q, t0_locrep+teps, a, W, n, ne,  b, mode)
-     sqt   =  local_reptationdr2( q, t,         a, W0, n, ne,  b, 0)
 
-!?     slope_l  = (sqt0p-sqt0)/teps
-!?     tauexp   = -sqt0/slope_l
-!=     alphaex  = sqt0 * exp(t0_locrep/tauexp)
-
-! write(*,*)"sqt0,sqt0p, sqt, slope, m, A=",sqt0,sqt0p,sqt,slope_l,mparab,aparab
-
-!?     sqt0 = alphaex
-!?     if(t <= t0_locrep) then
-!?      sqt  =  alphaex * exp(-t/tauexp) 
-!?     endif
-   
 
 
      Dr  = com_diff * 1d-9 / 1d-16  ! in A**2/ns
 !    call NrouseP        (q,t,temp,Dr,wl4,n_segmen,Re, Wr, l,pmin,pmax, Sqdeb0,Sqdebt)
      call nrousalpha_corr(q,t,temp,Dr,wl4,N_segmen,Re, Wr, l,pmin,pmax, Sqdeb0,Sqdebt) 
+
+     t0  = t0_locrep * N_segmen**2/Wr/Pi**2
+     tww = tw_locrep 
+     sqt0  =  local_reptationdr2( q, teps,      a, W0, n, ne,  b, 0)
+     sqt   =  local_reptationdr2( q, t,         a, W0, n, ne,  b, 0)
+
 
 !     Sqdeb0 = ampdebye * Sqdeb0 
 !     Sqdebt = ampdebye * Sqdebt 
@@ -226,16 +216,16 @@
       th_locrepwt = ampli * sqt/sqt0  * Sqdebt/Sqdeb0
 
 !     write(6,*) t, q, sqt, sqt0
-      call parset("a2sqt   ", sngl(a*a/sqrt(tau)),iadda,ier)
+      call parset("a2sqt   ", sngl(a*a/sqrt(tau)),iadda)
 ! ---- writing computed parameters to the record >>>
-      call        parset('l       ',sngl(l),iadda,ier)      ! in ns A units
-      call        parset('w0      ',sngl(W0),iadda,ier)      !     "
-      call        parset('wl4     ',sngl(W0*l**4),iadda,ier) !     "
-      call        parset('rga     ',sngl(sqrt(ne)*a),iadda,ier) !     "
-      call        parset('t0w     ',sngl(t0),iadda,ier) !     "
+      call        parset('l       ',sngl(l),iadda)      ! in ns A units
+      call        parset('w0      ',sngl(W0),iadda)      !     "
+      call        parset('wl4     ',sngl(W0*l**4),iadda) !     "
+      call        parset('rga     ',sngl(sqrt(ne)*a),iadda) !     "
+      call        parset('t0w     ',sngl(t0),iadda) !     "
   
       Dr        = Dr /( 1d-9 / 1d-16 ) ! in cm**2/s
-      call parset('diff    ',sngl(Dr),iadda,ier)
+      call parset('diff    ',sngl(Dr),iadda)
  
 
                    
@@ -268,6 +258,11 @@ CONTAINS
 !    T2 = b*((exp(-1/6*a**2*n*q**2-n**2/(4*w*t))-1)*2/3*ne*sqrt(w*t/Pi)+ &
 !        ne*(n/3+a**2*q**2*w*t/9)*exp(a**4*q**4*w*t/36)* &
 !         (erfc(a**2*q**2*sqrt(w*t)/6)-erfc(n/(2*sqrt(w*t))+a**2*q**2*sqrt(w*t)/6)))
+
+!!>> limit(T1(q=0)) = n**2   !!!
+
+
+
     T3 = 72d0/((q**4*a**4))*(exp(-(q**2*n*a**2)/6d0)+(q**2*n*a**2)/6d0-1d0)+b*ne*n/3d0
 !
 !    val = (T1+T2)/T3
@@ -288,6 +283,8 @@ CONTAINS
         ne*(n/3+a**2*q**2*w*t/9) &
         * dec )
 
+!!>> limit(T2(t=0) = n*ne/3  independent on q
+
     if(modelr == 1) then
       val = T2
     else
@@ -296,7 +293,6 @@ CONTAINS
 
 
   end function local_reptationdr2
-
 
 
 

@@ -89,7 +89,7 @@
      C = 4.7d-9
      L = 1d0/(C*omega0**2)
 
-     call parset('L       ',sngl(l),iadda,ier)  
+     call parset('L       ',sngl(l),iadda)  
  
 ! ---- writing computed parameters to the record >>>  
  

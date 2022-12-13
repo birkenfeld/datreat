@@ -164,7 +164,7 @@
      th_zxratio = th
  
 ! ---- writing computed parameters to the record >>>  
-      call parset('dummy   ',sngl(dummy),iadda,ier)
+      call parset('dummy   ',sngl(dummy),iadda)
  
  CONTAINS 
  

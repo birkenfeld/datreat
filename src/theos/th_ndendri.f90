@@ -116,7 +116,7 @@
      th_ndendri = th
  
 ! ---- writing computed parameters to the record >>>  
-      call parset('rg      ',sngl(pq(4)),iadda,ier)
+      call parset('rg      ',sngl(pq(4)),iadda)
  
  CONTAINS 
  

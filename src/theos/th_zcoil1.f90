@@ -91,7 +91,7 @@
      th_zcoil1 = th
  
 ! ---- writing computed parameters to the record >>>  
-      call parset('Lcb     ',sngl(Lcb),iadda,ier)
+      call parset('Lcb     ',sngl(Lcb),iadda)
  
  CONTAINS 
  

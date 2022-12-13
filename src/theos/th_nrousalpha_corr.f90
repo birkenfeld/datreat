@@ -158,12 +158,12 @@
 
  
 ! ---- writing computed parameters to the record >>>
-      call        parset('l       ',sngl(l),iadda,ier)      ! in ns A units
-      call        parset('w       ',sngl(W),iadda,ier)      !     "
-      call        parset('wl4     ',sngl(W*l**4),iadda,ier) !     "
+      call        parset('l       ',sngl(l),iadda)      ! in ns A units
+      call        parset('w       ',sngl(W),iadda)      !     "
+      call        parset('wl4     ',sngl(W*l**4),iadda) !     "
   
       Dr        = Dr /( 1d-9 / 1d-16 ) ! in cm**2/s
-      call parset('diff    ',sngl(Dr),iadda,ier)
+      call parset('diff    ',sngl(Dr),iadda)
  
  CONTAINS 
  

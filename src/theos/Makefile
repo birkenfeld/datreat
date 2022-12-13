@@ -16,8 +16,8 @@ THEOS := $(shell grep -h "^ *[Ff][Uu][Nn][Cc][Tt][Ii][Oo][nN] .*( *x *, *pa *, *
 DOUBLE := $(shell grep -h "^ *[Ff][Uu][Nn][Cc][Tt][Ii][Oo][nN] .*( *x *, *pa *, *.*, *.*, *.*, *.*)" *.f *.f90  | sed 's>[Ff]......[Nn] *\(.*\)( *x.*)>\1>'|sort |uniq -d)
 
 FC=gfortran
-#FFLAGS= -O3 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -Wunused-function -Wunused-variable -I../ -fopenmp
-FFLAGS= -O3 -fcheck=bounds -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -fopenmp -I../ 
+FFLAGS= -O3 -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -Wunused-function -Wunused-variable -I../ -fopenmp
+#FFLAGS= -O3 -fcheck=bounds -ffree-line-length-none -fno-automatic -fPIC -fno-backslash -fopenmp -I../  -fallow-argument-mismatch -fallow-invalid-boz 
 #FLAGS= -O3  -ffree-line-length-none  -fPIC -fno-backslash  -I../ 
 
 

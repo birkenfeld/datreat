@@ -130,12 +130,12 @@
      th_dipole = th
  
 ! ---- writing computed parameters to the record >>>  
-      call parset('mx      ',sngl(mx),iadda,ier)
-      call parset('my      ',sngl(my),iadda,ier)
-      call parset('mz      ',sngl(mz),iadda,ier)
-      call parset('xpos0   ',sngl(xpos0),iadda,ier)
-      call parset('ypos    ',sngl(ypos),iadda,ier)
-      call parset('zpos    ',sngl(zpos),iadda,ier)
+      call parset('mx      ',sngl(mx),iadda)
+      call parset('my      ',sngl(my),iadda)
+      call parset('mz      ',sngl(mz),iadda)
+      call parset('xpos0   ',sngl(xpos0),iadda)
+      call parset('ypos    ',sngl(ypos),iadda)
+      call parset('zpos    ',sngl(zpos),iadda)
  
  CONTAINS 
  

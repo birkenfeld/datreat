@@ -101,9 +101,9 @@
       tauave0 = tau0 * Gamma(1.0/bet)/bet 
       tauave  = tau  * Gamma(1.0/bet)/bet 
       deff    = 1.0/(tauave*q*q)
-      call parset('tauave0 ',tauave0,iadda,ier)         
-      call parset('tauave  ',tauave ,iadda,ier)         
-      call parset('deff    ',deff   ,iadda,ier)         
+      call parset('tauave0 ',tauave0,iadda)         
+      call parset('tauave  ',tauave ,iadda)         
+      call parset('deff    ',deff   ,iadda)         
                         
       RETURN
       END FUNCTION strexpo

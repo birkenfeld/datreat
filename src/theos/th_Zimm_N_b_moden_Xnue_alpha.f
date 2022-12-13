@@ -125,7 +125,7 @@ c ---- calculate theory here -----
        endif 
 
        dr        = dr /( 1d-9 / 1d-16 ) ! in cm**2/s
-       call        parset('diff    ',sngl(dr),iadda,ier)
+       call        parset('diff    ',sngl(dr),iadda)
 c
        return
        end

@@ -39,6 +39,10 @@
      double precision :: label1_s, label2_s, label3_s
      double precision :: label1_a, label2_a, label3_a, label4_a
      integer          :: nl1, nl2, nl3
+
+     double precision, save :: labelstat(7)
+     character(len=8) :: buf
+     integer          :: i
 !
 ! ----- initialisation ----- 
     IF (ini.eq.0) then     
@@ -175,8 +179,14 @@
 !! TEST
 !! write(*,*)"Tls:", n_segmen, label1_s, nl1,  label2_s, nl2,  label3_s, nl3 
 !! write(*,*)"Tla:",  label1_a, label2_a,   label3_a, label4_a 
- write(*,'(a,200i1)') "Tlab:",nint(labelarray(1:n_segmen)) 
+      if(maxval(abs(labelstat-[dble(nl1),dble(nl2),dble(nl3),label1_a,label2_a,label3_a,label4_a])) > 0.001d0) then
+        labelstat =           [dble(nl1),dble(nl2),dble(nl3),label1_a,label2_a,label3_a,label4_a]
+        write(*,'(a)')"Label status:"
+        write(*,'(200i1)') nint(labelarray(1:n_segmen))
+      endif
+   
 !! write(*,'(a,12f8.3,a)')"Tmod:",modeamp(1:12)," ...."
+
 
  
 ! 
@@ -195,9 +205,9 @@
 
  
 ! ---- writing computed parameters to the record >>>
-      call        parset('l       ',sngl(l),iadda,ier)      ! in ns A units
-      call        parset('w       ',sngl(W),iadda,ier)      !     "
-      call        parset('wl4     ',sngl(W*l**4),iadda,ier) !     "
+      call        parset('l       ',sngl(l),iadda)      ! in ns A units
+      call        parset('w       ',sngl(W),iadda)      !     "
+      call        parset('wl4     ',sngl(W*l**4),iadda) !     "
   
       Dr        = Dr /( 1d-9 / 1d-16 ) ! in cm**2/s
       call parset('diff    ',sngl(Dr),iadda,ier)

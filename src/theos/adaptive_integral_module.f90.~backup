@@ -273,7 +273,7 @@ CONTAINS
       itop = 0 
       xa (itop) = a 
       xb (itop) = b 
-      s (itop) = m_g2aus8a (f, a, b) 
+      s (itop) = m_g3aus8a (f, a, b) 
                                                                         
       DO i = 1, maxiter 
       IF (itop.ge. (maxstack - 2) ) then 
@@ -290,11 +290,11 @@ CONTAINS
          itop = itop + 1 
          xa (itop) = (xa (itop - 1) + xb (itop - 1) ) * 0.5d0 
          xb (itop) = xb (itop - 1) 
-         s (itop) = m_g2aus8a (f, xa (itop), xb (itop) ) 
+         s (itop) = m_g3aus8a (f, xa (itop), xb (itop) ) 
          itop = itop + 1 
          xa (itop) = xa (itop - 2) 
          xb (itop) = xa (itop - 1) 
-         s (itop) = m_g2aus8a (f, xa (itop), xb (itop) ) 
+         s (itop) = m_g3aus8a (f, xa (itop), xb (itop) ) 
          error = dabs ( (s (itop) + s (itop - 1) ) - s (itop - 2) ) 
                                                                         
                                                                         

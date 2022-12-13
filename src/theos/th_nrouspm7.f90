@@ -244,13 +244,13 @@
 
  
 ! ---- writing computed parameters to the record >>>
-      call        parset('l       ',sngl(l),iadda,ier)      ! in ns A units
-      call        parset('w       ',sngl(W),iadda,ier)      !     "
-      call        parset('wl4     ',sngl(W*l**4),iadda,ier) !     "
-      call        parset('pfix    ',sngl(pfix),iadda,ier)   !     "
+      call        parset('l       ',sngl(l),iadda)      ! in ns A units
+      call        parset('w       ',sngl(W),iadda)      !     "
+      call        parset('wl4     ',sngl(W*l**4),iadda) !     "
+      call        parset('pfix    ',sngl(pfix),iadda)   !     "
       do i=1,12
          write(buf,'("amod",i0)') i
-         call        parset(buf,sngl(modeamp(i)),iadda,ier) 
+         call        parset(buf,sngl(modeamp(i)),iadda) 
       enddo
   
 !      Dr        = Dr /( 1d-9 / 1d-16 ) ! in cm**2/s

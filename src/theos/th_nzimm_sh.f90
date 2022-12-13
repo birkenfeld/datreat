@@ -108,9 +108,9 @@
  
 
 
-       call        parset('l       ',sngl(l),iadda,ier)      ! in ns A units
+       call        parset('l       ',sngl(l),iadda)      ! in ns A units
        dr        = dr /( 1d-9 / 1d-16 ) ! in cm**2/s
-       call        parset('diffav  ',sngl(dr),iadda,ier)
+       call        parset('diffav  ',sngl(dr),iadda)
   
        return
        end

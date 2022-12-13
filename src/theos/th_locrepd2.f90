@@ -94,7 +94,7 @@
 
      th_locrepd2 = th
 
-     call        parset('asqrtne   ',sngl(a*sqrt(ne)),iadda,ier)      !     "
+     call        parset('asqrtne   ',sngl(a*sqrt(ne)),iadda)      !     "
  
 ! ---- writing computed parameters to the record >>>  
  

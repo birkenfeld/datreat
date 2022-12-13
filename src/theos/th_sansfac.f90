@@ -107,7 +107,7 @@
      th_sansfac = ampli * intens0
  
 ! ---- writing computed parameters to the record >>>  
-      call parset('intens0 ',sngl(intens0),iadda,ier)
+      call parset('intens0 ',sngl(intens0),iadda)
  
 ! CONTAINS 
  

@@ -146,7 +146,7 @@
                                                                         
                                         ! in cm**2/s                    
        dr        = dr /( 1d-9 / 1d-16 ) 
-       call        parset('diff    ',sngl(dr),iadda,ier) 
+       call        parset('diff    ',sngl(dr),iadda) 
 !                                                                       
        return 
 

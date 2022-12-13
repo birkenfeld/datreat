@@ -132,7 +132,7 @@
         qh = q 
                                                                         
 
-        epsro = 1.d-5 
+        epsro = 1.d-6 
         maxitro = 1000 
         erracro = 0.0d0 
                                                                         
@@ -176,7 +176,7 @@
         ro = a_ro 
 !        pi = 4.*atan(1.) 
                                                                         
-        epsu = 1.d-6 
+        epsu = 1.d-8 
         maxitu = 1000 
         erracu = 0.0d0 
                                                                         

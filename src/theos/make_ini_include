@@ -26,7 +26,7 @@ do
 	break;
 	fi;
 	echo "       nthpar($i) = mtpar "
-	echo "       dummy = $theo(x,par,thenam($i),thparn(:,$i),nthpar($i),ini,idum ,idum,idum,idum)"
+	echo "       dummy = $theo(x,par,thenam($i),thparn(:,$i),nthpar($i),ini,idum,params,napar,idum)" 
 done
 
 if [ $i -gt 80 ]; then

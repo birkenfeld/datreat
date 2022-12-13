@@ -1239,8 +1239,7 @@ c
       xbnd = sqrt (50.0d0)
       xbndg = sqrt (200.d0)
 c
- 10   if (x.lt.4.0d0) call seterr (
-     1  34hd9sifg  approxs invalid for x lt 4, 34, 1, 2)
+ 10   if (x.lt.4.0d0) write(*,*)" 34hd9sifg  pproxs invalid for x lt 4"
 c
       if (x.gt.xbnd) go to 20
       f = (1.0d0 + dcsevl ((1.d0/x**2-0.04125d0)/.02125d0, f1cs, nf1))/x
@@ -1345,7 +1344,7 @@ c
         write(iwunit,9001)
  9001   format(42h1error    2 in seterr - cannot have nerr=0//
      1         34h the current error message follows///)
-        call e9rint(messg,nw,nerr,.true.)
+c       call e9rint(messg,nw,nerr,.true.)
         itemp=i8save(1,1,.true.)
         go to 50
 c
@@ -1358,12 +1357,13 @@ c
      1         48h an unrecovered error followed by another error.//
      2         48h the previous and current error messages follow.///)
         call eprint
-        call e9rint(messg,nw,nerr,.true.)
+c        call e9rint(messg,nw,nerr,.true.)
         go to 50
 c
 c  save this message in case it is not recovered from properly.
 c
- 30   call e9rint(messg,nw,nerr,.true.)
+ 30   continue
+c     call e9rint(messg,nw,nerr,.true.)
 c
       if (iopt.eq.1 .or. iopt.eq.2) go to 40
 c
@@ -1484,9 +1484,9 @@ C
         IWUNIT=I1MACH(4)
         WRITE(IWUNIT,9000) NERRP
  9000   FORMAT(7H ERROR ,I4,4H IN )
-        CALL S88FMT(2, 1, FMT(8))
+c        CALL S88FMT(2, 1, FMT(8))
 
-        WRITE(IWUNIT,FMT10) (MESSGP(I),I=1,NWP)
+c        WRITE(IWUNIT,FMT10) (MESSGP(I),I=1,NWP)
 C
  30   RETURN
 C

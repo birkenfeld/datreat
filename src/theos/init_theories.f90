@@ -17,10 +17,10 @@ subroutine init_theories(thenam,thparn,nthpar,thrapar,thramin,thramax,mth,mtpar)
 !  ntheos     = total no. of activated theories                         
 !  multflg    = flag indicating a multiplicative theory 
 
-!   integer  mbuf             ! maximum length of data arrays in calling main program   
-!   integer  nopar            ! number of Parameter in data
-!   character*80  napar(mbuf) ! name of  parameters(n)
-!   real params(mbuf)         ! value of parameters(n)
+   integer  mbuf             ! maximum length of data arrays in calling main program   
+   integer  nopar            ! number of Parameter in data
+   character*80  napar(100) ! name of  parameters(n)
+   real params(100)         ! value of parameters(n)
         
                
     do i=1,mth                    

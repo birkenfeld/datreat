@@ -155,7 +155,7 @@ write(*,*) "zx=",zx
      th_llcoil = th
  
 ! ---- writing computed parameters to the record >>>  
-      call parset('abspha ',sngl(abspha),iadda,ier)
+      call parset('abspha ',sngl(abspha),iadda)
  
 
 

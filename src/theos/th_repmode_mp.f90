@@ -151,11 +151,11 @@
      th_repmode_mp = Sqt/Sq
  
 ! ---- writing computed parameters to the record >>>  
-      call parset('l       ',sngl(l),iadda,ier)
-      call parset('ne      ',sngl(ne),iadda,ier)
-      call parset('w       ',sngl(w),iadda,ier)
-      call parset('w1      ',sngl(w1),iadda,ier)
-      call parset('wn      ',sngl(wn),iadda,ier)
+      call parset('l       ',sngl(l),iadda)
+      call parset('ne      ',sngl(ne),iadda)
+      call parset('w       ',sngl(w),iadda)
+      call parset('w1      ',sngl(w1),iadda)
+      call parset('wn      ',sngl(wn),iadda)
  
  
 

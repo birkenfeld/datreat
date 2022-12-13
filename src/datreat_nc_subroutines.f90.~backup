@@ -7070,7 +7070,6 @@ val = filename
 open(newunit=inunit,file=val,iostat=status)
 if(status /= 0) then
   call errsig(999,"ERROR #### extract_th: cannot open:"//trim(val)//"$")
-  close(inunit)
   return
 else
   write(6,*)"EXTRACTING lastth from appendix of file: ",trim(val)

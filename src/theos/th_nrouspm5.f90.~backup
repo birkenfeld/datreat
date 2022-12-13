@@ -1,10 +1,10 @@
- FUNCTION th_nrouspm4(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
+ FUNCTION th_nrouspm5(x, pa, thnam, parnam, npar,ini, nopar ,params,napar,mbuf)
 !================================================================================
 !  Rouse by discrete summation with mode restriction
 !  Rouse, Doi_Edwards
       use theory_description 
       implicit none 
-      real    :: th_nrouspm4
+      real    :: th_nrouspm5
       character(len=8) :: thnam, parnam (*) 
       real    :: pa (*) 
       real    :: x , xh
@@ -35,7 +35,7 @@
      double precision :: sqt, sq, t
      double precision :: labelarray(1000)
      double precision :: modeamp   (size(labelarray))
-     double precision :: aptrans, apwidth,  ap1
+     double precision :: aptrans, apwidth,  ap1, apnu
 
      double precision :: label1_s, label2_s, label3_s
      double precision :: label1_a, label2_a, label3_a, label4_a
@@ -53,11 +53,11 @@
 !
 ! ----- initialisation ----- 
     IF (ini.eq.0) then     
-       thnam = 'nrouspm4'
-       nparx =        12
+       thnam = 'nrouspm5'
+       nparx =        13
        IF (npar.lt.nparx) then
            WRITE (6,*)' theory: ',thnam,' no of parametrs=',nparx,' exceeds current max. = ',npar
-          th_nrouspm4 = 0
+          th_nrouspm5 = 0
           RETURN
        ENDIF
        npar = nparx
@@ -81,6 +81,7 @@
         parnam (10) = 'aptrans '  ! amplitude step location in p                     
         parnam (11) = 'apwidth '  ! width of p step                    
         parnam (12) = 'ap1     '  ! start amplitude level                    
+        parnam (13) = 'apnu    '  ! fermi(x**nu)                   
                
 ! >>>>> describe parameters >>>>>>> 
         th_param_desc( 1,idesc) = "prefactor" !//cr//parspace//&
@@ -95,6 +96,7 @@
         th_param_desc(10,idesc) = "amod(p) transition p-value " !//cr//parspace//&
         th_param_desc(11,idesc) = "amod(p) transition width (fermi) " !//cr//parspace//&
         th_param_desc(12,idesc) = "amod(1) start-llevel (fermi) " !//cr//parspace//&
+        th_param_desc(13,idesc) = "fermi(x) ==> fermi(x**apnu) " !//cr//parspace//&
 ! >>>>> describe record parameters used >>>>>>>
         th_file_param(:,idesc) = " " 
         th_file_param(  1,idesc) = "q        > momentum transfer"
@@ -115,7 +117,7 @@
         th_out_param(  4,idesc) = "wl4      > inferred value of Wl4"
         th_out_param(  4,idesc) = "pfix     > used pfix value -0.5=fixed end, 0=normal"
 ! 
-        th_nrouspm4 = 0.0
+        th_nrouspm5 = 0.0
  
         RETURN
      ENDIF
@@ -133,11 +135,12 @@
       aptrans  =      pa(10)
       apwidth  =  abs(pa(11))
       ap1      =  abs(pa(12))
+      apnu     =     (pa(13))
       
       modeamp        =  1d0            !! default: ALL = 1 
 !      modeamp(1:11)  =  atan(abs(pa(10:20)))*2/Pi !! possibly modify the first 11
       do i=1,n_segmen
-        modeamp(i) = ap1 + (1d0-ap1)*fermi( dble(i) , aptrans, apwidth )  
+        modeamp(i) = ap1 + (1d0-ap1)*fermi( dble(i)**apnu , aptrans**apnu, apwidth )  
       enddo
 
 ! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
@@ -217,7 +220,7 @@
 !     Dr  = com_diff * 1d-9 / 1d-16  ! in A**2/ns
      Dr  = 1d-16  ! eff=0 so nrouse is without diff, which is added via rr
 
-     call nrouspm4(q,t,temp,Dr,wl4,n_segmen,Re, W, l,labelarray, modeamp, Sq,Sqt)
+     call nrouspm5(q,t,temp,Dr,wl4,n_segmen,Re, W, l,labelarray, modeamp, Sq,Sqt)
 
 
      rr = ((exp(-log(r02/com_diff/6)*nu_subdiff)*r02*t** nu_subdiff)** a_cross +&
@@ -225,7 +228,7 @@
 
      if(fixend == 1) rr = 0d0
 
-     th_nrouspm4 = amplitu * sqt/sq  * exp( -(q*q*rr/6d0) )
+     th_nrouspm5 = amplitu * sqt/sq  * exp( -(q*q*rr/6d0) )
 
 
  
@@ -245,7 +248,7 @@
  CONTAINS 
  
 
-       subroutine nrouspm4(q,t,temp,Dr,wl4,N,R, W, l,labelarray, modeamplitudes, Sq,Sqt)
+       subroutine nrouspm5(q,t,temp,Dr,wl4,N,R, W, l,labelarray, modeamplitudes, Sq,Sqt)
 !      ========================================================
 !
 ! Rouse expression for a chain of finite length:
@@ -368,4 +371,4 @@
 
  end function fermi
 
- end function th_nrouspm4
+ end function th_nrouspm5

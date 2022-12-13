@@ -141,7 +141,7 @@
       strexpsqq = amp * exp ( - arg)
 !    for demonstration of calculation of a new parameter accessible by ?? +<name> and writen with save together with all data
       tauave = tau0 * Gamma(1.0/bet)/bet 
-      call parset('tauave  ',tauave,iadda,ier)		
+      call parset('tauave  ',tauave,iadda)		
 			
       RETURN
       END FUNCTION strexpsqq

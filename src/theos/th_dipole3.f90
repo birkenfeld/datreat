@@ -379,8 +379,8 @@
      th_dipole3 = th -Bfeld(bcomp)
  
 ! ---- writing computed parameters to the record >>>  
-      call parset('ypos    ',sngl(ypos),iadda,ier)
-      call parset('zpos    ',sngl(zpos),iadda,ier)
+      call parset('ypos    ',sngl(ypos),iadda)
+      call parset('zpos    ',sngl(zpos),iadda)
  
  CONTAINS 
  

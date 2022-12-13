@@ -216,16 +216,16 @@
       th_locrepwt = ampli * sqt/sqt0  * Sqdebt/Sqdeb0
 
 !     write(6,*) t, q, sqt, sqt0
-      call parset("a2sqt   ", sngl(a*a/sqrt(tau)),iadda,ier)
+      call parset("a2sqt   ", sngl(a*a/sqrt(tau)),iadda)
 ! ---- writing computed parameters to the record >>>
-      call        parset('l       ',sngl(l),iadda,ier)      ! in ns A units
-      call        parset('w0      ',sngl(W0),iadda,ier)      !     "
-      call        parset('wl4     ',sngl(W0*l**4),iadda,ier) !     "
-      call        parset('rga     ',sngl(sqrt(ne)*a),iadda,ier) !     "
-      call        parset('t0w     ',sngl(t0),iadda,ier) !     "
+      call        parset('l       ',sngl(l),iadda)      ! in ns A units
+      call        parset('w0      ',sngl(W0),iadda)      !     "
+      call        parset('wl4     ',sngl(W0*l**4),iadda) !     "
+      call        parset('rga     ',sngl(sqrt(ne)*a),iadda) !     "
+      call        parset('t0w     ',sngl(t0),iadda) !     "
   
       Dr        = Dr /( 1d-9 / 1d-16 ) ! in cm**2/s
-      call parset('diff    ',sngl(Dr),iadda,ier)
+      call parset('diff    ',sngl(Dr),iadda)
  
 
                    
@@ -258,6 +258,11 @@ CONTAINS
 !    T2 = b*((exp(-1/6*a**2*n*q**2-n**2/(4*w*t))-1)*2/3*ne*sqrt(w*t/Pi)+ &
 !        ne*(n/3+a**2*q**2*w*t/9)*exp(a**4*q**4*w*t/36)* &
 !         (erfc(a**2*q**2*sqrt(w*t)/6)-erfc(n/(2*sqrt(w*t))+a**2*q**2*sqrt(w*t)/6)))
+
+!!>> limit(T1(q=0)) = n**2   !!!
+
+
+
     T3 = 72d0/((q**4*a**4))*(exp(-(q**2*n*a**2)/6d0)+(q**2*n*a**2)/6d0-1d0)+b*ne*n/3d0
 !
 !    val = (T1+T2)/T3
@@ -278,6 +283,8 @@ CONTAINS
         ne*(n/3+a**2*q**2*w*t/9) &
         * dec )
 
+!!>> limit(T2(t=0) = n*ne/3  independent on q
+
     if(modelr == 1) then
       val = T2
     else
@@ -286,7 +293,6 @@ CONTAINS
 
 
   end function local_reptationdr2
-
 
 
 

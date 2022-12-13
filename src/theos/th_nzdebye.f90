@@ -97,7 +97,7 @@
      th_nzdebye = pq
  
 ! ---- writing computed parameters to the record >>>  
-      call parset('rg      ',sngl(rg),iadda,ier)
+      call parset('rg      ',sngl(rg),iadda)
  
  CONTAINS 
  
