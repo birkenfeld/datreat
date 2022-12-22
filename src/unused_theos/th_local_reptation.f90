@@ -97,7 +97,7 @@
      th_locrep = ampli * sqt/sqt0
 
 !     write(6,*) t, q, sqt, sqt0
-      call parset("a2sqt   ", sngl(a*a/sqrt(tau)),iadda,ier)
+      call parset("a2sqt   ", sngl(a*a/sqrt(tau)),iadda)
                    
  end function th_locrep
 

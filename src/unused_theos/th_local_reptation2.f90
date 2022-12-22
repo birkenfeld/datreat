@@ -69,7 +69,7 @@
 ! >>>>> describe record parameters creaqted by this theory >>>>>>> 
         th_out_param(:,idesc)   = " "
         th_out_param(1,idesc)   = "a2sqt   = a**2/sqrt(tau) "
-        th_out_param(2,idesc)   = "tau0_lr = tau/a**4 "
+        th_out_param(1,idesc)   = "tau0_lr = tau/a**4 "
 ! 
         th_locrep2 = 0.0
  
@@ -102,8 +102,8 @@
      th_locrep2 = ampli * sqt/sqt0
 
 !     write(6,*) t, q, sqt, sqt0
-      call parset("a2sqt   ", sngl(a*a/sqrt(tau)),iadda,ier)
-      call parset("tau0_lr ", sngl(tau/a**4),iadda,ier)
+      call parset("a2sqt   ", sngl(a*a/sqrt(tau)),iadda)
+      call parset("tau0_lr ", sngl(tau/a**4),iadda)
                    
  end function th_locrep2
 

@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <string.h>
+#include "reptation_procs.h"
 //=================================================================================
 //  generalized local reptation expression along the lines of deGennes, 
 //  but with finite summation of integrals and lenthscale, 
@@ -18,23 +19,21 @@
 //  GNU GENERAL PUBLIC LICENSE 
 //  Version 3, 29 June 2007
 //==================================================================================
-//
-//  complile with 
-//  gfortran -c reptation_module -fopenmp -O2
-//
+// compile and link with
+// gcc -o repta reptation_procs.c -O -fopenmp
 //==================================================================================
 
 #define pi (3.141592654)
 
-typedef struct {  
-                 double sqt;
-                 double sq0;
-               } sqt_type;
-
- 
-
-
-
+// typedef struct {  
+//                  double sqt;
+//                  double sq0;
+//                } sqt_type;
+// 
+//  
+// 
+// 
+// 
 
   double local_reptationdr( 
     double q      , 
@@ -138,6 +137,7 @@ typedef struct {
        int nn,mm,ip;
 
        double Sq, Sqt;
+       double partial_Sq, partial_Sqt;
        double Dr, l, ff2, W;
 
        double cosarray[N][N], ewfac[N];
@@ -207,17 +207,33 @@ typedef struct {
        fqq0 = 1.0;                                   //// since rmm(0)=0;
 
 //$OMP PARALLEL DO REDUCTION(+:Sq,Sqt); ip SUMME explicit AUFLÖSEN !!
+#pragma omp parallel private(partial_Sq,partial_Sqt,sum,nn,mm,ip) shared(Sq,Sqt,fqq,ff2,cosarray,ewfac,l,q)
+    {
+        partial_Sq  = 0;
+        partial_Sqt = 0;
+        Sq = 0;
+        Sqt= 0;
+
+#pragma omp for
        for(nn=0;nn<N;nn++) {
          for(mm=0;mm<N;mm++) {
              sum = 0;
              for(ip=0;ip<N;ip++) {
                sum = sum + cosarray[nn][ip] * cosarray[mm][ip] *  ewfac[ip];
              }
-          Sq  = Sq  + exp(- fqq0*(q*q)*(       abs(nn-mm)*(l*l)/6.0));
-          Sqt = Sqt + exp(- fqq* (q*q)*(Dr*t + abs(nn-mm)*(l*l)/6.0) + 
+          partial_Sq  = partial_Sq  + exp(- fqq0*(q*q)*(       abs(nn-mm)*(l*l)/6.0));
+          partial_Sqt = partial_Sqt + exp(- fqq* (q*q)*(Dr*t + abs(nn-mm)*(l*l)/6.0) + 
                 fqq*ff2* sum);
-         };
-       };
+         }
+       }
+
+#pragma omp critical
+        {
+                //add each threads partial sum to the total sum
+                Sq  += partial_Sq;
+                Sqt += partial_Sqt;
+        }
+     }
 //$OMP } // endPARALLEL DO;
 
        Sq  = Sq /N;
@@ -282,7 +298,10 @@ typedef struct {
 
 
 
- 
+//////////////////////////////////////////////////////////////////////////////////////
+// Example of use for testing purposes; remoce if the procedure shall be used in 
+// some sepicifc other context!
+////////////////////////////////////////////////////////////////////////////////////// 
 int  main( int argc , char **argv ) {
 
     double q          ; //  the Q-value ;
@@ -317,14 +336,14 @@ int  main( int argc , char **argv ) {
     twidth = 1;
     q      = 0.150;
 
-    for(i=0;i<51;i++){
-      t = 0.01 * pow(1.30,(double)i);
+    for(i=0;i<251;i++){
+      t = 0.01 * pow(1.05,(double)i);
       sqrouse = nrouse_ngcorr( q, t, Nrsum, Re, wl4, alpha0, tmax, twidth) ;
       w  = wl4/(lseg*lseg*lseg*lseg);
       lr = local_reptationdr( q, t, lseg, w,  n ,ne );
   
       sqrep = reptation_sqt(q,t, n, lseg, ne, Re, wl4, alpha0, tmax,twidth);
-      printf("%18.9f %18.9f %18.9f  %18.9g  %18.9g\n",t,sqrep.sqt/sqrep.sq0, lr, sqrouse.sq0, sqrouse.sqt);
+      printf("%18.9f %18.9f %18.9f %18.9f %18.9f\n",t,sqrep.sqt/sqrep.sq0, lr, sqrouse.sq0, sqrouse.sqt);
     }
 
  

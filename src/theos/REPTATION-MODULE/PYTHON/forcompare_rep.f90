@@ -56,12 +56,12 @@ implicit none
 
     w = wl4/lseg**4
 
-    do i=0,50
-      t = 0.01 * 1.3d0**i
+    do i=0,250
+      t = 0.01 * 1.05d0**i
       sq_rouse = nrouse_ngcorr( q, t, Nrsum, Re, Wl4, alpha0, tmax, twidth) 
       lr = local_reptationdr( q, t, lseg, w,  n ,ne )
       sqrep= reptation_sqt(q,t, N, lseg, Ne, Re, wl4, alpha0, tmax,twidth)
-      write(*,*) t, sqrep(2)/sqrep(1),lr, sq_rouse
+      write(*,'(f18.9,1x,f18.9,1x,f18.9,1x,f18.9,1x,f18.9)') t, sqrep(2)/sqrep(1),lr, sq_rouse
     enddo
 
  contains

@@ -122,6 +122,7 @@ seconds0 = time.time()
 wl4    = 30000
 Re     = 50.0
 N      = 100  
+Nrsum      = 100  
 alpha0     = 0.1
 talphamax  = 1.0
 talphawd   = 1.0
@@ -134,10 +135,14 @@ q      = 0.150
 t      = 0.0
 
     
-for it in range(21):
-    t =  0.01 * 1.3**it
-    s = reptation_fqt(q, t, n, ne, lseg, Re, wl4, alpha0, talphamax, talphawd)
-    print(t,s)
+for it in range(251):
+    t =  0.01 * 1.05**it 
+    sqrouse = nrouse_a(q, t, wl4, Re, Nrsum, alpha0, talphamax, talphawd) 
+    w  = wl4/(lseg*lseg*lseg*lseg);
+    lr = local_reptationdr( q, t, lseg, w,  n ,ne )
+    s  = reptation_fqt(q, t, n, ne, lseg, Re, wl4, alpha0, talphamax, talphawd)
+    print(t,s,lr,sqrouse)
+#    print(t,s,lr)
 
 seconds1 = time.time()
 
