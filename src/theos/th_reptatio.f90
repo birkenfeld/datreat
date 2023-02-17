@@ -27,7 +27,7 @@
 
      double precision :: wl4        ! rouse rate                          
      double precision :: re         ! end-to-end radius of Gaussian coil     
-     double precision :: blocrep
+!     double precision :: blocrep
      double precision :: W0         ! rouse     W
      double precision :: l          ! sqgment length    
      double precision :: ne, n      ! length (number of segments) of entanglement strand, full chain

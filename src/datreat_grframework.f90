@@ -1235,7 +1235,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
        write(6,*)'=      xlegdist <val> :  distance of x-axis name from axis                   ='
        write(6,*)'=      ylegdist <val> :  distance of y-axis name from axis                   ='
        write(6,*)'=      tit_x <val>    :  distance of title from axis left                    ='
-       write(6,*)'=      tit_x <val>    :  distance of title from axis top                     ='
+       write(6,*)'=      tit_y <val>    :  distance of title from axis top                     ='
        write(6,*)'=      text           :  plot with text legend                               ='
        write(6,*)'=      notext         :  plot without text legend                            ='
        write(6,*)'=      flinewd  <val> :  fit linewidth                                       ='

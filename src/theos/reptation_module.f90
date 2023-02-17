@@ -22,6 +22,8 @@ implicit none
 !==================================================================================
 
 
+  double precision :: blocrep = 1
+
 CONTAINS
 
   function reptation_sqt(q,t, N, lseg, Ne, Re, wl4, alpha0, talphamax,talphawd) result(sqr0t)
@@ -115,7 +117,8 @@ CONTAINS
 
     T2  = T2*3d0 / (n*ne)    !! Normalisation to T2(t=0) = 1
 
-    val = 1d0/(1+1/Z) *  (T1 + (2d0/3d0 + (1d0/3d0) * T2) / Z )
+!    val = 1d0/(1+1/Z) *  (T1 + (2d0/3d0 + (1d0/3d0) * T2) / Z )
+    val = 1d0/(1+1/Z) *  (T1 + ((1-1d0/3d0*blocrep) + (blocrep*1d0/3d0) * T2) / Z )
 
   end function local_reptationdr
 
