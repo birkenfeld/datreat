@@ -132,11 +132,11 @@ c --- include center of mass diffusion ---
        endif 
        th_nrouse3 = th_nrouse3*a0
 
-       call        parset('l       ',sngl(l),iadda,ier)      ! in ns A units
-       call        parset('w       ',sngl(W),iadda,ier)      !     "
-       call        parset('wl4     ',sngl(W*l**4),iadda,ier) !     "
+       call        parset('l       ',sngl(l),iadda)      ! in ns A units
+       call        parset('w       ',sngl(W),iadda)      !     "
+       call        parset('wl4     ',sngl(W*l**4),iadda) !     "
        dr        = dr /( 1d-9 / 1d-16 ) ! in cm**2/s
-       call        parset('diff    ',sngl(dr),iadda,ier)
+       call        parset('diff    ',sngl(dr),iadda)
 c
        return
        end
