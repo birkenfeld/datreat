@@ -540,11 +540,13 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
 
     if(present(color     )) then
                             call gr_setmarkercolorind(color)
-                            call gr_setlinecolorind(color)
+                            call gr_setbordercolorind(color)
+!!!                            call gr_setlinecolorind(color)
     endif
     if(present(symbolsize)) then
-                            call gr_setmarkersize    (symbolsize)
-                            call gr_setlinewidth     (symbolsize/1.5)
+!!!                            call gr_setmarkersize    (symbolsize)
+                            call gr_setborderwidth   (symbolsize/1.5)
+                            call gr_setlinewidth   (symbolsize/1.5)
     endif
     if(present(typ))        call gr_setmarkertype    (typ)
 

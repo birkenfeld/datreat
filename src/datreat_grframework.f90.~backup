@@ -1516,6 +1516,19 @@ scl:   if(found('scaled  ')) then
           endif
        endif
 !
+!!!! some checks and safeguard !!!!
+       do i=1,size(isymb)
+          if(isymb(i) > size(MARKERTYPE)) isymb(i) = size(MARKERTYPE)
+          if(isymb(i) < 0               ) isymb(i) = 0
+       enddo       
+
+       do i=1,size(icolo)
+          if(icolo(i) > MAX_COLOR_INDEX) icolo(i) = MAX_COLOR_INDEX
+          if(icolo(i) < 0              ) icolo(i) = 0
+       enddo       
+
+
+
 ! ---- set frame & scales ----
 ! !-> preliminary fix       
        if(len_trim(title) == 0) title=" "

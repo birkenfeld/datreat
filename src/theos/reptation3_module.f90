@@ -19,7 +19,7 @@ implicit none
 !==================================================================================
 !
 !  complile with 
-!  gfortran -c reptation2_module -fopenmp -O2
+!  gfortran -c reptation3_module -fopenmp -O2
 !
 !==================================================================================
 
