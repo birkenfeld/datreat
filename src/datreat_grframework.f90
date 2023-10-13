@@ -544,7 +544,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
 !!!                            call gr_setlinecolorind(color)
     endif
     if(present(symbolsize)) then
-!!!                            call gr_setmarkersize    (symbolsize)
+                            call gr_setmarkersize    (symbolsize)
                             call gr_setborderwidth   (symbolsize/1.5)
                             call gr_setlinewidth   (symbolsize/1.5)
     endif
@@ -1187,6 +1187,8 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
       double precision, save :: ax_text_scale = 1d0
       double precision, save :: ax_tick_scale = 1d0
 
+      double precision, save :: boundary =  DEFAULT_WC_MARGIN 
+
       double precision :: yhigh, ylow, xskip
 
       double precision ::  ytxs, yma_s, ymi_s, xtxs, ytx
@@ -1240,6 +1242,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
        write(6,*)'=      tit_y <val>    :  distance of title from axis top                     ='
        write(6,*)'=      text           :  plot with text legend                               ='
        write(6,*)'=      notext         :  plot without text legend                            ='
+       write(6,*)'=      boundary       :  relative boundary around plot field                 ='
        write(6,*)'=      flinewd  <val> :  fit linewidth                                       ='
        write(6,*)'=      dfinewd  <val> :  data linewidth                                      ='
        write(6,*)'=      lin_x | log_x  :  lin or log x scale                                  ='
@@ -1352,6 +1355,8 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
           thcline_thickness   = get_named_value("flinewd   ",thcline_thickness,inew)
           datline_thickness   = get_named_value("dlinewd   ",datline_thickness,inew)
 
+          boundary            = get_named_value("boundary  ",boundary,inew)
+
 
 ! experimental:
           XLEG_DISTANCE   = get_named_value("xlegdist   ",XLEG_DISTANCE,inew)
@@ -1366,7 +1371,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
             do  l=1,inpar(i)
              nsy   = nsy   + 1
              if(nsy.gt.size(inpar)) exit
-             linetype(nsy) = nint(abs( rpar(j) ))
+             linetype(nsy) = nint(( rpar(j) ))
              j = j + 1
             enddo
           endif
@@ -1389,7 +1394,7 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
             do 49 l=1,inpar(i)
              nsy   = nsy   + 1
              if(nsy.gt.size(inpar)) goto 29
-             isymb(nsy) = nint(abs( rpar(j) ))
+             isymb(nsy) = min(nint(abs( rpar(j) )),size(MARKERTYPE))
 ! write(*,*)"TP1 symbol set:",nsy, isymb(nsy), j, i, inpar(i)
              j = j + 1
    49       continue
@@ -1530,6 +1535,20 @@ scl:   if(found('scaled  ')) then
        enddo       
 
 
+       if(xmin >= xmax) then
+         write(*,*)"ATTENTION: xmin=",xmin," must be < xmax=",xmax
+         write(*,*)"Fixing the problem preliminary by setting xmax=xmin+1"
+         xmax = xmin+1       
+       endif
+
+
+       if(ymin >= ymax) then
+         write(*,*)"ATTENTION: xmin=",ymin," must be < xmax=",ymax
+         write(*,*)"Fixing the problem preliminary by setting ymax=ymin+1"
+         ymax = ymin+1       
+       endif
+
+
 
 ! ---- set frame & scales ----
 ! !-> preliminary fix       
@@ -1540,9 +1559,9 @@ scl:   if(found('scaled  ')) then
           write(*,'(a,i0,a)')"Plot title(#",ibild-1,"): "//"dtrplot_"//trim(grtitle_filter(title))//".pdf"
           write(buf,'(i0)')ibild-1
           if(ibild < 0) then
-            call grstart("dtrplot_"//trim(grtitle_filter(title))//".pdf") !>neu, TBD use frlux ....
+            call grstart("dtrplot_"//trim(grtitle_filter(title))//".pdf",boundary) !>neu, TBD use frlux ....
           else
-            call grstart("dtrplot_"//trim(grtitle_filter(title))//trim(buf)//".pdf") !>neu, TBD use frlux ....
+            call grstart("dtrplot_"//trim(grtitle_filter(title))//trim(buf)//".pdf",boundary) !>neu, TBD use frlux ....
           endif
 !       else
 !          call grstart 
@@ -1581,6 +1600,9 @@ scl:   if(found('scaled  ')) then
 
 !write(*,*)"test1:",xtext,ytext,lxx,lyy
 !?        if(paxis) call graxs(lopt,option,lxx,xtext,lyy,ytext)
+       call gr_setlinewidth(datline_thickness)  !! preliminary couple axis to datalinewidth
+                                                !! does not work for axes ?! !! 
+
        if(paxis) then
             call graxes (trim(xtext),trim(ytext),trim(title),GR_BLACK, axis_option, &
                          ax_tick_scale, ax_text_scale * graspekt) !> neu
@@ -1687,6 +1709,8 @@ scl:   if(found('scaled  ')) then
 
            if(errplo) then
 ! old style
+             call gr_setlinecolorind(icco)
+
              do ik=1,nnpi       
                yepl = y(ik)+e(ik)
                yeml = y(ik)-e(ik)
