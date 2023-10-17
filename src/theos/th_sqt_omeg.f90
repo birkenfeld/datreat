@@ -15,6 +15,7 @@
      
       double precision, parameter :: Pi = 4*atan(1d0)
       integer                     :: actual_record_address
+      logical                     :: is_in_xaxis
      
 ! the internal parameter representation 
      double precision :: intensit   ! prefactor                                                                       
@@ -65,21 +66,25 @@
      double precision :: th
  
      integer            :: maxit = 1000
-     double precision   :: rsum, res
      double precision   :: erraccu
-     integer            :: i,ng
+     integer            :: i
      double precision   :: t
      double precision   :: omega
      double precision   :: o0
-     double precision   :: a0
      double precision   :: rsum
      double precision   :: str_tau0, str_beta
      double precision   :: str_delta
      double precision   :: a,b
      double precision   :: res
+     double precision   :: dwf
+     double precision   :: eisf
      double precision   :: gampli(8)
      double precision   :: gwidth(8)
      double precision   :: gcenter(8)
+
+     double precision   :: adapint
+
+     double precision   :: sqomega_qlimit = 0.2d0   !! for lower q-values automatically s(q,t) is computed
 
 !
 ! ----- initialisation ----- 
@@ -295,10 +300,13 @@
 ! ----------------------- implementation ---------------------------
 ! ------------------------------------------------------------------
 ! 
-     str_tau0 = str_tau0 * (1+j0*q**qexp_t0)/(q**qexp_t0)
-     str_beta = str_beta * (q**qexp_bet + beta0)
+     str_tau0 = tau0 * (1+j0*q**qexp_t0)/(q**qexp_t0)
+     str_beta = beta * (q**qexp_bet + beta0)
 
-     if( nse == 1 .or. q < 0.2d0) then
+     write(*,*)"T1:",nse,q,sqomega_qlimit,is_in_xaxis("ns",iadda)
+     write(*,*)"T2: str_tau0, atr_beta=",  str_tau0 , str_beta 
+
+     if( nse == 0 .or. q > sqomega_qlimit .or. .not. is_in_xaxis("ns",iadda)) then
         gampli(1)   = ga1inten
         gwidth(1)   = ga1width
         gcenter(1)  = ga1cente
@@ -331,34 +339,35 @@
         gwidth(8)   = ga8width
         gcenter(8)  = ga8cente
 
-        do ng = 1,8
-         if(gampli(ng) == 0d0) exit
-        enddo
-        ng = ng-1
-
-
         o0         = x - omega0
 
         rsum = 0
-        do i=1,ng
-         omega     = o0 - gcenter(i)
+drs:    do i=1,size(gampli)
+         if(gampli(i) == 0d0) cycle
+         Omega     = o0 - gcenter(i)
          str_delta = abs(gwidth(i))
          a         = 0d0
          b         = 9.0d0/str_delta
          res       = adapint(fqt_kernel,a,b,epsilon,maxit,erraccu)*2
          rsum      = rsum + gampli(i)*res/(2*Pi)*sqrt(Pi)
-        enddo
+        enddo drs
 
         dwf        = exp(-u_sqr*q*q/3.0d0)
-        eisf       = (1.0/3.0)*(1.0+2.0*(sin(q*1.78)/(q*1.78)))
+!        eisf       = (1.0/3.0)*(1.0+2.0*(sin(q*1.78)/(q*1.78)))
+!
+!        th = intensit * dwf * (1-n_mg+(n_mg*eisf))*rsum + bkgr &
+!                      + bk1level + bk1slope * o0
+!
 
-        th = intensit * dwf * (1-nmg+(nmg*eisf))*rsum + bkgr &
-                      + bgr_level + bgr_slope*o0
+        th = intensit * dwf * rsum      + bkgr + bk1level + bk1slope * o0
+
+write(*,*)"Tomx:",x,dwf,rsum,th
 
     else
         t  = x
-        th = fqt(t)
-
+        dwf        = exp(-u_sqr*q*q/3.0d0)
+        th = intensit * fqt(t)
+write(*,*)"Tnse:",x,dwf,th
 
     endif
      th_sqt_omeg = th
@@ -376,7 +385,7 @@
 !      -----------------------
        implicit none
        double precision, intent(in) :: t
-       double precision             :: strex_kernel2
+       double precision             :: fqt_kernel
 
        fqt_kernel = fqt(t) * exp(-1d0/4d0*(str_delta*t)**2) * cos(t*Omega)*str_delta
 

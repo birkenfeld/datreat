@@ -732,6 +732,136 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
      
   end subroutine graxes
 
+
+
+!== graxes_mx (automatic) ===================================================================================== 
+  subroutine graxes_mx(xlabels, nxlabels, ylabel, title, color, option, tick_scale, text_scale)
+    implicit none
+    character(len=*), intent(in), optional :: xlabels(*)
+    integer         , intent(in), optional :: nxlabels
+    character(len=*), intent(in), optional :: ylabel
+    character(len=*), intent(in), optional :: title
+    integer         , intent(in), optional :: color
+    integer         , intent(in), optional :: option ! OPTION_X_LOG, OPTION_Y_LOG, OPTION_Z_LOG, OPTION_FLIP_X, OPTION_FLIP_Z
+    double precision, intent(in), optional :: tick_scale
+    double precision, intent(in), optional :: text_scale
+!
+   double precision  :: x_tick, y_tick
+   double precision  :: x_org , y_org
+
+   integer         , save  :: major_x = 1
+   integer         , save  :: major_y = 1
+   double precision, parameter  :: tick_size0 = 0.004d0
+   double precision, save  :: tick_size= tick_size0 
+   double precision, save  :: xmin, xmax, ymin, ymax
+   double precision, parameter  :: textsize0 = 0.018d0 ! 0.024d0
+   double precision, save  :: text_size = textsize0
+
+   double precision        :: xlabel_x, xlabel_y
+   double precision        :: ylabel_x, ylabel_y
+   double precision        :: tlabel_x, tlabel_y
+
+   integer           :: act_opt
+   integer           :: ilab
+
+   if(present(color)) then
+     call gr_setlinecolorind(color)
+     call gr_settextcolorind(color)
+   endif
+    
+   if(present(option))      call gr_setscale(option)  
+   if(present(tick_scale))  tick_size = tick_size0 * tick_scale
+   if(present(text_scale))  text_size = textsize0 * text_scale
+
+   call gr_inqwindow(xmin, xmax, ymin, ymax)
+
+   x_org = xmin
+   y_org = ymin
+
+   call gr_inqscale(act_opt)
+ 
+   x_tick = get_tick(xmin,xmax)  
+   y_tick = get_tick(ymin,ymax) 
+ 
+     
+   call gr_setcharheight(text_size) 
+   call gr_settextalign(  TEXT_HALIGN_CENTER , TEXT_VALIGN_HALF  ) 
+   call gr_setlinewidth(AXIS_LINEWIDTH)
+  
+   call gr_axes(x_tick,y_tick,x_org,y_org, major_x,major_y, tick_size)
+
+  ! write labels
+   call gr_selntran(0)
+
+!write(*,*)"Test axis xl:", trim(xlabel)
+!write(*,*)"Test axis yl:", trim(ylabel)
+  
+   xlabel_x = xmin+(xmax-xmin)*0.5d0
+   xlabel_y = ymin-(ymax-ymin)*XLEG_DISTANCE
+
+   ylabel_x = xmin-(xmax-xmin)*YLEG_DISTANCE
+   ylabel_y = ymin+(ymax-ymin)*0.5d0
+
+   tlabel_x = xmin+(xmax-xmin)*TLEG_DISTANCE_X   ! to be made individual for Tit
+   tlabel_y = ymax+(ymax-ymin)*TLEG_DISTANCE_Y
+
+   if(act_opt == OPTION_X_LOG .or. act_opt == OPTION_XY_LOG) then
+        xlabel_x = 10d0**(log10(xmin)+(log10(xmax)-log10(xmin))*0.5d0)
+        ylabel_x = 10d0**(log10(xmin)-(log10(xmax)-log10(xmin))*YLEG_DISTANCE)
+        tlabel_x = 10d0**(log10(xmin)+(log10(xmax)-log10(xmin))*TLEG_DISTANCE_X) ! to be made individual for Tit
+   endif
+
+   if(act_opt == OPTION_Y_LOG .or. act_opt == OPTION_XY_LOG) then
+        xlabel_y = 10d0**(log10(ymin)-(log10(ymax)-log10(ymin))*XLEG_DISTANCE)
+        ylabel_y = 10d0**(log10(ymin)+(log10(ymax)-log10(ymin))*0.5d0)
+        tlabel_y = 10d0**(log10(ymax)+(log10(ymax)-log10(ymin))*TLEG_DISTANCE_Y)
+   endif
+
+
+   if(present(ylabel) .and. len(ylabel) > 0) then
+     call gr_settextpath (  TEXT_PATH_UP    )
+     call gr_setcharup   (  -1d0, 0d0       )
+     if(ylabel(1:1)=="$")  call gr_setcharheight(text_size*tex_fak) 
+!    call gr_textext(textsize+0.005d0 ,0.5d0,trim(grtex_filter(ylabel))//czero)
+       call grtext(ylabel_x,ylabel_y,(ylabel)//czero)
+       call gr_setcharheight(text_size) 
+   endif
+
+   if(present(xlabels) .and. nxlabels > 0 ) then
+     call gr_settextpath (  TEXT_PATH_RIGHT )
+     call gr_setcharup   (  0d0, 1d0        )
+     do ilab=1,nxlabels
+       if(xlabels(ilab)(1:1)=="$")  call gr_setcharheight(text_size*tex_fak) 
+ !     call gr_textext(0.5d0 ,textsize+0.005d0,trim(grtex_filter(xlabel))//czero)
+       call grtext(xlabel_x,xlabel_y, trim(xlabels(ilab)))
+       xlabel_x = xlabel_x + len_trim(xlabels(ilab)) * (xmax-xmin)*text_size !! (??? TBD)
+       call gr_setcharheight(text_size) 
+      enddo
+     endif
+
+   if(present(title)) then
+    if(len(title) > 0) then
+     call gr_settextalign(  TEXT_HALIGN_LEFT , TEXT_VALIGN_HALF  ) 
+     call gr_settextpath (  TEXT_PATH_RIGHT )
+     call gr_setcharup   (  0d0, 1d0        )
+     if(title(1:1)=="$")  call gr_setcharheight(text_size*tex_fak) 
+!     call gr_textext(0.1d0,1-2*textsize,trim(grtex_filter(title))//czero)
+     call grtext(tlabel_x, tlabel_y,(title)//czero)
+     call gr_setcharheight(text_size) 
+    endif
+   endif
+
+
+   call gr_settextalign(  TEXT_HALIGN_LEFT , TEXT_VALIGN_NORMAL  ) 
+
+   call gr_selntran(1)
+     
+  end subroutine graxes_mx
+
+
+
+
+
   subroutine graxes2(xlabel, ylabel, title, color, option, tick_scale, text_scale)  ! axis origin upper right corner
     implicit none
     character(len=*), intent(in), optional :: xlabel
@@ -1208,6 +1338,9 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
 
       integer       :: iss
 
+      integer            :: n_names
+      character(len=80)  :: xnames(20)
+
 
 
       if(found('help    ')) then 
@@ -1575,12 +1708,28 @@ scl:   if(found('scaled  ')) then
          call gr_setclip(0)
        endif
 
-         xtext = xname(isels(1))
-         xmi_s = xmin
-         xma_s = xmax
-         ytext = yname(isels(1))
-         ymi_s = ymin
-         yma_s = ymax
+       xtext = xname(isels(1))
+       xmi_s = xmin
+       xma_s = xmax
+       ytext = yname(isels(1))
+       ymi_s = ymin
+       yma_s = ymax
+
+
+
+       n_names = 1
+       xnames(1) = xname(isels(1))
+dxn:   do  i=2,nsel
+        do j=1,i-1
+          if(trim(xname(isels(i))) == trim(xnames(j))) cycle dxn
+          n_names = n_names + 1
+          if(n_names <= size(xnames)) xnames(n_names) = xname(isels(i))
+          write(*,'(a,i3,a,a)')"xname #",n_names," = ",trim(xnames(n_names))
+        enddo
+       enddo dxn
+
+   
+
 
                                      axis_option = OPTION_LINEAR
          if(log_x .and. .not. log_y) axis_option = OPTION_X_LOG
@@ -1603,12 +1752,24 @@ scl:   if(found('scaled  ')) then
        call gr_setlinewidth(datline_thickness)  !! preliminary couple axis to datalinewidth
                                                 !! does not work for axes ?! !! 
 
+!prev       if(paxis) then
+!prev            call graxes (trim(xtext),trim(ytext),trim(title),GR_BLACK, axis_option, &
+!prev                         ax_tick_scale, ax_text_scale * graspekt) !> neu
+!prev            call graxes2 (" "," "," ",GR_BLACK, axis_option, &
+!prev                         -ax_tick_scale, ax_text_scale*0.001d0) !> neu
+!prev       endif
+
+
        if(paxis) then
-            call graxes (trim(xtext),trim(ytext),trim(title),GR_BLACK, axis_option, &
+            call graxes_mx (xnames,n_names,trim(ytext),trim(title),GR_BLACK, axis_option, &
                          ax_tick_scale, ax_text_scale * graspekt) !> neu
-            call graxes2 (" "," "," ",GR_BLACK, axis_option, &
+            call graxes    (" "," "," ",GR_BLACK, axis_option, &
                          -ax_tick_scale, ax_text_scale*0.001d0) !> neu
        endif
+
+
+
+
 
 !
 !

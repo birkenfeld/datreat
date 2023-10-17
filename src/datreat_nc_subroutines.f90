@@ -2509,6 +2509,48 @@ sl:       do j=1,maxstep
       END subroutine parget
 
 
+
+       logical function is_in_xaxis (pname,iadd)
+!      =========================================
+!
+! ---- this routine gets the value of a parameter ----
+!
+       use new_com
+       use cdata
+       implicit none
+       character(len=*), intent(in) :: pname
+       integer,          intent(in) :: iadd
+
+       integer i
+ 
+       i = index(xname(iadd),trim(pname))
+       is_in_xaxis = (i > 0)
+!
+      END function is_in_xaxis
+
+
+
+       logical function is_in_yaxis (pname,iadd)
+!      =========================================
+!
+! ---- this routine gets the value of a parameter ----
+!
+       use new_com
+       use cdata
+       implicit none
+       character(len=*), intent(in) :: pname
+       integer,          intent(in) :: iadd
+
+       integer i
+ 
+       i = index(yname(iadd),trim(pname))
+       is_in_yaxis = (i > 0)
+!
+      END function is_in_yaxis
+
+
+
+
        subroutine get_full_xvec (iadd,n,xv)
 !      ===================================
 !

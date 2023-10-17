@@ -1,31 +1,158 @@
-#THEORY spatcorr
-        reptation approach , Spatial correlations of entangled polymer dynamics, Jihong Ma
-#CITE   PHYSICAL REVIEW E 104, 024503 (2021)    
-        PHYSICAL REVIEW E 104, 024503 (2021)    
+#THEORY sqt_omeg
+        combined s(q,omega) and s(q,t) data from an s(q,t) model
+#CITE       
+         
 #PARAMETERS
-        ampli            ! prefactor 
-        r2               ! msd-scale, prefactor to Kt2
-        tau              ! timescale
-        beta             ! spatial streching exponent
-        a                ! transition exponent in K(t)
+         intensit        ! prefactor
+         tau0            ! KWW time-constant, prefactor in front of q-dependence
+         beta            ! streched exp, prefactor in front of-q-dependence
+         epsilon         ! accuracy parameter for FT-integrations (DO NOT FIT)
+         omega0          ! omega scale zero shift
+         u_sqr           ! <u**2> value for Debye-Waller-Factor
+         j0              ! jump length (if applicable)
+         beta0           ! beta offset
+         qexp_t0         ! q-exponent for tau0
+         qexp_bet        ! beta-exponent 
+         bkgr            ! constant background 
+         n_mg            ! fraction of hydrogen in side chains
 #RECIN-PARAMETERS    (allow 8 chars for name, start only beyond 8 with default)
         q            0   ! q-value    default value
+        nse          0   ! explict switch between sqt and sqomega (if nse=1 ==> sqt)
+        bk1level     0   ! resolution description bgr-levwl
+        bk1slope     0   ! resolution description slope of bgr
+        ga1inten     0   ! resolution description 1. gaussian amplitude   
+        ga1width     0   ! resolution description 1. gaussian width
+        ga1cente     0   ! resolution description 1. gaussian center 
+        ga2inten     0   ! resolution description 2. gaussian amplitude 
+        ga2width     0   ! resolution description 2. gaussian width 
+        ga2cente     0   ! resolution description 2. gaussian center 
+        ga3inten     0   ! resolution description 3. gaussian amplitude 
+        ga3width     0   ! resolution description 3. gaussian width 
+        ga3cente     0   ! resolution description 3. gaussian center 
+        ga4inten     0   ! resolution description 4. gaussian amplitude 
+        ga4width     0   ! resolution description 4. gaussian width 
+        ga4cente     0   ! resolution description 4. gaussian center 
+        ga5inten     0   ! resolution description 5. gaussian amplitude 
+        ga5width     0   ! resolution description 5. gaussian width 
+        ga5cente     0   ! resolution description 5. gaussian center 
+        ga6inten     0   ! resolution description 6. gaussian amplitude 
+        ga6width     0   ! resolution description 6. gaussian width
+        ga6cente     0   ! resolution description 6. gaussian center 
+        ga7inten     0   ! resolution description 7. gaussian amplitude 
+        ga7width     0   ! resolution description 7. gaussian width 
+        ga7cente     0   ! resolution description 7. gaussian center 
+        ga8inten     0   ! resolution description 8. gaussian amplitude 
+        ga8width     0   ! resolution description 8. gaussian width 
+        ga8cente     0   ! resolution description 8. gaussian center             
 #RECOUT-PARAMETERS
+        tau0_q           ! scaled: str_tau0 * (1+jlen*qz**qexpt0)/(qz**qexpt0)
+        beta_q           ! scaled: str_beta * (qz**qexpbeta + beta0)
 #VARIABLES
+     integer            :: maxit = 1000
+     integer            :: i,ng
      double precision   :: t
+     double precision   :: omega
+     double precision   :: o0
+     double precision   :: a0
+     double precision   :: rsum
+     double precision   :: str_tau0, str_beta
+     double precision   :: str_delta
+     double precision   :: a,b
+     double precision   :: res
+     double precision   :: gampli(8) 
+     double precision   :: gwidth(8) 
+     double precision   :: gcenter(8)
+ 
 #IMPLEMENTATION
-     t  = x              ! since we prefer to call the independent variable t, x must be copied to t
-     th = ampli * exp(-(1d0/6d0)*(q*q*Kt2)**beta)
+     str_tau0 = str_tau0 * (1+j0*q**qexp_t0)/(q**qexp_t0)
+     str_beta = str_beta * (q**qexp_bet + beta0)
 
+     if( nse == 1 .or. q < 0.2d0) then    
+        gampli(1)   = ga1inten
+        gwidth(1)   = ga1width
+        gcenter(1)  = ga1cente
+   
+        gampli(2)   = ga2inten
+        gwidth(2)   = ga2width
+        gcenter(2)  = ga2cente
+   
+        gampli(3)   = ga3inten
+        gwidth(3)   = ga3width
+        gcenter(3)  = ga3cente
+   
+        gampli(4)   = ga4inten
+        gwidth(4)   = ga4width
+        gcenter(4)  = ga4cente
+   
+        gampli(5)   = ga5inten
+        gwidth(5)   = ga5width
+        gcenter(5)  = ga5cente
+   
+        gampli(6)   = ga6inten
+        gwidth(6)   = ga6width
+        gcenter(6)  = ga6cente
+   
+        gampli(7)   = ga7inten
+        gwidth(7)   = ga7width
+        gcenter(7)  = ga7cente
+   
+        gampli(8)   = ga8inten
+        gwidth(8)   = ga8width
+        gcenter(8)  = ga8cente
+   
+        do ng = 1,8
+         if(gampli(ng) == 0d0) exit
+        enddo
+        ng = ng-1
+
+
+        o0         = x - omega0
+
+        rsum = 0 
+        do i=1,ng    
+         omega     = o0 - gcenter(i)
+         str_delta = abs(gwidth(i))
+         a         = 0d0
+         b         = 9.0d0/str_delta
+         res       = adapint(fqt_kernel,a,b,epsilon,maxit,erraccu)*2
+         rsum      = rsum + gampli(i)*res/(2*Pi)*sqrt(Pi)         
+        enddo
+
+        dwf        = exp(-u_sqr*q*q/3.0d0)
+        eisf       = (1.0/3.0)*(1.0+2.0*(sin(q*1.78)/(q*1.78)))
+
+        th = intensit * dwf * (1-nmg+(nmg*eisf))*rsum + bkgr &
+                      + bgr_level + bgr_slope*o0
+ 
+    else
+        t  = x             
+        th = fqt(t)
+
+
+    endif
 #SUBROUTINES
-  function Kt2(t,a) result(val)
-    implicit none
-    double precision, intent(in)   :: t, a
-    double precision               :: val
 
+       function fqt_kernel(t)
+!      -----------------------
+       implicit none
+       double precision, intent(in) :: t
+       double precision             :: strex_kernel2
 
-    val = r2/((1/(t/tau)**(1/4))**a+(1/sqrt(t/tau))**a)**(1/a)
+       fqt_kernel = fqt(t) * exp(-1d0/4d0*(str_delta*t)**2) * cos(t*Omega)*str_delta  
+  
+       end function fqt_kernel
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! die eigentliche Zeitfunktion                                            !!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+       function fqt(t)
+!      ---------------
+       implicit none
+       double precision, intent(in) :: t
+       double precision             :: fqt
 
-  end function Kt2
+       fqt =  exp(-(t/str_tau0)**str_beta)  
+      
+       end function fqt
+
 #END

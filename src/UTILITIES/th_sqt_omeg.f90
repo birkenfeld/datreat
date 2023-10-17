@@ -67,7 +67,7 @@
      integer            :: maxit = 1000
      double precision   :: rsum, res
      double precision   :: erraccu
-     integer            :: i,ng
+     integer            :: i
      double precision   :: t
      double precision   :: omega
      double precision   :: o0
@@ -331,23 +331,18 @@
         gwidth(8)   = ga8width
         gcenter(8)  = ga8cente
 
-        do ng = 1,8
-         if(gampli(ng) == 0d0) exit
-        enddo
-        ng = ng-1
-
-
         o0         = x - omega0
 
         rsum = 0
-        do i=1,ng
+drs:    do i=1,size(gampli)
+         if(gampli(i) == 0d0) cycle
          omega     = o0 - gcenter(i)
          str_delta = abs(gwidth(i))
          a         = 0d0
          b         = 9.0d0/str_delta
          res       = adapint(fqt_kernel,a,b,epsilon,maxit,erraccu)*2
          rsum      = rsum + gampli(i)*res/(2*Pi)*sqrt(Pi)
-        enddo
+        enddo drs
 
         dwf        = exp(-u_sqr*q*q/3.0d0)
         eisf       = (1.0/3.0)*(1.0+2.0*(sin(q*1.78)/(q*1.78)))
@@ -357,9 +352,7 @@
 
     else
         t  = x
-        th = fqt(t)
-
-
+        th = intensit * fqt(t)
     endif
      th_sqt_omeg = th
  
