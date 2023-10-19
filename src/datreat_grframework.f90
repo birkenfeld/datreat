@@ -761,6 +761,8 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
    double precision        :: ylabel_x, ylabel_y
    double precision        :: tlabel_x, tlabel_y
 
+   double precision        :: f_advance = 1
+
    integer           :: act_opt
    integer           :: ilab
 
@@ -827,14 +829,18 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
        call gr_setcharheight(text_size) 
    endif
 
+   f_advance = 1.0d0
    if(present(xlabels) .and. nxlabels > 0 ) then
      call gr_settextpath (  TEXT_PATH_RIGHT )
      call gr_setcharup   (  0d0, 1d0        )
      do ilab=1,nxlabels
-       if(xlabels(ilab)(1:1)=="$")  call gr_setcharheight(text_size*tex_fak) 
+       if(xlabels(ilab)(1:1)=="$") then  
+          call gr_setcharheight(text_size*tex_fak)
+          f_advance = 0.5d0
+       endif 
  !     call gr_textext(0.5d0 ,textsize+0.005d0,trim(grtex_filter(xlabel))//czero)
        call grtext(xlabel_x,xlabel_y, trim(xlabels(ilab)))
-       xlabel_x = xlabel_x + len_trim(xlabels(ilab)) * (xmax-xmin)*text_size !! (??? TBD)
+       xlabel_x = xlabel_x + len_trim(xlabels(ilab)) * (xmax-xmin)*text_size*f_advance !! (??? TBD)
        call gr_setcharheight(text_size) 
       enddo
      endif
@@ -1763,7 +1769,7 @@ dxn:   do  i=2,nsel
        if(paxis) then
             call graxes_mx (xnames,n_names,trim(ytext),trim(title),GR_BLACK, axis_option, &
                          ax_tick_scale, ax_text_scale * graspekt) !> neu
-            call graxes    (" "," "," ",GR_BLACK, axis_option, &
+            call graxes2   (" "," "," ",GR_BLACK, axis_option, &
                          -ax_tick_scale, ax_text_scale*0.001d0) !> neu
        endif
 

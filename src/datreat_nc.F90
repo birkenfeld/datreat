@@ -4020,7 +4020,7 @@ ipl:        do i=1,ipars
                 enddo
              enddo
            endif
-           write(6,390)nsel,(isels(i),numor(isels(i)),ifits(i),i=1,nsel)
+           if(isels(i)>0) write(6,390)nsel,(isels(i),numor(isels(i)),ifits(i),i=1,nsel)
            goto 2000
          endif !   ende if(inames.eq.0 ...........&
 
@@ -4095,6 +4095,23 @@ ipl:        do i=1,ipars
               iaddp = isels(i)
               call parset_display (vname(1),Nint(rpar(1)),iaddp)
            enddo
+
+         goto 2000
+       endif
+!
+       if(comand.eq.'restran  ') then
+!                    ------   set display level
+          if(found('help    ')) then 
+           write(6,*)'=============================================================================='
+           write(6,*)'= restran                                                                     '
+           write(6,*)'=        transfer resolution parameters (ga1inten, ga1width,......)           '
+           write(6,*)'=        from the FIRST selected record to all FOLLOWING selections           '
+           write(6,*)'=        i.e. at least two records must be seected                            '
+           write(6,*)'=============================================================================='
+           goto 2000
+        endif
+
+         call  distribute_gares_parameters()
 
          goto 2000
        endif

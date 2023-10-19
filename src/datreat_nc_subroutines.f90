@@ -4788,6 +4788,191 @@ sl:       do j=1,maxstep
 
 
 
+
+       subroutine distribute_gares_parameters()
+!      ========================================
+! ---  Extract parameters form the first item in the sel-list and push tehm to the others
+!
+       use new_com
+       use cdata
+       use selist
+       ! use constants
+
+       implicit none
+
+       integer :: iadda, i, j, ier
+       double precision :: q
+
+       real              :: xh
+       double precision  :: gai(8) = 0
+       double precision  :: gaw(8) = 0
+       double precision  :: gac(8) = 0
+       double precision  :: xwidth = 1d-6
+       character(len=8)  :: buf
+
+
+       if(nsel < 2) then
+           call errsig(9999,"restrans: at least two curves must be selected !$")
+           return
+       endif
+
+! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
+      iadda = isels(1)
+! >>> extract: q-value    default value
+      xh =      0
+      call parget('q       ',xh,iadda,ier)
+      q        = xh
+! >>> extract: explict switch between sqt and sqomega (if nse=1 ==> sqt)
+      xh =      0.001
+      call parget('_xwidth ',xh,iadda,ier)
+      xwidth    = xh
+
+!!! >>> extract: resolution description bgr-levwl
+!!      xh =      0
+!!      call parget('bk1level',xh,iadda,ier)
+!!      bk1level = xh
+!!! >>> extract: resolution description slope of bgr
+!!      xh =      0
+!!      call parget('bk1slope',xh,iadda,ier)
+!!      bk1slope = xh
+
+! >>> extract: resolution description 1. gaussian amplitude
+      xh =      0
+      call parget('ga1inten',xh,iadda,ier)
+   gai(1) = xh
+! >>> extract: resolution description 1. gaussian width
+      xh =      0
+      call parget('ga1width',xh,iadda,ier)
+   gaw(1) = xh
+! >>> extract: resolution description 1. gaussian center
+      xh =      0
+      call parget('ga1cente',xh,iadda,ier)
+   gac(1) = xh
+! >>> extract: resolution description 2. gaussian amplitude
+      xh =      0
+      call parget('ga2inten',xh,iadda,ier)
+   gai(2) = xh
+! >>> extract: resolution description 2. gaussian width
+      xh =      0
+      call parget('ga2width',xh,iadda,ier)
+   gaw(2) = xh
+! >>> extract: resolution description 2. gaussian center
+      xh =      0
+      call parget('ga2cente',xh,iadda,ier)
+   gac(2) = xh
+! >>> extract: resolution description 3. gaussian amplitude
+      xh =      0
+      call parget('ga3inten',xh,iadda,ier)
+   gai(3) = xh
+! >>> extract: resolution description 3. gaussian width
+      xh =      0
+      call parget('ga3width',xh,iadda,ier)
+   gaw(3) = xh
+! >>> extract: resolution description 3. gaussian center
+      xh =      0
+      call parget('ga3cente',xh,iadda,ier)
+   gac(3) = xh
+! >>> extract: resolution description 4. gaussian amplitude
+      xh =      0
+      call parget('ga4inten',xh,iadda,ier)
+   gai(4) = xh
+! >>> extract: resolution description 4. gaussian width
+      xh =      0
+      call parget('ga4width',xh,iadda,ier)
+   gaw(4) = xh
+! >>> extract: resolution description 4. gaussian center
+      xh =      0
+      call parget('ga4cente',xh,iadda,ier)
+   gac(4) = xh
+! >>> extract: resolution description 5. gaussian amplitude
+      xh =      0
+      call parget('ga5inten',xh,iadda,ier)
+   gai(5) = xh
+! >>> extract: resolution description 5. gaussian width
+      xh =      0
+      call parget('ga5width',xh,iadda,ier)
+   gaw(5) = xh
+! >>> extract: resolution description 5. gaussian center
+      xh =      0
+      call parget('ga5cente',xh,iadda,ier)
+   gac(5) = xh
+! >>> extract: resolution description 6. gaussian amplitude
+      xh =      0
+      call parget('ga6inten',xh,iadda,ier)
+   gai(6) = xh
+! >>> extract: resolution description 6. gaussian width
+      xh =      0
+      call parget('ga6width',xh,iadda,ier)
+   gaw(6) = xh
+! >>> extract: resolution description 6. gaussian center
+      xh =      0
+      call parget('ga6cente',xh,iadda,ier)
+   gac(6) = xh
+! >>> extract: resolution description 7. gaussian amplitude
+      xh =      0
+      call parget('ga7inten',xh,iadda,ier)
+   gai(7) = xh
+! >>> extract: resolution description 7. gaussian width
+      xh =      0
+      call parget('ga7width',xh,iadda,ier)
+   gaw(7) = xh
+! >>> extract: resolution description 7. gaussian center
+      xh =      0
+      call parget('ga7cente',xh,iadda,ier)
+   gac(7) = xh
+! >>> extract: resolution description 8. gaussian amplitude
+      xh =      0
+      call parget('ga8inten',xh,iadda,ier)
+   gai(8) = xh
+! >>> extract: resolution description 8. gaussian width
+      xh =      0
+      call parget('ga8width',xh,iadda,ier)
+   gaw(8) = xh
+! >>> extract: resolution description 8. gaussian center
+      xh =      0
+      call parget('ga8cente',xh,iadda,ier)
+   gac(8) = xh
+! 
+     
+
+   do i=2,nsel
+      iadda = isels(i)
+      xh =      0
+      call parget('q       ',xh,iadda,ier)
+
+      if(abs(q-xh)/q > 0.1d0) write(*,*)"WARNING: q values don't match: ",i, q, xh, isels(1),isels(i)
+
+      call parset ("_xwidth" ,sngl(xwidth),iadda)
+
+      do j=1,size(gai)
+         write(buf,'("ga",i0,"inten")') j
+         call parset (buf ,sngl(gai(j)),iadda)
+         write(buf,'("ga",i0,"width")') j
+         call parset (buf ,sngl(gaw(j)),iadda)
+         write(buf,'("ga",i0,"cente")') j
+         call parset (buf ,sngl(gac(j)),iadda)
+     enddo
+     
+     write(*,*)"N-gauss resolution patameter transferred from record:",isels(1),"  to record ",isels(i)
+     write(*,*)"Do not forget to save the record to pemanently associate the resolution params!"
+ 
+   enddo
+
+
+
+  end subroutine distribute_gares_parameters
+
+
+
+! ------------------------------------------------------------------
+! ----------------------- implementation ---------------------------
+! -
+
+   
+
+
+
+
        real function fsplin(x)
 !      ==================
 ! --- spline interpolated data evaluation ---
