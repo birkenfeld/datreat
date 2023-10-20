@@ -1,0 +1,9 @@
+makro
+thc n -100 x1 0.1 x2 1000
+rename xaxis $$t\/\mathrm{ns}
+rename yaxis $$S(Q,t)\/S(Q)
+! tit
+plot0 colo 0 1 2 3 4 5 6  flinewd 1.5  sysize 1.2
+plot0 xlegdist 0.14 ylegdist 0.17 axtxsize 1.5 legx 2 legy 0
+plot  xmin 0.1 xmax 1000 ymin 0 ymax 1.05 log_x 
+ 

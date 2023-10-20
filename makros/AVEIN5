@@ -1,0 +1,66 @@
+makro _filename_
+set x_catch 0.1
+purge all
+in _filename_
+set n1 (nbuf+1)
+
+sel all q 0.4 band 0.05
+average xcatch (x_catch)
+
+sel all q 0.5 band 0.05
+average xcatch (x_catch)
+
+sel all q 0.6 band 0.05
+average xcatch (x_catch)
+
+sel all q 0.7 band 0.05
+average xcatch (x_catch)
+
+sel all q 0.8 band 0.05
+average xcatch (x_catch)
+
+sel all q 0.9 band 0.05
+average xcatch (x_catch)
+
+
+sel all q 1.0 band 0.05
+average xcatch (x_catch)
+
+sel all q 1.1 band 0.05
+average xcatch (x_catch)
+
+sel all q 1.2 band 0.05
+average xcatch (x_catch)
+
+sel all q 1.3 band 0.05
+average xcatch (x_catch)
+
+sel all q 1.4 band 0.05
+average xcatch (x_catch)
+
+sel all q 1.5 band 0.05
+average xcatch (x_catch)
+
+sel all q 1.6 band 0.05
+average xcatch (x_catch)
+
+sel all q 1.7 band 0.05
+average xcatch (x_catch)
+
+sel all q 1.8 band 0.05
+average xcatch (x_catch)
+
+set n2 (nbuf)
+
+sel (n1) -(n2)
+rename xaxis $$\omega\,\/\mathrm{GHz}
+rename yaxis $$S(q,\omega)
+
+set i        +indxval(n1,0.0) 
+set xwidth   +(xv(n1,i+1)-xv(n1,i))
+
+putpar _xwidth (xwidth)
+
+msave COMPACT_filename_
+
+

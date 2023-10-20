@@ -1,0 +1,110 @@
+makro _filename_
+purge all
+
+in _filename_  GHz
+! file must be of type *.inx
+!  in dPBcross-5K_bkg_conv.inx GHz
+
+set plotyes 0
+
+set num_q (nbuf)
+
+set nx 0
+
+:j1
+
+set nx (nx+1)
+sel (nx)
+
+set ym (maxy)
+set xc -centerx
+set w1 +widthx*0.9
+set w2 +w1*1.1
+
+set xcwidth (_xwidth)
+
+c
+c leeren der Theorieliste und aktivierenm von 2 Gaussians
+c
+dac
+ac gauss2
+ac gauss2
+
+c
+c Inline Setzten von Parametern (interaktiv mit cth).
+c
+
+chgthpar gauss2 1 intensit  par 0.8*ym      scale 1
+chgthpar gauss2 1 width     par +w1/2.7     scale 1
+chgthpar gauss2 1 center    par 0           scale 0
+chgthpar gauss2 1 xbinwid   par (xcwidth)   scale 0
+
+
+chgthpar gauss2 2 intensit  par 0.2*ym      scale 1
+chgthpar gauss2 2 width     par +w2/2.7     scale 1
+chgthpar gauss2 2 center    par 0           scale 0
+chgthpar gauss2 2 xbinwid   par (xcwidth)   scale 0
+
+
+
+fit x1 -20*w1 x2 20*w1 go
+fit
+set  ssqfit1 +ssq
+if +plotyes = 1 then plot xmin -20*w1 xmax 20*w1 ymin 0.000005*ym  ymax 1.2*ym lin_y errors
+
+
+chgthpar gauss2 1 intensit  par 0.8*ym      scale 1
+chgthpar gauss2 1 width     par +w1/2.7     scale 1
+chgthpar gauss2 1 center    par 0           scale 1
+chgthpar gauss2 1 xbinwid   par (xcwidth)   scale 0
+
+
+chgthpar gauss2 2 intensit  par 0.2*ym      scale 1
+chgthpar gauss2 2 width     par +w2/2.7     scale 1
+chgthpar gauss2 2 center    par 0           scale 1
+chgthpar gauss2 2 xbinwid   par (xcwidth)   scale 0
+
+ac bkgr
+chgthpar bkgr 1 level  par 0.1  scale 0.1
+chgthpar bkgr 1 slope  par 0    scale 0.01
+
+
+fit x1 -20*w1 x2 20*w1 go
+fit
+set  ssqfit1 +ssq
+if +plotyes = 1 then plot xmin -20*w1 xmax 20*w1 ymin 0.000005*ym  ymax 1.2*ym lin_y errors
+
+
+!! --- TRY TO DESCRIBE THE BUMP ALSO (IS THIS PART OF THE RESOLUTION????)
+ac gauss2
+
+chgthpar gauss2 3 intensit  par 0.002*ym    scale 1
+chgthpar gauss2 3 width     par +w2*5       scale 1
+chgthpar gauss2 3 center    par 5*w2        scale 1
+chgthpar gauss2 3 xbinwid   par (xcwidth)   scale 0
+
+
+
+fit x1 -20*w1 x2 20*w1 go
+fit
+fit
+fit
+set  ssqfit1 +ssq
+if +plotyes = 1 then plot xmin -20*w1 xmax 20*w1 ymin 0.000005*ym  ymax 1.2*ym lin_y errors
+
+plot xmin -20*w1 xmax 20*w1 ymin 0.000005*ym  ymax 1.2*ym lin_y errors
+
+! goto :ex
+
+
+
+if (nx) < (num_q) then goto :j1
+
+! goto :ex
+
+purge fits
+sel 1 -(nbuf)
+
+msave RES__filename_
+
+:ex

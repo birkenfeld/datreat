@@ -144,23 +144,23 @@
        nthpar(71) = mtpar 
        dummy = th_spatcorr2(x,par,thenam(71),thparn(:,71),nthpar(71),ini,idum,params,napar,idum)
        nthpar(72) = mtpar 
-       dummy = th_sqt_omeg(x,par,thenam(72),thparn(:,72),nthpar(72),ini,idum,params,napar,idum)
+       dummy = th_sqt_om1(x,par,thenam(72),thparn(:,72),nthpar(72),ini,idum,params,napar,idum)
        nthpar(73) = mtpar 
-       dummy = th_star(x,par,thenam(73),thparn(:,73),nthpar(73),ini,idum,params,napar,idum)
+       dummy = th_sqt_omeg(x,par,thenam(73),thparn(:,73),nthpar(73),ini,idum,params,napar,idum)
        nthpar(74) = mtpar 
-       dummy = strexpo(x,par,thenam(74),thparn(:,74),nthpar(74),ini,idum,params,napar,idum)
+       dummy = th_star(x,par,thenam(74),thparn(:,74),nthpar(74),ini,idum,params,napar,idum)
        nthpar(75) = mtpar 
-       dummy = strexpsq(x,par,thenam(75),thparn(:,75),nthpar(75),ini,idum,params,napar,idum)
+       dummy = strexpo(x,par,thenam(75),thparn(:,75),nthpar(75),ini,idum,params,napar,idum)
        nthpar(76) = mtpar 
-       dummy = strexpsqq(x,par,thenam(76),thparn(:,76),nthpar(76),ini,idum,params,napar,idum)
+       dummy = strexpsq(x,par,thenam(76),thparn(:,76),nthpar(76),ini,idum,params,napar,idum)
        nthpar(77) = mtpar 
-       dummy = thick_co2(x,par,thenam(77),thparn(:,77),nthpar(77),ini,idum,params,napar,idum)
+       dummy = strexpsqq(x,par,thenam(77),thparn(:,77),nthpar(77),ini,idum,params,napar,idum)
        nthpar(78) = mtpar 
-       dummy = thick_co4(x,par,thenam(78),thparn(:,78),nthpar(78),ini,idum,params,napar,idum)
+       dummy = thick_co2(x,par,thenam(78),thparn(:,78),nthpar(78),ini,idum,params,napar,idum)
        nthpar(79) = mtpar 
-       dummy = th_zcoil1(x,par,thenam(79),thparn(:,79),nthpar(79),ini,idum,params,napar,idum)
+       dummy = thick_co4(x,par,thenam(79),thparn(:,79),nthpar(79),ini,idum,params,napar,idum)
        nthpar(80) = mtpar 
-       dummy = th_zgbic2(x,par,thenam(80),thparn(:,80),nthpar(80),ini,idum,params,napar,idum)
+       dummy = th_zcoil1(x,par,thenam(80),thparn(:,80),nthpar(80),ini,idum,params,napar,idum)
         write(6,*) "Warning to many theories in directory theos"
         write(6,*) "Warning to many theories in directory theos"
         write(6,*) "Warning to many theories in directory theos"

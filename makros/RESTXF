@@ -1,0 +1,24 @@
+makro _f1_ _f2_
+purge all
+in _f1_
+set nqx (nbuf)
+in _f2_
+
+! here more in commands reading further compatible data sets may be added
+
+
+set i 0
+:j1
+  set i (i+1)
+  sel (i)
+  set qx (q)
+  sel all q (qx) band 0.01
+  restran
+if (i) < (nqx) then goto :j1
+
+dir ga1inten
+
+sel (nqx+1) -(nbuf)
+msave last_data_with_resolution
+
+

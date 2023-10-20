@@ -1,9 +1,0 @@
-makro
-mkdir PREVIOUS_STATE
-
-cp last_plotsetting     PREVIOUS_STATE  
-cp datreat_plot_counter PREVIOUS_STATE
-cp lastselections       PREVIOUS_STATE
-cp lastusv              PREVIOUS_STATE
-cp last_datreat_content PREVIOUS_STATE 
-

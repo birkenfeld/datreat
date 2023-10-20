@@ -3193,6 +3193,51 @@ neutron.
 % "#  dt rangeexpand by factor =",range_expand,"  (cmd: uni_tf rexpand <val>) "
 
 
+\section{restran \desc{transfer of resolution function for $S(q,\omega)$ fitting}} 
+\index{restran}
+\index{resolution}
+\index{ga1inten}
+
+
+\begin{exercise}
+Fitting of $S(q,\omega)$ data from instruments like time-of-flight(TOF)- or backscattering(BSS)-
+instruments implies a resolution convolution. Starting from a model for the intermediate
+scattering function $S(q,t)$ this convolution can advantageously be combined with the necessary
+Fourier-transform of $S(q,t)$. In order to do so a representation of the reolution function by
+a sum (up to 8) Gaussians is needed. These may be obatined e.g. by fitting spectra of the cold
+sample with a number of Gaussians (example in makro TOFRES).
+The obtained parameters have to be transferred to the pertaining data records prior to fitting 
+with a theory of the \textit{sqt\_omega} family (e.g. kohl, kohklfast, ..., sqt\_om1),
+see \ref{cha:spec}.
+This transfer is supported by the \textbf{restran} command.
+\end{exercise}
+
+Once the resolution parameters \textit{ga1inten, ga1width, ga1cente, ga2inten, ...} are 
+introduced in the resolution data set by fitting they can/must be transferred to the
+corresponding data records prior to fitting with a model of the \textit{sqt\_omega} family.
+This may be done by the following command sequence:
+\begin{corollary}
+% \sysprompt \enter{cd \emph{Myworkingdirectory}} \return \\
+\dtrprompt {\bf purge all} \return  \\
+\dtrprompt {\bf in} \var{resolution-file} \return  \\
+\dtrprompt {\bf in} \var{data-file}  \return  \\
+\dtrprompt {\bf sel} \var{nq} \return  \\
+\dtrprompt {\bf set qnext (q)} \return  \\
+\dtrprompt {\bf sel all q (qnext) band 0.01} \return  \\
+\dtrprompt {\bf restran}  \return  \\
+\end{corollary}
+
+\textbf{restran} extracts the resolution parameter from the record in the selection list and
+transfers them to all further selected records. Going through all records (nq) of the 
+reolution file the reolution parameters or all $q$-values can be transferred.
+
+
+
+ 
+
+
+
+
 \chapterimage{DatreatLogo.pdf} % Chapter heading image
 \chapter{NSE instrumentation/design}
 
@@ -3966,6 +4011,7 @@ Parameters pushed to records:
 \end{exercise}
 
 \chapter{Spectral functions in ${\omega}$ \desc{General aspects for resolution broadened spectra.}}
+\label{cha:spec}
 \index{spectra}
 \index{resolution convolution}
 Resolution convolution is performed by multiplication of the intermediate scattering function with the
@@ -4052,6 +4098,11 @@ then set a parameters in the data records in order to be available the spectrum 
 \end{tabbing}
 
 {\bf Note:} One may specifiy less than 8 gaussian components, however, 8 is the maximum.
+
+\begin{exercise}
+Use the command \textbf{restran} to transfer fitted resolution parameters from the
+resolution files to the pertaining data! (replaces makro \textit{putres}.
+\end{exercise}
 
 
 \section{Determination of Gaussian resolution parameters}
