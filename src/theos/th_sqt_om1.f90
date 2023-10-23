@@ -39,11 +39,12 @@
      double precision :: nue_a1     ! A1 = a1_0  +  a1_qnue * q**nue_a1 + a2_qnue * q**nue_a2
      double precision :: a2_qnue    ! A1 = a1_0  +  a1_qnue * q**nue_a1 + a2_qnue * q**nue_a2
      double precision :: nue_a2     ! A1 = a1_0  +  a1_qnue * q**nue_a1 + a2_qnue * q**nue_a2
-     double precision :: Bcoh0      ! Bcoh = Bcoh0 +  b1_qnue * q**nue_b1 + b2_qnue * q**nue_b2
-     double precision :: b1_qnue    ! Bcoh = Bcoh0 +  b1_qnue * q**nue_b1 + b2_qnue * q**nue_b2
-     double precision :: nue_b1     ! Bcoh = Bcoh0 +  b1_qnue * q**nue_b1 + b2_qnue * q**nue_b2
-     double precision :: b2_qnue    ! Bcoh = Bcoh0 +  b1_qnue * q**nue_b1 + b2_qnue * q**nue_b2
-     double precision :: nue_b2     ! Bcoh = Bcoh0 +  b1_qnue * q**nue_b1 + b2_qnue * q**nue_b2
+     double precision :: Bcross     ! Coherent crosslink intensity contibution
+     double precision :: Rg_cross   ! Rg of crosslink
+     double precision :: u_cross    ! Fluctuation amplitude of crosslink
+     double precision :: tau_cros   ! time-sclae of crosslink fluctuation
+     double precision :: bet_cros   ! strached exponent for time dependence of crosslink fluctuation
+
 
 
      double precision :: epsilon = 1d-9
@@ -87,7 +88,8 @@
 
      double precision :: EISF       !  
      double precision :: A1         !  
-     double precision :: Bcoh       !
+     double precision :: Sq_cross   !
+    
 
      double precision :: xwidth     !
 
@@ -132,8 +134,18 @@
 ! >>>>> describe theory with >>>>>>> 
        idesc = next_th_desc()
        th_identifier(idesc)   = thnam
-       th_explanation(idesc)  = " combined s(q,omega) and s(q,t) data from an s(q,t) model"
-       th_citation(idesc)     = ""
+       th_explanation(idesc)  = " combined s(q,omega) and s(q,t) data from an s(q,t) model" //cr//parspace//&
+                                " EISF       = (3d0  * besj1(q*r_jump) / (q * r_jump) )**2" //cr//parspace//&
+                                " A1         = a1_0  +  a1_qnue * q**nue_a1 + a2_qnue * q**nue_a2" //cr//parspace//&
+                                " Sq_cross   = Bcross * exp( -((q*Rg_cross)**2)/3d0)" //cr//parspace//&
+                                " fqt = (EISF+(1-EISF)*exp(-(t/tau_inc)**beta_inc)  "  //cr//parspace//&
+                                "      + A1 * exp(-(t/tau_coh)**beta_coh)) "//cr//parspace//&
+                                "      + Sq_cross * exp(   -(q*u_cross)**2 *(1d0-exp(-(t/tau_cros)**bet_cros)) )"
+
+
+
+
+       th_citation(idesc)     = "F. Volino, J.-C. Perrin, and S. Lyonnard, JPChemistry B110,11217–11223 (2006)."
 !       --------------> set the parameter names --->
 
         parnam ( 1) = 'intensit'  
@@ -157,11 +169,11 @@
         parnam (19) = 'nue_a1  '  
         parnam (20) = 'a2_qnue '  
         parnam (21) = 'nue_a2  '  
-        parnam (22) = 'Bcoh0   '  
-        parnam (23) = 'b1_qnue '  
-        parnam (24) = 'nue_b1  '  
-        parnam (25) = 'b2_qnue '  
-        parnam (26) = 'nue_b2  ' 
+        parnam (22) = 'Bcross  '  
+        parnam (23) = 'Rg_cross'  
+        parnam (24) = 'u_cross '  
+        parnam (25) = 'tau_cros'  
+        parnam (26) = 'bet_cros' 
 
 
                                        
@@ -187,16 +199,11 @@
         th_param_desc(19,idesc) = "q-exponent1 of A1 "
         th_param_desc(20,idesc) = "coefficient 2 of A1 =a1_0+a1_qnue*q**nue_a1+a2_nue*q**nue_a2 "
         th_param_desc(21,idesc) = "q_exponent 2 for A1   "
-        th_param_desc(22,idesc) = "constant part of coherent inetnsity B    "
-        th_param_desc(23,idesc) = "q-coefficient 1 of Bcoh   "
-        th_param_desc(24,idesc) = "q_exponent 1 of Bcoh   "
-        th_param_desc(25,idesc) = "q_coefficient 2 of Bcoh   "
-        th_param_desc(26,idesc) = "q-exponent 2 of Bcoh    "
-
-
-
-
-
+        th_param_desc(22,idesc) = "Coherent crosslink intensity contibution  "
+        th_param_desc(23,idesc) = "Rg of crosslink                           "
+        th_param_desc(24,idesc) = "Fluctuation amplitude of crosslink        "
+        th_param_desc(25,idesc) = "time-sclae of crosslink fluctuation       "
+        th_param_desc(26,idesc) = "strached exponent for time dependence of crosslink fluktuation"
 
 
 ! >>>>> describe record parameters used >>>>>>>
@@ -232,9 +239,14 @@
         th_file_param( 28,idesc) = "xwidth  the channel width (close to omega=0) "
 ! >>>>> describe record parameters creaqted by this theory >>>>>>> 
         th_out_param(:,idesc)  = " "
-        th_out_param(  1,idesc) = "tau0_q   > scaled: str_tau0 * (1+jlen*qz**qexpt0)/(qz**qexpt0)"
-        th_out_param(  2,idesc) = "beta_q   > scaled: str_beta * (qz**qexpbeta + beta0)"
-! 
+        th_out_param(  1,idesc) = "tau_inc   > tau_incoherent(q)"
+        th_out_param(  2,idesc) = "beta_inc  > streched exponent for incoherent (EISF) intensity"
+        th_out_param(  3,idesc) = "tau_coh   > tau_coherent(q)"
+        th_out_param(  4,idesc) = "beta_coh  > streched exponent for coherent (A1) intensity"
+        th_out_param(  5,idesc) = "EISF      > incoherent EISF(q)"
+        th_out_param(  6,idesc) = "A1        > coherent local fluctuation A1(q)"
+        th_out_param(  7,idesc) = "Sq_cross  > coherent average crosslink S(q)"
+ 
         th_sqt_om1 = 0.0
  
         RETURN
@@ -262,11 +274,11 @@
       nue_a1        = pa(19)
       a2_qnue       = pa(20)
       nue_a2        = pa(21)
-      Bcoh0         = pa(22)
-      b1_qnue       = pa(23)
-      nue_b1        = pa(24)
-      b2_qnue       = pa(25)
-      nue_b2        = pa(26)
+      Bcross        = pa(22)
+      Rg_cross      = pa(23)
+      u_cross       = pa(24)
+      tau_cros      = pa(25)
+      bet_cros      = pa(26)
 
 ! ---- extract parameters that are contained in the present record under consideration by fit or thc ---
       iadda = actual_record_address()
@@ -404,7 +416,7 @@
      
       EISF       = (3d0  * besj1(q*r_jump) / (q * r_jump) )**2
       A1         = a1_0  +  a1_qnue * q**nue_a1 + a2_qnue * q**nue_a2
-      Bcoh       = Bcoh0 +  b1_qnue * q**nue_b1 + b2_qnue * q**nue_b2
+      Sq_cross   = Bcross * exp( -((q*Rg_cross)**2)/3d0)
 
 !! add hier S(Q,inf) and(?) S(Q,0) of crosslinker blobs
 !!    ScrossInf =
@@ -481,14 +493,14 @@ drs:    do i=1,size(gampli)
       call parset('beta_coh  ',sngl(beta_coh),iadda,ier)
       call parset('EISF      ',sngl(EISF),iadda,ier)
       call parset('A1        ',sngl(A1),iadda,ier)
-      call parset('Bcoh      ',sngl(Bcoh),iadda,ier)
+      call parset('Sq_cross  ',sngl(Sq_cross),iadda,ier)
  
  CONTAINS 
  
 ! subroutines and functions entered here are private to this theory and share its variables 
  
 
-       function fqt_kernel(t)
+       function fqt_kernel(t)     !! DO NOT TOUCH !! the model S(Q,t) function is to be coded in function fqt !!
 !      -----------------------
        implicit none
        double precision, intent(in) :: t
@@ -499,12 +511,12 @@ drs:    do i=1,size(gampli)
        fqt_kernel = fqt(t) * &
                     exp(-1d0/4d0*(str_delta*t)**2) *    &
                     (sin(-t*Omega+0.5d0*t*xwidth)+sin(t*Omega+0.5d0*t*xwidth))/ &   !! this replaces cos(t*Omega)
-                    (t*xwidth) * str_delta                                         !! in order to yield the integral
+                    (t*xwidth) * str_delta                                          !! in order to yield the integral
 
        end function fqt_kernel
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!! die eigentliche Zeitfunktion                                            !!
+!! HERE: the proper model for S(Q,t)                                       !!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
        function fqt(t)
 !      ---------------
@@ -512,20 +524,13 @@ drs:    do i=1,size(gampli)
        double precision, intent(in) :: t
        double precision             :: fqt
 
-!       fqt =  exp(-(t/str_tau0)**str_beta)
+!      all q-dependend BUT time-INDEPENDENT factors are set in the containing bulk theory function ! 
 
 
-       fqt= (EISF+(1-EISF)*exp(-(t/tau_inc)**beta_inc)*A1+(1-A1)*exp(-(t/tau_coh)**beta_coh))+Bcoh
+       fqt=  (EISF+(1-EISF)*exp(-(t/tau_inc)**beta_inc)  & 
+           +  A1 * exp(-(t/tau_coh)**beta_coh))      &
+           +  Sq_cross * exp(   -(q*u_cross)**2 *(1d0-exp(-(t/tau_cros)**bet_cros)) )   ! Volino's expression
 
-       end function fqt
-
-! 
-! 
-! schnittkugel1[q_, 
-!   d_] := (4*Pi/3*(2*Pi/q)^3 - Pi*(2*Pi/q)^2*d + Pi/12*d^3)/(4*
-!     Pi/3*(2*Pi/q)^3)
-!        end function Bcoh
-! 
-! 
+       end function fqt 
 
  end function th_sqt_om1
