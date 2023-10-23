@@ -4823,6 +4823,36 @@ c plot
 \chapter{kohlfast \desc{Spectrum of Kohlrausch fktn. }}
 \index{kohlfast}
 
+\chapter{sqt\_om1 \desc{S(q,t) for system with labelled crosslinkers }}
+\index{sqt\_om1}
+
+The theory applies the Fourier transform Eq. \ref{eq:conv1} to teh following $S(q,t)$:
+
+\begin{eqnarray}
+S(q,t) &=& EISF(q)+(1-EISF(q)) \, \exp[-(t/\tau_{inc})^{\beta_{inc}}]  \cr
+           &+&  A_1(q) \, \exp[-(t/\tau_{coh})^{\beta_{coh}}]       \cr
+           &+&  S(q)_{cross} \, \exp \left (   -(q u_{cross})^2 \,(1-\exp[-(t/\tau_{cross})^{\beta_{cross}}]) \right )  
+\end{eqnarray}
+
+with
+\begin{equation}
+ \tau_{inc,coh}    = \tau_{q;inc,coh} \;  q^{\nu_{inc,coh}} + \tau_{0;inc,coh}
+\end{equation}
+
+\begin{equation}
+ \beta_{inc,coh}    = \beta_{q;inc,coh} \;  q^{\mu_{inc,coh}} + \beta_{0;inc,coh}
+\end{equation}
+
+\begin{equation}   
+      EISF(q)       = [ 3  * j_1(q \,r_{jump}) / (q  r_{jump}) ]^2
+\end{equation}
+\begin{equation}
+      A_1(q)         = a1_0  +  a1_{q,\nu}  q^{\nu_{a1}} + a2_{q,\nu}  q^{\nu_{a2}}
+\end{equation}
+\begin{equation}
+      S(q)_{cross}      = B_{cross} \, \exp[ -\frac{1}{3} (q \,Rg_{cross})^2]
+\end{equation}
+
 
 
 \chapter{nrouse \desc{Rouse single chain structure factor }}
