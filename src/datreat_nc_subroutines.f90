@@ -2356,10 +2356,11 @@ sl:       do j=1,maxstep
        ! use constants
        implicit none
 
-       character*8 pname
+       character(len=8) :: pname
        real pvalue
 
        integer i,np, iadd
+
 
        np = nopar(iadd)
        do 100 i=1,np
@@ -4942,18 +4943,18 @@ sl:       do j=1,maxstep
 
       if(abs(q-xh)/q > 0.1d0) write(*,*)"WARNING: q values don't match: ",i, q, xh, isels(1),isels(i)
 
-      call parset ("_xwidth" ,sngl(xwidth),iadda)
+      call parset ('_xwidth ' ,sngl(xwidth),iadda)
 
       do j=1,size(gai)
          write(buf,'("ga",i0,"inten")') j
-         call parset (buf ,sngl(gai(j)),iadda)
+         call parset (buf(1:8) ,sngl(gai(j)),iadda)
          write(buf,'("ga",i0,"width")') j
-         call parset (buf ,sngl(gaw(j)),iadda)
+         call parset (buf(1:8) ,sngl(gaw(j)),iadda)
          write(buf,'("ga",i0,"cente")') j
-         call parset (buf ,sngl(gac(j)),iadda)
+         call parset (buf(1:8) ,sngl(gac(j)),iadda)
      enddo
      
-     write(*,*)"N-gauss resolution patameter transferred from record:",isels(1),"  to record ",isels(i)
+     write(*,*)"N-gauss resolution parameter transferred from record:",isels(1),"  to record ",isels(i)
      write(*,*)"Do not forget to save the record to pemanently associate the resolution params!"
  
    enddo
