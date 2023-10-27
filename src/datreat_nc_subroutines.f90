@@ -3650,6 +3650,7 @@ sl:       do j=1,maxstep
        double precision :: t0, tx, kell, ejoule, lam_kina, ymx, velocx
        double precision :: flpath=4d0
 !       double precision :: NeutronWavelength_fromE
+       integer          :: ios
 
 
 ! --und nun hier das Einlesen 
@@ -3666,7 +3667,11 @@ sl:       do j=1,maxstep
 !     Nb tot channels, -, -, -, -, nb channels actually used
       read(ikan,'(a)',end=999,err=999) rline
 !      write(6,*)':',rline
-      read(rline,*) nk_tot,idum1,idum2,idum3,idum4,idum5,idum6,nk_act
+      read(rline,*,iostat=ios) nk_tot,idum1,idum2,idum3,idum4,idum5,idum6,nk_act
+      if(ios .ne. 0) then
+         call errsig(7001,'file does not seem to have proper *.inx form!...$')
+         return
+      endif
       write(6,*)'  actual no of channels = ',nk_act
 
 !     COMMENTLINE
@@ -3701,7 +3706,11 @@ sl:       do j=1,maxstep
       do lx=1,nk_act
         read(ikan,'(a)',end=999,err=999) rline
 !        write(6,*)':',rline
-        read(rline,*) xvector(lx),yvector(lx),yervector(lx)
+        read(rline,*,iostat=ios) xvector(lx),yvector(lx),yervector(lx)
+        if(ios.ne.0) then
+         call errsig(7002,'file does not seem to have proper *.inx form!...$')
+         return
+        endif
         if(yvector(lx).gt.ymx) then
            ymx  = yvector(lx)
            kell = lx
