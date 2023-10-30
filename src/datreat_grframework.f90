@@ -516,8 +516,9 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
     else
       np = size(x)
     endif
- 
+
     call gr_polyline(np, x, y)
+    
 
   end subroutine grline
 
@@ -1448,6 +1449,10 @@ write(*,*)"Tgr execute:", trim(gr_string_replace(action,"$plot",trim(gr_plotfile
 !write(*,*)"t00:", inames
         do 3 i=1,inames
           j = inapa(i)
+          if(j<1 .or. j > size(rpar)) then
+            write(*,*)"Plot Warning, error in commandlist!"
+            cycle
+          endif
           if(vname(i).eq.'xmin    ') xmin = rpar(j)
           if(vname(i).eq.'xmax    ') xmax = rpar(j)
           if(vname(i).eq.'ymin    ') ymin = rpar(j)

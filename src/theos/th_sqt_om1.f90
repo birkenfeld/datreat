@@ -473,14 +473,14 @@ drs:    do i=1,size(gampli)
 
         dwf        = exp(-u_sqr*q*q/3.0d0)
 
-        th = intensit * dwf * rsum    
+        th = intensit * dwf * rsum  / fqt(1d-6) 
 
 ! write(*,*)"Tomx:",x,dwf,rsum,th
 
     else
         t  = x
         dwf        = exp(-u_sqr*q*q/3.0d0)
-        th = intensit * dwf * fqt(t) 
+        th = intensit * dwf * fqt(t) /fqt(1d-6)
 ! write(*,*)"Tnse:",x,dwf,th
 
     endif

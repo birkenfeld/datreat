@@ -28,6 +28,7 @@
      double precision   :: tau(n_strexpo)  ! tau_values of streched exponentials
      double precision   :: nue(n_strexpo)  ! tau q exponent
      double precision   :: beta(n_strexpo) ! streching exponents of streched exponentials
+     double precision   :: u_sqr           ! Debeywaller factor generation u**2
 
      double precision :: epsilon = 1d-8    ! integration accuracy
                                            
@@ -90,12 +91,13 @@
      double precision   :: adapint
 
      double precision   :: sqomega_qlimit = 0.00d0   !! for lower q-values automatically s(q,t) is computed
+     double precision, parameter :: virtual_zero_t = 1d-6 !! t~=0 (in ns) to avoid potentialk zero divisions
 
 !
 ! ----- initialisation ----- 
     IF (ini.eq.0) then     
        thnam = 'sqt_omeg'
-       nparx =       2 + 4*n_strexpo 
+       nparx =       2 + 4*n_strexpo + 1
        IF (npar.lt.nparx) then
            WRITE (6,*)' theory: ',thnam,' no of parametrs=',nparx,' exceeds current max. = ',npar
           th_sqt_omeg = 0
@@ -126,6 +128,8 @@
            write(buf,'("beta",i0)') i
            parnam(np) = buf
         enddo
+        parnam(2 + 4*n_strexpo + 1) = "u_sqr   "
+
 
                                        
 ! >>>>> describe parameters >>>>>>> 
@@ -180,7 +184,7 @@
       np = 2
       do i = 1, n_strexpo 
          np = np + 1
-         amp(i) =     pa(np)
+         amp(i) =     abs(pa(np))
          np = np + 1
          tau(i) =     abs(pa(np))
          np = np + 1
@@ -188,6 +192,8 @@
          np = np + 1
          beta(i) =    abs(pa(np))    
       enddo
+      
+      u_sqr      =  (pa(2 + 4*n_strexpo + 1))
 
 
 
@@ -322,6 +328,10 @@
 !?!      write(*,*)"T a tau nue beta:",i, amp(i), tau(i), nue(i), beta(i)
 !?!    enddo
 
+      dwf        = exp(-u_sqr*q*q/3.0d0)
+
+
+
 !     if( nse == 0 .and. is_in_xaxis("omega",iadda)) then
      if( nse == 0 ) then
         gampli(1)   = ga1inten
@@ -372,13 +382,14 @@ drs:    do i=1,size(gampli)
          rsum      = rsum + gampli(i)*res/(2*Pi)*sqrt(Pi)
         enddo drs
 
-        th = intensit * rsum    
+        th = intensit * rsum / fqt(virtual_zero_t) * dwf
 
 !?! write(*,*)"Tomx:",x,rsum,th
 
     else
         t  = x
-        th = intensit  * fqt(t) 
+        th = intensit  * fqt(t)  / fqt(virtual_zero_t) * dwf
+
 !?! write(*,*)"Tnse:",x,th
 
     endif
