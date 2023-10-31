@@ -90,8 +90,9 @@
 
      double precision   :: adapint
 
+     double precision   :: amp_sum
      double precision   :: sqomega_qlimit = 0.00d0   !! for lower q-values automatically s(q,t) is computed
-     double precision, parameter :: virtual_zero_t = 1d-6 !! t~=0 (in ns) to avoid potentialk zero divisions
+     double precision, parameter :: virtual_zero_t = 1d-9 !! t~=0 (in ns) to avoid potentialk zero divisions
 
 !
 ! ----- initialisation ----- 
@@ -397,6 +398,15 @@ drs:    do i=1,size(gampli)
  
 ! ---- writing computed parameters to the record >>>  
 !      call parset('tau_q   ',sngl(tau),iadda,ier)
+! normalize amplitudes and give them as params
+      amp_sum = sum(amp)
+      if(amp_sum <= 0d0) amp_sum = 1d0
+      do i = 1, n_strexpo 
+           write(buf,'("a_norm",i0)') i
+           call parset(buf,sngl(amp(i)/amp_sum),iadda,ier)
+       enddo
+       call parset("debyewfa",sngl(dwf),iadda,ier)
+ 
 
  CONTAINS 
  

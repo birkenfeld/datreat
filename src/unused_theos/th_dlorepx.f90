@@ -174,7 +174,7 @@
  
 ! ---- writing computed parameters to the record >>>  
       re = l * sqrt(ne)
-      call parset('re      ',sngl(re),iadda,ier)
+      call parset('re      ',sngl(re),iadda)
  
  CONTAINS 
  

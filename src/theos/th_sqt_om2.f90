@@ -120,6 +120,7 @@
      double precision   :: adapint
 
      double precision   :: sqomega_qlimit = 0.00d0   !! for lower q-values automatically s(q,t) is computed
+     double precision, parameter :: virtual_zero_t = 1d-9 !! t~=0 (in ns) to avoid potentialk zero divisions
 
 !
 ! ----- initialisation ----- 
@@ -481,14 +482,14 @@ drs:    do i=1,size(gampli)
 
         dwf        = exp(-u_sqr*q*q/3.0d0)
 
-        th = intensit * dwf * rsum  / fqt(1d-6)  
+        th = intensit * dwf * rsum  / fqt(virtual_zero_t)  
 
 ! write(*,*)"Tomx:",x,dwf,rsum,th
 
     else
         t  = x
         dwf        = exp(-u_sqr*q*q/3.0d0)
-        th = intensit * dwf * fqt(t)  / fqt(1d-6)
+        th = intensit * dwf * fqt(t)  / fqt(virtual_zero_t)
 ! write(*,*)"Tnse:",x,dwf,th
 
     endif
