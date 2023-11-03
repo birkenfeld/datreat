@@ -1,0 +1,35 @@
+makro _q_ _temp_                         ! call with q-value and temperature (id), e.g.: treat 0.8 350
+purge all                                ! clear the record stack
+clr all                                  ! clear all user-variables
+  prep_sqt                              ! ONLY TO START WITH A THEORY SETTING (GOOD FRO Q=0.8?) 
+set act_q    (_q_)                       ! set uservariable act_q to the q-values
+set act_temp (_temp_)                    ! set act_temp to the temperature values
+set f_erremu (5)                         ! set the effective weight modificator for the emu data
+in test_temp__emu                        ! read the emu data already prepared to contain the resolution
+sel all q (act_q) band 0.05              ! select the (emu) record with the deired q
+average xcatch 0.05                      ! average data to "clean" the wings
+yformel & (err/f_erremu)                 ! set formula for atrifical error modification of emu data to enhance weight
+seterr                                   ! perform the error modification
+purge rest                               ! get rid of the records that are not to be used (are not selected)
+
+in test_temp__tof                        ! load the tof data (again already prepared with resolution param.)
+sel all q (act_q) band 0.05              ! select the mathcing q-value
+dsl q                                    ! show selections (info only)
+fit maxfn 500 x1 -1000 x2 1000           ! perform the fitting (assuming sqt_omeg is active and setup)
+ 
+chgthpar sqt_omeg 1 amp1 par (abs(a_norm1))  ! repace amp1.. by the automtic normalizes (equivalent amplitudes)  
+chgthpar sqt_omeg 1 amp2 par (abs(a_norm2))  !  "
+chgthpar sqt_omeg 1 amp3 par (abs(a_norm3))  !  "
+chgthpar sqt_omeg 1 amp4 par (abs(a_norm4))  !  "
+                                             ! ...
+
+fit maxfn 1                              ! ensure that the normlized amplitudes are transferred
+
+plot_om                                  ! plot resulting spectra
+fitsav fit1.dat                          ! write (appending) some parameters to fit1.dat (obsolete?)
+clr readlast                             ! clear menwhile irrelevant user-varaible
+clr read1                                !  "
+vars?                                    ! write all usr-variables and append to "datreat_variables_dump.csv"
+                                         ! this includes a time stamp and all fit parameters   
+plotfqt                                  ! plot the corrresponding intermediate scattering function (Fourier-transf.)
+ 

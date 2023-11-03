@@ -1,0 +1,27 @@
+makro 
+set x1 0.1       ! xmin des Plotbereichs
+set x2 1000      ! xmax des Plotbereichs
+       ! hier die aktuellen Achsenbeschriftunge in tex-Kodierung (Plaintext: keins füherenden "$$" einsetzen
+       ! innerhab der Namen sind keine Blanks erlaubt 
+rename xaxis $$t\,\/\,\mathrm{ns}
+       ! x-Achsenbeschriftung
+rename yaxis $$S(Q,t)\/S(Q) 
+       ! y-Achesnbeschriftung
+
+       ! mit plot0 werden diverse grössen etc. gesetzt ohne, dass ein plot erzeugt wird
+plot0 txsize 0.4 legsize 0.263 axtxsize 1.5 axticlen 1 flinewd 1.5 dlinewd 0.75 xlegdist 0.15 ylegdist 0.15
+       !     textgrösse, grösse der legenden(labels), Länge der Ticks, Dicke der Linien Abstand der x,y-Labels  
+plot0 sysize 1  sywid 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+       !     globale Symbolgrösse und einzelne Modifikationsfaktoren
+plot0 symb 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22
+       !     Symboltypen
+plot0 colo 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
+       !     Farben
+plot0 xmin (x1) xmax (x2) log_x ymin 0 ymax 1.05  errors
+       !     Grenzen und Art des Plots
+plot0 txoff
+       !     Abschalten der Informationen in der Legende, mit Infos txon  (eigentlich besser, dann später clipping)
+thc n -200 x1 (x1) x2 (x2)
+       !     Berechnung der Theorie im gesampen Plotbereich
+plot
+       !     Plot!

@@ -2416,6 +2416,34 @@ are also available as variables (use \cmdl{vars?}{} to display! Errors with pref
 be used in the expressions to be \emph{print}ed. The \emph{ssq}-parameter of the recent fit is on
 {\bf ssq0}.
 
+
+\section{vars?   \desc{output of all user-variables on terminal and file }}
+% -----------------------------------------------------------------------------------------------
+\index{vars?}
+\index{saving result values/parameters to a file}
+\index{extract theory parameters}
+\index{user variables}
+
+\begin{exercise}
+Outputs a list of all active (including automatically created ones) in the active terminal and
+by appending a line to the default comma separated file \textit{datreat\_variables\_dump.csv}.
+\end{exercise}
+
+\begin{corollary}
+% \sysprompt \enter{cd \emph{Myworkingdirectory}} \return \\
+\dtrprompt \cmdl{print}{vars?}  \expl{Outputs all actual variables.}  \return  
+\end{corollary}
+
+\linespace
+{\bf Note1:} The \textit{datreat\_variables\_dump.csv} starts with a time stamp followed by comma separated
+variable names and values. It may be read (imported) by common spreadsheet programs like Excel or Numbers.
+ 
+\linespace
+{\bf Note2:} The last (only!) active instance of a theory parameters are 
+automatically stored on user-variables and 
+can so be saved/listed. The \emph{ssq}-parameter of the recent fit is on
+{\bf ssq0}.
+
 \section{table \var{tabname} [open | | close] \var{par1} ... \var{par...}  \desc{creating a tex-table containing some parameters}}
 % -----------------------------------------------------------------------------------------------
 \index{table}
@@ -4826,7 +4854,7 @@ c plot
 \chapter{sqt\_om1 \desc{S(q,t) for system with labelled crosslinkers }}
 \index{sqt\_om1}
 
-The theory applies the Fourier transform Eq. \ref{eq:conv1} to teh following $S(q,t)$:
+The theory applies the Fourier transform Eq. \ref{eq:conv1} to the following $S(q,t)$:
 
 \begin{eqnarray}
 S(q,t) &=& EISF(q)+(1-EISF(q)) \, \exp[-(t/\tau_{inc})^{\beta_{inc}}]  \cr
@@ -4852,6 +4880,77 @@ with
 \begin{equation}
       S(q)_{cross}      = B_{cross} \, \exp[ -\frac{1}{3} (q \,Rg_{cross})^2]
 \end{equation}
+
+
+
+\chapter{sqt\_omeg \desc{S(q,t) general form described by a sum of stretched exponentials }}
+\index{sqt\_omeg}
+
+The theory applies the Fourier transform Eq. \ref{eq:conv1} to the following $S(q,t)$:
+
+\begin{eqnarray}
+S(q,t) &=& I_0 \, \times \, e^{-\langle u^2 \rangle q^2/3} \, \times \, \sum_{i=1}^6{a_i \exp[-(t/\tau_i(q))^{\beta_i}]}
+\end{eqnarray}
+
+with
+
+\begin{equation}
+a_i = \frac{A_i}{ \sum_i {A_i}}
+\end{equation}
+i.e. automatic normalisation, an overall amplitude factor can be specified by ${I_0}$ possibly modulated
+by the Debye-Waller factor depending on ${\langle u^2 \rangle}$.
+I.e. always keep at least one of the ${A_i}$-parameters fixed.
+
+And 
+
+\begin{equation}
+ \tau_{i}(q)    = \tau_i \, q^{\nu_{i}} 
+\end{equation}
+
+\linespace
+
+Direct theory parameters ( (fit)parameters in model definition ):
+\begin{tabbing}
+\textbf{keyword-----}  \= command name, it is the first item of the command \= pretreat   \=   \kill     
+\textbf{intensit } \>  $I_0$, standard pre factor                                               \>  --  \> yes  \\    
+\textbf{omega0   } \>  $\omega_0$, offset of the FT omega scale                                 \>  --  \> yes  \\
+\textbf{amp1 }     \>  $A_1$, amplitude of 1st (i-th) stretched exp.                            \>  abs \> yes  \\      
+\textbf{tau1 }     \>  $\tau_1$, time constant of  1st (i-th) stretched exp.                    \>  abs \> yes  \\
+\textbf{nue1 }     \>  $\nu_1$, exp. of q-dependence of  (i-th) stretched exp.              \>  --  \> yes  \\
+\textbf{beta1 }    \>  $\beta_1$, exp. of of  (i-th) stretched exp.  \>  abs \> yes  \\
+\textbf{amp2 }     \>  $A_2$, amplitude of 2nd (i-th) stretched exp.                            \>  abs \> yes  \\      
+\textbf{tau2 }     \>  $\tau_2$, time constant of  2nd (i-th) stretched exp.                    \>  abs \> yes  \\
+\textbf{nue2 }     \>  $\nu_2$, exp. of q-dependence of 2nd (i-th) stretched exp.           \>  --  \> yes  \\
+\textbf{beta2 }    \>  $\beta2$, exp. of  2nd (i-th) stretched exp.\>  abs \> yes  \\
+.... \\
+\textbf{amp6 }     \>  $A_6$, amplitude of 6th (i-th) stretched exp.                            \>  abs \> yes  \\      
+\textbf{tau6 }     \>  $\tau_6$, time constant of  6th (i-th) stretched exp.                    \>  abs \> yes  \\
+\textbf{nue6 }     \>  $\nu_6$, exp. of q-dependence of 6th (i-th) stretched exp.           \>  --  \> yes  \\
+\textbf{beta6 }    \>  $\beta6$, exp. of 6th (i-th) stretched exp.\>  abs \> yes  \\
+\textbf{u:sqr }    \>  $\langle u^2 \rangle$, u-squared for Debye-Waller factor                 \>  abs \> yes  \\
+
+\end{tabbing}
+
+
+\linespace
+Used record parameters: 
+\begin{tabbing}
+\textbf{keyword--}  \= command name, it is the first item of the command line                    \kill
+\textbf{q   } \>  $q$ momentum transfer of record data         \\         
+\textbf{nse } \>  flag: if = 1 compute $S(q,t)$ instead of $S(q,\omega)$        \\         
+\end{tabbing}
+
+\linespace
+Parameters pushed to records:
+\begin{tabbing}
+\textbf{keyword--}  \= command name, it is the first item of the command line                    \kill
+\textbf{a\_norm1} \>  $a_1$ normalized amplitude of 1st streched exp.   \\         
+\textbf{a\_norm2} \>  $a_2$ normalized amplitude of 2nd streched exp.   \\ 
+... \\        
+\textbf{a\_norm6} \>  $a_6$ normalized amplitude of 6th streched exp.   \\         
+  
+\end{tabbing}
+
 
 
 

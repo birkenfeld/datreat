@@ -1,4 +1,59 @@
 !! Collection of string utilities that may be useful
+module times_module
+    use, intrinsic :: iso_c_binding, only: c_long
+    implicit none
+
+    interface
+        ! time_t time(time_t *tloc)
+        function c_time(tloc) bind(c, name='time')
+            import :: c_long
+            integer(kind=c_long), intent(in), value :: tloc
+            integer(kind=c_long)                    :: c_time
+        end function c_time
+    end interface
+
+    integer(kind=8) :: unix
+
+    integer :: dt(8), year,month,day,hour,minute,second
+    real    :: beats
+    character(len=8) :: date  ! in form ccyymmdd.
+    character(len=10):: Time  ! in form hhmmss.sss.
+    character(len=5) :: Zone  ! in form (+-)hhmm, representing the difference with respect to UTC.
+    character(len=80) :: time_string
+CONTAINS
+  subroutine get_times
+
+    unix = c_time(int(0, kind=8))
+!    print '(i0)', unix
+
+    call date_and_time(time,date,zone,dt)
+
+    year  = dt(1)
+    month = dt(2)
+    day   = dt(3)
+    hour  = dt(5)
+    minute= dt(6)
+    second= dt(7)
+
+
+    write(time_string, '(i4, 5(a, i2.2))') dt(1), '/', dt(2), '/', dt(3), ' ', &
+                              dt(5), ':', dt(6), ':', dt(7)
+!    beats = (dt(7) + ((dt(6) - dt(4) + 60) * 60) + (dt(5) * 3600)) / 86.4
+!    print '("Beats: @", f0.2)', beats
+
+!    write(*,*) date,"   ",Time,"   ",Zone
+!
+!    write(*,*) "year   ",year    
+!    write(*,*) "month  ",month 
+!    write(*,*) "day    ",day   
+!    write(*,*) "hour   ",hour  
+!    write(*,*) "minute ",minute
+!    write(*,*) "second ",second
+
+ end subroutine get_times
+
+end module times_module  
+
 
 module strings_module
   implicit none
@@ -652,6 +707,7 @@ MODULE new_com
   public  :: setudf
   public  :: clrudf
   public  :: shwudf
+  public  :: udf_to_csv
   public  :: settit
 
   public ::  copy_chars
@@ -1655,6 +1711,7 @@ CONTAINS
     if(comand.eq.'vars?   ') then
        !                    ----------------> uservars display
        call shwudf
+       call udf_to_csv
        goto 8888
     endif
      !
@@ -3845,6 +3902,26 @@ CONTAINS
     endif
     return
   END subroutine shwudf
+
+
+  subroutine udf_to_csv
+    !     -----------------
+    use times_module
+    implicit none
+    integer :: i, ou
+
+    if(nousev.eq.0) return
+    ! dump all variables to file datreat_variables_dump.csv
+    open(newunit=ou,file="datreat_variables_dump.csv",status='unknown',position='append')
+
+    call get_times
+    write(ou,'(a)',advance="no")trim(time_string)
+    do i=1,nousev
+        write(ou,'(" ,",a,",",e14.7)',advance="no") usenam(i),useval(i)
+    enddo
+
+    close(ou)
+  END subroutine udf_to_csv
 
   !:::      integer function inpaf(iaddr)
   !:::!-----------------------------------------------------------------------

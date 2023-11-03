@@ -3568,11 +3568,11 @@ drer1:    do ik=1,n
                xxxx = xwerte(i,ia)
                yyyy = ywerte(i,ia)
                yyee = yerror(i,ia)
-write(*,'(a,a,4f12.6)')"TEST: form1=",trim(yformel),xxxx,yyyy,yyee
+!write(*,'(a,a,4f12.6)')"TEST: form1=",trim(yformel),xxxx,yyyy,yyee
                call evaluate(yformel,val8y,iery)
-write(*,*)"evaluate: ",trim(yformel), val8y, iery
+!write(*,*)"evaluate: ",trim(yformel), val8y, iery
                yerror(i,ia) = val8y
-write(*,'(a,a,4f12.6)')"TEST: form2=",trim(yformel),xxxx,yyyy,yyee,val8y
+!write(*,'(a,a,4f12.6)')"TEST: form2=",trim(yformel),xxxx,yyyy,yyee,val8y
            enddo
           enddo
          goto 2000
